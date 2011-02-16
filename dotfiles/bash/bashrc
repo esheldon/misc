@@ -109,7 +109,7 @@ if [ -e /bin/arch ]; then
 fi
 export FLAVOR
 
-for f in path eups ssh-agent perl python java cvs aliases ls_colors idl_setup gdl_setup pg_setup misc des_setup boss_setup oracle proxy term go d gems localvars fortran fink; do
+for f in path eups ssh-agent perl python java cvs aliases ls_colors idl_setup gdl_setup pg_setup misc des_setup boss_setup oracle proxy term go d gems localvars fortran fink git; do
     local_file="$dotfileDir/$f.sh"
     default_file="$defaultDotfileDir/$f.sh"
 
