@@ -1,0 +1,135 @@
+#!/bin/sh
+
+WRONG_ARGS=65
+dargs=3
+if [ $# -lt $dargs ]
+then
+    echo "Syntax: `basename $0` -oabl run rerun disk"
+    echo " Gets tsObj/tsField files from calibChunks directory for input run/rerun"
+    echo " Must be run on the cheops machine its copying to"
+    echo " disk=The name of the local disk.  \"data0\" or \"data1\", etc"
+    echo "   assumes /net/\$host/\$disk/..."
+    echo
+    echo " -o: get fpAtlas/psField/fpM files from objcs directory instead tsObj,etc"
+    echo " -a: get asTrans file from astrom dir instead of tsObj, etc"
+    echo " -c: get the tsObj, etc from calibChunks dir. This is the default"
+    echo " -b: run in the background, output to log file wget.log"
+    echo " -l: copy to imaging.linked directory instead of imaging.local"
+    exit $WRONG_ARGS
+fi
+
+run=$1
+rerun=$2
+disk=$3
+
+logfile="wget.log"
+
+############
+# defaults
+############
+
+# run in the background?
+back=" "
+
+# local directories
+imaging_dir="imaging.local"
+subdir="calibChunks"
+
+# remote directory on host
+remote_subdir="calibChunks"
+
+# what files to get?
+accept="tsObj*,tsField*"
+
+#############################################
+# check options to override these defaults
+#############################################
+
+while getopts "oacbl" Option
+do
+  case $Option in
+      o) # get objcs
+	  echo
+	  echo Getting objcs
+	  subdir="objcs"
+	  remote_subdir="objcs"
+	  accept="fpAtlas*,fpM*,psField*,ps,dat"
+	  ;;
+      a) # get asTrans File
+	  echo
+	  echo getting asTrans
+	  subdir="astrom"
+	  remote_subdir="astrom"
+	  accept="asTrans*"
+	  ;;
+      c) ;; # this is the default
+      b) back=" --background --output-file=$logfile ";;
+      l) imaging_dir="imaging.linked";;
+      *) exit $WRONG_ARGS;;
+  esac
+done
+
+# Decrements the argument pointer so it points to next argument.
+shift $(($OPTIND - 1))
+
+# run/rerun/disk
+run=$1
+rerun=$2
+disk=$3
+
+#where we store the data locally
+hname=`hostname`
+hname=`echo $hname | sed "s/\..*//g"` #only first part of name
+datadir="/net/${hname}/${disk}/${imaging_dir}"
+
+#switch to local directory
+olddir=$cwd
+localdir="$datadir/$run/$rerun/$subdir"
+cd $localdir
+
+# did directory switch work?
+test=$?
+if [ $test -ne 0 ] 
+then
+    exit $test
+fi
+
+#host, etc.
+host="http://das.sdss.org"
+
+# old remote dir
+# remotedir="imagingRoot/$run/$rerun/$remote_subdir/"
+
+# new remote dir
+remotedir="data/dp30.a/data/$run/$rerun/$remote_subdir/"
+# depth of this directory
+cut_dirs=6
+
+user="sdss"
+passwd="54chips"
+
+
+# arguments to wget.
+wgetargs=" --mirror --dot-style=mega -nH --cut-dirs=$cut_dirs --no-parent --tries 50 "
+wgetargs="$wgetargs $back --accept $accept "
+
+echo
+echo "Run: $run Rerun: $rerun"
+echo "Copying to: $localdir"
+echo "Copying from: $remotedir"
+echo
+
+
+# quoted thing treated as one arg, so don't quote $wgetargs. 
+# Also separate other arguments
+wget $wgetargs "${host}/$remotedir" "--http-user=$user" "--http-passwd=$passwd"
+
+if [ "$back" != " " ]
+then
+    echo "run this command to follow log file:"
+    echo "tail -f $localdir/$logfile"
+fi
+
+cd $olddir
+
+exit 0

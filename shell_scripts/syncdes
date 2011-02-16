@@ -1,0 +1,23 @@
+#!/bin/bash
+
+includes=""
+excludes=""
+if [ $# -gt 0 ]; then
+	band=$1
+	includes="--include=*-$band-*"
+	#includes="--include=/20081020111421_20081003"
+	#includes="$includes --include=/20081020111421_20081003/*"
+	#includes="$includes --include=/20081020111421_20081003/*/*"
+	#includes="$includes --include=/20081020111421_20081003/*/*/*-$band-*"
+
+	includes="--include=/*"
+	includes="$includes --include=/*/*"
+	includes="$includes --include=/*/*/*-$band-*"
+	includes="$includes --include=/*/*/*-$band-*/*-$band-*"
+
+	excludes="--exclude=*"
+fi
+echo "includes: $includes"
+echo "excludes: $excludes"
+#rsync --dry-run -e 'ssh -o "TcpRcvBufPoll yes"' -av $includes $excludes des03.fnal.gov:/blue-orch/Archive/DES/red/ .
+rsync -e 'ssh -o "TcpRcvBufPoll yes"' -ahP $includes $excludes des03.fnal.gov:/blue-orch/Archive/DES/red/ .

@@ -1,0 +1,6 @@
+# vim: set filetype=python :
+
+#ds = Object('DynamicStruct.cpp')
+#Program(['test.cpp','DynamicStruct.cpp'])
+Program(['test.cpp'])
+#Program('test.cpp')

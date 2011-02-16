@@ -1,0 +1,1184 @@
+host information, ip addresses, etc 
+----------------------------------------
+
+
+We got the names approved and got ip addresses.  We had to get the mac
+addresses and register them with the ips online (Ask Tom, I watched
+but did not do this)
+
+For bach01:
+
+/etc/sysconfig/network
+NETWORKING=yes
+NETWORKING_IPV6=yes
+HOSTNAME=bach01.astro.bnl.gov
+GATEWAY=130.199.184.24
+
+/etc/sysconfig/network-scripts/ifcfg-eth0
+# Intel Corporation 80003ES2LAN Gigabit Ethernet Controller (Copper)
+DEVICE=eth0
+DHCPCLASS=
+HWADDR=00:1E:8C:C0:42:89
+ONBOOT=yes
+BOOTPROTO=static
+IPADDR=130.199.184.61
+BROADCAST=130.199.184.255
+NETWORK=130.199.184.0
+
+Can do 
+> service network restart
+
+and these will begin working.  But note I had to reboot to get the hostname to
+show up in uname.
+
+
+resolving names properly
+-------------------------
+/etc/resolve.conf
+
+nameserver 130.199.6.12
+nameserver 130.199.6.11
+nameserver 130.199.6.10
+search astro.bnl.gov lst.bnl.gov rcf.bnl.gov
+
+
+ntp setup:
+-------------------
+
+/etc/ntp.conf
+restrict default ignore
+restrict 127.0.0.1
+driftfile /etc/ntp/drift
+broadcastdelay 0.008
+#authenticate yes
+#keys /etc/ntp/keys
+restrict 130.199.6.10 nomodify notrap noquery
+server 130.199.6.10
+restrict 130.199.6.11 nomodify notrap noquery
+server 130.199.6.11
+restrict 130.199.6.12 nomodify notrap noquery
+server 130.199.6.12
+
+/etc/ntp/step-tickers
+130.199.6.10 130.199.6.11 130.199.6.12
+
+
+ordo
+------------------------------
+http://ordo.bnl.gov/docs/INSTALL
+
+groupadd -g 150 ordo
+#adduser -u 10000 -g ordo -d /var/lib/ordo ordo
+useradd -u 10000 -g ordo -d /var/lib/ordo ordo
+
+pass: ordoLenZ2009 but with some substitutions
+
+I dowloaded the .tar file into ~ordo/local/ordo
+
+ran ./client/ordo-init
+
+took defaults except for email, which I set to my personal and
+why ordo, why, must I pretend this makes sense?
+
+When generating gpg key, there was a long pause...?  It says it may temporarily
+halt if the system's entropy has been exhausted? Finally timed out, but seems
+to have worked.
+
+banner
+--------------
+Added banner to 
+/etc/issue.net
+And added this to /etc/ssh/sshd_config
+Banner /etc/issue.net
+
+raid controller
+----------------------
+
+One of the raid controllers was acting up.  Some of the disks were turning up
+NOT-PRESENT when we ran
+
+tw_cli info c7
+
+I pulled out the card and reseated it, after reboot all was fine.
+
+
+raid5 on 3 1Tb disks on lancelot machines
+-------------------------------------------
+
+on bach00 I mounted this as /home.  The /etc/fstab
+/dev/md0                /home                   ext3    defaults        1 2
+on the others I mounted as /scratch
+/dev/md0                /scratch                ext3    defaults        1 2
+
+I also made a directory on bach00 called /scratch and linked ~esheldon/data to
+/scratch/esheldon to mirror what I'm doing with the other machines.
+
+
+Here is some info for a healthy raid array:
+
+[root@bach01 ~]# cat /proc/mdstat
+Personalities : [raid6] [raid5] [raid4]
+md0 : active raid5 sdd1[2] sdc1[1] sdb1[0]
+     1953519616 blocks level 5, 256k chunk, algorithm 2 [3/3] [UUU]
+
+
+[root@bach01 ~]# cat /proc/partitions
+major minor  #blocks  name
+
+  8     0  244198584 sda
+  8     1     104391 sda1
+  8     2    4192965 sda2
+  8     3  239898645 sda3
+  8    16  976762584 sdb
+  8    17  976760001 sdb1
+  8    32  976762584 sdc
+  8    33  976760001 sdc1
+  8    48  976762584 sdd
+  8    49  976760001 sdd1
+  9     0 1953519616 md0
+
+
+
+
+on bach00 we had a problem because we had removed one of the disks at
+one point when debugging the big raid array on tutti:
+
+[root@bach00 etc]# cat /proc/mdstat
+Personalities : [raid6] [raid5] [raid4]
+md0 : active raid5 sdd1[2] sdc1[1]
+      1953519616 blocks level 5, 256k chunk, algorithm 2 [3/2] [_UU]
+
+I ran this command to "hot add" the disk, which I knew was there, and
+it began rebuilding:
+[root@bach00 etc]# mdadm /dev/md0 -a /dev/sdb1
+mdadm: re-added /dev/sdb1
+
+[root@bach00 etc]# cat /proc/mdstat
+Personalities : [raid6] [raid5] [raid4]
+md0 : active raid5 sdb1[0] sdd1[2] sdc1[1]
+      1953519616 blocks level 5, 256k chunk, algorithm 2 [3/2] [_UU]
+      [=======>.............]  recovery = 37.1% (362999864/976759808) finish=212.8min speed=48057K/sec
+
+tutti file system mounts
+--------------------------
+moved mount points for raid arrays to
+/export/tutti0
+/export/tutti1
+
+nfs exporting
+------------------------
+	I'm exporting /home from bach00 to the other machines. in /etc/exports:
+	/home/users bach01.astro.bnl.gov(rw) bach02.astro.bnl.gov(rw) bach03.astro.bnl.gov(rw) tutti.astro.bnl.gov(rw)
+
+	NOTE: don't try to mount /home, won't work since / is already
+	a mount point. Instead mount /home/users
+
+	Exporting /export/tutti0 and /export/tutti1 from tutti to the others.  On those
+	machines these will appear as /mount/tutti0 and /mount/tutti1 
+
+	I ran service nfs restart on each machine that exported.
+
+auto-mounting nfs file systems
+-------------------------------
+
+	I put this in /etc/auto.master
+	/mount  /etc/auto.mount --timeout=120
+
+	and on machines other than bach00:
+	/home	/etc/auto.home	--timeout=120
+
+
+
+	and in /etc/auto.mount
+	tutti0  -rw,soft,intr,tcp       tutti.astro.bnl.gov:/export/tutti0
+	tutti1  -rw,soft,intr,tcp       tutti.astro.bnl.gov:/export/tutti1
+
+	/etc/auto.home
+	users    -rw,soft,intr,tcp       bach00.astro.bnl.gov:/home/users
+
+	note it the auto.master file maps the first entry on each line of auto.mount to
+	the /mount directory.
+
+	I ran service autofs restart.
+
+
+nfs speed
+---------------
+	**	NFS is *really* slow.  I tried substituting ip addresses for names but it did
+		not help
+
+
+
+global link area
+----------------------
+Other than the home area, we only mount
+  data machines --> cpu machines
+
+we have no plan for any mounts between data machines or between cpu machines.
+So the only way to have such an area is to re-create the links on every
+machine.  On each machine we create /global/data which holds the links.
+
+
+Todo:
+---------------
+Test the array, writing big files and deleting them.  Begin copying some SDSS data and DES simulations.
+
+We actually have raided disks not being mounted on bach*. Mount these.
+	* as /home on bach00 and then nfs mount this to the other machines also under /home
+	* as /data1 on the other machines
+
+NFS mounting /home from bach00 to bach01,02,03 and tutti.
+NFS mounting /data1 and /data2 from tutti to bach*
+
+Get some extra 1Tb disks as replacements.  1 or 2?
+
+Can we pull out and replace a disk in one of these array?
+
+Set up authentication of accounts to bach00. LDAP?
+
+user accounts
+------------------------
+Added an astro group
+
+groupadd -g 200 astro
+
+planned user area under /home
+adduser -g astro -d /home/guest guest
+
+
+yum
+---------------------
+need to set proxy= in /etc/yum.conf
+
+Also gpg download will fail because it does not consult yum.conf!  But all you
+have to do is export http_proxy in the shell to get this to work, although I 
+was not able to get it to work via sudo
+
+sudo
+---------------------------
+as root:  /usr/sbin/visudo
+add this line:
+esheldon ALL=(ALL) ALL
+
+
+yum installs:
+------------------------------
+
+NOTE:  for the most part we will not install any new 
+software on tutti, the file server.  The following applies
+to bachNN unless explicitly specified
+
+get the .repo file from http://download.opensuse.org/repositories/home:/ashigabou/CentOS_5/home:ashigabou.repo and put it in /etc/yum.repos.d
+
+then sudo yum update
+(note, this resulted in a big update because Centos 5.3 became available, see below)
+
+Then you can install what you need
+
+note must install refblas3 before scipy because scipy depends on blas which
+conflicts with refblas3.
+
+on the i386 virtual machine:
+
+yum install refblas3.i386
+yum install lapack3.i386
+yum install python-scipy.i386
+
+For x86_64, trying:
+yum install refblas3.x86_64
+yum install refblas3-devel.x86_64
+yum install lapack3.x86_64
+yum install lapack3-devel.x86_64
+
+or
+
+yum install refblas3.x86_64 refblas3-devel.x86_64 lapack3.x86_64 lapack3-devel.x86_64
+
+
+
+Seemed to work fine, tmv finds and compiles against it.
+
+Now for numpy/scipy:
+
+yum install python-scipy.x86_64
+
+problem with signature.  Had to turn off gpgcheck in the
+/etc/yum.repos.d/home_ashigabou.repo file
+
+
+matplotlib:
+
+	No matplotlib, so have to compile
+	need tk and Tkinter for a back end:
+		yum install tk-devel.x86_64 (also installed tcl-devel)
+		yum install tkinter.x86_64
+
+	matplotlib picks these up fine and compiles.  Give some warnings about
+	certain libraries, but so far so good.  basical functionality seems to be
+	there.
+
+
+yum tutti:
+--------------------
+I did the ashigabou above.  On starting python I got this:
+
+ImportError: libg2c.so.0: cannot open shared object file: No such file or directory
+
+tried this: 
+    yum install compat-libf2c-34.x86_64
+
+Then numpy imported.
+
+c++ did not come installed:
+yum install gcc-c++
+
+yum updates
+-----------------------------------
+
+bachNN:
+
+On 2009-04-08 ran yum update on bach00 after adding ashigabou repo.   This
+updated to centos 5.3, so it was a huge update.  
+
+Config file issues:
+
+new config files were installed as file.rpmnew.  In one case, /etc/init.d/ldap
+the old one was replaced and a rpmsave file was created.  There were 70 of
+these rpmnew files on the system after the update.
+
+We had altered a number of the files ourselves, so there were a few issues.
+Here is a list from bach00 of the files for which file and file.rpmnew were
+different:
+
+difference found: /etc/issue.net /etc/issue.net.rpmnew
+difference found: /etc/issue /etc/issue.rpmnew
+difference found: /etc/ldap.conf /etc/ldap.conf.rpmnew
+difference found: /etc/sensors.conf /etc/sensors.conf.rpmnew
+difference found: /etc/smartd.conf /etc/smartd.conf.rpmnew
+difference found: /etc/sudoers /etc/sudoers.rpmnew
+difference found: /etc/yum.conf /etc/yum.conf.rpmnew
+difference found: /etc/openldap/slapd.conf /etc/openldap/slapd.conf.rpmnew
+difference found: /etc/pam.d/system-auth /etc/pam.d/system-auth.rpmnew
+Also /etc/init.d/ldap the old one was moved to ldap.rpmsave
+
+For /etc/init.d/ldap where the file was replaced and a rpmsave file was
+created.  We had to re-insert the changes Tom had made.  
+
+old /etc/sudoers had a bug using the path /usr/sbin/updatedb when the actual
+path is /usr/bin/updatedb.  The rpmnew version had corrected this, and I copied
+it in.
+
+old yum.conf had proxy set, new one just changes installonly_limit to 5, this
+is how many kernels are kept around.  We kept old file.
+
+Still need to look in detail at some of the others, but according to Tom:
+
+	> difference found: /etc/issue.net /etc/issue.net.rpmnew
+	BNL banner - OK
+	> difference found: /etc/issue /etc/issue.rpmnew
+	Old lists the old root password
+	> difference found: /etc/ldap.conf /etc/ldap.conf.rpmnew
+	Modified by us - OK
+	> difference found: /etc/sensors.conf /etc/sensors.conf.rpmnew
+	You say ASL modified this, so should be OK
+	> difference found: /etc/smartd.conf /etc/smartd.conf.rpmnew
+	the .rpmnew has the default, old has 4 disks explicitly
+	> difference found: /etc/sudoers /etc/sudoers.rpmnew
+	The path to updatedb should be fixed
+	> difference found: /etc/yum.conf /etc/yum.conf.rpmnew
+	Old has proxy config.  New changes "installonly_limit" from 3 to 5
+	> difference found: /etc/openldap/slapd.conf
+	>  /etc/openldap/slapd.conf.rpmnew
+	Modified by us - ok
+	> difference found: /etc/pam.d/system-auth /etc/pam.d/system-auth.rpmnew
+	Modified by us - ok
+
+
+
+tutti
+
+As shipped, these were installed with a centosplus temporarily enabled:
+
+	yum --enablerepo=centosplus install kmod-xfs xfsprogs
+
+and kernel updates were turned off with no=kernel* in [updates] in
+/etc/yum.repos.d/CentOS-Base.repo
+
+I first wanted to update without trying to update kernel and xfs, but it wanted
+to install the kernel updates anyway for the move to 5.3.  I had to add this to
+the [base] section of the /etc/yum.repos.d/CentOS-Base.repo file no=kernel*
+
+before this was just set under [updates]
+
+when done there was an rpmsave file:
+/etc/rc.d/init.d/halt.rpmsave
+
+the difference seems to relate to UPS, but we don't actually have one attached
+so it shouldn't be a problem.  Also something about swap but again probably not
+important.
+
+
+I installed the updates without kernel updates.  Afterward, nfs was no longer
+started at boot.  Had to re-add with ntsysv
+
+
+Now:
+Can I upgrade the kernel and xfs packages for centos 5.3?
+
+Trying to temporarily enable kernel updates and centosplus, then running yum update.  Hmmm...., this is what I got:
+
+================================================================================================================================================================
+ Package                                     Arch                       Version                                            Repository                      Size
+================================================================================================================================================================
+Installing:
+ kernel                                      x86_64                     2.6.18-128.1.6.el5.centos.plus                     centosplus                      18 M
+ kernel-devel                                x86_64                     2.6.18-128.1.6.el5.centos.plus                     centosplus                     5.2 M
+Updating:
+ NetworkManager                              x86_64                     1:0.7.0-4.el5_3                                    updates                        1.0 M
+ NetworkManager                              i386                       1:0.7.0-4.el5_3                                    updates                        1.0 M
+ NetworkManager-glib                         x86_64                     1:0.7.0-4.el5_3                                    updates                         81 k
+ NetworkManager-glib                         i386                       1:0.7.0-4.el5_3                                    updates                         80 k
+ NetworkManager-gnome                        x86_64                     1:0.7.0-4.el5_3                                    updates                        336 k
+ device-mapper-multipath                     x86_64                     0.4.7-23.el5_3.2                                   updates                        2.4 M
+ gstreamer-plugins-base                      i386                       0.10.20-3.0.1.el5_3                                updates                        952 k
+ gstreamer-plugins-base                      x86_64                     0.10.20-3.0.1.el5_3                                updates                        962 k
+ kernel-headers                              x86_64                     2.6.18-128.1.6.el5.centos.plus                     centosplus                     951 k
+ kpartx                                      x86_64                     0.4.7-23.el5_3.2                                   updates                        422 k
+ krb5-devel                                  x86_64                     1.6.1-31.el5_3.3                                   updates                        1.9 M
+ krb5-devel                                  i386                       1.6.1-31.el5_3.3                                   updates                        1.8 M
+ krb5-libs                                   x86_64                     1.6.1-31.el5_3.3                                   updates                        672 k
+ krb5-libs                                   i386                       1.6.1-31.el5_3.3                                   updates                        660 k
+ krb5-workstation                            x86_64                     1.6.1-31.el5_3.3                                   updates                        900 k
+ php                                         x86_64                     5.1.6-23.2.el5_3                                   updates                        1.2 M
+ php-cli                                     x86_64                     5.1.6-23.2.el5_3                                   updates                        2.2 M
+ php-common                                  x86_64                     5.1.6-23.2.el5_3                                   updates                        152 k
+ php-ldap                                    x86_64                     5.1.6-23.2.el5_3                                   updates                         37 k
+ systemtap                                   x86_64                     0.7.2-3.el5_3                                      updates                        1.1 M
+ systemtap-runtime                           x86_64                     0.7.2-3.el5_3                                      updates                         54 k
+
+Transaction Summary
+================================================================================================================================================================
+Install      2 Package(s)
+Update      21 Package(s)
+Remove       0 Package(s)
+
+
+There is no xfs module here, would expect these to be updated too:
+	kmod-xfs xfsprogs
+
+But according to Michael Madore at ASL, there is no update for these; the
+version we have 0.4-2 should work with the new kernel.  So I did the above
+updates and all looks OK.
+
+More from Michael Madore:
+
+	Since there is no guarantee that a future kernel update won't break the XFS
+	module, I think it is safer to handle the updates of kernel and centosplus
+	manually.  Also, centosplus also contains kernels of it's own, so you want
+	to make sure you always upgrade only the xfs components when enabling that
+	repository.
+
+kerberos:
+----------------------------------
+first on my local machien:
+
+installed krb5 stuff.  I think it is at least these packages:
+
+krb5-clients, krb5-config, krb5-user, and libpam-krb5.
+
+tried kinit esheldon@fnal.gov but it didn't work until I added this stuff
+to the /etc/krb5.conf:
+
+    *  In the [realms] section, add
+
+	FNAL.GOV = {
+        kdc = krb-fnal-1.fnal.gov:88
+        kdc = krb-fnal-2.fnal.gov:88
+        kdc = krb-fnal-3.fnal.gov:88
+        kdc = krb-fnal-4.fnal.gov:88
+        kdc = krb-fnal-5.fnal.gov:88
+        kdc = krb-fnal-6.fnal.gov:88
+        kdc = krb-fnal-7.fnal.gov:88
+        master_kdc = krb-fnal-admin.fnal.gov:88
+        admin_server = krb-fnal-admin.fnal.gov
+        default_domain = fnal.gov
+
+        auth_to_local = DEFAULT
+	}
+
+    * In a [domain_realm] section, add
+
+              .fnal.gov = FNAL.GOV
+              fsus01.fnal.gov = FNAL.GOV
+              fsus03.fnal.gov = FNAL.GOV
+              fsus04.fnal.gov = FNAL.GOV
+
+
+Then it worked but only for esheldon@FNAL.GOV. This seems to be a difference
+between realms (caps) and domains (lower) but not sure. 
+
+
+Then ran
+> kpasswd
+and changed my password
+
+Then did ssh des03.fnal.gov and it just logged in!
+
+(make sure you nave GSSAPIAuthentication yes) in .ssh/config just in case
+the servers etc/ssh_config does not
+
+Now, how to do this through tutti?  I think I would have to set up tutti
+in some special way.
+
+I decided to just run kinit on tutti across ssh.
+
+
+Speeding up ssh/rsync/scp etc to fermilab:
+----------------------------------------------
+
+We tuned our tcp buffers (both here and on des03) to match the travel time
+between here and fnal.  
+
+The basic idea is to tune the TCP buffers between the machines to reflect the
+time it takes for packets to get between the machines.  If the buffers are
+tuned wrong you can get one of the following situations:
+
+ 1) too big:  the data in the buffer is more than can be transferred in the
+	round trip time so the local machine has to wait
+
+ 2) too small:  the data is smaller than can be transferred in the roundtrip
+    time so the remote host waits
+
+I got the time by looking at a traceroute.  Between BNL and FNAL is 25ms, 50
+round trip.  If we want 25Mb/s then we should buffer about 1250000 bytes.  I
+actually set this in my /etc/sysctl.conf
+
+
+net.ipv4.tcp_sack = 1
+net.ipv4.tcp_window_scaling = 1
+net.core.netdev_max_backlog = 2500
+net.core.wmem_max = 8388608
+net.core.rmem_max = 8388608
+net.core.wmem_default = 8388608
+net.core.rmem_default = 8388608
+net.ipv4.tcp_wmem = 4096 1048576 8388608
+net.ipv4.tcp_rmem = 8192 1048576 8388608
+
+I then ran
+	/sbin/sysctl -p /etc/sysctl.conf
+
+The middle number 1048576 is supposed to be the default, and corresponds to the
+25ms travel time.  The problem was I couldn't get scp/rsync to use the most
+optimal value.  So I installed a patched version of openssh that can set TCP
+buffers at runtime:
+
+http://mirrors.24-7-solutions.net/pub/OpenBSD/OpenSSH/portable/openssh-5.0p1.tar.gz
+
+http://www.psc.edu/networking/projects/hpn-ssh/openssh-5.1p1-hpn13v5.diff.gz
+
+copy the unzipped file into the openssh-5.0p1/ directory and then run
+  patch < openssh-5.1p1-hpn13v5.diff
+
+./configure --prefix=/global/data/products/local --with-kerberos5
+make
+make install
+(I made a tarball with the patch applied: openssh-5.1p1-patched.tar.gz
+
+Then when using ssh one needs to use this new option
+
+TcpRcvBufPoll yes
+
+e.g.
+scp -o "TcpRcvBufPoll yes" host:file .
+rsync -aP -e 'ssh -o "TcpRcvBufPoll yes"' host:/remote/dir .
+
+I get sustained transfers of 25MB/s. Note it takes a while to get up to
+speed, apparently the tuning process takes time.  This is not ideal for
+small transfers.
+
+I don't yet know how important the tuning in /etc/sysctl.conf was, but the
+hpn-ssh page implies it is still important.  I think ssh is just taking
+the "default" value which we have tuned.  Why wasn't this chosen before?
+
+Note on my desktop I was able to use the installed ssh (OpenSSH_5.1p1, same
+version I patched on tutti) and it maxed out at about 10MB/s.
+
+idl installation
+--------------------------------
+on bach03
+
+put .tar.gz file in /usr/local/itt
+copied license.dat evaluation license into the license directory
+Turned out that was not necessary, see below
+
+ran install and used defaults, n for dicom network services which is for medical database stuff
+
+running idl got this error:
+/usr/local/itt/idl706/bin/bin.linux.x86_64/idl: error while loading shared libraries: libXp.so.6: cannot open shared object file: No such file or directory
+
+Try installing
+sudo yum install libXp.x86_64
+
+then idl started
+
+Got this runtime error:
+
+% LICENSE MANAGER: Invalid license file syntax.
+  Feature:       idl
+  License path:  /usr/local/itt/idl706/../license/license.dat:/usr/local/itt/license/*.lic:
+  FLEXnet Licensing error:-2,413.  System Error: 2 "No such file or directory"
+  For further information, refer to the FLEXnet Licensing End User Guide,
+  available at "www.macrovision.com"..
+  License file: /usr/local/itt/idl706/../license/license.dat:/usr/local/itt/license/*.lic
+% Entering timed demo mode. Each session is limited to 7 minutes
+  of operation. Printing and file saving are disabled.
+
+  To obtain a temporary license allowing evaluation of the full
+  functionality of this product contact your sales representative or
+  ITT Visual Information Solutions (info@ittvis.com)..
+
+tried running ittlicense under sudo but it complained about X11 forwarding.
+logged in as root.
+
+/usr/local/itt/idl/bin/ittlicense
+
+Then I just put in the expiration date and key from the email.
+
+
+I can run multiple idl sessions
+
+
+idl libraries
+---------------------
+products dir in /home/users/products
+astrolib
+
+--------------------
+
+
+ExtUPS
+
+I got a newer version from Robert, it's a subversion checkout
+called eups-trunk-from-robert.tar.gz
+
+on bach*
+I installed from the instructions here:
+http://lsstdev.ncsa.uiuc.edu/trac/wiki/Eups
+need to replace
+Got v0_7_50 from the sdss3 trac
+
+
+./configure --with-eups=/home/users/products/
+make show # shows where stuff will go
+make install
+
+my install script 
+	einstall [options] product [version]
+
+I've installed lots of stuff.  See ~/python/install-config
+
+
+
+
+local software installs (i.e. under ~/local)
+-----------------------------------------------
+
+global software installs not through yum repos
+-------------------------------------------
+	straightforward
+	vim 7.2
+		remember to link vim->vi in prefix/local/bin
+	scons:
+		python setup.py install --prefix=/global/data/products/local
+
+	modified:
+	multitail-ess-5.2.2.tar.gz: installation path
+
+
+	matplotlib:
+		installed with einstall. 
+			-rw-r--r-- 1 esheldon astro  257 Apr 15 10:30 pylab.pyc
+			drwxr-xr-x 2 esheldon astro 4.0K Apr 15 10:30 mpl_toolkits
+			drwxr-xr-x 3 esheldon astro 4.0K Apr 15 10:30 dateutil
+			drwxr-xr-x 3 esheldon astro 4.0K Apr 15 10:30 pytz
+			drwxr-xr-x 7 esheldon astro 4.0K Apr 15 10:30 matplotlib
+		Needed tkinter, installed from yum install tk-devel.x86_64 and 
+			tkinter.x86_64
+		see yum installs
+
+	openssh patched
+
+	pysvn: 
+		Installed svn development packages:
+			sudo yum install subversion-devel.x86_64	
+		Installed neon development packages
+			sudo yum install neon-devel.x86_64
+		Followed instructions in the INSTALL file, which are complicated
+			I put the stuff under /global/data/products/local/lib64/python2.4/site-packages/pysvn
+		Works but don't get any feedback to the screen
+
+
+
+
+
+dataman account
+-------------------------
+as root on bach00
+
+perl addAccount.pl
+
+Enter uid: dataman
+Enter numeric uid: 550
+Enter Life/Guest number: 24001
+Enter user's surname (last name): Sheldon
+Enter User's given name: Erin
+Enter User's room number: 1-196
+Enter User's telephone number: 3117
+Enter User's email address: erin.sheldon@gmail.com
+pwd: just mine for now
+
+avahi daemon
+------------------
+ran ntsysv and removed avahi services (zeroconf, mdns stuff)
+
+
+todo:  
+-------------
+Install idl libraries, get my setup going
+
+
+
+load on tutti over nfs
+---------------------------
+
+Just running 8 findstars jobs each on bach01,02,03, writing all data and logs
+to the local scratch disks, brings the load on tutti up to about 6/8 = 0.75 per
+core.  Running jobs on bach00 would probably max it out.
+
+The other types of jobs, measurepsf and measureshear, are more cpu intensive
+and should produce less load.
+
+NOTE:  writing the logs to tutti brought things to a crawl!  It tripled the 
+running time
+
+!!!!! I ran again and this time even with 4 jobs on bach00 it is only loading
+tutti to about 4/8 = 0.5
+
+
+backup plan
+----------------------
+	List of areas to back up:
+		bach00:/home/users/ - note my scratch area is in my home area on bach00 for
+			transparency with the other system, so need to skip that backup.
+		tutti:/global/data/products/
+		tutti:/global/data/DES/runconfig/ - maybe even put this into svn at some level
+
+
+pbs / condor
+---------------------
+
+pbs/torque
+------------
+
+FIRST OF ALL:  torque comes with a make uninstall!  So I can safely install in the "usual" place.
+
+The maintained open version of pbs is called torque/pbs
+
+	http://clusterresources.com/downloads/torque
+
+I downloaded torque-2.3.7.tar.gz.  On the master bach00:
+
+	./configure
+
+Building components: server=yes mom=yes clients=yes
+                     gui=yes drmaa=no pam=no
+PBS Machine type: linux
+Remote copy: /usr/bin/scp -rpB
+PBS home: /var/spool/torque
+Default server: bach00.astro.bnl.gov
+Unix Domain sockets: yes
+Tcl: -L/usr/lib64 -ltcl8.4 -ldl -lpthread -lieee -lm
+Tk: -L/usr/lib64 -ltk8.4 -L/usr/lib64 -lX11 -L/usr/lib64 -ltcl8.4 -ldl -lpthread -lieee -lm
+
+apparently /var/spool/torque is where output files are generated and then they
+are copied to the user's account later.  This is probably ok
+
+	make
+	make install
+
+no errors.
+
+On the master, the manual says:
+  "Configure the pbs_server daemon by executing the command torque.setup
+  <USER>, where <USER> is a username that will act as the TORQUE administrator. "
+
+So in the torque-2.3.7 directory I ran the following since all this should be
+done as root
+	./torque.setup root
+
+
+
+
+The following builds the mom packages needed for the compute nodes, along with
+some other packages.
+
+	make packages
+
+	Building packages from /root/src/torque-2.3.7/tpackages
+	rm -rf /root/src/torque-2.3.7/tpackages
+	mkdir /root/src/torque-2.3.7/tpackages
+	Building ./torque-package-server-linux-x86_64.sh ...
+	libtool: install: warning: remember to run `libtool --finish /usr/local/lib'
+	Building ./torque-package-mom-linux-x86_64.sh ...
+	libtool: install: warning: remember to run `libtool --finish /usr/local/lib'
+	Building ./torque-package-clients-linux-x86_64.sh ...
+	libtool: install: warning: remember to run `libtool --finish /usr/local/lib'
+	Building ./torque-package-gui-linux-x86_64.sh ...
+	Building ./torque-package-devel-linux-x86_64.sh ...
+	libtool: install: warning: remember to run `libtool --finish /usr/local/lib'
+	Building ./torque-package-doc-linux-x86_64.sh ...
+	Done.
+
+	The package files are self-extracting packages that can be copied
+	and executed on your production machines.  Use --help for options.
+
+
+to see what files get installed run a command like this:
+    ./torque-package-mom-linux-x86_64.sh --listfiles
+
+to install
+
+	./torque-package-mom-linux-x86_64.sh --install
+
+I put these under /home/users/products/local/torque and ran the above command on each node
+
+
+Setting up the master involves telling it the nodes and starting the services
+
+
+On the master I edited the nodes file:
+	vim /var/spool/torque/server_priv/nodes
+	bach01.astro.bnl.gov np=8
+	bach02.astro.bnl.gov np=8
+	bach03.astro.bnl.gov np=8
+np=8 means 8 processors/cores
+
+and started the services
+	on bach00 the master:
+		cp contrib/init.d/pbs_server /etc/init.d/
+		chkconfig --add pbs_server
+		cp contrib/init.d/pbs_sched /etc/init.d/
+		chkconfig --add pbs_sched
+
+		/etc/init.d/pbs_server start
+		/etc/init.d/pbs_sched start
+	
+I'm considering setting a line like this to utilize half of bach00:
+	bach00.astro.bnl.gov np=4
+
+
+Setting up the nodes
+
+I needed to tell it that the /home/users directory is an nfs mount.  This involves the
+file /var/spool/torque/mom_priv/config
+	$usecp *:/home/users/ /home/users/
+I actually put this under /global/data/products/torque/mom_priv for later use
+
+
+Here is what must be done on each node (this could go in a script):
+/global/data/products/torque/torque-package-mom-linux-x86_64.sh --install
+/global/data/products/torque/mom_priv/config /var/spool/torque/mom_priv/
+cp /global/data/products/torque/contrib/init.d/pbs_mom /etc/init.d
+chkconfig --add pbs_mom
+/etc/init.d/pbs_mom restart
+
+
+
+
+check the nodes:
+	pbsnodes
+	bach01.astro.bnl.gov
+		 state = free
+		 np = 8
+		 ntype = cluster
+		 status = opsys=linux,uname=Linux bach01.astro.bnl.gov 2.6.18-128.1.6.el5 #1 SMP Wed Apr 1 09:10:25 EDT 2009 x86_64,sessions=7976,nsessions=1,nusers=1,idletime=1451,totmem=37152104kb,availmem=36119148kb,physmem=32959148kb,ncpus=8,loadave=0.00,netload=1625644302356,state=free,jobs=,varattr=,rectime=1247861716
+
+	bach02.astro.bnl.gov
+		 state = free
+		 np = 8
+		 ntype = cluster
+		 status = opsys=linux,uname=Linux bach02.astro.bnl.gov 2.6.18-128.1.6.el5 #1 SMP Wed Apr 1 09:10:25 EDT 2009 x86_64,sessions=? 0,nsessions=? 0,nusers=0,idletime=85,totmem=37152104kb,availmem=36162584kb,physmem=32959148kb,ncpus=8,loadave=0.00,netload=1633815987980,state=free,jobs=,varattr=,rectime=1247861716
+
+	bach03.astro.bnl.gov
+		 state = free
+		 np = 8
+		 ntype = cluster
+		 status = opsys=linux,uname=Linux bach03.astro.bnl.gov 2.6.18-128.1.6.el5 #1 SMP Wed Apr 1 09:10:25 EDT 2009 x86_64,sessions=22117,nsessions=1,nusers=1,idletime=5446024,totmem=37152104kb,availmem=35913092kb,physmem=32959148kb,ncpus=8,loadave=0.00,netload=1634810280259,state=free,jobs=,varattr=,rectime=1247861717
+
+Tried submitting a job:
+
+#PBS -l nodes=1:ppn=1
+
+sleep 120
+
+And it works, although the jobs stay in the queue as "completed" for a while
+
+
+2009-09-22:  tried submitting jobs but nothing would start.  Ran
+	/etc/init.d/pbs_sched restart
+and it was fixed. Is it not starting on boot?
+
+
+
+I rebooted all machines and the daemons came up fine
+
+
+
+
+
+Condor:  seemed easier to install but it was a nightmare. I gave up.
+
+Here is where I got
+
+created condor group and account:
+
+	see groups/condor.txt and accounts/condor.txt in root area on bach00)
+	
+		ldapadd -v -x -H ldap://127.0.0.1 -D 'cn=Manager,dc=astro,dc=bnl,dc=gov' -d8 -W -f groups/condor.txt
+		ldapadd -v -x -H ldap://127.0.0.1 -D 'cn=Manager,dc=astro,dc=bnl,dc=gov' -d8 -W -f accounts/condor.txt
+
+		mkdir /home/users/condor
+		chown -R condor:condor /home/users/condor
+
+
+Downloaded latest condor distrubution for rhel5
+	condor-7.2.4-linux-x86_64-rhel5.tar.gz
+
+I copied it into ~condor, untarred it and ran this command *as root* on bach00
+to set it up as a manager and submit node:
+
+./condor_install --prefix=~condor --local-dir=/scratch/condor --type=manager,submit
+
+The installation manual claims the permissions will all be fine, but here is
+what I see under /scratch/condor
+
+[root@bach00 condor-7.2.4]# ll /scratch/condor/
+total 16
+-rw-r--r-- 1 root   root 2925 Jul 16 16:24 condor_config.local
+drwxrwxrwt 2 condor root 4096 Jul 16 16:24 execute
+drwxr-xr-x 2 condor root 4096 Jul 16 16:24 log
+drwxr-xr-x 2 condor root 4096 Jul 16 16:24 spool
+
+We will see....
+
+Now it says I should go the the compute nodes and run this command as root:
+
+condor_install --prefix=~condor --local-dir=/scratch/condor --type=execute
+
+But got this error:
+	Can't read config source /scratch/condor/condor_config.local
+
+
+
+Trying this instead on the master:  
+  ./condor_install --prefix=~condor/condor-7.2.4 --local-dir=/scratch/condor --type=manager,submit
+
+no better
+
+Trying separate installs:
+
+put tarball in /opt/local/src and ran these commands.  Note local-dir is the same as the prefix (why not?):
+
+master:
+	./condor_install --prefix=/opt/local/condor-7.2.4 --local-dir=/opt/local/condor-7.2.4 --type=manager,submit
+
+client:
+	./condor_install --prefix=/opt/local/condor-7.2.4 --local-dir=/opt/local/condor-7.2.4 --type=execute
+
+
+
+No errors at least
+
+giving up, pbs torque was so much easier
+
+
+
+Trying out python 2.6
+----------------------------
+I thought I would have to do some extra installations for sqlite3 but
+it seems to have found things OK, even though the devel package doesn't
+seem to be installed...
+
+Note the python sqlite package wasn't installed in the main distro
+because it wasn't officially part of 2.4 but you can install it with
+a package easily
+
+installed in prefix ~/local/test
+
+numpy compiled just fine
+
+
+
+
+to install on the RACF images:
+------------------------------------------
+
+There are a few packages we would like installed.  These are available as
+scientific linux rpms:
+
+blas appears to be installed but not the headers.  We need both of these
+installed:
+
+        blas
+        blas-devel
+
+Similarly for lapack, the devel package is not installed:
+
+        lapack
+        lapack-devel
+
+We use the python plotting library "matplotlib".   I can see a couple of
+dependencies we do need but until we get the following installed I won't be
+able to check for others:
+
+        tcl:
+        tcl-devel: tcl is installed but not the devel package
+        tk:
+        tk-devel: tk is installed but not tk-devel
+        tetex*: All the tetex latex packages.
+
+(It also depends on tkinter,zlib,freetype,libpng and the corresponding devel
+packages but those do appear to be installed.  It also depends on numpy but we
+will install our own version of that package.)
+
+gdl
+---------------
+started just compiling locally to see what dependencies we need for bach.
+
+needed gsl, added an installer for that.  That worked just as expected.
+
+needed plplot
+	This in turn needs cmake to build, had to make an installer for that.
+
+	Now plplot uses cmake instead of ./configure etc.  This will take some
+	new machinery: I had to add a RunCMake method to the installer.
+
+Now need the development stuff for ImageMagick, which gdl used for
+reading and writing image files.  I'm going to skip this actually,
+and deal with it when the need arises because I usually do everything
+in postscript and convert anyway.
+
+Finally, there is a problem getting python to be callable from GDL.  It finds
+the library ok but I get an error:
+
+/global/data/products/Linux64/python/2.6.2/lib/libpython2.6.a(posixmodule.o): In function `posix_forkpty':
+posixmodule.c:(.text+0x2559): undefined reference to `forkpty'
+/global/data/products/Linux64/python/2.6.2/lib/libpython2.6.a(posixmodule.o): In function `posix_openpty':
+posixmodule.c:(.text+0x25b6): undefined reference to `openpty'
+
+I haven't been able to track this down. Going to skip python support as well.
+
+THEN, it complained that I need a newer automake, which needs a newer autoconf.
+Installed those, but then it complained that something was written by 1.10.1
+and my version was 1.10.3.  UGG!!!  So I installed 1.10.1
+
+
+Postgres
+-------------------------
+*
+* on bach
+*
+
+decided to try using the 8.1 library on the clients. Just had to install devel package
+on bach00 for the compilation:
+
+    yum install postgresql-devel.x86_64
+
+*
+* on tutti 
+*
+
+installed client, server, libs, devel headers
+yum install postgresql.x86_64 postgresql-server.x86_64 postgresql-devel.x86_64 postgresql-libs.x86_64 postgresql-contrib.x86_64
+
+made 
+    /export/tutti1/postgres 
+    /export/tutti1/postgres/data
+
+and assigned ownership to postgres:postgres
+
+see help/postgres-setup.txt for more help.  In particular, see CentOS and SELinux stuff
+
+I hacked /etc/init.d/postgres
+    PGDATA=/export/tutti1/postgres/data
+    PGLOG=/export/tutti1/postgres/pgstartup.log
+
+service postgresql start
+
+bash-3.2$ psql -U postgres -d template1
+template1=# create database boss;
+template1=# create user boss;
+template1=# create database des;
+template1=# create user des;
+template1=# create user esheldon;
+
+added passwords for postgres and esheldon
+sdss=# alter user postgres with password 'something_in_single_quotes';
+sdss=# alter user esheldon with password 'something_in_single_quotes';
+
+
+*
+* decided we really need 8.4 server, as it has much better autovacuum support
+*
+
+I backed up my hacked /etc/init.d/postrgres to
+    ~root/init-backup/postgresql-8.1.21-1-2010-06-24
+I listed what I thought were all postgres packages:
+[root@tutti ~]# yum list installed | ack postg
+postgresql.x86_64                        8.1.21-1.el5_5.1              installed
+postgresql-contrib.x86_64                8.1.21-1.el5_5.1              installed
+postgresql-devel.x86_64                  8.1.21-1.el5_5.1              installed
+postgresql-libs.x86_64                   8.1.21-1.el5_5.1              installed
+postgresql-server.x86_64                 8.1.21-1.el5_5.1              installed
+
+And removed them:
+yum remove postgresql.x86_64 postgresql-contrib.x86_64 postgresql-devel.x86_64 postgresql-libs.x86_64 postgresql-server.x86_64
+
+But I got more dependencies that I expected:
+
+=========================================================================================
+ Package                  Arch        Version                       Repository      Size
+=========================================================================================
+Removing:
+ postgresql               x86_64      8.1.21-1.el5_5.1              installed       11 M
+ postgresql-contrib       x86_64      8.1.21-1.el5_5.1              installed      1.2 M
+ postgresql-devel         x86_64      8.1.21-1.el5_5.1              installed      4.2 M
+ postgresql-libs          x86_64      8.1.21-1.el5_5.1              installed      506 k
+ postgresql-server        x86_64      8.1.21-1.el5_5.1              installed      9.9 M
+Removing for dependencies:
+ apr-util                 x86_64      1.2.7-11.el5                  installed      170 k
+ dovecot                  x86_64      1.0.7-7.el5                   installed      3.7 M
+ gnome-user-share         x86_64      0.10-6.el5                    installed       95 k
+ httpd                    x86_64      2.2.3-43.el5.centos           installed      3.3 M
+ httpd-manual             x86_64      2.2.3-43.el5.centos           installed      3.4 M
+ mod_perl                 x86_64      2.0.4-6.el5                   installed      6.8 M
+ mod_python               x86_64      3.2.8-3.1                     installed      1.2 M
+ mod_ssl                  x86_64      1:2.2.3-43.el5.centos         installed      179 k
+ php                      x86_64      5.1.6-27.el5                  installed      6.2 M
+ subversion               x86_64      1.4.2-4.el5_3.1               installed      7.9 M
+ system-config-httpd      noarch      5:1.3.3.3-1.el5               installed      2.1 M
+ webalizer                x86_64      2.01_10-30.1                  installed      259 k
+
+Need to think very carefully!
+
+It turns out only apr-util and dovecot actually depend on this, and I don't need them.  So I decided to remove without dependencies:
+
+[root@tutti postgres]# rpm -e --nodeps postgresql-server.x86_64
+[root@tutti postgres]# rpm -e --nodeps postgresql-libs.x86_64
+[root@tutti postgres]# rpm -e --nodeps postgresql-devel.x86_64
+[root@tutti postgres]# rpm -e --nodeps postgresql-contrib.x86_64
+[root@tutti postgres]# rpm -e --nodeps postgresql.x86_64
+
+Then install the 8.4 versions
+
+yum install postgresql84.x86_64 postgresql84-contrib.x86_64 postgresql84-devel.x86_64 postgresql84-libs.x86_64 postgresql84-server.x86_64

@@ -1,0 +1,15 @@
+Abstract:  You should say that the derived weights are then summed in order to
+create the redshift distribution.  Also in paragraph 4 and the first paragraph
+of the discussion.
+
+Section 2.1 might say "Blanco 4-meter telescope".
+
+S 3.1 paragraph 1, "compute the binned redshift distribution"
+
+S 3.6  Why do the biases cancel in a stack?  
+
+
+Discussion:  paragraph 4, should be a comma after systematically
+paragraph 6, I would say "cluster-mass cross-correlation function" or just 
+"weak gravitational lensing by galaxy clusters"
+

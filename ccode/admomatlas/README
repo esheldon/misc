@@ -1,0 +1,50 @@
+This is the adaptive moment atlas image pipeline.  It makes use of a modified
+version of Robert Luptons atlas image reader, and the adaptive moment code,
+both written in C.  The wrapper admomatlas is also written in C.
+
+Also included are two programs designed to be linked into idl. The first is
+admom.c, which takes in an image and object positions and measures the moments
+of each object.  The second is specifically designed for processing the
+reconstructed PSF and it is called psfadmom.c  After running make admom.so and
+psfadmom.so are created and copied to the bin directory.
+
+Installation
+----------------
+
+I've written make files for linux, irix, OSF/1 (digital unix).
+To compile:
+
+make linux (or irix or osf)
+make
+
+Let me know if there are any compile problems.
+
+Running the code
+----------------
+There is an example input file in the test/ directory. You need
+to use that format (see the code for what each column is)
+
+You also need to know where the atlas images are.  If your cwd isn't
+that directory, you will have to send it
+
+Usage:
+$ admomatlas
+Usage: bin/admomatlas inputfile outputfile [atlas_dir]
+
+Example:
+$ bin/admomatlas test/admomin-000752-1-1-0011-0011.dat test/admomout-000752-1-1-0011-0011.dat /sdss3/data1/imaging/752/objcs/1
+
+Linking admom.so into idl
+---------------------------
+
+;; These variables must all be declared ahead of time
+
+tmp = call_external(value = [0B,0B,0B,0B,0B,0B,0B,0B,0B,$
+                             0B,0B,0B,0B,0B,0B,0B,0B,0B],$
+                    bindir+'admom.so','admom', $
+                    image,$ 
+                    nrow, ncol,$
+                    row, col, $
+                    nobj, sky, skysig,$
+                    ixx, iyy, ixy, $
+                    momerr, rho4, whyflag)

@@ -1,0 +1,37 @@
+numerix      : numpy  # numpy, Numeric or numarray.  Absolutely required until
+                      # numpy is the default.
+backend      : TKAgg  # Use TK for the plotting backend.
+#backend      : GTKAgg  # Use TK for the plotting backend.
+text.usetex  : True   # use latex for all text handling.  Note this does slow things down.
+                      # For faster use set to False and then turn on when you need it
+                      # with pylab.rc('text',usetex=True) in your script.
+
+
+font.family : serif
+font.serif : Times New Roman
+#font.serif : Times
+# this doesn't work
+font.weight: bold
+
+### TICKS
+# see http://matplotlib.sourceforge.net/matplotlib.axis.html#Ticks
+#xtick.major.size     : 6      # major tick size in points
+#xtick.minor.size     : 3      # minor tick size in points
+#ytick.major.size     : 6      # major tick size in points
+#ytick.minor.size     : 3      # minor tick size in points
+xtick.major.size     : 8      # major tick size in points
+xtick.minor.size     : 4      # minor tick size in points
+ytick.major.size     : 8      # major tick size in points
+ytick.minor.size     : 4      # minor tick size in points
+
+#xtick.major.size     : 10      # major tick size in points
+#xtick.minor.size     : 5      # minor tick size in points
+#ytick.major.size     : 10      # major tick size in points
+#ytick.minor.size     : 5      # minor tick size in points
+
+
+# width of lines drawn on the plot, not the borders and stuff
+lines.linewidth   : 1.5     # line width in points
+
+axes.linewidth : 1.5
+

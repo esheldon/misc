@@ -1,0 +1,150 @@
+(note, for macbook install see
+https://help.ubuntu.com/community/MactelSupportTeam/AppleIntelInstallation)
+
+got mini.iso netboot install, wrote to cd with 
+	cdrecord -v dev=/dev/cdrom mini.iso
+did I need to use sudo?  Don't remember.
+
+Guided partition with lvm:
+	chose whole disk with separate partition for /home
+	changed /home fs to xfs
+that's it.  
+
+/boot	ext2	255Mb
+lvm: name treebeard
+	swap			12b
+	/		ext3	7Gb # too small? I think I can resize it.
+	/home	xfs		rest
+
+When choosing packages to install, I added a check next to "File Server", which
+will hopefully automatically set up ssh and samba servers.  Took defaults for
+rest of install.  Note it asked for a root password. I might have to set up
+sudo myself.
+
+It asked about a workgroup name and then about modifying smb.conf to use dhcp
+to get some server info or something. Not sure...
+
+keychain
+--------------
+had to install askpass
+aptitude install ssh-askpass-gnome
+
+First time installing ot this problem:
+error 15: file not found
+when trying to load the image.  Also it said the boot area was XFS but it was not.
+
+Turns out it was all becuase I had the external usb drive plugged in!  It got all confused about drive ids.
+
+Will I want to install nvidia drivers?
+sefdec or nonfree adobe flash plugin?
+
+nvidia 3d acceleration
+----------------------
+need this to play high-res movies.
+
+Seems that the standard tutorial, using the "debian way" to install these
+doesn't work with lenny.  I'm going to do the nvidia installer route.  Note if
+you had previously installed nvidia kernel modules via apt you need to remove
+these.  I removed everything that came up installed with a 
+
+	aptitude search nvidia 
+
+Also note you will have to do this again for a new kernel.
+
+I got the basic instructions here
+http://www.pendrivelinux.com/how-to-install-nvidia-video-card-drivers-in-debian-lenny/
+
+Here is what it said, with some modifications:
+
+	How to install NVIDIA video card drivers in Debian Lenny:
+
+	Note: After step 6 you will be dropped to a shell and not longer be able to
+	read this page.
+
+	   1. Open a terminal and type sudo su. Don't just use sudo since for the
+	   compilation later you will need to be root due to the need to set 
+	   environment variables.
+
+	   2. Type apt-get install build-essential linux-headers-$(uname -r)
+	   3. Type cd /usr/src
+	   4. Type ln -s linux-headers-$(uname -r) linux
+
+	   5. Type
+		  #wget http://us.download.nvidia.com/XFree86/Linux-x86/100.14.23/NVIDIA-Linux-x86-100.14.23-pkg1.run
+			wget http://us.download.nvidia.com/XFree86/Linux-x86_64/180.29/NVIDIA-Linux-x86_64-180.29-pkg2.run
+			Note you should visit http://www.nvidia.com/object/unix.html to get the actual latest perhaps.
+			(185.18.36)??
+
+	   6. Type /etc/init.d/gdm stop (to stop gdm and drop to a terminal if in X)
+
+	   7. Type cd /usr/src && sh NVIDIA-Linux-x86-100.14.23-pkg1.run (or
+	   whatever your file is, to launch the nVidia installer script)
+
+	   Note it may fail becuase the current gcc is different than that used to
+	   compile the kernel. Just make sure you are root, export CC=gcc-4.1 or
+	   whatever, and rerun.
+
+		* Accept the license agreement to continue
+		* Select No on the first question prompting to download Kernel from nVidia
+		* Click Ok to compile a new Kernel
+		* Select No at the prompt to abort now
+		* Let the installer finish the build
+		* Select Yes to let nVidia-xconfig automatically update your xorg.conf file
+		* Click Ok
+		* Once the installer has completed, type startx and enjoy your new video hardware enabled Lenny with 
+			nVidia drivers
+
+		You can run 
+			sudo nvidia-settings to set up multiple screens, set resolutions, and such.
+
+
+multimedia, dvds, etc
+----------------------------
+Need to add multimedia repos
+
+deb http://debian-multimedia.org/ lenny main
+deb-src http://debian-multimedia.org/ lenny main
+
+aptitude update
+but it will complain about public keys.  Install
+	sudo aptitude install debian-multimedia-keyring
+and say yes, then again do aptitude update again and it will get the keys.
+
+Now to decrypt the dvds you need libdvdcss2
+sudo aptitude install libdvdcss2
+
+Needed to restart before everything would work.
+
+controlling the init.d scripts
+--------------------------------
+on redhat or fedora one uses ntsysv, but on debian it is rcconf.  You might
+have to install it with aptitude install rcconf
+
+thunar
+----------
+installed
+	thunar
+	thunar-volman
+volman is so it will mount inserted dvds and stuff
+
+jwm
+----
+installed jwm but didn't show up in the gdm sessions manager.  Had to do this:
+
+sudo cp /usr/share/jwm/xsessions/Jwm.desktop /usr/share/xsessions/
+
+matplotlib:
+------------------
+Had to install this package to get latex working: texlive-latex-extra
+
+
+
+gdl 
+----- 
+
+needed to install developement packages for ImageMagick and gsl and plplot,
+possibly zlib/
+
+Needed to add this to my path:  /usr/share/doc/gnudatalanguage/examples/pro
+
+./configure --prefix=/home/esheldon/local/ --with-netcdf=no --with-hdf=no --with-hdf5=no

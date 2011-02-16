@@ -1,0 +1,4 @@
+#!/bin/bash
+
+outdir=$1
+tar cf - . | (cd $outdir && tar xBvf -)

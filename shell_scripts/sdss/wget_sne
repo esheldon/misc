@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# run in background?
+logfile="wgetlog-spectra.log"
+back=" "
+if [ $# -eq 1 ]
+then
+    back=" --background --output-file=$logfile "
+fi
+
+# version of spectro to check
+vers1d="1d_23"
+
+# local ldir
+datadir="/net/cheops1/data0/spectra/${vers1d}/"
+
+#switch to local directory
+olddir=$cwd
+localdir=$datadir
+cd $localdir
+
+#host, etc.
+host="http://das.sdss.org/"
+user="sdss"
+passwd="54chips"
+
+# remote directory on host
+remotedir="spectroRoot/${vers1d}/sne/"
+
+# arguments to wget.
+wgetargs=" --mirror --dot-style=mega -nH --cut-dirs=2 --no-parent --tries 50 " 
+wgetargs="$wgetargs $back"
+
+# quoted thing treated as one arg, so don't quote $wgetargs. 
+# Also separate other arguments
+wget $wgetargs "$host$remotedir" "--http-user=$user" "--http-passwd=$passwd"
+
+echo "run this command to follow log file:"
+echo "tail -f $localdir$logfile"
+
+cd $olddir
+
+exit 0
+

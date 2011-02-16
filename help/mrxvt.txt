@@ -1,0 +1,8 @@
+To get 256 color going on Ubuntu needed to run
+
+    apt-get install ncurses-term
+
+And set TERM=xterm-256color
+
+To get apple-v pasting in os x:
+	mrxvt.macro.Meta+v: Paste

@@ -1,0 +1,8 @@
+cc -c example.c
+ld -S -o example.so -shared example.o
+
+
+x=findgen(10)
+s = call_external('example.so', 'sum_array', x, n_elements(x), /f_value)
+
+No underscores if compiled this way on dec alpha

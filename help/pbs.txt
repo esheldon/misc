@@ -1,0 +1,178 @@
+
+ Here is the info on running jobs.
+
+ There are two fortran compilers installed, the standard one is g77, a better
+ one is the Intel Fortran Compiler (ifc). To compile with this one you have to
+ set your path, e.g. Add to your .cshrc file
+
+ if( ! $?INTEL_FLEXLM_LICENSE ) then
+ if ( -f  /opt/intel/compiler50/ia32/bin/ifcvars.csh ) then
+     source /opt/intel/compiler50/ia32/bin/ifcvars.csh
+     endif
+ endif
+
+ Then compile using
+
+ ifc -W0 -cm -xK -o  code.exe code.f -lsrfftw -lsfftw
+
+ The last two you can ignore if you don't use FFTW. -W0 supresses warnings, -cm
+ supresses comments, -xK optimizes for the CPU. You may want to compile without
+ -W0 -cm at the beginning.
+
+ To use PBS to submit jobs you also need the correct path, I have my .login
+ file that looks like:
+
+ if ($?path) then
+     set path=($HOME/bin /usr/local/pbs/bin /usr/local/bin $path .)
+ else
+     set path=($HOME/bin /usr/bin /usr/local/pbs/bin .)
+ endif
+
+
+ To check the status of the cluster you can use,
+
+ master.nyu.priv> qstat -Q
+ Queue               Tot Ena Str   Que   Run   Hld   Wat   Trn   Ext
+ Type
+ ----------------  ----- --- --- ----- ----- ----- ----- ----- -----
+ ----
+ workq                 0  no  no     0     0     0     0     0     0
+ Exec
+ short                 0 yes yes     0     0     0     0     0     0
+ Exec
+ medium              454 yes yes   218    82   154     0     0     0
+ Exec
+ long                 28 yes yes     0    28     0     0     0     0
+ Exec
+ funnel                0 yes yes     0     0     0     0     0     0
+ Rout
+ bigmem                0 yes yes     0     0     0     0     0     0
+ Exec
+
+
+Here is a script to log in and run a command on each node, for example
+to check available disk space
+
+each_cluster 1 64 df -h /scratch
+
+#!/bin/tcsh
+
+set imin=$1
+shift
+set imax=$1
+shift
+set command="$*"
+@ i=$imin
+while ( $i <= $imax )
+  echo -n c${i}:
+  ssh c$i "$command"
+  @ i++
+end
+
+
+ You can see in this case the cluster has 82 jobs running in the medium queue
+ (less than a day but more than one hour), and 28 on the long queue, for a
+ total of 110 CPU's. There are 218 jobs waiting on the queue, that will run
+ when there is enough resources. 154 are on hold, meaning that the user
+ specified they will run after some of *his* previous jobs are done.
+
+ Anyway, to run a job you have to submit to the queue a script. For example
+ typing
+
+ qsub qsub_mock_1
+
+ Where the script file qsub_mock_1 looks like
+
+ #!/bin/tcsh
+ #PBS -V
+ #PBS -l cput=20:0:0
+ #PBS -l mem=1800mb
+ cd /home/rs123/code/
+ pthalos_version6.exe < input_pth_1
+ pthalos_to_survey_vl.exe <  input_survey_1
+ rm -f /scratch/rs123/rv_1
+
+
+ The first line sets tcsh. The second tells PBS to preserve your paths (-V).
+ The third says your code will run for a maximum of 20 hours (and otherwise
+ gets killed), the next says you need 1.8GB to run your code. Make sure you set
+ the last two values correctly (if any change is needed when you run other
+ codes in the future). The memory must be smaller than 2GB.
+
+
+ *************IMPORTANT**************!!!!!!!!!!!!!!!!!!
+ ***NEVER*** set your code to write to your home directory, e.g.
+ /home/aberlind/* unless it is a very small file. The nodes have to communicate
+ with the master node to see the home directory, thus create a lot of network
+ traffic problems and slow down of the cluster if lots of nodes are writing
+ large files to the master node (bringing down the whole cluster). So, when
+ running simulations, set you filenames so that it writes to the scratch disk
+ which locally lives in each node, that is write to
+
+ /scratch/aberlind/
+
+ Note that the scratch disks are not very large (few GB) so you will have to
+ periodically clean if you write a lot to disk, to make sure you don;t run out
+ of space. When cleaning, only move files from scratch to /home one by one to
+ avoid the problem mentioned above.
+
+ To check your jobs you can type
+
+ qstat -n -u aberlind
+
+ -n tells you in which node your code is running (nodes are numbered
+ from 1
+ to 64, their names are c1,c2,...,c64). -u sets the username.
+
+ *****IMPORTANT********************
+
+ NEVER log into a node and run a job without using PBS to submit it from the
+ master node. Otheriwse PBS will not know there is something running on a node
+ and thus it may send something there, possibly trying to run jobs with more
+ meomory than there is and bringing down the whole thing. You can of course log
+ into a particular node (e.g. ssh c34) and check (e.g.  using top) how your
+ code is doing.
+
+ If you type,
+
+ qstat
+
+ You will get a full list of the people running and how long their jobs are.
+ You may want to pipe it into more, qstat |more, to read it better (the list is
+ usually long!).
+
+ When your code is done, it will create two files in your home directory (apart
+ from the ones you write to scratch). The files look like
+
+ -rw-------    1 rs123    physics         0 Mar 13 07:36 qsub_mock_7.e130027
+ -rw-------    1 rs123    physics      1023 Mar 13 07:36 qsub_mock_7.o130027
+
+ Their names are the submitted script, then .o and .e and the number of your
+ job (assigned by PBS). The .o file has the standard output of your code to
+ screen. The .e file contains any errors.
+
+
+ Anyway, I think this is all for now, let me know if you have any questions.
+ At the beginning, if you want, you can test your code running it as usual in
+ the master node to make sure everything works before submitting to nodes.
+
+ If you realize your code is doing something wrong and want to kill it, you can
+ use
+
+ qdel  130027
+
+ Where 130027  is the job number.
+
+ Although sometime it may look like that there are a lot of jobs in the
+ cluster, some of them run for half an hour, so submit yours anyway.  Also,
+ there is an algorithm that PBS uses so that people get 1/N of the share, so if
+ you submit lots of jobs, someone else may have precedence over you even if
+ they submit later.
+
+ Good luck!
+
+ Roman
+
+
+
+

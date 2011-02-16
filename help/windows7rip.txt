@@ -1,0 +1,32 @@
+I ran the installer, making sure not to be on the internet when I was
+typing in the CD key.  Next time I might even just not plug it in at all.
+
+Note there is an option during install to turn off automated updating, which I
+did.
+
+Then afterward, I immediately made sure automated updating was off.  
+
+I then used RemoveWAT to guarantee the install would not try to activate.
+
+    RemoveWAT22.zip
+
+I have not performed any updates.
+
+I installed the lateset nvidia drivers for the video card.
+
+TODO: install latest directx
+
+CD keys
+----------------------------
+
+Windows 7 legit serials sponsored by Amjad (Please say thanks in the original
+thread) Serials working for both 32 bit and 64 bit versions
+
+ISO name: en_windows_7_ultimate_x86_dvd_x15-65921.iso
+Source: Original MSDN (My MSDN Account)
+
+Serials:
+FHY4Q-VB63H-XK8VD-9Y68P-RFQ43
+J6C9R-C9HHG-3CWTY-Y4MPW-CD72J
+
+As the keys get blocked, I will keep providing new ones, just let me know.

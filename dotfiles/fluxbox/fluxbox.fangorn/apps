@@ -1,0 +1,7 @@
+# Better I found to set root image in .xinitrc otherwise
+# pager looks messed up. Note though that for some reason
+# we cannot start the pager in .xinitrc
+[startup] {/Users/esheldon/local/bin/fbpager -w &}
+[app] (gkrellm)
+  [Sticky]	{yes}
+[end]

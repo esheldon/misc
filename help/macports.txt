@@ -1,0 +1,9 @@
+I just did the dmg install.  Note it puts something into /Applications!! 
+
+sudo port install py26-scipy
+
+sudo port install python_select
+sudo python_select python26
+
+I'm having trouble with my extensions though.  Can't seem to use recfile built
+from these installs, even if I use gcc43

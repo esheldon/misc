@@ -1,0 +1,36 @@
+
+Hey Erin...
+
+I've attached my code for the pair counting version of my correlation 
+code.  To compile it you'd use something like
+
+gcc calc_wtheta_jack_pair_pixel_bbox.c -lm -O6 -lgsl -lgslcblas -o 
+calc_wtheta_jack_pair_pixel_bbox
+
+You also need to make sure that pixel_util.c is in the same directory 
+(this file contains all the hierarchical routines that are mirrored in 
+IDL).  If you look at the MakeRandomCatalog routine, you'll see how the 
+masking is implemented.
+
+Here's the list of pixel routines in /data2/sdss/idl/ryan_idl/:
+
+ang2pix.pro
+area_index.pro
+display_pixel.pro
+downsample.pro
+find_subpix.pro
+pix2ang.pro
+pix_area.pro
+pix_bound.pro
+resolution_bound.pro
+superpix.pro
+superpix_bound.pro
+upsample.pro
+
+Pretty much all of them have one or more analogs in pixel_util.c
+
+I'll let you know as soon as my data shuffling is finished.
+
+-Ryan
+
+

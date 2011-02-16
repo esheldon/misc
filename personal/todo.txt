@@ -1,0 +1,57 @@
+zphot:
+
+    Match primus and see how well we recover it with
+    what we currently did.
+
+    Get some validation plots, good ones, 
+    from carlos, or have him send me the data.
+
+shears:
+    regauss simulations:
+
+        I may be seeing some affects:
+            1) Increasing the resolution increases stability. e.g. increasing
+                the PSF size to 2.5'' at fixed pixel scale (0.4) I can now 
+                meausure spsf2/sgal2 = 2.0 objects.
+
+            2) I modified the size of the object to be at least the size of the
+                PSF.  We'll see if this improves things for very small spsf2/sgal2.
+                WHAT about real data, does this mean anything?
+
+    Test with old princeton file:
+        Note princeton file has r+i combined, which is a bit problematic,
+        but we should at least see no bias.
+
+        * Compare in pixel coordinates.
+        * Compare my equatorial rotations to those in the file.
+
+    Match Frank's file
+
+MaxBCG:
+    
+    See if mem_match_id is in my catalogs, if so we can do matches.
+
+    Do overall total to estimate what kind of splits we can do.
+
+BOSS 
+
+    Is QSO stuff from adam in main QSO paper?
+
+    Target Selection Overview Paper
+
+        Describe chunks
+
+        References to tiling stuff and brief description
+
+    documentation 10/12
+        - check the skyserver sample queries
+            - fix XXX in answers to practice. Need full db for that.
+            - Check the orderby example when the full data are loaded,
+                as it looks for pal 5 and needs runs not in test db
+
+    DR8 paper
+        - photoz description
+        - Will hold dummy link for paper
+
+    Talk about hosting SDSS III
+

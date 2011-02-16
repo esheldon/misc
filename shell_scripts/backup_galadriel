@@ -1,0 +1,11 @@
+#!/bin/sh
+
+backup_dir=/data2/backups/esheldon
+
+cd $backup_dir
+
+rm -rf backup.3
+mv backup.2 backup.3
+mv backup.1 backup.2
+mv backup.0 backup.1
+rsync -av --delete --exclude "tmp" --exclude ".g" --exclude ".thumbnails" --exclude ".pan" --link-dest=../backup.1 /home/esheldon/  backup.0/

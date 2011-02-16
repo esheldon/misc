@@ -1,0 +1,71 @@
+#!/usr/local/bin/perl -w
+
+# Convert the lynx dump into a simple ascii table
+# All output will go to standard out
+
+use strict;
+
+my $home;
+if ( exists($ENV{"HOME"}) ) {
+    $home = $ENV{"HOME"};
+} else {
+    die "Environment variable HOME is not set";
+}
+
+my $imagingRootPage = "http://www-sdss.fnal.gov:/sdssdp/AvailProd/Available_Image_Products.html";
+
+my $command = "${home}/bin/lynx -dump ${imagingRootPage}";
+
+my $indir="/net/cheops1/data0/imaging/dbm/imagingRoot/";
+my $infile = $indir . "imagingRootDump.dat";
+
+
+#open(INFILE, "<$infile") || die("Cannot open $infile: $!\n");
+
+open(LYNXOUT, "$command |") || die("Cannot open process $command: $!\n");
+
+printf("%13s %13s %13s %13s %13s %13s %13s %13s %13s %13s %13s\n",
+       "run", "rerun", "\#NfpC", "\#NfpBIN", "\#NfpM", "\#NfpObjc", 
+       "\#NfpFieldStat", 
+       "\#NfpAtlas", "\#NpsField", "\#NtsField", "\#NtsObj");
+
+print "-----------------------------------------------------------------------------------------------------------------------------------------------------------\n";
+
+my $line;
+#foreach $line (<INFILE>) {
+foreach $line (<LYNXOUT>) {
+    my @items = split " ",$line;
+
+    # this seems to work ok
+    if ( @items == 10 ){
+#	print "@items\n";
+	
+	my @tmp = split "/", $items[0];
+
+	my $run = $tmp[2];
+	my $rerun = $tmp[3];
+
+	my $NfpC = $items[1];
+	my $NfpBIN = $items[2];
+	my $NfpM = $items[3];
+	my $NfpObjc = $items[4];
+	my $NfpFieldStat = $items[5];
+	my $NfpAtlas = $items[6];
+	my $NpsField = $items[7];
+	my $NtsField = $items[8];
+	my $NtsObj = $items[9];
+
+#	print "$run $rerun $NfpC $NfpBIN $NfpM $NfpObjc $NfpFieldStat $NfpAtlas $NpsField $NtsField $NtsObj\n";
+
+
+	printf("%13d %13d %13d %13d %13d %13d %13d %13d %13d %13d %13d\n", 
+	       $run, $rerun, $NfpC, $NfpBIN, $NfpM, $NfpObjc, $NfpFieldStat, 
+	       $NfpAtlas, $NpsField, $NtsField, $NtsObj);
+
+#	print "@tmp\n";
+    }
+
+}
+
+close(LYNXOUT) || die("Cannot close file $!\n");
+#close(INFILE) || die("Cannot close file $!\n");

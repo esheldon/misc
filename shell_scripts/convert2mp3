@@ -1,0 +1,9 @@
+#!/bin/sh
+# currently assumes aiff files
+
+for file; do
+	mp3file=${file%.aiff}.mp3
+	echo "$file --> $mp3file"
+	echo "-----------------------------------------"
+	ffmpeg -i "$file" -f mp3 -ab 192 -ar 44100 "$mp3file"
+done

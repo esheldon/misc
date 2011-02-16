@@ -1,0 +1,26 @@
+TODO:
+	Check if we want to alwasy set DB_SET_RANGE or not.  The issue is
+	on comparisons:   we might want to avoid if costly?
+
+	Actually I think we want DB_NEXT_DUP when we no we want an exact match
+
+
+Testing out Berkeley DB
+
+REMEMBER:  You can't do range searches with hashes becuase it can only do exact
+matches.  For the same reason, it's no good for floating point data, you have
+to use btrees for that. 
+
+But hashes for strings might be just fine if I *know* I won't care about range
+searches.  Need to test.  And they are supposed to be faster.
+
+REMEMBER: If you set DB_DUPSORT, the full key-data pair can not be dupliated!
+This is ok for us since we are planning to use the data part for an index
+anyway.  I think using DB_DUP would be the right thing then.
+
+
+REMEMBER:  You can save a lot of space if you use DB_DUPSORT, it is smart
+enough to know consecutive keys are the same and it doesn't actually
+record those items!
+
+Might cursors be faster for put() at the end of a large database?

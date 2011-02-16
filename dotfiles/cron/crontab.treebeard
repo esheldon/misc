@@ -1,0 +1,4 @@
+# Every 10 minutes (at 7 minutes past the hour), fetch my email
+# note -q means quiet
+7,17,27,37,47,57 * * * * /usr/bin/getmail -q
+#7,27,47 * * * * /usr/bin/getmail -q

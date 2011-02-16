@@ -1,0 +1,44 @@
+
+
+Concerning weighted variances:
+
+let the mean value of the values X[i] be designated as <X>
+
+Unweighted Variance:
+
+      var = (1/N)*sum( X[i] - <X>)                    (1)
+
+Cern web page formula for weighted variance:
+
+     Define:
+	W[i] = 1/SIGMA[i]^2
+	Wtot = sum(W[i])
+
+     wvar = 1/Wtot^2 * sum( w[i]^2*(x[i] - <X>)^2 )   (2)
+
+When all the sigma's are the same:
+
+     wvar = (1/N^2)sum(x[i] - <X>) = var/N            (3)
+
+     wsig = sig/sqrt(N)
+
+There formula isn't really a variance, its more like a weighted
+uncertainty in the mean value.
+
+I think the weighted variance should be more like this:
+
+     wvar = 1/Wtot*sum(wi*(x[i] - <X>)^2 )            (4)
+
+which reduces to the unweighted formula for all sigma the same.
+
+There is more motivation for this formula than 'it works.'  We are using the 
+weights as a sort of distribution function in a sense.  If we think
+of it that way, then the variance has to be (4); just the average
+deviation where our distribution function is the weights.  By using
+this weighting scheme, we hope that things far from the true mean
+are the ones with large errors just like using a probability function
+gives little weight to points far from the mean of the distribution.
+
+Also, we expect the _uncertainty_ to drop off as the intrinsic
+sigma over the square root of N  sig/sqrt(N).  This is what the
+Cern formula does (3). 

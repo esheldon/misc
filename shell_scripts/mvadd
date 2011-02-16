@@ -1,0 +1,47 @@
+#!/bin/sh
+
+WRONG_ARGS=65
+dargs=2
+if [ $# -lt $dargs ]
+then
+    echo "Usage: mvadd [-e -c] addstring list"
+	echo "  -e to place the string at the end"
+	echo "  -c to copy instead of move"
+    exit
+fi
+
+end="n"
+copy="n"
+while getopts "e" Option
+  do
+  case $Option in
+      e)  end="y"
+	  c)  copy="y"
+	  ;;
+      [?]) echo "Usage: mvadd [-e] addstring list"
+           exit $WRONG_ARGS
+           ;;  
+  esac
+done
+shift $(($OPTIND - 1))
+
+addstring=$1
+shift
+
+for args
+  do
+  if [ "$end" == "y" ]
+  then
+      rname="${args}${addstring}"
+  else
+      rname="${addstring}${args}"
+  fi
+  
+  if [ "$copy" == "y" ]; then
+	  cp -v $args $rname
+  else
+	  mv -v $args $rname
+  fi
+  
+done
+

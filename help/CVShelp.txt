@@ -1,0 +1,105 @@
+
+
+CVS Archive for UM astrophysics IDL code
+----------------------------------------
+
+Tim McKay
+5/21/99
+
+I have set up a CVS archive running on sdss3 which contains all the
+active idl code written at UM for ROTSE and the SDSS. This code is
+contained in a directory structure which looks like this:
+
+um_idl
+	umrotse_idl
+		match
+		doc
+		newpipe
+		pipeline
+		temptools
+		tools
+		variables
+	umsdss_idl
+		bin
+		ctio
+		temp
+		tools
+
+
+There will always be a copy of this directory tree located under 
+/sdss3/products/idltools, so ordinarily all you have to do is have this
+directory in your idl path to get the official versions of the code.
+
+The primary purpose of the archive is to neatly organize the code which
+we extensively share. It is not a place to dump every personalized bit of
+code you write, but only those which are parts of generally available
+tools.
+
+For now I would like to restrict write access to the archive a bit, though
+I may relax that if things go smoothly. If you are developing code which is 
+to go into this archive there are two ways you can proceed. 
+
+     1: If it is new code, just develop it in your own area. Once you are
+        satisfied with the code, think it is ready for others to use,
+	and have properly documented and formatted it, you can pass it
+	off to someone with access to the archive and they will add and
+	check in the code. I think this will be the standard routine for
+	code developed by undergrads.
+
+     2: If you are modifying archive code, you will have to 'check out'
+        a copy of the code into your own area, then modify it there. 
+	When you are done, it will again have to be checked back in. If
+	you don't have write access you will have to hand it off to 
+	someone who does. Remember that making modifications to archive	
+	code can create problems in other code, so this will have to be
+	done carefully.
+
+All this has to be done on sdss3. Checking out a copy of the code:
+ 
+     0: You must have the line:
+	    setenv CVSROOT /sdss3/products/cvs/cvsroot
+	in your .cshrc file
+
+     1: Go to a directory in your development (perhaps idl.lib?) and 
+        type 'cvs co um_idl'. This will create a complete copy of the
+	code for you to work with. It will appear under um_idl in the
+	directory from which you called it.
+
+     2: You can modify the code in this directory tree all you like. There
+        are a number of ways you can compare what you have done with the
+	archive. Commands like:
+		 cvs diff 'filename'
+		 cvs status 'filename'
+	will tell you about whether you have altered the file. The command:
+		 cvs update
+	will update the code in your directory to include any changes
+	others have made. It will NOT update files which you have altered 
+	in the meantime!
+
+     3: Finally, to check code in, you use:
+		 cvs commit
+	This will prompt you with an editor to enter some comments describing
+	what you have done. YOU MUST HAVE WRITE ACCESS TO DO THIS.
+		 
+     4: To add a new file file to the archive you first put it in the 
+	directory where it will go, then type:
+		  cvs add filename  (schedule it to be added)
+		  cvs commit	    (actually add it)
+
+For now the people with write access to the archive are:
+    Me
+    Erin Sheldon
+    Bob Kehoe
+I will probably add a lot of others as time goes on, but I want to start
+carefully. Note that EVERYONE can check out and monitor all the code, you
+just can't all check _in_ changes yet.
+
+Tim    
+
+        ++++++++++++++++++++++++++++++++++++++++++
+	Timothy A. McKay
+	Randall Lab
+	500 East University, Ann Arbor, MI 48109
+	tamckay@umich.edu
+	(734)763-1462 Fax:(734)936-1817
+        ++++++++++++++++++++++++++++++++++++++++++

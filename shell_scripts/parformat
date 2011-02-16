@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# This removes newlines from all non-empty lines.  This turns all paragraphs
+# into a single line, and all documents into a few lines.  This is useful if
+# you need to copy the text into Word and let it do the formatting.
+#
+# This program reads from standard in and writes to standard out.
+#
+# usage examples:
+#   cat file.txt | parformat > newfile-nonewline.txt
+#   parformat < file.txt > newfile.txt
+#
+
+if [ $# -gt 0 ]; then
+    echo "usage examples: "
+    echo "  cat file.txt | parformat > newfile.txt"
+    echo "  parformat < file.txt > newfile.txt"
+    echo
+    echo "  to get this help message, use parfile -h"
+    exit 1
+fi
+# read will strip the newline
+while read -r line; do
+    if [ "$line" == "" ]; then
+        # one for the end of previous paragraph
+        echo
+    else
+        # add a space to make sure lines don't run together
+        echo -n "$line "
+    fi
+done

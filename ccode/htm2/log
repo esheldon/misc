@@ -1,0 +1,6 @@
+c++ -c -g -Wall -I./include -D_BOOL_EXISTS -D__macosx -UDIAGNOSE  src/SpatialInterface.cpp -o unix/SpatialInterface.o
+src/SpatialInterface.cpp: In member function 'void htmInterface::setPolyCorner(SpatialVector&)':
+src/SpatialInterface.cpp:539: error: no matching function for call to 'std::vector<htmPolyCorner, std::allocator<htmPolyCorner> >::insert(__gnu_cxx::__normal_iterator<htmPolyCorner*, std::vector<htmPolyCorner, std::allocator<htmPolyCorner> > >)'
+/usr/include/c++/4.2.1/bits/vector.tcc:92: note: candidates are: typename std::vector<_Tp, _Alloc>::iterator std::vector<_Tp, _Alloc>::insert(__gnu_cxx::__normal_iterator<typename std::_Vector_base<_Tp, _Alloc>::_Tp_alloc_type::pointer, std::vector<_Tp, _Alloc> >, const _Tp&) [with _Tp = htmPolyCorner, _Alloc = std::allocator<htmPolyCorner>]
+/usr/include/c++/4.2.1/bits/stl_vector.h:655: note:                 void std::vector<_Tp, _Alloc>::insert(__gnu_cxx::__normal_iterator<typename std::_Vector_base<_Tp, _Alloc>::_Tp_alloc_type::pointer, std::vector<_Tp, _Alloc> >, size_t, const _Tp&) [with _Tp = htmPolyCorner, _Alloc = std::allocator<htmPolyCorner>]
+make: *** [unix/SpatialInterface.o] Error 1

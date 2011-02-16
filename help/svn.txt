@@ -1,0 +1,25 @@
+Mulin's notes:
+---------------------------------------------
+The svn path is early:/usr/local/svn/repos
+
+The format for read-only users as:
+    svn co svn://early.cosmo.fas.nyu.edu/usr/local/svn/repos
+OR
+   svn co http://early.cosmo.fas.nyu.edu/svn/repos
+
+The format for read-write users as:
+   login to early, then
+   svn co file:///usr/local/svn/repos
+   svn add <filename>
+   ...
+   svn commit
+OR
+  svn co svn+ssh://early.cosmo.fas.nyu.edu/usr/local/svn/repos
+  svn add <filename>
+  ...
+  svn commit
+
+You can create your own repository as:
+1) login to early
+2) newgrp svncomm (switch you to the group "svncomm")
+2)  svnadmin create --fs-type fsfs /usr/local/svn/your_rep

@@ -1,0 +1,7 @@
+ To start the image gutsy.img with 512 meg of ram and calling it hda
+ kvm -m 512 -hda gutsy.img
+
+ to disable kvm so you can run something like Virtualbox, first make sure all kvm are shut down and then run
+
+sudo invoke-rc.d kvm stop
+

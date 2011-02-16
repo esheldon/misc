@@ -1,0 +1,23 @@
+# Edit in vi mode!
+set editing-mode vi
+set keymap vi
+ 
+# this is a problem on older bashes. Could define it always, but it
+# messes up the IPython shell
+$if Bash
+    # Make sure previous history and next history also
+    # place us at the end of the line
+    "k": "\C-p$"
+    "j": "\C-n$"
+$endif
+
+# when completing show all possible matches when
+# ambiguous
+#set show-all-if-ambiguous on
+set visible-stats on
+set page-completions off
+
+# turn off the stupid bell
+set bell-style none
+
+

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+function usage {
+	echo "usage `basename $0` [-d outdir] files"
+}
+
+outdir="None"
+while getopts "d:" Option; do
+	case $Option in
+		d) outdir=$OPTARG ;;
+		[?) usage
+			exit 45;;
+	esac
+done
+
+shift $(($OPTIND - 1))
+
+if [ $# -lt 1 ]; then
+	usage
+	exit 45
+fi
+for f in $*; do 
+
+	# This writes in the same directory as the file
+	vim -fNn \
+		-c 'syntax on' \
+		-c TOhtml -c "wq" -c q $f
+
+	# move it if another directory is requested
+	if [ "$outdir" != "None" ]; then
+		mv -f $f.html $outdir/
+	fi
+
+done
+

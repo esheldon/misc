@@ -1,0 +1,80 @@
+For ubuntu:
+
+	Get 32-bit version, because the 64-bit version didn't work Install basic
+	and install all updates.
+
+	Then, in windowed mode, while logged in to Ubuntu, select Devices->Install
+	Guest Additions.  Go to /media/cdrom and run the Linux additions.run file
+	This will set up seemless mouse between OS X and Ubuntu as well as
+	automatic resizing of the screen, including good full screen mode.
+
+Debian minimal:
+	Get minimal CD netinstall (160 Mb)
+
+	Start normal install and proceed to where it asks for a network mirror.
+	Select NO for network mirror, which we will change in a minute.
+
+	reboot
+
+	# sudo will not be installed, so log in as root
+	vim /etc/apt/sources.list
+
+	Add these sources:
+
+	deb http://ftp.debian.org/debian etch main contrib non-free
+	deb-src http://ftp.debian.org/debian etch main contrib non-free
+
+	Comment out the CD line.
+
+	apt-get update
+	apt-get install sudo
+
+	# add as sudoer
+	visudo
+	esheldon ALL=(ALL) ALL
+
+	# now log in as myself
+	sudo apt-get install subversion
+	scp bias.cosmo.fas.nyu.edu:shell_scripts/mysetup.sh .
+	bash mysetup.sh basic # or appropriate
+
+	sudo apt-get install less
+
+	# for 256 colors
+	sudo apt-get install ncurses-term
+
+	# this is the full vim
+	sudo apt-get install vim
+
+	# xorg isn't installed in the minimal install
+	sudo apt-get install xorg
+	# make sure to add 1920x1200 and 1440x900
+
+	# We will use fvwm2 with startx and an .xinitrc file
+	sudo apt-get install fvwm
+	
+
+	# Some other stuff we need
+	sudo apt-get install firefox # or iceweasel?
+	sudo apt-get install eterm
+	sudo apt-get install conky
+
+	sudo apt-get install g++
+	sudo apt-get install python2.5
+
+
+	mkdir -p images/wallpapers/cg
+	scp bias.cosmo.fas.nyu.edu:public_html/images/flightplan-r-1920.gif  images/wallpapers/cg/
+	ln -s ~/images/wallpapers/cg/flightplan-r-1920.gif .wallpaper
+	
+
+	# To install virtualbox additions we needed headers
+	# definitely do this, get full screen dynamic resolution!
+	sudo apt-get install linux-headers-*exact*version*installed
+
+	# We want 256 colors in screen, so get my version
+	mkdir -p local/src
+	cd local/src
+	scp bias.cosmo.fas.nyu.edu:public_html/code/screen-mine-4.0.3.tar.gz .
+	follow instructions in readme.esheldon
+

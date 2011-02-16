@@ -1,0 +1,165 @@
+latex
+---------------------
+
+texlive wouldn't process any of my documents. 
+
+New versions of natbib are much more strict.  
+
+    Package natbib Error: Bibliography not compatible with author-year citations. 
+
+My "myunsrt.bst" style file (based on original unsrt.bst) was somehow not up to
+snuff.  Also, the new system version "unsrtnat.bst" which is adapted to the new
+natbib, can't handle urls.  This seems like a step back!  I noticed that
+ADS has now fixed their urls to be essentially uninformative because
+of this.  So I removed urls from all my references.
+
+
+this is a big one, apparently essentially every document every written
+by me can no longer be processed.
+
+First the problem was revtex4 is not available, only revtex4-1
+(I installed texlive-publishers where it should live?)
+
+apparently I just had to edit emulateapj and change revtex4 to revtex4-1
+
+
+fonts
+---------------------
+To get bitmapped fonts going in apps like gnome-terminal and
+xfce4-terminal 
+
+
+Add a new file:
+/etc/fonts/conf.d/69-zzz_fixedfonts.conf
+
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+    <!-- Enabled Fixed bitmap fonts -->
+    <selectfont>
+        <acceptfont>
+            <pattern>
+                <patelt name="family"><string>Fixed</string></patelt>
+            </pattern>
+        </acceptfont>
+    </selectfont>
+</fontconfig>
+
+sudo dpkg-reconfigure fontconfig-config
+sudo dpkg-reconfigure fontconfig
+
+I also copied zevv-peep into /usr/share/fonts/X11/misc and did the same as above
+with the family name peep.  It only provides a big font, but it looks really nice.
+My big complaint is that non-ascii characters sometimes don't fit the bounding box.
+The conf file is /etc/fonts/conf.d/69-zzz_peep.conf
+
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+    <!-- Enabled peep fonts -->
+    <selectfont>
+        <acceptfont>
+            <pattern>
+                <patelt name="family"><string>peep</string></patelt>
+            </pattern>
+        </acceptfont>
+    </selectfont>
+</fontconfig>
+
+
+
+saving gnome-terminal config
+-----------------------------------
+These are in here:
+
+~/.gconf/apps/gnome-terminal/profiles/{name}/%gconf.xml
+
+Where the {name} are Profile0, Profile1 etc and the name you see in
+the gnome-terminal gui is actually in the %gconf.xml file
+
+eups installs
+---------------------------
+
+numpy
+
+    install python-dev, gfortran, liblapack-dev (will grab blas and atlas)
+    einstall -c numpy
+
+biggles
+
+    can't use plotutils from ubuntu, use einstall
+    aptitude install libxaw7-dev
+    einstall -c plotutils
+
+    einstall -c biggles
+
+
+
+---
+
+Karmic removed trayer and also removed ability to run user .xsession
+
+I created this file:
+/usr/share/xsessions/custom.desktop and put the following in it:
+
+[Desktop Entry]
+Encoding=UTF-8
+Name=Custom
+Comment=Custom Xsession
+Exec=/etc/X11/Xsession
+TryExec=xterm
+Icon=
+Type=Application
+X-Ubuntu-Gettext-Domain=gdm
+X-Ubuntu-Gettext-Domain=gdm
+
+
+
+Feisty-fawn: Had to run from alternate cd with fancy new hardware.
+
+I partitioned the 2nd disk (500 Gb) for Ubuntu.  It can boot off a different
+disk.
+
+Watch it when it gets to choosing resolutions.  You will think you should hit
+enter to choose a res, but you should use space, then enter finalizes.
+
+Second time:
+After install need to go to safe mode.  apt-get update and upgrade everything.  
+apt-get update
+apt-get dist-upgrade
+
+Then wget the latest version of envy and run it. It will restart.  e.g.
+http://albertomilone.com/ubuntu/nvidia/scripts/envy_0.9.7-0ubuntu12_all.deb
+dpkg -i envy_0.9.7-0ubuntu12_all.deb
+
+
+Here is where things might need tweaking:
+
+I still couldn't log in.  So from recovery mode I su'd to esheldon and then
+startx worked.  From there new updates showed up even though I had done an
+upgrade and this was a new kernel.  I installed, but then the drivers wouldn't
+work with new kernel.  Had to re-run envy purging old then re-installing (which
+compiles against kernel).  Then I was set for normal log in.
+
+Maybe try to force the 3 kernel updates from the first recovery mode start.
+
+
+------------------------------------------------------------------
+First time
+
+After install need to go to safe mode.  apt-get update and upgrade everything.  
+
+Then wget the latest version of envy and run it. It will restart.  
+
+
+Here is where things might need tweaking:
+
+I still couldn't log in.  So from recovery mode I su'd to esheldon and then
+startx worked.  From there new updates showed up even though I had done an
+upgrade and this was a new kernel.  I installed, but then the drivers wouldn't
+work with new kernel.  Had to re-run envy purging old then re-installing (which
+compiles against kernel).  Then I was set for normal log in.
+
+Maybe try to force the 3 kernel updates from the first recovery mode start.
+
+

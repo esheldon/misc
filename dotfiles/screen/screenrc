@@ -1,0 +1,62 @@
+################
+#
+# 256 colours
+# ... http://frexx.de/xterm-256-notes/
+
+# terminfo and termcap for nice 256 color terminal
+# allow bold colors - necessary for some reason
+attrcolor b ".I"
+# tell screen how to set colors. AB = background, AF=foreground
+termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+
+# this makes output go to the shell, even stuff that scrolls off the top.
+# Normally in screen that stuff is not sent to the shell so you can't use
+# the scroll bar to access it.  Note, if you switch to a new session you
+# will still see the scroll from the last of course.  Note also, the copy
+# mode scrolling will always access what the session output no matter what.
+termcapinfo xterm* ti@:te@
+
+# erase background with current bg color
+defbce "on"
+
+#term screen-256color
+
+# turn off visual bell
+vbell off 
+
+# kill startup message
+startup_message off
+
+# This tells screen that my prompt ends in "] ", the default title is
+# bash, and to look at the prompt for hints at the current process for use
+# in the window title
+shelltitle "] |bash"
+#shelltitle "@|"
+
+caption splitonly "%?%F%{= kG}%:%{= kw}%? %n %t%=%{= db}"
+#hardstatus alwayslastline "%{= kw} %-Lw%{=b kG} %n%f %t %{-}%+Lw %=%{= kR} %h%{-} %{+b} %C%a %D %d %M %Y %{= dd}"
+
+hardstatus alwayslastline '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m-%d %{W}%c %{g}]'
+
+
+
+# more intuitive movement through regions
+# normal navigation is only through C-a tab
+# note t is usually "print system time" so I won't miss that
+# if vertical split every becomes standard, can bin h and l to left right
+# again no loss since h is hardcopy and l is redisplay
+bind j focus down
+bind k focus up
+bind h focus left
+bind l focus right
+bind b focus bottom
+bind t focus top
+
+defscrollback 10000
+
+# startup
+screen 2
+screen 1
+screen 0
+
+

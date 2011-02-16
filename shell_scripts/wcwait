@@ -1,0 +1,30 @@
+#!/bin/sh
+
+nargs=0
+for args
+do
+	nargs=`expr $nargs + 1`	
+	if [ $nargs -eq 1 ] 
+	   then check=$args
+	fi
+done
+
+if [ $nargs -eq 0 ]
+then
+	check=-1
+fi
+
+num=`ls | wc -l`
+echo $num
+
+until [ $num -eq $check ]
+do
+	oldnum=$num
+	sleep 5
+	num=`ls | wc -l`
+	if [ $oldnum -lt $num ] 
+	then 
+	     echo $num
+	fi
+done 
+

@@ -1,0 +1,24 @@
+# to use alternate server and file
+tin -r -f newsrcfile -g server
+
+# to start fast -Q
+
+#e.g.
+tin -r -f .chcgil_newsrc -g reader0-chcgil.newsops.execpc.com
+
+# to save all to disk and mark read
+tin -r -S -c -f .tmp_newsrc
+
+#probably should use a different .newsrc file so can read 
+# later fill .tmp_newsrc with the groups you want to save
+# locally. Then read with the following:
+
+tin -R -f .localnewsrc
+
+# which just contains usegroups in .tmp_newsrc, but they aren't
+# marked read yet
+
+# when you have read everything you can delete the files
+
+#maybe put the -S command in a cron job every few hours. for the one
+# i'm thinking about, perhaps every few days!

@@ -1,0 +1,47 @@
+#!/bin/sh
+#
+# say you have a list of files that contain the string 'blah'
+#
+# If you want to remove that string from the filenames, then type
+#
+#     > cpr blah list
+#
+# where list is something like name_blah_3.txt or *blah* etc.
+#
+# If you want to replace that string with another, say 'hey', then type
+#
+#     > cpr blah -r hey list
+#
+# Note: removes or replaces ALL occurances of string. (remove the g below
+#       to only replace the first occurance.
+
+WRONG_ARGS=65
+dargs=2
+if [ $# -lt $dargs ]
+then
+    echo "Usage: cpr [-r newstring] oldstring file_list"
+    exit
+fi
+
+newstring=""
+while getopts "r:" Option
+  do
+  case $Option in
+      r)  newstring=$OPTARG
+	  ;;
+      [?]) echo "Usage: cpr [-r newstring] oldstring file_list"
+           exit $WRONG_ARGS
+           ;;  
+  esac
+done
+shift $(($OPTIND - 1))
+
+oldstring=$1
+shift
+
+for args
+  do
+  rname=`echo $args | sed "s/$oldstring/$newstring/"`
+  cp -v $args $rname
+done
+exit

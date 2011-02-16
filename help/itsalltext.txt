@@ -1,0 +1,11 @@
+Downloaded macvim
+
+http://code.google.com/p/macvim/
+
+Don't go to the other outdated page!
+
+make /Applications/vim
+copy MacVim.app and mvim into that directory
+
+Then just point itsalltext to the mvim script.  You can't browse for it you
+have to type it in directly.

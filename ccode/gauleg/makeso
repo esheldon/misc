@@ -1,0 +1,5 @@
+rm *.o *.so
+
+cc -c -O2 gauleg.c call_gauleg.c 
+
+ld -S -o call_gauleg.so -shared call_gauleg.o gauleg.o

@@ -1,0 +1,29 @@
+objc_type uses pdf - cmodel, summed all bands.
+
+questions:  Is the fraction of stars/galaxies really different close to the
+plane, or is it just a plotting artifact?
+
+The bayesian s/g stuff is a sliding concentration cut as a function of seeing
+and mag, with prior on number of stars/galaxies as a function of mag from the
+coadds.
+
+commissioning: 180/square degree
+main survey: 150/square degree
+
+-----
+
+general
+When making lambda/eta plots always overplot a line representing the equator
+
+lrg
+try just running with the i-band concentration cut on datasweeps, plus a
+smaller run on fpObjc and just see what is missed by just running on sweeps.
+
+Make some postage stamps, ask nikhil about root for viewing
+
+qso
+/commissioning flag and add a header keyword
+
+add link to density quasars from previous page
+
+look at mmt but only primaries and see if I still get Adam's number density.

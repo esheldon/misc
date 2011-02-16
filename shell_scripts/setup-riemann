@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# -f: go to background just before command execution.  useful if going to
+# ask for passwords but eventually want to go into background
+# -N: Do not execute remote command.  No acual login occurs
+
+check=$(ps auxww | grep ".*ssh.*-L.*riemann.*" | grep -v grep)
+if [ "$check" == "" ]; then
+	echo "opening tunnel"
+	#ssh -N -f -L 2223:riemann.lbl.gov:22 insure.lbl.gov
+	ssh -N -f -L 2223:riemann.lbl.gov:22 scs-gw.lbl.gov
+else
+	echo "tunnel exists"
+fi
+
+# not using sshfs
+#check=$(ps auxww | grep ".*sshfs.*2223.*riemann.*" | grep -v grep)
+#if [ "$check" == "" ]; then
+#	echo "mounting riemann via sshfs"
+#	sshfs -p 2223 -o follow_symlinks localhost: ~/mount/riemann
+#else
+#	echo "mount to riemann exists"
+#fi

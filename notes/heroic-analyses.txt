@@ -1,0 +1,10 @@
+Lessons learned from weak lensing in the SDSS:
+
+	1 Any highly significant weak lensing measurement is a large scale
+	structure measurement.
+	
+	2 The right interpretation of these lensing measurements is in terms of
+	correlation functions, not "objects".
+
+	3 Techniques from the LSS world are useful.  A powerful framework for the
+	measurements, statistical error analysis, and systematics tests.

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+user=sdss3
+host=data.sdss3.org
+
+pwdfile=~/.boss.txt
+
+
+if [ $# -lt 1 ]; then
+    echo syncresolve PHOTO_RESOLVE
+    exit 45
+fi
+
+dirname=$1
+
+localdir=$PHOTO_RESOLVE_BASE/$dirname
+#remotedir=sas/bosswork/groups/boss/resolve/$dirname
+remotedir=dr8/groups/boss/resolve/$dirname
+
+
+if [ ! -e "$localdir" ]; then
+    mkdir -p "$localdir"
+fi
+
+cd $localdir
+
+
+rsync -av --password-file $pwdfile \
+    --exclude "*.dat" --exclude "*.sh" --exclude "*.pro" --exclude "*.o*" \
+    --exclude "*.log" --exclude "*.ps" --exclude "*.out" \
+    "$user@$host::$remotedir/" .
+

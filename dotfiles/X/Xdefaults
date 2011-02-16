@@ -1,0 +1,83 @@
+
+!
+! xterm configuration
+!
+
+! No bold fonts
+xterm*boldFont: 8x13
+xterm*boldMode: false
+
+! dont include the newline when triple clicking
+xterm*cutNewLine: true
+
+! dumb fix for getting the copy into clipboard as well as primary
+! you can still use mouse paste in the xterm but paste ctrl-v or whatever
+! will work in other apps
+! I would rather have a keyboard shortcut to get things into the clipboard, 
+! but I dont know how
+xterm*VT100.translations: #override <Btn1Up>: select-end(PRIMARY, CLIPBOARD, CUT_BUFFER0)
+
+
+!xterm.reverseVideo: true
+xterm*saveLines: 2000
+xterm*scrollBar: false
+xterm*scrollKey: true
+xterm*scrollTtyOutput: false
+xterm*charClass: 45-47:48,126:48
+xterm*cursorColor: yellow
+xterm*rightScrollBar: true
+
+! color1: the usual red
+! color2: the usual green
+! color3: the usual yellow
+! color4: the usual blue
+! color5: the usual magenta
+! color6: the usual cyan
+! color7: the usual white
+! The higher numbers are the "bold" versions
+! color9: the usual bold red
+! color10: the usual bold green
+! color11 the usual bold yellow
+! color12: the usual bold blue
+! color13: the usual bold magenta
+! color14: the usual bold cyan
+! color15: the usual bold white
+
+
+!! Colors for a dark background.  Good on black and grey20
+!! An orangish red, same used for bold below
+
+xterm*background: #1f1f1f
+xterm*foreground: white
+
+xterm*color1: #ff6600
+!! A lighter green
+xterm*color2: #99ff99
+!! A brighter yellow
+xterm*color3: #ffff66
+!! brighter blue
+xterm*color4: #99ccff
+!! a bright pinkish red
+xterm*color5: #ff6699
+!! a brighter cyan
+xterm*color6: #66ffff
+
+!! a bright orange (bold)
+xterm*color9: #ff6600
+!! a lighter green
+xterm*color10: #99ff99
+!! a brighter yellow
+xterm*color11: #ffff66
+!! a much brighter blue than is standard on linux systems.
+!! this is similar to that used on mac but a bit brighter
+xterm*color12: #99ccff
+!! a less harsh color than bright magenta
+xterm*color13: #ff6699
+!! a less harsh cyan
+xterm*color14: #66ffff
+
+xclock*reverseVideo: true
+xclock*minorColor: grey80
+xclock*majorColor: cyan
+xclock*secondColor: cyan4
+xclock*hourColor: green4

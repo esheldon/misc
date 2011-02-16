@@ -1,0 +1,65 @@
+Abstract:
+
+    The wording sounds like the lensing mass measurements were performed in this
+    paper.  
+
+Intro
+
+    P2 Typo? "...models of galaxy and hot gas evolution in *halo* will..." probably
+    should be halos, unless your research is funded by Bungee
+
+    P4 "...provide a weaker *constrain*..." should be constraint.
+
+S2.1
+
+    P1 "...cluster sample we employ..."  You can't employ inanimate objects :-P
+
+    P2 You say the photozs are *accurate* but then quote a precision \Delta_z.
+    The accuracy is I believe around 0.01
+
+S2.2
+
+    P2 This paragraph is a little opaque.  I think the reason you have to pick
+    z=0.25 is because you can't k-correct each photon or something, right, not
+    "for consistency with lensing" which enforces no such choice. 
+    
+    P3  \rho_{gas} is not used anywhere else, might as well just say
+    "Since Lx is proportional to the gas density squared"
+
+S2.3
+
+    P1 We don't average the tangential shear, we average \Delta\Sigma.  This is
+    not a fine point, it is important.  You can say perhaps: "The mean
+    projected surface density contrast, measured from the shear of background
+    galaxies, " or something like that.
+
+S3
+    
+    P1 "Fig. 1 plots..." a figure cannot plot anything.  Maybe "In Figure 1 we
+    plot..." or "In Figure 1 we show" or whatever.
+
+    Some 9% of the mass uncertainties are systematic, which must be included in
+    a special way in fits. How did you propagate the systematic component? 
+
+    P2  "statistically significantly"  is awkward, maybe just significantly?
+    Also I would split the sentence for the different comparisons.
+
+Figure 1
+
+    Do you need to show the error size in the legend?  The points do have error
+    bars in the mass direction.
+
+S4
+
+
+    P1  you have an extraneous comma after "detailed"
+
+    P4  Need another comma after \sigma_{lnM...}
+    
+    P9 "..covariance can both tilt the scaling relation and modify the scatter"
+
+
+General
+    A similar covariance is expected for M200-N200 yes?
+
+    For some reason there is extra space between paragraphs on page 4, column 1.

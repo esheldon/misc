@@ -1,0 +1,5 @@
+
+Symbolic Link [linkname] points to [source directory]  -f forces to replace
+existing link
+
+ln -fs [source directory] [linkname]

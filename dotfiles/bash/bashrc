@@ -1,0 +1,134 @@
+# vim: set filetype=sh :
+# My "universal" bashrc
+
+if [[ -z "$PS1" ]]; then
+    return
+fi
+
+# use vi commands on the prompt
+set -o vi
+# shells append to history, don't overwrite
+shopt -s histappend
+
+export PAGER='less -R'
+
+sysname=`uname`
+host=`uname -n`
+hname=`echo $host | sed "s/\..*//g"` #only first part of name
+htype=`uname -s`
+
+# This is a kludge, but...
+if [ $sysname == "Darwin" ]; then
+    hname="fangorn"
+fi
+
+if [[ $hname == "desdb" || $hname == "desar" || $hname == "deslogin" ]]; then
+	hname="desdb"
+fi
+
+export EDITOR=vi
+export LESS="-XP[%f] %lb/%L"
+export RSYNC_RSH="ssh"
+
+ddir=${HOME}/.dotfiles/bash
+defaultDotfileDir=$ddir/default
+
+# All cheopsen have same configuration
+cheopstest=`echo $host | grep -i cheops`
+cosmotest=`echo $host | grep -i cosmo.fas.nyu.edu`
+nyuphysicstest=`echo $host | grep -i physics.nyu.edu`
+eepctest=`echo $host | grep -i eepc`
+astrobnltest=`echo $host | grep -i astro.bnl.gov`
+rplaytest=`echo $host | grep -i rplay`
+lsst_bnl_test=$(uname -n | grep -i lst.bnl)
+
+if [[ $hname == "fangorn" || $sysname == "Darwin" ]]; then
+    dotfileDir=$ddir/fangorn
+elif [[ "$hname" == "theshire" ]]; then
+    dotfileDir=$ddir/theshire
+elif [[ $astrobnltest != "" ]]; then
+    dotfileDir=$ddir/astro.bnl.gov
+elif [[ $rplaytest != "" ]]; then
+    dotfileDir=$ddir/rplay
+elif [[ $hname == "ria" ]]; then
+    dotfileDir=$ddir/ria
+elif [[ $cheopstest != "" ]]; then
+    dotfileDir=$ddir/cheops
+elif [[ $nyuphysicstest != "" || $hname == "bias" || $hname == "anvil" || $hname == "prism" ]]; then
+    dotfileDir=$ddir/cosmo.fas.nyu.edu
+elif [[ $cosmotest != "" ]]; then
+    dotfileDir=$ddir/cosmo.fas.nyu.edu
+elif [[ $eepctest != "" ]]; then
+    dotfileDir=$ddir/default
+    host="eepc"
+elif [[ "$hname" == "ln000" ]]; then
+	dotfileDir=$ddir/riemann
+elif [[ "$hname" == "desdb" ]]; then
+	dotfileDir=$ddir/desdb
+elif [[ "$hname" == "lsst" ]]; then
+	dotfileDir=$ddir/lsst.phy.bnl.gov
+elif [[ "$lsst_bnl_test" != "" ]]; then
+	dotfileDir=$ddir/lst.bnl.gov
+else
+    dotfileDir=$ddir/${hname}
+fi
+
+if [[ ! -d $dotfileDir ]]; then
+    dotfileDir=$defaultDotfileDir
+    if [[ ! -d $dotfileDir ]]; then
+        echo No configuration found
+        exit 
+    fi
+fi
+
+export dotfileDir
+
+# add desdb check since they modify the path
+if [[ -f /etc/bashrc && "$hname" != "desdb" ]]; then
+    source /etc/bashrc
+fi
+
+
+
+
+# always check the aliases file.  Should we always load defaults directory
+# for the others too?
+afile=$defaultDotfileDir/aliases.sh
+if [[ -f $afile ]]; then
+    source $afile
+fi
+
+FLAVOR=`uname`;
+if [ -e /bin/arch ]; then
+	if [[ $FLAVOR == "Linux" ]]; then
+		test64=`arch`
+		if [[ $test64 == "x86_64" ]]; then
+			FLAVOR="Linux64"
+		fi
+	fi
+fi
+export FLAVOR
+
+for f in path eups ssh-agent perl python java cvs aliases ls_colors idl_setup gdl_setup pg_setup misc des_setup boss_setup oracle proxy term go d gems localvars fortran fink; do
+    local_file="$dotfileDir/$f.sh"
+    default_file="$defaultDotfileDir/$f.sh"
+
+	# Load the default first if it exists, then the local
+	if [[ -e $default_file ]]; then
+        #echo "source $default_file"
+		source $default_file
+	fi
+	if [[ "$local_file" != "$default_file" ]]; then
+		if [[ -e $local_file ]]; then
+            #echo "source $local_file"
+			source $local_file
+		fi
+	fi
+done
+
+# somewhere vi is being alised to vim and this messes up certain 
+# codes
+aliascheck=`alias vi 2> /dev/null`
+if [ "$aliascheck" != "" ]; then
+	unalias vi
+fi

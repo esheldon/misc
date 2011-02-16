@@ -1,0 +1,12 @@
+installed xmonad
+also had to install
+ghc-xmonad-contrib-devel.x86_64
+
+installed dmenu
+
+xmobar is not in the repos or on rpmfusionm
+
+
+Trayer:
+	Got it from pbone and it just worked with rpm -Uvh
+	trayer-1.0-4.fc12.as.x86_64.rpm

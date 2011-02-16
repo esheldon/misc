@@ -1,0 +1,57 @@
+#	PACKAGE: Various IDL callable routines
+#
+# os: linux
+# --- Macros -----------------------------------------------------------------
+
+CCXX =		g++
+LD = 		g++
+INCLUDE =	-I../include
+CCFLAGS =	${INCLUDE} -DLINKAGE= -fPIC -DSTAND_ALONE -DPIC -O
+LDFLAGS = -shared -export-dynamic
+CP      =       cp
+RM      =       rm -f
+
+LIBRARY =	../lib/libSpatialIndex.a
+
+SOFILES = objShearIDL.so htmLookupRadec.so htmIntersectRadec.so 
+
+LOOKUP_OBJ     = htmLookupRadec.o
+INTERSECT_OBJ  = htmIntersectRadec.o
+
+OBJSHEARIDL_OBJ = objShearIDL.o
+
+OBJSHEAR_OBJ   = objShear.o
+GCIRC_OBJ      = gcircSurvey.o
+ANGDIST_OBJ    = angDist.o
+SIGINV_OBJ     = sigmaCritInv.o
+IDLSTRUCT_OBJ  = IDLStruct.o
+LENSSTRUCT_OBJ = lensStruct.o
+
+OBJSHEARIDL_OBJLIST = ${OBJSHEARIDL_OBJ} ${OBJSHEAR_OBJ} ${IDLSTRUCT_OBJ} ${LENSSTRUCT_OBJ} ${GCIRC_OBJ} ${ANGDIST_OBJ} ${SIGINV_OBJ}
+
+LDLIBS  = ${LIBRARY} -lm
+
+htmLookupRadec.so: ${LOOKUP_OBJ} ${LIBRARY}
+	@ echo linking $@
+	@ ${LD} -o $@ ${LDFLAGS} ${LOOKUP_OBJ} ${LDLIBS}
+
+htmIntersectRadec.so: ${INTERSECT_OBJ} ${LIBRARY}
+	@ echo linking $@
+	@ ${LD} -o $@ ${LDFLAGS} ${INTERSECT_OBJ} ${LDLIBS}
+
+objShearIDL.so: ${OBJSHEARIDL_OBJLIST} ${LIBRARY}
+	       @echo linking $@
+	       @ ${LD} -o $@ ${LDFLAGS} ${OBJSHEARIDL_OBJLIST} ${LDLIBS}
+
+all: ${SOFILES}
+
+clean:
+	- ${RM} ${LOOKUP_OBJ} ${INTERSECT_OBJ} ${SOFILES} ${OBJSHEARIDL_OBJLIST}
+
+
+.SUFFIXES:
+.SUFFIXES: .o .cpp
+
+.cpp.o:
+	@ echo compiling $<
+	@ ${CCXX} -c ${CCFLAGS} $<

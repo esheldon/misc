@@ -1,0 +1,47 @@
+# this will be the backend used.  Note, it is not actually "loaded" until
+# the first plot is made. So you can import matplotlib and use the command
+# matplotlib.use(backend) before plots are made to override this.
+
+backend      : TKAgg  # Use TK for the plotting backend.
+#backend      : GTKAgg  # Use TK for the plotting backend.
+#backend : Agg
+text.usetex  : True   # use latex for all text handling.  Note this does slow things down.
+                      # For faster use set to False and then turn on when you need it
+                      # with pylab.rc('text',usetex=True) in your script.
+
+
+font.family : serif
+font.serif : Times New Roman
+
+### TICKS
+# see http://matplotlib.sourceforge.net/matplotlib.axis.html#Ticks
+#xtick.major.size     : 6      # major tick size in points
+#xtick.minor.size     : 3      # minor tick size in points
+#ytick.major.size     : 6      # major tick size in points
+#ytick.minor.size     : 3      # minor tick size in points
+xtick.major.size     : 8      # major tick size in points
+xtick.minor.size     : 4      # minor tick size in points
+ytick.major.size     : 8      # major tick size in points
+ytick.minor.size     : 4      # minor tick size in points
+
+#xtick.major.size     : 10      # major tick size in points
+#xtick.minor.size     : 5      # minor tick size in points
+#ytick.major.size     : 10      # major tick size in points
+#ytick.minor.size     : 5      # minor tick size in points
+
+axes.labelsize:18
+xtick.labelsize:16
+ytick.labelsize:16
+
+# width of lines drawn on the plot, not the borders and stuff
+lines.linewidth   : 1.5     # line width in points
+axes.linewidth : 1.5
+
+
+
+# These affect imshow
+# make pixels just boxes
+image.interpolation: nearest
+
+# zero in lower left hand corner
+image.origin: lower

@@ -1,0 +1,18 @@
+CC	= cc
+LD	= cc
+INCLUDE	= -I../include
+CCFLAGS	= ${INCLUDE} -DLINKAGE -fPIC
+LIBOBJS	= phadmom.o phadmom_float.o
+
+
+all: ${LIBOBJS}
+
+clean: 
+	- rm -f ${LIBOBJS};
+
+.SUFFIXES:
+.SUFFIXES: .o .c
+
+.c.o:
+	@ echo compiling $<
+	@ ${CC} -c ${CCFLAGS} $<

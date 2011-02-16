@@ -1,0 +1,9 @@
+[default]
+fontface = HersheySerif
+fontsize_min = 0.1
+
+[screen]
+width = 800
+height = 800
+# this is does not control fonts, doh!
+#linewidth = 3

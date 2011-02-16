@@ -1,0 +1,126 @@
+Here are some new procedures for reading tsObj files.  These incorporate
+the recent changes in tsObj file formats (a file for each field)  These  
+procedures are in the path on fsgi03 if you type setup idl.  You can get  
+your own copy with cvs co sdssidl
+
+
+You can get online help for each of these procedures here:
+    
+    http://sdss.fnal.gov:8000/~esheldon/sdssidl/umich_idl.html
+
+or by running IDL and typing doc_library,'proc_name'  The web page generally
+has more up-to-date documentation.
+
+
+
+1) READ_TSOBJ tutorial
+-----------------------------------------------------------------------
+
+Since one now has to search a list of files to find the appropriate field, 
+the directory must be supplied to any reading program.  Because its hard to 
+remember all the different directories, a program was written to supply that 
+directory.  It requires a well defined directory structure but, if all you do
+is read tsObj files on fsgi03, you don't need to know about that:
+
+
+IDL> fetch_dir
+-syntax fetch_dir,run,camcol,rerun,dir,atldir,file,atlfile,field=field,
+check=check,corrdir=corrdir
+
+"dir" is the tsObj directory and "atldir" is the atlas directory.  They are 
+different.  If you give it the field it can return "file" and "atlfile"
+If you arent sure that the run or rerun exists, you can use /check to 
+see if they exist.  This usually takes a while, so you don't want to
+do it if you don't have to.
+
+If you don't know the rerun and you just want the latest:
+
+IDL> fetch_rerun
+-syntax fetch_rerun,run,rerun
+
+This only works if our friends at fermi have put in the appropriate links.  For
+example, at the time I write this run 94 does not have these links.  This  
+means you need to know the rerun already, which isn't a big deal.
+
+
+Finally you can read the fields you want.  The syntax is the same
+as read_photo_col except you give it a directory instead of a filename.
+
+IDL> read_tsobj
+-syntax read_tsobj, dir [, struct,
+    start=start,nframes=nframes, all=all,
+    taglist=taglist, phototags = phototags,
+    addrow=addrow, struct_type=struct_type, noadd=noadd,
+    verbose=verbose, front=front, nchar=nchar]
+
+The default is start="the first field" and nframes=1  It will make a default
+set of tags with the procedure make_default_tags.pro  If you want your own set,
+send it a list taglist=mytags (all caps)  See the online doc for more info.
+
+READ_TSOBJ calls the following procedure which you may find handy someday.
+It gets the list of tsObj files from the directory.
+
+IDL> fetch_file_list
+-Syntax: fetch_file_list, dir [, files, fnums, start=start, nframes=nframes,
+run=run, camcol=camcol, rerun=rerun, fieldmin=fieldmin, fieldmax=fieldmax, 
+front=front, nchar=nchar]
+
+See below for explanation of front and nchar. Default is to return all file 
+names and numbers.  You can also return run, camcol, rerun, fieldmin, fieldmax.
+
+Obviously you could write a wrapper for all this.  However, since you may not
+always use the latest rerun or you might have your own directories
+of files (e.g. corrected shapes) then you should get to know these programs.
+
+
+2) Reading in other types of files.
+---------------------------------------------------------------
+
+Lets say that you process the tsObj files, extracting objects for each field
+and possible adding new tags.  You can still read them with read_tsobj. Your 
+files names will have to be in the same format as the tsObj files and each 
+run and column must have its own directory. 
+(see /usr/sdss/data01/imaging/756)
+
+They can have a different front string.  e.g.
+
+adatc-000752-3-3-0014.fit   as compared to    
+tsObj-000752-3-3-0014.fit
+
+But then you need to supply this input to read_tsobj or fetch_file_list:
+
+    front='adatc'
+
+Note both of these names have 25 characters.  If you used a different "front" 
+then it might have more or less than 25.  Then you need to supply 
+
+     nchar=nchar
+
+The names shouldn't be hard to deal with, especially since you know what
+tsObj files you used in the first place.  You can just modify the tsObj 
+names with this IDL code:
+
+  ;; Choose a new front end and directory.
+  newfront = 'adatc'
+  newdir = 'mydirectory/'       ;don't forget slash /
+
+  ;; read in the tsObj filenames from which you got the data.
+  fetch_file_list, dir, files, start=start, nframes=nframes
+
+  ;; replace front end
+  nf=n_elements(files)
+  newfiles = strarr(nf)
+
+  for i=0, nf-1 do begin
+    
+      name = str_sep(files[i], 'tsObj')
+      newfiles[i] = newfront + name[1]     ; name[1] is the tail
+
+  endfor 
+
+  nchar = strlen(newfiles[0])              ; length of new file name
+  newfiles = newdir + newfiles             ; add on the directory
+
+
+-----------------------------------------------------------------------
+Erin Scott Sheldon                                    Feb., 21 2000

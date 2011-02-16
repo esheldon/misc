@@ -1,0 +1,196 @@
+General:
+
+    The paper reads like a rough draft.  In my opinion this paper needs a lot
+    of work and is not a few weeks from submission.
+
+    Why was the analysis done in angular space rather than physical space.  My
+    intuition is this would be more sensitive and easier to interpret; there
+    is a variance of 15% in the angular scale between the lower edge z=0.25
+    and the outer edge z=0.3 for the last redshift bin; this propagates
+    into variance in your answer at some level.
+
+    You should not be using any information from Sheldon et al. 2001.  It does
+    not apply to this catalog.  The catalog is most closely related to
+    Sheldon et al. 2004
+
+    I should not be an author on the paper, I only gave you catalogs.  An
+    acknowledgement is more than enough.
+
+Abstract:
+
+    It isn't clear what is meant by "Our results are qualitatively the same..."
+    I think you might say the results are similar if we fit a SIS
+
+Intro
+
+    P5  The last sentence is a little confusing:  Strongest for reddest
+    galaxies, do you mean reddest BCGs or reddest satellites?
+
+    P7 last sentence, her->here.  Also probably "They considered lensing" is
+    better.
+
+    P8 "In fact..."  Might say this was studied previously or something to that
+    effect.
+    
+    P9 Its also useful to know what you assume for Hubble
+
+2.1
+
+    P2  First sentence is awkward.  "In order to define an isolated sample of
+    clusters, we removed clusters found to be close...etc....More details can
+    be found in section ...."
+
+    P3 The background galaxy catalogue was selected in the same manner as
+    Sheldon 2004 not 2001 but is larger in area.  What do you mean by "Cluster
+    members are not included in the shear catalog?"  I made no such cut.
+    
+    Can you remind me which catalog I sent you so I can send a proper 
+    description?
+
+2.2
+
+    This whole section needs to be restructured and simplified.  For example,
+    there is a lot of redundancy, both with previous sections and within the
+    section.  More care should be taken to make the sentence structure clear
+    and simple.
+
+    P1 The first paragraph is worded in a confusing way; you should be clear
+    that by "close" you mean in the projected separation.  Better would be "In
+    order to avoid contamination of the signal from neighboring structures, we
+    only measure the shear at relatively small projected separations" or
+    something like that.  
+
+    P2 The shear signal is not weighted by cluster mass.  The most important
+    factor for weighting is the number of background galaxies per cluster, so
+    the weighting is primarily a redshift weighting.  Within one of your
+    redshift bins it is weighted by the number of clusters at each mass, but
+    otherwise unweighted.
+
+    You already explained that you would bin by richness, no need to repeat
+    the argument here.  I would remove everything about mass weighting and
+    ngals and just say "the mean of our sample is X so we take the panel X
+    from Johnston et al as an estimate of the relative contribution from
+    the cluster and neighboring structures".  
+
+    Last sentence: Be more explicit what you are talking about instead of "blue
+    line".  Also, you haven't addressed the removal of close neighbors yet, but
+    you refer to it as if it preceded.
+
+    P3  By a "numerical study" do you mean a simulation?  
+
+    Because "lensing measures the projected mass" it doesn't matter if you
+    have photometric or spectroscopic redshifts, the contamination is the
+    same to the shear.
+
+2.3
+
+    P1 Is this true?  Ben uses the location of the BCG for the center, have you
+    re-centered on the cluster member centroid?  If so this is important and
+    should be explained in detail.
+
+    P3 Now you say you use the BCG as the center.
+
+    This definition of ellipticity is new to me.  For example, in lensing the
+    denominator is chosen to be Qxx+Qyy.  Why was this definition chosen?
+
+    P5  Again you say the cluster members are not included: did you remove
+    them?  
+    
+    "..about 50%...were identified" How was this quantified?  When you say
+    "Correctly categorized" you imply that many of the cluster members were
+    missed in some way, but probably the "missed" galaxies are just fainter
+    than Ben's absolute magnitude cut and outside r200; this statement should
+    be corrected.
+
+    P9 There is no need to talk about equation 11 since you take the ratio
+    of shear in quadrants anyway.
+
+    P10 We cannot "recall" the predictions from section 3 it comes later
+    in the paper.
+
+    P12  The catalogs contain the covariance term between the two components
+    of shear.
+
+    P13  The shape noise cannot be estimated in that way.  The shape noise
+    in ellipticity space is about 0.32, and 0.16 in shear space. 
+
+    P14  This is a poor method for calculating the errors.  Why not do 
+    error propagation?  
+
+    This is the first you have mentioned of a cut on the background
+    source catalog.  This should be explained in detail in section 2.1
+
+Equation 16 and paragraph after
+
+    Don't forget that the integral in the denominator *does* start at z=0
+    
+    You should not use the Sheldon et al. 2004 distributions.  I don't
+    understand why any background redshift information is being used at all.
+    Isn't this unnecessary for measuring ellipticity?
+
+3.3
+
+    This correction must be calculated from a proper correlation function
+    analysis.  From the text it appears this has not been done correctly.  Your
+    box is large enough that survey edges are a significant contaminant to your
+    analysis.  On <1 Mpc scales you are OK because Ben makes a 1 Mpc edge cut
+    before running the cluster finder.  This could possibly affect the inferred
+    ellipticity because the correction factor is greatly overestimated at large
+    radius (a constant background model is just wrong). This is alleviated
+    somewhat by the rotations applied to align the clusters.
+
+    Is the correction in equation 17 calculated for every pixel in the map?  If
+    not this could seriously alter your measured signal as the correction
+    factor will be different along the major axis by a factor related to the
+    axis ratio.  I think from paragraph 2 that you do do this for each pixel.
+
+
+    A simpler analysis that would not require such a large masking of the
+    central region would be examining quadrants.  You could calculate the mean
+    correction factor in each quadrant with higher S/N and then take the ratio
+    of shears in quadrants.  Another alternative would be to use a model for
+    the correction factor that would be constrained to vary smoothly over
+    the region of interest.  We know it is roughly a power law.
+
+4
+
+    I don't understand this f vs n0 plot.  The full correlation function
+    analysis is the proper approach.  What is the purpose of this figure?
+
+    Given the problems I have raised above the error on the ellipticity
+    quoted here is too small.
+
+    What is LM?  I did not find a definition
+
+    What is light matter?  Do you mean the galaxy counts?  Is this LM?
+
+    You refer to Table 3.3 that doesn't exist.  I'm guessing you meant
+    table 1
+
+
+
+    Figure 3b  Why are there so few points in the curve?  There is information
+    to be obtained from a finer grid.
+
+    P3
+    When you say "probability" do you mean "likelihood"?
+
+    P4 When you say "limit" do you mean "contraint" or best-fit or range
+    of allowed values?
+
+    P5 Again I ask if each pixel gets it's own correction:  If you are applying
+    a single *radial* correction, you will underestimate the correction on the
+    major axis and overestimate on the minor axis and this will make it look
+    more round
+
+4.1
+
+    Why do you say the higher z clusters are more likely to be higher mass? The
+    catalog is roughly volume limited, which means the samples are essentially
+    the same at all redshifts.
+
+    Do the corrections for member-background contamination differ for lenses at
+    different redshift, and at what level?
+
+
+

@@ -1,0 +1,64 @@
+#!/bin/bash
+
+function usage {
+	echo "usage `basename $0` [-h -c fileclass -r run -b band -e extra -x extension]"
+	echo "  default list all fits files matching"
+	echo "        re=\".*/.*decam--[0-9][0-9]?--[0-9][0-9]?-[grizY]-[0-9][0-9]?_[0-9][0-9]\.fits(\\.fz)?\""
+	echo "  fileclass could be red, coadd, wl, wl-bnl"
+	echo "  run could be 20081020111421_20081003"
+	echo "  band could be [grizY]"
+	echo "  extension could be anything"
+	echo "  for red images use -e '', for cat use -e '_cat', for all don't send"
+}
+
+fileclass="any"
+run="any"
+band="[grizY]"
+ext=".fits"
+extra=".*"
+while getopts "hc:t:r:b:x:e:" Option; do
+	case $Option in
+		h)  usage
+		exit 45 ;;
+		c)  fileclass=$OPTARG ;;
+		r)  run=$OPTARG ;;
+		b)  band=$OPTARG ;;
+		x)  ext=$OPTARG ;;
+		e)  extra=$OPTARG ;;
+		[?]) usage
+		exit 45 ;;  
+	esac
+done
+shift $(($OPTIND - 1))
+
+
+
+root=$DESDATA
+if [ "$fileclass" != "any" ]; then
+	search_dir=$root/$fileclass
+else
+	search_dir=$root
+fi
+
+if [ "$run" != "any" ]; then
+	if [ "$fileclass" == "any" ]; then
+		echo "You must send a fileclass if you specify a run"
+		exit 45
+	fi
+	search_dir=$search_dir/$run
+fi
+
+
+if [ "$fileclass" == "coadd" ]; then
+	re=".*/.*_${band}${extra}\\${ext}(\\.fz)?"
+else
+	re=".*/.*decam--[0-9][0-9]?--[0-9][0-9]?-${band}-[0-9][0-9]?_[0-9][0-9]${extra}\\${ext}(\\.fz)?"
+fi
+
+#echo "searching dir=${search_dir}"
+#echo "  with re =   ${re}"
+#exit
+find -L $search_dir -regextype "posix-extended" -regex $re | sort
+
+
+

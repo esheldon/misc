@@ -1,0 +1,7 @@
+MODULE ascii_read
+DESCRIPTION Read ascii data. Converted to C++
+VERSION 0.1
+BUILD_DATE 2006-07-13
+SOURCE Erin Sheldon, NYU
+
+FUNCTION ascii_read 0 IDL_MAXPARAMS KEYWORDS

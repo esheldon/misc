@@ -1,0 +1,36 @@
+#!/bin/sh
+
+overwrite="N"
+crop="N"
+while getopts "oc" Option
+  do
+  case $Option in
+      o)  overwrite="Y";;
+	  c)  crop="Y";;
+      [?]) echo "Usage: convert_to_pdf [-o]"
+           exit $WRONG_ARGS
+           ;;  
+  esac
+done
+shift $(($OPTIND - 1))
+
+for f in $*
+do
+
+	pdf=${f%.*}.pdf
+  
+	if [ $overwrite == "N" ]
+	then
+		if [ ! -f $pdf ]
+		then
+			echo "------------------------------------------------"
+			echo "Converting:   $f -> $pdf"
+			ps2pdf_crop $f $pdf
+		fi
+	else
+		echo "------------------------------------------------"
+		echo "Converting:   $f -> $pdf"
+		ps2pdf_crop $f $pdf
+	fi
+done
+

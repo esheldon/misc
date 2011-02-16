@@ -1,0 +1,9 @@
+Install gems with 
+    aptitude install rubygems
+
+Then install rake via gem install, do *not* install from 
+aptitude!!!
+
+    gem install rake
+
+Then you can install other stuff like sup.

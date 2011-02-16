@@ -1,0 +1,301 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Sys::Hostname;
+use File::Basename;
+use File::Spec;
+use Getopt::Long;
+use Cwd;
+
+use SDSS::StringOp;
+
+####################################
+# Check arguments
+####################################
+
+if (@ARGV < 1) {
+    &print_syntax;
+    exit;
+}
+
+my $input_nget=-1;
+my $dolinked;
+GetOptions('nget=i' => \$input_nget, 'linked' => \$dolinked);
+
+my $disk=$ARGV[0];
+
+# Should we use the linked?
+my $dir;
+my $astromFlag;
+my $tsObjFlag;
+my $objcsFlag;
+
+my $GigPer_tsObj = 0.0095;
+
+if ($dolinked) {
+    $dir = "/$disk/imaging.linked/";
+    $astromFlag = "-al";
+    $tsObjFlag   = "-l";
+    $objcsFlag   = "-ol"
+} else {
+    $dir = "/$disk/imaging.local/";;
+    $astromFlag = "-a";
+    $tsObjFlag   = "-c";
+    $objcsFlag   = "-o"
+
+}
+
+
+################################
+# Read the runs to get
+################################
+
+
+my %RI = &read_runs2get;
+print "Writing to directory $dir\n";
+
+my @RIkeys = keys %RI;
+my $nget = @RIkeys;
+
+print "A total of $nget runs/reruns need to be downloaded\n";
+
+
+###########################################
+# define a subset which we will actually
+# get
+###########################################
+
+if ($input_nget == -1) {
+    printf("We will download all of these runs\n\n");
+} elsif ($input_nget > 0) {
+    $nget = $input_nget;
+    printf("Will get the first $nget of these runs\n\n");
+} else {
+    printf("No runs requested. Exiting\n");
+}
+
+my %GetRI;
+
+my $iget = 0;
+my $totgig=0.0;
+foreach my $key (reverse sort keys %RI) {
+    if ($iget < $nget) {
+
+	$GetRI{$key}{run} = $RI{$key}{run};
+	$GetRI{$key}{rerun} = $RI{$key}{rerun};
+	$GetRI{$key}{n_tsObj} = $RI{$key}{fn_tsObj};
+
+	$GetRI{$key}{calibTotal} = $RI{$key}{calibTotal};
+	$GetRI{$key}{fcalibTotal} = $RI{$key}{fcalibTotal};
+	$GetRI{$key}{objcsTotal} = $RI{$key}{objcsTotal};
+	$GetRI{$key}{fobjcsTotal} = $RI{$key}{fobjcsTotal};
+
+	my $ngig = $GigPer_tsObj*$GetRI{$key}{n_tsObj};
+	$totgig += $ngig;
+
+	printf("%5d %3d  \#to get: %3d  %4.1fGb\n", 
+	       $GetRI{$key}{run}, $GetRI{$key}{rerun}, 
+	       $GetRI{$key}{n_tsObj}, $ngig);
+
+    }
+    $iget += 1;
+}
+
+printf("---------------------------------\n");
+printf("%30.1fGb\n\n", $totgig);
+printf("Here is a chance to kill it\n");
+sleep 10;
+
+
+$iget = 0;
+my @args;
+foreach my $key (reverse sort keys %GetRI) {
+    
+    ###########################################
+    # Change to the main download directory
+    ###########################################
+    
+    print "\nchdir to directory $dir\n";
+    chdir $dir or die "Cannot chdir to $dir $!\n";
+    
+    my $run = $GetRI{$key}{run};
+    my $rerun = $GetRI{$key}{rerun};
+    
+    ##############################################
+    # check if this directory already exists
+    ##############################################
+    
+    if ( -d $run ) {
+	
+	##############################################
+	# It exists, check for the rerun
+	##############################################
+	
+	print "\nRun dir $run already exists. Checking rerun\n";
+	
+	chdir $run or die "Cannot chdir to $run: $!\n";
+	# does the rerun already exist?
+	if ( -d $rerun ) {
+	    # It exists.  We will proceed.  This way we can continue
+	    # from a crash or whatever
+	    print "\nRerun dir $rerun already exists. Proceeding\n";
+	} else {
+	    # create the rerun directory
+	    print "\nCreating rerun dir $rerun\n";
+	    system("newrerun",$rerun) == 0
+		or die;
+	}
+    } else {
+	
+	##############################################
+	# We create the run/rerun
+	##############################################
+	
+	print "\nCreating directory $run\n";
+	system("newrun",$run,$rerun) == 0
+	    or die;
+    }
+        
+    ##############################################
+    # Download the files
+    ##############################################
+
+    print "\nOK, downloading. Here's your chance to kill it\n";
+    sleep 10;
+        
+    # astrom	
+    @args = ("wget_imaging", $astromFlag, $run, $rerun, $disk);
+    system(@args) == 0
+	or die "system @args failed: $?";
+    
+    # calibChunks
+    if ($GetRI{$key}{calibTotal} < $GetRI{$key}{fcalibTotal}) {
+	@args = ("wget_imaging", $tsObjFlag, $run, $rerun, $disk);
+	system(@args) == 0
+	    or die "system @args failed: $?";
+    } else {
+	print "\nWe already have all the calibChunks files\n";
+	print "Fermi: $GetRI{$key}{fcalibTotal} Here: $GetRI{$key}{calibTotal}\n";
+	sleep 10;
+    }
+    
+    # objcs
+    if ($GetRI{$key}{objcsTotal} < $GetRI{$key}{fobjcsTotal}) {
+	@args = ("wget_imaging", $objcsFlag, $run, $rerun, $disk);
+	system(@args) == 0
+	    or die "system @args failed: $?";
+    } else {
+	print "We already have all the objcs files\n";
+	print "Fermi: $GetRI{$key}{fobjcsTotal} Here: $GetRI{$key}{objcsTotal}\n";
+	sleep 10;
+    }
+
+    $iget += 1;
+    if ($iget >= $nget) {
+	print "\nGot $nget Runs/Reruns\n";
+	last;
+    }
+    
+}
+
+##############################################
+# Tell the user what just happened
+##############################################
+
+$totgig=0;
+$iget=0;
+foreach my $key (reverse sort keys %GetRI) {
+    if ($iget < $nget) {
+
+	my $ngig = $GigPer_tsObj*$GetRI{$key}{n_tsObj};
+	$totgig += $ngig;
+
+	printf("%5d %3d  \#to get: %3d  %4.1fGb\n", 
+	       $GetRI{$key}{run}, $GetRI{$key}{rerun}, 
+	       $GetRI{$key}{n_tsObj}, $ngig);
+	      		
+    }
+    $iget += 1;
+}
+
+printf("---------------------------------\n");
+printf("%30.1fGb\n\n", $totgig);
+exit;
+
+sub print_syntax {
+    print "-Syntax: wget_imaging_wrapper --nget=  disk\n";
+}
+
+sub read_runs2get {
+
+    # File contents
+    # Run Rerun Camcol Stripe Strip #tsObj #tsObj_fermi #fpAtlas_cheops #fpAtlas_fermi 
+    #   #psField_cheops #psField_fermi #fpM_cheops #fpM_fermi 
+
+    my $dbm_dir;
+    if ( exists($ENV{"DBM_DIR"}) ) {
+	$dbm_dir = $ENV{"DBM_DIR"};
+    } else {
+	die "Environment variable DBM_DIR is not set";
+    }
+    my $filename="${dbm_dir}/collate/runs2get.dat";
+    
+    print "\nReading from file $filename\n";
+    
+    open(IN,$filename) or die "can't open file $filename\n";
+
+    # will skip 2 lines
+
+    my %RI;
+    my $i=0;
+    foreach my $line (<IN>) {
+	
+	if ($i > 1) {
+	    chomp($line);
+	    
+	    my @ln = split " ",$line;
+	    
+	    if (@ln == 15) {
+		
+		my $trun = $ln[0];
+		my $trerun = $ln[1];
+		
+		my $runstring = &run2string($trun);
+		my $key = "${runstring}-${trerun}";
+		
+		$RI{$key}{run} = $trun;
+		$RI{$key}{rerun} = $trerun;
+		
+		$RI{$key}{n_tsObj} += $ln[5];
+		$RI{$key}{fn_tsObj} += $ln[6];
+		
+		$RI{$key}{n_fpAtlas} += $ln[7];
+		$RI{$key}{fn_fpAtlas} += $ln[8];
+		
+		$RI{$key}{n_tsField} += $ln[9];
+		$RI{$key}{fn_tsField} += $ln[10];
+		
+		$RI{$key}{n_psField} += $ln[11];
+		$RI{$key}{fn_psField} += $ln[12];
+		
+		$RI{$key}{n_fpM} += $ln[13];
+		$RI{$key}{fn_fpM} += $ln[14]*5;
+		
+		# total calibChunks file count
+		$RI{$key}{calibTotal} += $ln[5] + $ln[9];
+		$RI{$key}{fcalibTotal} += $ln[6] + $ln[10];
+
+		# total calibChunks file count
+		$RI{$key}{objcsTotal} += $ln[7] + $ln[11] + $ln[13];
+		$RI{$key}{fobjcsTotal} += $ln[8] + $ln[12] + $ln[14];
+		
+	    }
+	}
+	$i += 1;
+    }
+    
+    close(IN);
+
+    return %RI;
+
+}

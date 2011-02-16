@@ -1,0 +1,39 @@
+I finally figured out why when you use up arrow to find previous
+commands on the alpha's the display gets messed up.  Our .cshrc files all
+contain something like this at the top:
+
+
+set Pp=''
+if ($?prompt) then
+  set Pr = `hostname`
+  set Pp = `echo $Pr | sed -e "sx\.x xg" | awk ' { print $1 }' `
+  set prompt = "${Pp}$cwd>"
+  
+  stty kill ^U intr ^C erase '^?' crt -tabs
+endif
+
+#alias commands set prompt to full path of current working directory
+alias sp 'set prompt = "${Pp}$cwd>"
+alias cd 'chdir \!* && sp'
+
+
+
+The problem is in the stty command.  Remove the -tabs and everything
+works great.  Its unnecessary anyway.
+
+
+About the prompt:
+
+If using the full path of the current working directory as prompt leaves 
+you too little room to type, then you might get rid of the ${cwd} or 
+try one of these alternatives:
+
+1) Just show the current directory name instead of the whole path
+
+alias sp 'set prompt = "${Pp}:${cwd:t}>"'
+
+2) Put a newline character in:
+
+alias sp 'set prompt = "${Pp}:$cwd\n>"'
+
+

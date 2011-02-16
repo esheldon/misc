@@ -1,0 +1,196 @@
+#!/bin/bash
+# convert a list of files into another format, incorporating all the features
+# I usually need.  
+#	converter [-soc -d dpi -t output_type] files
+#
+# For many conversions requires the convert program that comes with 
+# ImageMagick.
+#
+# For conversion of eps to pdf you need epstopdf for best results.  If not
+# found it will use convert but this often fails when the bounding box
+# doesn't match a letter shape.
+#
+# for conversion of ps/eps to pdf with cropping you will need to have pdfcrop
+# perl script which you can get via texlive in debian or here
+#		http://www.ctan.org/tex-archive/support/pdfcrop/ 
+# pdfcrop itself needs pdftex.
+
+overwrite="Y"
+dpi=72
+subdir="N"
+otype="png"
+verbose="N"
+debug="N"
+crop="N"
+margins="1"
+rotate="None"
+# this doesn't seem to work
+background="None"
+
+
+function usage {
+    echo "Usage: `basename $0` [-snc -d dpi -t output_type] files"
+    echo "  output names have extension replaced with otype"
+    echo
+    echo "  -d dpi    set the dpi for image conversions.  default $dpi"
+    echo "  -t otype  set the output type.  Supported types are all basic"
+    echo "            image types supported by convert.  Note for cropped"
+    echo "            pdf files the pdfcrop program is needed. default $otype"
+    echo "  -c        crop. default is no cropping"
+    echo "  -m        margins to use in the cropping.  Only PDF at this point"
+    echo "  -n        don't overwrite existing files.  Default is to overwrite"
+    echo "  -s        place outputs in a subdirectory otype/"
+    echo "  -r angle  Apply the rotation angle in degrees, counter-clockwise"
+    echo "  -v        be verbose"
+    echo "  -D        print debug info"
+}
+
+while getopts "cm:snvDd:t:r:b:" Option
+  do
+  case $Option in
+    c)  crop="Y";;
+    m)  margins=$OPTARG;;
+    n)  overwrite="N";;
+    d)  dpi=$OPTARG;;
+    s)  subdir="Y";;
+    t)  otype=$OPTARG;;
+    v)  verbose="Y";;
+    D)  debug="Y";;
+    r)  rotate=$OPTARG;;
+    b)  background=$OPTARG;;
+    [?]) usage
+    exit $WRONG_ARGS
+    ;;  
+  esac
+done
+shift $(($OPTIND - 1))
+
+if [ $# -eq 0 ]; then
+    usage
+    exit 45
+fi
+
+if [[ "$debug" == "Y" ]]; then
+    # debug also implies verbose
+    verbose="Y"
+fi
+
+# get the arg list
+files=$*
+
+if [ "$subdir" == "Y" ]; then
+    if [ ! -d "$otype" ]
+    then
+        mkdir -p $otype
+    fi
+fi
+
+if [[ "$otype" == "pdf" || "$otype" == "$eps" || "$otype" == "ps" ]]; then
+    psorpdf="Y"
+else
+    psorpdf="N"
+fi
+
+# use graphics magick if available.  The newer versions
+# of imagemagick suck balls
+if [[ $(which gm) == "" ]]; then
+    if [[ $verbose == "Y" ]]; then
+        echo "found GraphicsMagick!"
+    fi
+    progname="convert"
+else
+    progname="gm convert"
+fi
+
+if [[ "$psorpdf" == "N" ]]; then
+    args="-antialias -density $dpi"
+    if [[ "$crop" == "Y" ]]; then
+        args="$args -trim"
+    fi
+    if [[ "$rotate" != "None" ]]; then
+        echo will rotate
+        args="$args -rotate $rotate"
+    fi
+    if [[ "$background" != "None" ]]; then
+        echo setting background
+        args="$args -background $background"
+    fi
+else
+    args=""
+    if [[ "$crop" == "Y" && "$otype" == "pdf" ]]; then
+        pdfcrop_args="--margins $margins"
+    fi
+fi
+
+# can we use epstopdf?
+if [[ $(which epstopdf) == "" ]]; then
+    have_epstopdf="N"
+else
+    have_epstopdf="Y"
+fi
+
+# can we use pdfcrop?
+if [[ "$(which pdfcrop)" == "" ]]; then
+    have_pdfcrop="N"
+else
+    have_pdfcrop="Y"
+fi
+
+
+
+for f in $files; do
+
+    if [ ! -e $f ]; then
+        echo "File not found: $f"
+    else
+        # remove existing extensions and add new extension equal to image type
+        newf=${f%.*}.${otype}
+
+        # get the extension
+        #fext=${f#*.}
+        fext=${f##*.}
+
+        if [ "$subdir" == "Y" ]; then
+            newf="$otype/$newf"
+        fi
+
+        if [[ "$overwrite" == "Y" || ! -e $newf ]]; then
+            if [[ "$verbose" == "Y" ]]; then
+                message="    $f -> $newf"
+                if [[ "$psorpdf" == "N" ]]; then
+                    message="$message ($dpi dpi)"
+                fi
+                echo $message
+            fi
+
+            if [[ "$debug" == "Y" ]]; then
+                echo "fext: $fext"
+            fi
+
+            # special case converting eps to pdf.  This works
+            # this generally works better than convert or
+            # pstopdf
+
+            if [[ "$fext" == "eps" && "$otype" == "pdf" && "$have_epstopdf" == "Y" ]]; then
+                if [[ "$debug" == "Y" ]]; then
+                    echo "epstopdf $f --outfile=$newf"
+                fi
+                epstopdf $f --outfile=$newf
+            else
+                if [[ "$debug" == "Y" ]]; then
+                    echo "$progname $args $f $newf"
+                fi
+                $progname $args $f $newf 
+            fi
+
+            if [[ "$otype" == "pdf" && "$crop" == "Y" && "$have_pdfcrop" == "Y" ]]; then
+                pdfcrop $pdfcrop_args $newf $newf
+            fi
+        else
+            if [[ -e $newf ]]; then
+                echo "File exists: $newf."
+            fi
+        fi
+    fi
+
+done

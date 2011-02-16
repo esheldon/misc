@@ -1,0 +1,103 @@
+# get rid of annoying resize font combination I'm always hitting accidentally
+# just remap them to something harmless: scroll to bottom
+Mrxvt.macro.Ctrl+equal: Scroll +1000000
+Mrxvt.macro.Ctrl+minus: Scroll +1000000
+
+# Now rempat the ctrl-shift versions to resize fonts.  This
+# by default increments by 2
+Mrxvt.macro.Ctrl+Shift+plus: ResizeFont +1
+Mrxvt.macro.Ctrl+Shift+underscore: ResizeFont -1
+
+
+
+mrxvt.syncTabTitle: true
+
+#mrxvt*foreground: #aaaaaa
+mrxvt*foreground: white
+#mrxvt*foreground: #dcdccc
+#mrxvt*background: black
+mrxvt*background: #1f1f1f
+mrxvt.cursorColor: green
+mrxvt.cursorColor2: black
+
+# For transparency
+#mrxvt.transparent: False
+#mrxvt.transparentScrollbar: True
+#mrxvt.transparentMenubar: True
+#mrxvt.transparentTabbar: True
+#mrxvt.textShadow: black
+#mrxvt.textShadowMode: botright
+
+mrxvt.shading: 75
+
+mrxvt.saveLines: 2048
+
+Mrxvt.cutChars: :=/~#@?%&_-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0abcdefghijklmnopqrstuvwxyz
+
+
+#mrxvt.bottomTabbar: True
+
+# Only show the tab bar if there is more than one tab.
+mrxvt.autohideTabbar:		True
+#mrxvt.tabBackground: black
+mrxvt.tabBackground: #1f1f1f
+#mrxvt.tabForeground: #aaaaaa 
+mrxvt.tabForeground: #dcdccc
+#mrxvt.itabBackground: black 
+mrxvt.itabBackground: grey20
+mrxvt.itabForeground: grey50
+
+mrxvt.scrollBar: True
+mrxvt.scrollbarStyle: rxvt
+mrxvt.scrollbarRight: True
+
+# Don't scroll to the bottom every time some output is produced.
+mrxvt.scrollTtyOutputInhibit:	true
+
+# Scroll to the bottom when a key is pressed.
+mrxvt.scrollTtyKeypress:	true
+#mrxvt.scrollColor: black
+mrxvt.scrollColor: grey20
+#mrxvt.troughColor: black
+mrxvt.troughColor: grey20
+
+mrxvt.font: fixed
+
+#mrxvt.xft: True
+#mrxvt.xftFont:			Bitstream Vera Sans Mono
+#mrxvt.xftSize: 12
+#mrxvt.xftAntialias: True
+
+#mrxvt.xftWeight: light
+
+mrxvt.colorBD: white
+
+# this is key
+mrxvt.veryBoldFont: False
+
+#mrxvt.color0:j rgb:0/0/0
+mrxvt.color1: #ff6600
+mrxvt.color2: #99ff99
+mrxvt.color3: #ffff66
+mrxvt.color4: #99ccff
+mrxvt.color5: #ff6699
+mrxvt.color6: #66ffff
+#mrxvt.color7: rgb:aa/aa/aa
+#mrxvt.color8: rgb:33/33/33
+mrxvt.color9: #ff6600
+mrxvt.color10: #99ff99
+mrxvt.color11: #ffff66
+mrxvt.color12: #99ccff
+mrxvt.color13: #ff6699
+mrxvt.color14: #66ffff
+#mrxvt.color15: rgb:ff/ff/ff
+
+# Most annoying thing!
+mrxvt.greektoggle_key: VoidSymbol
+
+Mrxvt.minVisibleTabs: 5
+
+mrxvt*termName: xterm-256color
+
+# use apple-v to paste
+mrxvt.macro.Meta+v: Paste

@@ -1,0 +1,46 @@
+#!/bin/bash
+
+
+includes=""
+excludes=""
+run="*"
+band="*"
+
+while getopts "b:r:" Option
+do
+case $Option in
+	b) band=$OPTARG;;
+	r) run=$OPTARG;;
+	[?]) echo "$0 -b band -r run"
+		 exit 45
+		 ;;  
+esac
+done
+shift $(($OPTIND - 1))
+
+if [[ "$band" != "*" || "$run" != "*" ]]; then
+
+	#includes="--include=/20081020111421_20081003"
+	#includes="$includes --include=/20081020111421_20081003/*"
+	#includes="$includes --include=/20081020111421_20081003/*/*"
+	#includes="$includes --include=/20081020111421_20081003/*/*/*-$band-*"
+
+	if [[ "$band" != "*" ]]; then
+		includes="--include=/$run"
+		includes="$includes --include=/$run/*"
+		includes="$includes --include=/$run/*/*-$band-*"
+		includes="$includes --include=/$run/*/*-$band-*/*-$band-*"
+	else
+		includes="--include=/$run"
+		includes="$includes --include=/$run/*"
+		includes="$includes --include=/$run/*/*"
+		includes="$includes --include=/$run/*/*/*"
+	fi
+
+	excludes="--exclude=*"
+fi
+echo "includes: $includes"
+echo "excludes: $excludes"
+cd /mount/tutti0/DES/red/
+rsync -avh $includes $excludes . erin@great08.projects.phys.ucl.ac.uk:data/DES/red/
+#rsync -e 'ssh -o "TcpRcvBufPoll yes"' -ahP $includes $excludes . erin@great08.projects.phys.ucl.ac.uk:data/DES/red/

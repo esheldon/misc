@@ -1,0 +1,5 @@
+objShearOld.cpp -- basically stand-alone, with fixed structures
+objShearOldWrapper -- The old IDL wrapper for above
+
+objShearIDL -- IDL system routine, with variable structures wrapped
+	    by the IDLStruct Class

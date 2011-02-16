@@ -1,0 +1,149 @@
+
+######################################
+# Weight Computations
+######################################
+
+To make the code just type
+    make
+
+weightgal specfile photofile dotrain docolor fixvol nneighbor outfile
+ marcos calls specfile trainfile
+
+*********
+ INPUTS
+*********
+
+trainfile: NAME of the file where TRAINING set is
+photofile: NAME of the file where PHOTOMETRIC sample is
+dotrain:   1 if you want to calculate distances for the Training Set
+             0 if you have already done that and just want to compute
+               distances for the Photometric Set.
+docolor:   1 if you want to use color (u-g, g-r, r-i, i-z) space
+               to compute distances for the training/photometric sets.
+             0 if you want to use magnitudes (ugriz) space.
+fixvol:    1 if you want to fix the VOLUME defined by the training set
+               neighbors and find the number of neighbors in that volume
+               in the photometric sample.
+             0 if you want to fix the NUMBER of training set neighbors
+               and find the volume defined by that number of neighbors
+               in the photometric sample 
+nneighbor: Number of neighbors used to define volume.
+outfile: Full path to output file.
+
+The training and photometric files are expected to be in the format
+
+zspec  zphot  u  g  r  i  z
+
+see the exampledata directory
+
+
+*********
+ OUTPUTS
+*********
+
+-------------
+IF dotrain=1
+-------------
+
+It will output a file with name:
+
+dist_(1)_nne(2)_train.dat
+
+where
+
+(1) = "col" if docolor=1
+      "mag" if docolor=0
+(2) = nneighbor
+
+The file format is
+
+First line     : nneighbor  docolor
+Following lines: i  dist(i)
+
+where dist(i) is the distance of the training set object i 
+to its (nneighbor)^{th} nearest neighbor.
+
+This output file can be used later 
+without having to find distances to training set objects again.
+-------------------------------------------------------
+------------------------------------------------------- 
+
+-------------
+IF dotrain=0
+-------------
+
+In this case the code will assume that the file 
+
+dist_(1)_nne(2)_train.dat
+
+exists (from previous computation) and will read it 
+and jump into finding distances to objects in the photometric sample.
+--------------------------------------------------------
+--------------------------------------------------------
+
+The output file:
+zphot  zspec  weight  u  g  r  i  z
+
+
+
+
+######################################
+# Neural Net Computations
+######################################
+To compute Neural Net photo-z's go to the directory 
+
+neunet/ 
+
+To run the neural net, use the script runSDSS.scr: 
+
+./runSDSS.scr filename
+
+where filename is the input file that the code expects.
+
+*********
+ INPUT
+*********
+
+The expected input file format is
+
+id  ra  dec  phototype  probgals  someflag  zspec  u  g  r  i  z  u_error  g_error  r_error  i_error  z_error
+
+The code ONLY uses the MAGNITUDES (ugriz) in the calculation, 
+but for historical reasons it expects all these inputs, so
+put any number in these entries.
+
+*********
+ OUTPUT
+*********
+
+First the code neu_fit.x will run and output a file with the original name plus an extension
+
+".phot".
+
+The output file format will be
+
+zphot  0(zero)  0(zero)  u  g  r  i  z
+
+If all you want is PHOTO-Z'S you can STOP the computation at this point.
+
+If you want photo-z ERRORS, let the calculation proceed (might take some hours).
+The code e4.x will run and SUBSTITUTE the previous output with a 
+new output file with the original name plus an extension
+
+".etbl"
+
+The new output file format will be
+
+id  probgal  someflag  phototype  zphot  zphot_error
+
+*******
+Test run
+*******
+
+An example input file is "train.dat", which is the SDSS training set.
+As a test, type
+
+./runSDSS.sh train.dat
+
+and the output "train.dat.zphot" will have photo-z's for the training set.
+ 

@@ -1,0 +1,20 @@
+Would not boot, got circle with slash through it.
+
+Boot in verbose mode got "error loading kernel 'mach_kernel'"
+
+I connected to my other mac via firewire and held "t" which will mount the
+hard drive on my computer.  Copied all recently changed files off (sarah
+had not done a recent backup) but could not copy one directory.
+
+Put in the leopard disk and restarted holding "c" then after clicking
+english when to utilities menu and "disk utility" and repaired drive.
+This succeeded and said volume appears to be OK.
+
+rebooted but still got the circle with a slash through it.
+
+going to try a reinstall:
+	I found out the one directory we couldn't get was not important so I
+	opted for erase and install.
+
+	I set it going and went to work....
+	it worked!  Now I need to find my iWork disk

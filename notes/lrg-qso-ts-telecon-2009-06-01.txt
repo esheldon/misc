@@ -1,0 +1,14 @@
+//send nikhil pointer to fpObjc run.
+
+//talk to Blanton about what we want to send to the tiling algorithm.
+
+varCat files?
+
+* absolutely must have lists by the 15th.
+
+put known qso list from gordon under /data version control.
+matches 2.2-3.5 go in.  Others are removed?
+
+what about things we targeted that didn't turn out to be quasars?
+
+re-generate test file for jeremey.

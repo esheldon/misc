@@ -1,0 +1,32 @@
+make sure people get things set up
+
+Quick overview of numerical python:
+
+importing numpy
+making arrays
+subscripting arrays
+setting the data type.
+
+making structures, structured arrays.
+
+difference with recarrays
+
+Start with reading some DES image data
+	- note that ds9 is best bet currently for *viewing*, but NTV looks promising.
+
+DES catalogs.
+
+ahelp
+get column data
+
+Switch to SDSS.
+Read a calibobj file.
+
+Make a size-magnitude diagram using biggles.
+ranges [0,2.5], [9,17]
+
+For SDSS size-mag
+
+
+DES red is [1]
+DES coadd is [1]

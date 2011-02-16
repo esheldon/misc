@@ -1,0 +1,14 @@
+#!/bin/bash
+
+un=$(uname)
+
+if [ "$un" == "Linux" ]; then
+    ip=$(ifconfig  | grep 'inet ' | grep -v 'inet addr:127' | awk '{print $2}' | cut -d ':' -f 2)
+elif [ "$un" == "Darwin" ]; then
+    ip=$(ifconfig | grep 'inet ' | grep -v 'inet addr:127' | cut -d ' ' -f 2)
+else
+    echo "Don't know system type $un"
+    exit 45
+fi
+
+echo $ip

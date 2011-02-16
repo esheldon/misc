@@ -1,0 +1,18 @@
+pen a console window (CTRL-ALT-T).
+2. Type the following to install ksmserver and kicker, the two programs we need (answer Y if it asks you if you're sure you want to install anything):
+3. sudo bash
+4. apt-get update
+5. apt-get install ksmserver kicker
+6. Restart (should go to Easy Mode)
+
+You can choose Full Desktop by hitting power icon
+
+
+Add users:
+userwiz
+
+Xandros packages suck; thehy didn't even have svn.  Apparenly they forked from
+Debian and so they suck.  I had to add the debian repositories in order to get
+svn, but should be careful as they are apparently not binary compatible.
+
+deb http://xnv4.xandros.com/xs2.0/upkg-srv2 etch main contrib non-free

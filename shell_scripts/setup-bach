@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+# usage: setup-bach start|stop|restart
+#
+# start: Set up the connection.  If the connection exists the request is 
+#        ignored.
+# stop:  Disconnect. If the connection does not exist the request is ignored.
+# restart: run "stop" then "start".
+
+gateway=rssh
+domain=rhic.bnl.gov
+fullhost=$gateway.$domain
+
+un=$(uname)
+ip=""
+iscorus="no"
+
+
+ip=$(ifconfig | grep "inet " | grep -v "inet addr:127" | awk '{print $2}' | cut -d ":" -f 2)
+
+check=$(echo $ip | grep 130\.199\.15)
+if [ "$check" == "$ip" ]; then
+    iscorus="yes"
+fi
+echo "iscorus: $iscorus"
+
+alltunnels="no"
+if [[ "$iscorus" == "yes" ]]; then
+    alltunnels="yes"
+fi
+alltunnels="yes"
+
+
+# should we implement this?
+#ssh -N -p 22 -c 3des throwe@rssh.rhic.bnl.gov  -L 3128/192.168.1.130/3128
+#- -L 1389/ldap.bnl.gov/389 -L 1631/cups.phy.bnl.gov/631
+
+function connect
+{
+	check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
+	if [ "$check" == "" ]; then
+		echo "Connecting to $gateway"
+		ssh -f -N "$fullhost"
+	fi
+
+    if [[ "$alltunnels" == "yes" ]]; then
+		echo "Setting up all tunnels"
+        ssh -f -N -p 22 -c 3des esheldon@rssh.rhic.bnl.gov  \
+				-L 3128/192.168.1.130/3128 - \
+				-L 1389/ldap.bnl.gov/389 \
+				-L 1631/cups.phy.bnl.gov/631
+        setproxy
+	fi
+}
+
+function disconnect
+{
+	check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
+	if [ "$check" != "" ]; then
+		id=$(echo $check | awk '{print $2}')
+		echo "disconnecting from $gateway (jobid $id)"
+		kill $id
+	fi
+
+	# repeat in case corus is set up
+	if [ "$iscorus" == "yes" ]; then
+		check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
+		if [ "$check" != "" ]; then
+			id=$(echo $check | awk '{print $2}')
+			kill $id
+		fi
+        setproxy
+	fi
+
+
+}
+
+if [ $# -lt 1 ]; then
+	echo "usage: setup-bach start|stop|restart"
+	exit 45
+fi
+
+action=$1
+
+if [ "$action" == "start" ]; then
+	connect
+elif [ "$action" == "stop" ]; then
+	disconnect
+elif [ "$action" == "restart" ]; then
+	disconnect
+	connect
+else
+	echo "Unrecognized action: $action"
+	exit 45
+fi
+
+

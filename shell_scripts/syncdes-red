@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# This syncs all data from the /red directory
+
+host=des06.fnal.gov
+
+outdir=$DESDATA/red
+mkdir -p $outdir
+cd $outdir
+
+rsync \
+    -ahP  \
+    --exclude "/*/remap*" \
+    $host:/blue-orch/Archive/DES/red/ .
+
+

@@ -1,0 +1,529 @@
+#!/usr/local/bin/perl -w
+
+##############################################################################
+# main
+# Find all the objcs and calibChunks files in list of directories
+# if --corr, look for adatc files
+# if --init, initialize the database.  Important if runs have been removed
+# from disk
+##############################################################################
+
+# include some packages
+
+use strict;
+use Sys::Hostname;
+use File::Basename;
+use File::Spec;
+use Getopt::Long;
+use Cwd;
+
+use String::Between;
+
+use SDSS::DBMTools;
+use SDSS::PGTools;
+
+use SDSS::StringOp;
+
+my $home;
+if ( exists($ENV{"HOME"}) ) {
+    $home = $ENV{"HOME"};
+} else {
+    die "Environment variable HOME is not set";
+}
+
+my $dbm_dir;
+if ( exists($ENV{"DBM_DIR"}) ) {
+    $dbm_dir = $ENV{"DBM_DIR"};
+} else {
+    die "Environment variable DBM_DIR is not set";
+}
+
+my $host = hostname;
+
+###########################
+# check args
+###########################
+
+my $docorr=0;
+my $init=0;
+GetOptions('corr' => \$docorr, 'init' => \$init)
+    or die;
+
+# datadirs
+if (@ARGV < 1) {
+    &print_syntax;
+    exit;
+}
+my @datadirs = @ARGV;
+
+###########################
+# some "global" variables
+###########################
+
+my $name;
+
+my $key;
+
+my $trun;
+my $trerun;
+my $tcamcol;
+my $basename;
+my $runstring;
+
+#my $vnotchecked = -1.0;
+my $vnotchecked = '-1';
+
+##############################
+# Open and read the database
+##############################
+
+# read from database
+# Hash of Hashes to hold our data
+
+print "\nOpening Database\n";
+my %RI = &read_rundb({init=>$init});
+
+#############################
+# process the directories
+#############################
+
+print "Will search these directories: \n\n";
+foreach my $datadir (@datadirs) {
+    print "   $datadir\n";
+}
+
+foreach my $datadir (@datadirs) {
+
+    print "\n\nSearching data dir: $datadir\n";
+    &process_datadir($datadir);
+
+} 
+
+
+######################
+# Write database
+######################
+
+print "\nWriting to Database\n";
+&write_rundb(\%RI);
+
+print "\nWriting to postgres database, table runlist\n";
+&write_runlist(\%RI);
+
+exit; # finish main
+
+
+
+
+
+
+##############################################################################
+# subroutine to find all the objs or calibChunks sub-directories and call 
+# routine to process them
+##############################################################################
+
+sub process_datadir {
+
+    my $datadir = $_[0];
+    chdir $datadir or die "Cannot chdir to $datadir $!";
+
+    # This lists all the run/rerun/objcs/camcol directories
+    #my @dirlist = "2335/0/objcs/1/";       objcs
+
+    my @odirlist;
+    my @cdirlist;
+
+    my $cskip = 6;
+    my $oskip = 0;
+
+    if ($docorr) {
+
+        # only care about the calibChunks
+        print 'Looking for directories of the form ';
+        print 'corr[0-9]*/[0-9]*/calibChunks/[0-6]' . "\n";
+        chomp(@cdirlist = `ls -d corr[0-9]*/[0-9]*/calibChunks/[0-6]`);
+
+    } else {
+
+        # look for objcs, calibChunks
+        print 'Looking for directories of the form ';
+        print '[0-9]*/[0-9]*/calibChunks/[0-6]' . "\n";
+        chomp(@cdirlist = `ls -d [0-9]*/[0-9]*/calibChunks/[0-6]`);
+
+        print 'Looking for directories of the form ';
+        print '[0-9]*/[0-9]*/objcs/[0-6]' . "\n";
+        chomp(@odirlist = `ls -d [0-9]*/[0-9]*/objcs/[0-6]`);
+
+    }
+
+    # loop over the calibChunks camcol directories
+    foreach my $subdir (@cdirlist) {
+
+        ## get $run $rerun $camcol from the directory
+        # look for first directory slash
+        my $where1 = index($subdir, "/");
+        $trun = substr($subdir, 0, $where1);
+        if ($docorr) {
+            # remove leading corr string
+            $trun = substr($trun, 4, length($trun));
+        }
+
+        # now second directory slash
+        my $where2 = index($subdir, "/", $where1+1);
+        $trerun = substr($subdir, $where1+1, $where2-$where1-1);
+
+        #skip over objcs/calibChunks and read camcol
+        $tcamcol = substr($subdir, $where2+7+$cskip, 1);
+
+        my $senddir = "${datadir}/${subdir}";
+        print "Checking Run: $trun Rerun: $trerun Camcol: $tcamcol $senddir\n";
+
+        # initialize this run/rerun/camc
+        $runstring = &run2string($trun);
+        $key = "$runstring-$trerun-$tcamcol";
+
+        $RI{$key}{run}    = $trun;
+        $RI{$key}{rerun}  = $trerun;
+        $RI{$key}{camcol} = $tcamcol;
+
+        # this will initialize if don't exist
+        $RI{$key}{n_tsObj}   += 0;
+        $RI{$key}{n_tsField} += 0;
+        $RI{$key}{n_fpAtlas} += 0;
+        $RI{$key}{n_fpM}     += 0;
+        $RI{$key}{n_psField} += 0;
+
+        $RI{$key}{n_adatc}   += 0;
+
+        # This directory is either corrected or imaging
+        # initialize the other if it doesn't exist
+
+        if ($docorr) {
+            # restart the count
+            $RI{$key}{n_adatc} = 0;
+
+            $RI{$key}{adatcDir} = "${datadir}/${trun}/${trerun}";
+            if ( !exists($RI{$key}{imagingDir}) ) {
+                $RI{$key}{imagingDir} = "?";
+            }
+        } else {
+            # restart the count
+            $RI{$key}{n_tsObj} = 0;
+            $RI{$key}{n_tsField} = 0;
+
+            $RI{$key}{imagingDir} = "${datadir}/${trun}/${trerun}";
+            if ( !exists($RI{$key}{adatcDir}) ) {
+                $RI{$key}{adatcDir} = "?";
+            }
+
+            # Look for asTrans
+#	    my $asTrans_file = "$run/rerun/astrom/asTrans-${runstring}.fit";
+#	    if ( -e $asTrans_file ) {
+#		$RI{$key}{n_asTrans} = 1;
+#	    }
+
+        }
+
+        # The machine we are running on
+        $RI{$key}{host} = $host;
+
+        # initialize if don't exist
+        if ( !exists($RI{$key}{strip}) ) {
+            $RI{$key}{stripe} = -1;
+            $RI{$key}{strip} = "?";
+        }
+
+        if ( !exists($RI{$key}{stripe} ) ) {
+            $RI{$key}{stripe} = -1;
+        }
+
+        if ( !exists($RI{$key}{tsObj_photo_v}) ) {
+            $RI{$key}{tsObj_photo_v} = $vnotchecked;
+        }
+        if ( !exists($RI{$key}{adatc_photo_v}) ) {
+            $RI{$key}{adatc_photo_v} = $vnotchecked;
+            $RI{$key}{baye_ver} = $vnotchecked;
+            $RI{$key}{phtz_ver} = $vnotchecked;
+
+            # I accidentally removed directories objcs, so lets try 
+            # to fix that on the second time through
+            $RI{$key}{fpAtlas_photo_v} = $vnotchecked;
+        }
+
+        # process each file in this directory
+        opendir DIRHANDLE, $senddir or die("Cannot open $senddir");
+
+        foreach my $file (readdir DIRHANDLE) {
+            &calibChunksProcess($senddir, $file);
+
+        }
+    } # end loop over subdir list
+
+
+    #################################################################
+    # No need to search for corrected run objc
+    #################################################################
+
+    if (! $docorr) {
+
+        # loop over the objcs camcol directories
+        foreach my $subdir (@odirlist) {
+
+            ## get $run $rerun $camcol from the directory
+            # look for first directory slash
+            my $where1 = index($subdir, "/");
+            $trun = substr($subdir, 0, $where1);
+
+            # now second directory slash
+            my $where2 = index($subdir, "/", $where1+1);
+            $trerun = substr($subdir, $where1+1, $where2-$where1-1);
+
+            #skip over objcs/calibChunks and read camcol
+            $tcamcol = substr($subdir, $where2+7+$oskip, 1);
+
+            my $senddir = "${datadir}/${subdir}";
+            print "Checking Run: $trun Rerun: $trerun ";
+            print "Camcol: $tcamcol $senddir\n";
+
+            # initialize this run/rerun/camc
+            $runstring = &run2string($trun);
+            $key = "$runstring-$trerun-$tcamcol";
+
+            $RI{$key}{run} = $trun;
+            $RI{$key}{rerun} = $trerun;
+            $RI{$key}{camcol} = $tcamcol;
+
+            # this will initialize if don't exist
+            $RI{$key}{n_tsObj}   += 0;
+            $RI{$key}{n_tsField} += 0;
+            $RI{$key}{n_adatc} += 0;
+
+            # restart the count
+            $RI{$key}{n_fpAtlas}  = 0;
+            $RI{$key}{n_fpM}      = 0;
+            $RI{$key}{n_psField}  = 0;
+
+            $RI{$key}{imagingDir} = "${datadir}/${trun}/${trerun}";
+
+            # initialize corrected if doesn't exist
+            if ( !exists($RI{$key}{adatcDir}) ) {
+                $RI{$key}{adatcDir} = "?";
+            }
+
+            # The machine we are running on
+            $RI{$key}{host} = $host;
+
+            # initialize if don't exist
+            if ( !exists($RI{$key}{strip}) ) {
+                $RI{$key}{stripe} = -1;
+                $RI{$key}{strip} = "?";
+            }
+
+            if ( !exists($RI{$key}{fpAtlas_photo_v}) ) {
+                $RI{$key}{fpAtlas_photo_v} = $vnotchecked;
+            }
+
+            # process each file in this directory
+            opendir DIRHANDLE, $senddir or die("Cannot open $senddir");
+
+            foreach my $file (readdir DIRHANDLE) {
+                &objcsProcess($senddir, $file);
+            }
+        } # end loop over subdir list
+    }
+
+}
+
+##############################################################################
+# subroutine to process objcs file list
+##############################################################################
+
+sub objcsProcess {
+    # escape . since its a wildcard in regular expressions
+    # $ means match only the end
+    # | says match either 
+    # ? means the previous is optional
+    # e.g. s? ->sometimes .fit instead of .fits
+    # other ? are to allow for .gz
+
+    my $senddir = $_[0];
+    my $file = $_[1];
+
+    # Increment for relavent files
+
+    if ($file =~ /fpAtlas.*\.fits?.?.?.?/) {
+        $RI{$key}{n_fpAtlas} += 1;
+    } elsif ($file =~ /fpM.*\.fits?.?.?.?/) {
+        $RI{$key}{n_fpM} += 1;
+    } elsif ($file =~ /psField.*\.fits?.?.?.?/) {
+        $RI{$key}{n_psField} += 1;
+    } 
+
+    if ($RI{$key}{fpAtlas_photo_v} eq $vnotchecked) {
+
+        if ($file =~ /fpAtlas.*\.fits?.?.?.?/) {
+            my $where = index($file, ".gz");
+            if ($where == -1) {
+
+                my $name = "${senddir}/${file}";
+                if (my @header = `$home/local/bin/mhead $name`) {
+
+                    ######################
+                    # Get tsObj_photo_v
+                    ######################
+
+                    $RI{$key}{fpAtlas_photo_v} = 
+                    &getver_from_header(\@header, "VERSION");
+
+                }
+            }
+
+        }
+
+    }
+
+} # objcsProcess
+
+##############################################################################
+# subroutine to process calibChunks or corrected file list
+##############################################################################
+
+sub calibChunksProcess {
+    # escape . since its a wildcard in regular expressions
+    # $ means match only the end
+    # | says match either 
+    # ? means the previous is optional
+    # e.g. s? ->sometimes .fit instead of .fits
+    # other ? are to allow for .gz
+
+    my $senddir = $_[0];
+    my $file = $_[1];
+
+    #################################
+    # Increment for relevant files
+    #################################
+
+    if ($docorr) {
+        if ($file =~ /adatc-$runstring.*\.fits?.?.?.?/) {
+            $RI{$key}{n_adatc} += 1;
+        }
+        # will continue for adatc
+        return unless ($file =~ /adatc-$runstring.*\.fits?.?.?.?/);
+    } else {
+        if ($file =~ /tsObj-$runstring.*\.fits?.?.?.?/) {
+            $RI{$key}{n_tsObj} += 1;
+        } elsif ($file =~ /tsField-$runstring.*\.fits?.?.?.?/) {
+            $RI{$key}{n_tsField} += 1;
+        }
+        # only continue for tsObj: check stripe, etc.
+        return unless ($file =~ /tsObj-$runstring.*\.fits?.?.?.?/);
+    }
+
+    ######################################################################
+    # Find stripe/strip info from the header if we don't already have it
+    ######################################################################
+
+    if ( ($RI{$key}{stripe} == -1) || 
+        ( $docorr && ($RI{$key}{adatc_photo_v} eq $vnotchecked)  ) )   {
+
+        # read header if not a gzipped file
+        my $where = index($file, ".gz");
+        if ($where == -1) {
+
+            my $name = "${senddir}/${file}";
+
+            if (my @header = `$home/local/bin/mhead $name`) {
+
+                ##################
+                # get stripe
+                ##################
+
+                my $stripe;
+                my @stripestr = grep { /STRIPE/ } @header; #or
+                if (@stripestr == 1) {
+                    $stripe = 0 + &between($stripestr[0], "=", "/");
+                } else {
+                    print "Couldn't find STRIPE in header of $name\n";
+                    print "Will try another file\n";
+                    $stripe = -1;
+                }
+                $RI{$key}{stripe} = $stripe;
+
+                ##################
+                # get strip
+                ##################
+
+                my $strip;
+                my @stripstr = grep { /STRIP / } @header; # or
+                if (@stripstr == 1) {
+                    $strip = &between($stripstr[0], "'", "'");
+                    # strip spaces
+                    $strip =~ s/^\s+|\s+$//g;
+                } else {
+                    print "Couldn't find STRIP in header of $name\n";
+                    print "Will try another file\n";
+                    $strip = "?";
+                }
+                $RI{$key}{strip} = $strip;
+
+                if ($docorr) {
+
+                    ######################
+                    # Get adatc_photo_v
+                    ######################
+
+                    $RI{$key}{adatc_photo_v} = 
+                    &getver_from_header(\@header, "PHOT_VER");
+
+                    #######################
+                    # Get BAYE_VER
+                    #######################
+
+                    my $baye_ver = 
+                    &getver_from_header(\@header, "BAYE_VER");
+
+                    if ($baye_ver eq "NOBAYES") {
+                        $baye_ver = '-1';
+                    }
+                    $RI{$key}{baye_ver} = $baye_ver;
+
+                    #######################
+                    # Get PHTZ_VER
+                    #######################
+
+                    my $phtz_ver = 
+                    &getver_from_header(\@header, "PHTZ_VER");
+
+                    if ($phtz_ver eq "NOPHOTOZ") {
+                        $phtz_ver = '-1';
+                    }
+                    $RI{$key}{phtz_ver} = $phtz_ver;
+
+                } else {
+
+                    ######################
+                    # Get tsObj_photo_v
+                    ######################
+
+
+                    $RI{$key}{tsObj_photo_v} = 
+                    &getver_from_header(\@header, "PHOT_VER");
+                }
+
+            } else { # could we look at the header?
+                $RI{$key}{stripe} = -1;
+            }
+
+        } else { # Not gz?
+            $RI{$key}{stripe} = -1;
+        }
+
+    }
+
+} # calibChunksProcess
+
+## syntax
+
+sub print_syntax {
+    print "-Syntax: find_runfiles --corr directory_list\n";
+}

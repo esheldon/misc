@@ -1,0 +1,12 @@
+run
+rerun
+camcol
+resolve_status
+calib_status
+psfflux
+psfflux_ivar
+extinction
+objc_flags, objc_flags2
+objc_type
+rowv, rowverr, colv, colverr
+ra,dec

@@ -1,0 +1,5 @@
+# vim: set filetype=sh :
+if [ -e ~/.bashrc ]; then 
+    . ~/.bashrc
+fi
+

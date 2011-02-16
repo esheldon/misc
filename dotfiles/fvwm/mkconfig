@@ -1,0 +1,26 @@
+#!/bin/sh
+if [ $# -lt 1 ]; then
+	echo "usage: `basename $0` type eeepc"
+	exit 45
+fi
+
+type=$1
+headfile=fvwm2rc-head
+if [ $# -gt 1 ]; then
+	echo using eeepc config
+	headfile=$headfile-eeepc
+fi
+
+colorset=colorset-$type.fvwmrc
+
+cat $headfile > config
+
+for front in colorset; do 
+	f=$front-$type.fvwmrc
+	if [ ! -e $f ]; then
+		echo "File: $f does not exist"
+		exit
+	fi
+	echo "Writing $f to config"
+	cat $f >> config
+done

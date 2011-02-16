@@ -1,0 +1,29 @@
+#!/bin/sh
+
+ls /net/cheops1/home  1> /dev/null
+ls /net/cheops1/data0 1> /dev/null
+ls /net/cheops1/data1 1> /dev/null
+ls /net/cheops1/data2 1> /dev/null
+ls /net/cheops1/data3 1> /dev/null
+ls /net/cheops1/data4 1> /dev/null
+ls /net/cheops1/data5 1> /dev/null
+ls /net/cheops1/data6 1> /dev/null
+ls /net/cheops1/data7 1> /dev/null
+
+ls /net/cheops2/home  1> /dev/null
+ls /net/cheops2/data0 1> /dev/null
+ls /net/cheops2/data1 1> /dev/null
+ls /net/cheops2/data2 1> /dev/null
+ls /net/cheops2/data3 1> /dev/null
+
+ls /net/cheops3/home  1> /dev/null
+ls /net/cheops3/data0 1> /dev/null
+ls /net/cheops3/data1 1> /dev/null
+ls /net/cheops3/data2 1> /dev/null
+ls /net/cheops3/data3 1> /dev/null
+
+ls /net/cheops4/home  1> /dev/null
+ls /net/cheops4/data0 1> /dev/null
+ls /net/cheops4/data1 1> /dev/null
+ls /net/cheops4/data2 1> /dev/null
+ls /net/cheops4/data3 1> /dev/null

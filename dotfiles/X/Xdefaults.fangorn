@@ -1,0 +1,162 @@
+
+!
+! xterm configuration
+!
+
+! No bold fonts
+xterm*boldFont: 8x13
+xterm*boldMode: false
+
+
+!xterm.reverseVideo: true
+xterm*saveLines: 2000
+xterm*scrollBar: true
+xterm*scrollKey: true
+xterm*scrollTtyOutput: false
+xterm*charClass: 45-47:48,126:48
+xterm*cursorColor: yellow
+xterm*rightScrollBar: true
+
+! This was the only way I could turn off the
+! crappy bold!
+xterm*boldFont: fixed
+
+! color1: the usual red
+! color2: the usual green
+! color3: the usual yellow
+! color4: the usual blue
+! color5: the usual magenta
+! color6: the usual cyan
+! color7: the usual white
+! The higher numbers are the "bold" versions
+! color9: the usual bold red
+! color10: the usual bold green
+! color11 the usual bold yellow
+! color12: the usual bold blue
+! color13: the usual bold magenta
+! color14: the usual bold cyan
+! color15: the usual bold white
+
+
+!! Colors for a dark background.  Good on black and grey20
+!! An orangish red, same used for bold below
+
+xterm*background: #1f1f1f
+xterm*foreground: white
+
+xterm*color1: #ff6600
+!! A lighter green
+xterm*color2: #99ff99
+!! A brighter yellow
+xterm*color3: #ffff66
+!! brighter blue
+xterm*color4: #99ccff
+!! a bright pinkish red
+xterm*color5: #ff6699
+!! a brighter cyan
+xterm*color6: #66ffff
+
+!! a bright orange (bold)
+xterm*color9: #ff6600
+!! a lighter green
+xterm*color10: #99ff99
+!! a brighter yellow
+xterm*color11: #ffff66
+!! a much brighter blue than is standard on linux systems.
+!! this is similar to that used on mac but a bit brighter
+xterm*color12: #99ccff
+!! a less harsh color than bright magenta
+xterm*color13: #ff6699
+!! a less harsh cyan
+xterm*color14: #66ffff
+
+XTerm*VT100.Translations: #override \
+Meta <KeyPress> V: insert-selection(CLIPBOARD,PRIMARY,CUT_BUFFER0) \n\
+<BtnUp>: select-end(CLIPBOARD,PRIMARY,CUT_BUFFER0) \n\
+
+
+
+
+! Note: the scrollTtyOutput does the opposite of what you think, 
+! The opposite of xterm
+!aterm.reverseVideo: true
+aterm*saveLines: 2000
+aterm*scrollBar: true
+aterm*scrollKey: true
+aterm*scrollTtyOutput: true
+aterm*charClass: 45-47:48,126:48
+aterm*font: fixed
+aterm*transparent: true
+aterm*transpscrollbar: true
+aterm*shading: 30
+aterm*scrollBar_right: true
+aterm*foreground: grey
+
+
+
+aterm*background: grey20
+
+aterm*color1: #ff6600
+!! A lighter green
+aterm*color2: #99ff99
+!! A brighter yellow
+aterm*color3: #ffff66
+!! brighter blue
+aterm*color4: #99ccff
+!! a bright pinkish red
+aterm*color5: #ff6699
+!! a brighter cyan
+aterm*color6: #66ffff
+
+!! a bright orange (bold)
+aterm*color9: #ff6600
+!! a lighter green
+aterm*color10: #99ff99
+!! a brighter yellow
+aterm*color11: #ffff66
+!! a much brighter blue than is standard on linux systems.
+!! this is similar to that used on mac but a bit brighter
+aterm*color12: #99ccff
+!! a less harsh color than bright magenta
+aterm*color13: #ff6699
+!! a less harsh cyan
+aterm*color14: #66ffff
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Ghostscript*geometry:  612x792-0+0
+Ghostscript*xResolution: 72
+Ghostscript*yResolution: 72
+
+emacs*cursorColor:             Green
+emacs*bitmapIcon:               on
+emacs*font:                     -misc-fixed-medium-r-semicondensed-*-*-120-*-*-c-*-iso8859-8
+!emacs*geometry:                 80x53+768+0
+
+
+
+emacs.background: black
+emacs.foreground: grey90
+Emacs.pane.menubar.foreground: orange
+Emacs.pane.menubar.background: black
+
+xv.owncmap:			on
+xv.hi: red
+
+
+Vim.geometry:   89x53

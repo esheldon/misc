@@ -1,0 +1,7 @@
+Rent: autopayment out of pay check
+AT&T: autopayment out of checking
+
+Time Warner: autopayment out of visa: change this!
+    set it up to use debit card now
+
+coned: just signed up for autopay, hope it works

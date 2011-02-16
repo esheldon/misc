@@ -1,0 +1,5 @@
+to zip a directory recursively:
+
+zip -r foo foo
+
+outputs foo.zip

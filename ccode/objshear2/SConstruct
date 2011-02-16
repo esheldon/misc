@@ -1,0 +1,39 @@
+# vim: set filetype=python :
+import os,sys
+
+# for sconscript
+#Import('env')
+
+env = Environment()
+
+env.Append(CCFLAGS=['-O2'])
+
+# tests
+test_cosmo  = env.Program('#test/test-cosmo', '#test/test-cosmo.cc')
+
+test_lcat   = env.Program('#test/test-lcat', 
+                          ['lcat.h','lcat.cc','Cosmology.h','#test/test-lcat.cc'])
+
+test_scat   = env.Program('#test/test-scat', 
+                          ['scat.h','scat.cc','Cosmology.h','#test/test-scat.cc'])
+test_rev    = env.Program('#test/test-rev', 
+                          ['rev.h','rev.cc','#test/test-rev.cc'])
+
+test_gcirc  = env.Program('#test/test-gcirc', 
+                          ['gcirc.h','gcirc.cc','#test/test-gcirc.cc'])
+
+test_config = env.Program('#test/test-config', 
+                          ['config.h','config.cc','#test/test-config.cc'])
+
+
+objshear_sources = ['objshear.cc',
+                    'sheardata.h','sheardata.cc',
+                    'config.h','config.cc',
+                    'lcat.h','lcat.cc',
+                    'scat.h','scat.cc',
+                    'rev.h','rev.cc',
+                    'output.h',
+                    'Cosmology.h',
+                    'gcirc.h','gcirc.cc']
+
+test_config = env.Program('objshear', objshear_sources)

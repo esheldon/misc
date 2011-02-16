@@ -1,0 +1,17 @@
+#!/bin/bash
+
+redrun=$1
+
+host=des06.fnal.gov
+
+outdir=$DESDATA/red/$redrun
+mkdir -p $outdir
+cd $outdir
+
+rsync \
+    -ahP  \
+    -e '/global/data/products/Linux64/openssh/5.1p1/bin/ssh -o "TcpRcvBufPoll yes"' \
+    --exclude "/remap*" \
+    $host:/blue-orch/Archive/DES/red/$redrun/ .
+
+

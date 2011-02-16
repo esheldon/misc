@@ -1,0 +1,355 @@
+" When started as "evim", evim.vim will already have done these settings.
+if v:progname =~? "evim"
+  finish
+endif
+
+" Use Vim settings, rather then Vi settings 
+" This must be first, because it changes other options as a side effect.
+set nocompatible
+
+" we have to put this here because some of these will not override
+" previous settings
+let python_highlight_all=1
+
+" Allow Vim to manage multiple buffers effectively.
+"
+"	* The current buffer can be put to the background without writing to disk
+"
+"	* When a background buffer becomes current again, marks and undo-history
+"	are remembered.
+"
+set hidden
+
+if version >= 700
+    " Make sure we set current directory to that of the buffer we
+    " are editing. 
+    "set autochdir
+
+    " Spell checking file for adding new words
+    set spellfile=~/.vim/spellfile.add
+    set spelllang=en_us
+endif
+
+"This keeps the current visual block selection active after changing indent
+"with '<' or '>'. Usually the visual block selection is lost after you shift
+"it, which is incredibly annoying.
+
+vmap > >gv
+vmap < <gv
+
+
+" does same as autochdir but doesn't cause crash?
+autocmd BufEnter * lcd %:p:h
+
+" For completion of files. This is like ambiguous in the shell 
+"set wildmode=longest,list,full
+set wildmode=list:longest,full
+"set wildmenu
+
+" Always show the filename at the bottom
+set laststatus=2
+" The content of the status line
+"set statusline=%F%m%r%h%w\ [TYPE=%Y]\ [POS=%04l,%04v][%p%%]\ [LEN=%L]
+"set statusline=%1*%F%m%r%h%w%=%(%c%V\ %l/%L\ %P%)
+"set statusline=%F%m%r%h%w\ %04v\ %04l/%04L\ [%p%%]
+set statusline=%F%m%r%h%w%=%(\ %04v\ %04l/%04L\ [%p%%]%)
+
+" Turn off bells and flashes. 
+set noerrorbells
+set vb
+set t_vb=
+if has('autocmd')
+    " special for gui
+    autocmd GUIEnter * set vb t_vb=
+endif
+
+" allow backspacing over everything in insert mode
+set backspace=indent,eol,start
+
+set history=2000	" command line history
+set ruler			" show the cursor position all the time
+set showcmd			" display incomplete commands
+set incsearch		" do incremental searching
+
+
+" For Win32 GUI: remove 't' flag from 'guioptions': no tearoff menu entries
+" let &guioptions = substitute(&guioptions, "t", "", "g")
+
+" Don't use Ex mode, use Q for formatting
+" The following mappings make Q normally reformat the current paragraph (or
+" current and following paragraphs, if a count is used), except when text is
+" selected, in which case it reformats the selected text: 
+" difference between a and i here is a moves you to *after* the paragraph.
+
+" n is for normal mode
+nnoremap Q gqap
+"nnoremap Q gqip
+" v is for visual mode.
+vnoremap Q gq
+
+" use the par program for formatting if it is available
+let partest = substitute(system("which par"),"\n","","g")
+if partest != ""
+    set formatprg=par\ -w72
+endif
+
+
+" Y by default is incongruous with C and D, in that it yanks a complete 
+" line (duplicating yy) rather than yanking to the end of the line. This 
+" fixes that: "
+noremap Y y$
+
+" Let h,l and cursor ceys wrap across begin and end line"
+set whichwrap=h,l,[,]
+
+
+" More intuitive to scroll with ctrl-j,ctrl-k 
+" And page up/down to ctrl-p,ctrl-n (which are just the same as j,k now
+"map <c-j> <c-e>
+"map <c-k> <c-y>
+"map <c-p> <s-up>
+"map <c-n> <s-down>
+
+
+let uname = substitute(system("/usr/bin/uname"),"\n","","g")
+let machine_name = substitute(system("uname -n"),"\n","","g")
+
+
+
+
+" set up some functions to do colorscheme changes
+" we always want this
+let zenburn_high_Contrast=1
+function! s:Zenburn()
+	let zenburn_high_Contrast=1
+	colorscheme zenburn_simple
+endfunction
+command! -bang -complete=buffer -nargs=? Zenburn call <SID>Zenburn()
+
+function! s:Default()
+	colorscheme default
+endfunction
+command! -bang -complete=buffer -nargs=? Default call <SID>Default()
+
+
+
+
+" Switch syntax highlighting on when the terminal has colors
+" Also switch on highlighting the last used search pattern.
+if &t_Co > 2 || has("gui_running")
+    syntax on
+    set hlsearch
+
+
+    if has("gui_running")
+        Zenburn()
+
+
+		" Set pointer
+		set mouseshape=a:beam
+		" I don't want clicking in the window to put the mouse there!
+		"set mouse=""
+
+        if uname == "Darwin"
+            "set nomacatsui anti enc=utf-8 termencoding=macroman gfn=Courier:h12 
+            "set nomacatsui enc=utf-8 termencoding=macroman gfn=Monaco:h10 
+            "set enc=utf-8 termencoding=macroman gfn=Monaco:h10 
+            "set gfn=Monaco:h10 
+            "set noanti gfn=Monaco:h10 
+            set anti gfn=Monaco:h14 
+			"set gfn=Courier:h12.00
+			" On OSX gvim copy paste doesn't work right
+			vmap <C-c> y:call system("pbcopy", getreg("\""))<CR>
+		else
+            set gfn=peep\ 12
+        endif
+
+        " turn off annoying cursor blinking
+        set gcr=a:blinkon0
+
+		" Turn off useless toolbar
+		set guioptions-=T
+
+		" Turn off menu bar (toggle with CTRL+F11)
+		set guioptions-=m
+
+		" Turn off right-hand, left-hand scrollbars
+		set guioptions-=r
+		set guioptions-=l
+		" Even turn them off if the window is split
+		set guioptions-=R
+		set guioptions-=L
+
+		" CTRL+F11 to toggle the menu bar
+		nmap <C-F11> :if &guioptions=~'m' \| set guioptions-=m \| else \| set guioptions+=m \| endif<CR>
+
+		" CTRL+F7 to toggle the right-hand scroll bar
+		nmap <C-F7> :if &guioptions=~'r' \| set guioptions-=r \| else \| set guioptions+=r \| endif<CR>
+
+
+		"The following removes bold from all highlighting
+		"as this is usually rendered badly for me. Note this
+		"is not done in .vimrc because bold usually makes
+		"the colour brighter on terminals and most terminals
+		"allow one to keep the new colour while turning off
+		"the actual bolding.
+
+		" Steve Hall wrote this function on vim@vim.org
+		" See :help attr-list for possible attrs to pass
+		" 
+		" NOTE:  Statusline seems to be special.  Had to hack zenburn
+		" to set gui=inverse explicitly
+		function! Highlight_remove_attr(attr)
+			" save selection registers
+			new
+			silent! put
+
+			" get current highlight configuration
+			redir @x
+			silent! highlight
+			redir END
+			" open temp buffer
+			new
+			" paste in
+			silent! put x
+
+			" convert to vim syntax (from Mkcolorscheme.vim,
+			"   http://vim.sourceforge.net/scripts/script.php?script_id=85)
+			" delete empty,"links" and "cleared" lines
+			silent! g/^$\| links \| cleared/d
+			" join any lines wrapped by the highlight command output
+			silent! %s/\n \+/ /
+			" remove the xxx's
+			silent! %s/ xxx / /
+			" add highlight commands
+			silent! %s/^/highlight /
+			" protect spaces in some font names
+			silent! %s/font=\(.*\)/font='\1'/
+
+			" substitute bold with "NONE"
+			execute 'silent! %s/' . a:attr . '\([\w,]*\)/NONE\1/geI'
+			" yank entire buffer
+			normal ggVG
+			" copy
+			silent! normal "xy
+			" run
+			execute @x
+
+			" remove temp buffer
+			bwipeout!
+
+			" restore selection registers
+			silent! normal ggVGy
+			bwipeout!
+		endfunction
+		autocmd BufNewFile,BufRead * call Highlight_remove_attr("bold")
+		" Note adding ,Syntax above messes up the syntax loading
+		" See :help syntax-loading for more info
+
+
+    else
+
+		if &t_Co < 256
+            set background=light
+            colorscheme default
+		else
+            Zenburn()
+		endif
+
+	endif
+
+
+
+    " Search color should have black foreground
+    " hi Search term=reverse ctermfg=black ctermbg=yellow
+    "hi Search term=reverse ctermfg=black ctermbg=red
+endif 
+
+
+" Only do this part when compiled with support for autocommands.
+if has("autocmd")
+
+    " Enable file type detection.
+    " Use the default filetype settings, so that mail gets 'tw' set to 72,
+    " 'cindent' is on in C files, etc.
+    " Also load indent files, to automatically do language-dependent indenting.
+    filetype plugin indent on
+
+    " Put these in an autocmd group, so that we can delete them easily.
+    augroup vimrcEx
+        au!
+
+        " For all text files set 'textwidth' to 78 characters.
+        autocmd FileType text setlocal textwidth=78
+
+        " When editing a file, always jump to the last known cursor position.
+        " Don't do it when the position is invalid or when inside an event handler
+        " (happens when dropping a file on gvim).
+        autocmd BufReadPost *
+                    \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                    \   exe "normal g`\"" |
+                    \ endif
+
+    augroup END
+
+else
+
+    set autoindent		" always set autoindenting on
+
+
+endif " has("autocmd")
+
+set autoindent
+set shiftwidth=2
+autocmd FileType c,cpp,h set cindent
+set cinkeys=0{,0},:,0#,!<Tab>,!^F
+set ic
+
+" ignore case on searches "
+set ignorecase
+" but don't ignore if there's a capital in the search
+set smartcase
+
+
+" Gui specific stuff
+set guioptions-=T
+
+
+" compatability
+if has("vms")
+    set nobackup		" do not keep a backup file, use versions instead
+else
+    set backup		" keep a backup file
+endif
+
+
+" show paren matches
+set showmatch
+"hi MatchParen cterm=none ctermbg=white ctermfg=black
+hi MatchParen cterm=none ctermbg=red ctermfg=white
+
+" horrible colors in spell
+hi SpellLocal ctermfg=white ctermbg=magenta
+
+",v brings up my .vimrc
+",V reloads it -- making all changes active (have to save first)
+
+map ,v :sp $VIMRC<CR><C-W>_
+map <silent> ,V :source $VIMRC<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
+
+
+let python_highlight_indent_errors = 0
+" Who cares about trailing spaces?
+let python_highlight_space_errors = 0
+
+
+"gpg stuff
+let g:GPGPreferSymmetric = 1
+let g:GPGPreferArmor = 1
+
+
+" don't remove indent when # first on line!
+inoremap # X#
+
+au BufNewFile,BufRead *.ooc set filetype=ooc
+

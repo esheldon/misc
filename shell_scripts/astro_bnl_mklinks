@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# first make sure the /global/data directory exists
+export DATA=/global/data
+
+if [ ! -d $DATA ]; then
+	echo First make directory $DATA
+	exit 45
+fi
+
+# the products area
+ln -fs /home/users/products -t /global/data
+
+# sdss related links
+export SDSSDATA=$DATA/sdss
+export PHOTO_REDUX=$SDSSDATA/redux
+
+export BOSS_ROOT=/global/data/boss
+
+mkdir -pv $SDSSDATA
+
+mkdir -pv $PHOTO_REDUX
+mkdir -pv $PHOTO_REDUX/datasweep
+
+ln -fsv /mount/tutti0/sdss/redux/datasweep/dr7 -t $PHOTO_REDUX/datasweep
+
+
+#export PHOTO_DATA=$SDSSDATA/imaging
+#export PHOTO_SKY=$SDSSDATA/sky
+#export PHOTO_SWEEP=$SDSSDATA/redux/datasweep/dr7
+#export PHOTO_RESOLVE=$SDSSDATA/redux/resolve/dr7
+#export PHOTO_CALIB=$SDSSDATA/redux/resolve/full_02apr06/calibs/default2
+#export SPECTRO_DATA=$SDSSDATA/spectro
+#export DUST_DIR=$DATA/sfddust
+#export VAGC_REDUX=$DATA/vagc-dr7/vagc2
+#export LSS_REDUX=$SDSSDATA/lss
+#export bc03_dir=$DATA/specmodels/bc03
+
+
+
+
+# DES links
+export DESDATA=$DATA/DES
+mkdir -pv $DESDATA
+
+ln -fsv /mount/tutti0/DES/wlbnl -t $DESDATA
+ln -fsv /mount/tutti0/DES/runconfig -t $DESDATA
+ln -fsv /mount/tutti0/DES/pointings -t $DESDATA
+
+for subdir in coadd red wl; do 
+	mkdir -pv $DESDATA/$subdir
+
+	# order important, type after
+	dirs=`find /mount/tutti0/DES/$subdir -maxdepth 1 -mindepth 1 -type d`
+	for d in $dirs; do
+		ln -fsv $d -t $DESDATA/$subdir
+	done
+
+done
+

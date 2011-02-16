@@ -1,0 +1,6 @@
+
+To run something in the background and have all the
+output (including program messages, not just user 
+printouts) sent to a file:
+
+scriptname > & outfile &

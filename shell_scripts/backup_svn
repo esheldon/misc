@@ -1,0 +1,50 @@
+#!/bin/bash
+# Usage:
+#	backup_svn [host]
+# hostname is optional.  If not sent a local directory is used.
+#
+# Make backups of the svn repository.  Only files that have changed
+# are copied, the rest are hard links to the last backups.  The
+# backup names contain the date and a symbolic link is set to the
+# latest named current
+#
+# If you use a remote host, you will have to type a password or 
+# passphrase twice for a remote machine, so better if ssh keys are 
+# set up.
+
+host2=""
+if [ $# -gt 0 ]; then
+	host2=$1
+fi
+
+dt=`date "+%Y-%m-%dT%H:%M:%S"`
+backup_name=backup-$dt
+
+# These are hardwired paths
+host1_dir=/usr/local/svn
+#host2_dir=/mount/bias1/esheldon/backups/svn
+host2_dir=/mount/early2/esheldon/backup/svn
+
+bwlimit=1000
+
+if [ "$host2" != "" ]; then
+	copyurl=$host2:$host2_dir/$backup_name/
+else
+	copyurl=$host2_dir/$backup_name/
+fi
+
+# rsync and use hard links to files that didn't change from the previous (called current) backup
+rsync -azxP --bwlimit=$bwlimit --delete --link-dest=$host2_dir/current $host1_dir/ $copyurl
+
+# Make current point to the latest
+if [ "$host2" != "" ]; then
+	ssh $host2 "cd $host2_dir && rm -f current && ln -s $backup_name current"
+else
+	pushd $host2_dir
+	rm -f current
+	ln -s $backup_name current
+	popd
+fi
+
+echo Done
+date
