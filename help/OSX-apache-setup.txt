@@ -1,0 +1,27 @@
+10.5
+---------
+In preferences enable sharing/web sharing.  Note, turning it on and off again
+reloads the apache configureation file
+
+Edit the apache config file:  
+    /private/etc/apache2/httpd.conf
+Add the python event handler (or your favorite cgi)
+    AddHandler cgi-script .py
+Then edit your user config file to allow execution of cgi. It is in 
+    /private/etc/apache2/users/yourname.conf
+Edit Options to be this:
+    Options Indexes MultiViews ExecCGI FollowSymLinks
+
+You might have to turn apache on/off again?
+
+
+Your home page is under:
+
+http://127.0.0.1/~username/index.html
+
+If you have data that apache needs to see, best to make a subdirectory and 
+
+	chown -R _www:staff data
+
+Then write a cgi script that will either create the data there or copy it in,
+so that apache will own it.

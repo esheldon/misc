@@ -1,0 +1,12 @@
+
+to tar a directory dir_name to a file file_name.tar use the following command:
+(with verbose on v)
+This leaves the original directory alone.
+
+tar cvf file_name.tar dir_name
+
+
+to untar a tar file and saving the tar file:
+
+tar -xvf name.tar
+

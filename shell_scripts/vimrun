@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#mrxvt -e vim -c "set filetype=mail" -c "set spell spelllang=en_us" $1 &
+gvim -c "set filetype=mail" -c "set spell spelllang=en_us" $1 &

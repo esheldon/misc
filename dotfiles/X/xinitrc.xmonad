@@ -1,0 +1,51 @@
+#!/bin/bash
+
+if [ -r ~/.Xdefaults ]; then
+	xrdb -merge ~/.Xdefaults
+fi
+if [ -r ~/.Xmodmap ]; then
+	xmodmap ~/.Xmodmap
+fi
+
+sleeptime=1
+
+if [ -x /usr/bin/gnome-settings-daemon ]; then
+	gnome-settings-daemon &
+	sleep $sleeptime
+fi
+
+
+if [ -x /usr/bin/gnome-screensaver ]; then
+	gnome-screensaver &
+fi
+
+hname=$(hostname)
+if [[ $hname == "theshire" ]]; then
+    if [ -x /usr/bin/gnome-power-manager ]; then
+        gnome-power-manager &
+    fi
+fi
+
+# fbpanel runs cpu and network monitor, and a tray for applets
+# use the gnome volume applet and store values using settings daemon
+fbexec=~/local/products/Linux64/fbpanel/6.1/bin/fbpanel
+if [[ -x $fbexec ]]; then
+    $fbexec &
+    sleep $sleeptime
+
+    if [ -x /usr/bin/nm-applet ]; then
+        nm-applet --sm-disable &	
+    fi
+
+    if [ -x /usr/bin/gnome-volume-control-applet ]; then
+        gnome-volume-control-applet &
+    fi
+
+    if [ -x /usr/bin/dropbox ]; then
+        /usr/bin/dropbox start
+    fi
+fi
+
+xsetroot -solid black
+
+exec xmonad

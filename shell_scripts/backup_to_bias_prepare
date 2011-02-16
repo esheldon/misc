@@ -1,0 +1,36 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+    echo usage: backup_to_bias_prepare machine_name
+    exit 45
+fi
+machine=$1
+
+backupdir=/mount/bias1/esheldon/backups/$machine
+
+echo $backupdir
+
+if [ ! -d $backupdir ]
+then
+    echo "Could not find backups directory $backupdir"
+    exit
+fi
+
+cd $backupdir
+nbackup=30
+
+# keep only nbackup copies. 
+rm -rfv backup.$nbackup
+for ((i = nbackup-1; i > 0; i--)); do
+
+    ii=$[i+1]
+    iistr=`printf "%02i" $ii`
+    istr=`printf "%02i" $i`
+
+
+    if [[ -d backup.$istr ]]; then
+        mv -v backup.$istr backup.$iistr
+    fi
+done
+
+

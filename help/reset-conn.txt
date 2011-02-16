@@ -1,0 +1,5 @@
+This worked
+modem off
+modem on
+wr off
+wr on

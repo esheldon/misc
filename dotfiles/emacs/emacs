@@ -1,0 +1,277 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; .emacs 
+;; Erin Sheldon
+;; 26-February-2006
+;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; Get backspace key to work properly on many machines.
+;; I finally found it!  This makes backspace work in every environment, even
+;; Mac OS X in a shell.  
+;; Thanks to Morgan McGuire <matrix@graphics3d.com>
+;;                          http://graphics3d.com/guides/emacs/index.html
+
+(setq term-setup-hook
+      '(lambda()
+         (setq keyboard-translate-table "\C-@\C-a\C-b\C-c\C-d\C-e\C-f\C-g\C-?")
+         (global-set-key "\M-h" 'help-for-help)))
+
+;; Extra loadable lisp stuff
+(setq load-path  (cons (expand-file-name "~/.dotfiles/emacs/plugins/") load-path))
+
+(menu-bar-mode 0)
+
+; Syntax coloring
+(setq font-lock-maximum-decoration t)
+(global-font-lock-mode t)
+
+;; Hide the useless and hideous toolbar
+;(defun hide-toolbar()
+;    (tool-bar-mode 0))
+;(add-hook 'window-setup-hook 'hide-toolbar)
+
+;; Tramp.  Still not working in emacs, just the carbon emacs
+;(require 'tramp)
+;(setq tramp-default-method "sshx")
+
+;; Mousewheel
+(autoload 'mwheel-install "mwheel" "Enable mouse wheel support.")
+(mwheel-install)
+
+
+;; Show matched paren
+(show-paren-mode 1)
+
+;; Delete stuff that is marked
+(delete-selection-mode t)
+
+;; No need for stupid scroll bar
+(setq scroll-bar-mode nil)
+
+(setq-default inhibit-startup-message t)
+(setq-default scroll-step 1)
+(setq auto-save-default t)
+(setq auto-save-interval 750)
+(setq inhibit-startup-message t)
+(setq delete-auto-save-files t)
+(setq require-final-newline t)
+(setq text-block-indent 4)
+
+;; For when modifying same buffer in different split window
+(autoload 'follow-mode "follow" "Synchronize windows showing the same buffer, minor mode." t)
+(autoload 'follow-switch-to-current-buffer-all "follow" "Enter `follow-mode' and show current buffer in all windows." t)
+
+(autoload 'awk-mode "cc-mode" nil t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Define some keys
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-key esc-map "g" 'goto-line)
+
+
+(global-set-key '[home] 'beginning-of-buffer)
+(global-set-key '[end] 'end-of-buffer)
+
+(setq-default fill-column 79)
+
+(setq default-major-mode 'text-mode)
+
+(setq next-line-add-newlines nil)
+(setq transient-mark-mode 1)
+(setq column-number-mode t)
+(setq line-number-mode t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; make some color modes
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; fortran
+
+(defcustom f90-program-indent 4  
+  "*Extra indentation applied to PROGRAM, MODULE, SUBROUTINE, FUNCTION blocks."
+  :type  'integer  
+  :group 'f90-indent)
+
+(defcustom f90-do-indent 4
+  "*Extra indentation applied to DO blocks."
+  :type  'integer
+  :group 'f90-indent)
+
+(defcustom f90-if-indent 4
+  "*Extra indentation applied to IF, SELECT CASE, WHERE and FORALL blocks."
+  :type  'integer
+  :group 'f90-indent)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; C mode with colors
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(add-hook 'c-mode-hook
+          '(lambda () ))
+(add-hook 'c-mode-hook 'turn-on-font-lock)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;TEX mode with colors: note the order is important here.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(add-hook 'tex-mode-hook
+          '(lambda () 
+;            (set-face-foreground font-lock-comment-face "Red")
+;             (set-face-foreground font-lock-string-face "Magenta")
+ ))
+(add-hook 'tex-mode-hook 'turn-on-font-lock)
+
+(setq tex-dvi-view-command
+    (if (eq window-system 'x) "xdvi"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; HTML mode 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;   Add this line in your .emacs:
+;     (autoload 'html-helper-mode "~/.emacs-lisp/html-helper-mode" "Yay HTML" t)
+;   To invoke html-helper-mode automatically on .html files, do this:
+;     (setq auto-mode-alist (cons '("\\.html$" . html-helper-mode) auto-mode-alist))
+
+; muttrc
+;(autoload 'muttrc-mode "~/.emacs-lisp/muttrc.el" "Muttrc Mode"t)
+;(setq auto-mode-alist (cons'("\\muttrc$" . muttrc-mode) auto-mode-alist))
+
+;(autoload 'muttrc-mode "~/.emacs-lisp/muttrc-mode.el" "Muttrc Mode"t)
+;(setq auto-mode-alist (cons'("mutt*" . muttrc-mode) auto-mode-alist))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Python mode 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;   Add this line in your .emacs:
+;     (autoload 'python-mode "~/.emacs-lisp/python-mode.el" "Yay Python" t)
+;;   To invoke html-helper-mode automatically on .html files, do this:
+;     (setq auto-mode-alist (cons '("\\.py$" . python-mode) auto-mode-alist))
+
+;; template for html documents
+(defvar html-helper-new-buffer-template
+  '(html-helper-htmldtd-version
+    "<html> <head>\n"
+    "<title>" p "</title>\n</head>\n\n"
+    "<BODY bgcolor=\"#ffffff\" link=\"#0066ff\" vlink=\"#FF0000\" text=\"#000000\">\n"
+    "<h1>" p "</h1>\n\n"
+    p
+    "\n\n<hr>\n"
+    "<b>Erin Sheldon</b>\n"
+    html-helper-timestamp-start
+    html-helper-timestamp-end
+    "\n</body> </html>\n")
+  "*Template for new buffers.
+Inserted by `html-helper-insert-new-buffer-strings' if
+`html-helper-build-new-buffer' is set to t")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; php mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;(require 'php-mode)
+;(add-hook 'php-mode-user-hook 'turn-on-font-lock)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; IDL mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;(require 'uniquify)
+(setq uniquify-buffer-name-style 'post-forward)
+
+(setq auto-mode-alist
+      (append
+       '(("\\.pro$" . idl-mode))
+       auto-mode-alist))
+
+  (autoload 'idlwave-mode "idlwave" "IDLWAVE Mode" t)
+  (autoload 'idlwave-shell "idlw-shell" "IDLWAVE Shell" t)
+  (setq auto-mode-alist  
+   (cons '("\\.pro\\'" . idlwave-mode) auto-mode-alist))
+;  (setq idlwave-help-directory "/usr/local/etc")
+  (setq idlwave-block-indent 4          ; Indentation settings
+	idlwave-main-block-indent 2
+	idlwave-end-offset -4
+	idlwave-continuation-indent 2 
+	idlwave-code-comment ";;"
+			   ;  Leave ";" but not ";;" anchored at start of line.
+	idlwave-begin-line-comment "^\;[^\;]";
+	idlwave-reserved-word-upcase nil  ; Change reserved words to upper case
+	idlwave-abbrev-change-case nil  ; Don't force case of expansions
+	idlwave-hang-indent-regexp ": " ; Change from "- "
+	)
+
+
+(setq idlwave-html-help-location "/usr/etc")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Some fonts
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq
+ x-fixed-font-alist
+ '("Font Menu"
+   ("Misc"
+    ("6x9"   "-misc-fixed-medium-r-semicondensed--9-110-75-75-c-60-*-1")
+    ("6x10"  "-misc-fixed-medium-r-semicondensed--10-110-75-75-c-60-*-1")
+    ("6x12" "-misc-fixed-medium-r-semicondensed--12-110-75-75-c-60-*-1")
+    ("6x13" "-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-*-1")
+    ("lucida 13"
+     "-b&h-lucidatypewriter-medium-r-normal-sans-0-0-0-0-m-0-*-1")
+    ("7x13" "-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-1")
+    ("7x14" "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1")
+    ("9x15" "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1")
+    ("")
+    ("clean 8x8" "-schumacher-clean-medium-r-normal--*-80-*-*-c-*-*-1")
+    ("clean 8x14" "-schumacher-clean-medium-r-normal--*-140-*-*-c-*-*-1")
+    ("clean 8x10" "-schumacher-clean-medium-r-normal--*-100-*-*-c-*-*-1")
+    ("clean 8x16" "-schumacher-clean-medium-r-normal--*-160-*-*-c-*-*-1")
+    ("")
+    ("sony 8x16" "-sony-fixed-medium-r-normal--16-120-100-100-c-80-*-1")
+    ("")
+    ("-- Courier --")
+    ("Courier 10" "-adobe-courier-medium-r-normal--*-100-*-*-m-*-*-1")
+    ("Courier 12" "-adobe-courier-medium-r-normal--*-120-*-*-m-*-*-1")
+    ("Courier 14" "-adobe-courier-medium-r-normal--*-140-*-*-m-*-*-1")
+    ("Courier 18" "-adobe-courier-medium-r-normal--*-180-*-*-m-*-*-1")
+    ("Courier 18-b" "-adobe-courier-bold-r-normal--*-180-*-*-m-*-*-1")
+    )))
+
+(set-default-font "6x13")
+(set-background-color "black")
+(set-foreground-color "white")
+
+(custom-set-faces
+  ;; custom-set-faces was added by Custom -- don't edit or cut/paste it!
+  ;; Your init file should contain only one such instance.
+ '(show-paren-match-face ((((class color)) (:foreground "black" :background "turquoise")))))
+
+; Allow convert to lower case with C-x C-l
+(put 'downcase-region 'disabled nil)
+
+
+
+
+
+;(setq viper-mode t)                ; enable Viper at load time
+;(setq viper-ex-style-editing nil)  ; can backspace past start of insert / line
+;(require 'viper)                   ; load Viper
+;(require 'vimpulse)                ; load Vimpulse
+
+; even with viper on I had these off
+;(setq vimpulse-experimental nil)   ; don't load bleeding edge code (see 6. installation instruction)
+;(setq woman-use-own-frame nil)     ; don't create new frame for manpages
+;(setq woman-use-topic-at-point t)  ; don't prompt upon K key (manpage display)
+
+
+;(setq inferior-lisp-program "/usr/bin/sbcl") ; your Lisp system
+;(require 'slime)
+;(slime-setup)
+

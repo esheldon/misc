@@ -1,0 +1,69 @@
+Configuration
+---------------------------------
+The highlight line is not configurable!!
+
+Edited the code ~/.gem/ruby/1.8/gems/sup-0.11/lib/sup/colormap.rb
+so the highlight_for now just always returns [green,black,[]]
+
+getmail
+----------------------------
+I installed getmail and put config in ~/.getmail/getmailrc.  There
+is a version of the config file in the svn repo with the password
+removed
+
+msmtp
+---------------------------------------------
+I installed msmtp and added it to config of sup and made ~/.msmtprc
+I configured editor.  Also a version in svn with password removed.
+
+
+cron
+-------------------------------------
+made cron job to run getmail. It is in ~/svn/cron/crontab.treebeard
+
+
+printing mail
+----------------------------------------
+
+Installed muttprint and w3m,w3m-img for printing emails (note it installed tex)
+I also wrote ~/python/bin/mprint (modified from a python script found on the
+sup site) to create a postscript version of a mail.
+
+
+date searches
+-----------------------------
+Installed chronic for date searches
+    gem install chronic
+But doesn't seem to be working
+
+
+Installation of sup
+------------------------------------------
+See the help for gems first
+
+aptitude install 
+    rubygems
+aptitude install 
+    uuid-dev ruby-dev ncurses-dev libxapian libxapian-dev libopenssl-ruby
+    zlib1g-dev
+
+Pre-install rake
+    gem install rake
+
+To prepare for ncursesw
+    aptitude install libncursesw5-dev
+    gem install ncursesw
+Seems to work well in gnome terminal but not mrxvt
+
+
+also you'll need this to run:
+  
+
+
+on os x
+
+from brew Iinstalled msmtp, getmail, chronic.  Then from looking at the deb I saw some other dependencies:
+    gettext - but when I installed, it said there is already a BSD gettext so
+        I uninstalled.
+
+

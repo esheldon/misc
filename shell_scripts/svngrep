@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+	echo Usage: svngrep pattern
+	echo Ignores .svn directories
+fi
+
+grep -i -r "$1" . 2> /dev/null | grep -v ".*\.svn" | grep -v ".*~"

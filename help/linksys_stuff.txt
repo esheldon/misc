@@ -1,0 +1,23 @@
+help is here:
+http://oregonstate.edu/resnet/guides/router_linksys.php
+Everything worked fine.  The key was I just had to unplug
+the cable modem and restart so it could work DHCP on the
+wireless modem.
+
+also, for dhcp wired you might have to go to the status configuration section
+and do a dhcp release, renew and refresh to get it to recongnize the computer.
+
+----------------------------------------
+New ip to connect to rounter
+    192.168.127.1
+	usual lensing computer password (esheldon as username?)
+
+What I get from plugging in the cable modem
+ip  ~ 66.234.40.220
+subnet mask 255.255.255.224
+router 66.234.40.193
+
+I enabled wireless MAC filtering.
+
+I downloaded the firmware and uploaded it throught Administration->Firmware
+Upgrade

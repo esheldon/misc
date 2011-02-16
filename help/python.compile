@@ -1,0 +1,13 @@
+If you install your own readline, you need to do this before compiling
+
+export LDFLAGS="-L/path/to/readline/lib"
+export CPPFLAGS="-I/path/to/readline/include"
+
+this also seems to work with bzip2
+
+export LDFLAGS="-L/home/esheldon/exports/readline/5.2/lib -L/home/esheldon/exports/bzip2/1.0.5/lib"
+export CPPFLAGS="-I/home/esheldon/exports/readline/5.2/include -I/home/esheldon/exports/bzip2/1.0.5/include"
+
+export LDFLAGS="-L/home/esheldon/exports/tcl/8.5.8/lib -L/home/esheldon/exports/tk/8.5.8/lib -L/home/esheldon/exports/readline/5.2/lib -L/home/esheldon/exports/bzip2/1.0.5/lib"
+export CPPFLAGS="-I/home/esheldon/exports/tcl/8.5.8/include -I/home/esheldon/exports/tk/8.5.8/include  -I/home/esheldon/exports/readline/5.2/include -I/home/esheldon/exports/bzip2/1.0.5/include"
+

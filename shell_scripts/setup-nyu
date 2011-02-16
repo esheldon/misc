@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# usage: setup-nyu start|stop|restart
+#
+# start: Set up the connection.  If the connection exists the request is 
+#        ignored.
+# stop:  Disconnect. If the connection does not exist the request is ignored.
+# restart: run "stop" then "start".
+
+gateway=astro
+domain=physics.nyu.edu
+fullhost=$gateway.$domain
+
+function connect
+{
+	check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
+	if [ "$check" == "" ]; then
+		echo "Connecting to $gateway"
+		ssh -f -N "$fullhost"
+	fi
+}
+
+function disconnect
+{
+	check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
+	if [ "$check" != "" ]; then
+		id=$(echo $check | awk '{print $2}')
+		echo "disconnecting from $gateway (jobid $id)"
+		kill $id
+	fi
+}
+
+if [ $# -lt 1 ]; then
+	echo "usage: setup-nyu start|stop|restart"
+	exit 45
+fi
+
+action=$1
+
+
+if [ "$action" == "start" ]; then
+	connect
+elif [ "$action" == "stop" ]; then
+	disconnect
+elif [ "$action" == "restart" ]; then
+	disconnect
+	connect
+else
+	echo "Unrecognized action: $action"
+	exit 45
+fi
+
+

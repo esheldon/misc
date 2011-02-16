@@ -1,0 +1,26 @@
+CC	= cc
+LD	= ld
+SOFILE	= psfadmom.so admom.so admom_float.so
+LIBRARY	= ../lib/libAtlas.a
+OBJS	= ../phadmom/phadmom.o ../phadmom/phadmom_float.o \
+	  psfadmom.o admom.o admom_float.o
+CCFLAGS = -c -g
+LDFLAGS = -S
+LDLIBS	= ${LIBRARY}
+
+${SOFILE}: ${OBJS}
+	@ echo linking $@
+	@ ${LD} ${LDFLAGS} -o $@ -shared ${OBJS} ${LDLIBS}
+
+all: ${SOFILE}
+	- cp ${SOFILE} ../bin
+
+clean:
+	- rm -f ${SOFILE}; rm -f ${OBJS}; cd ../bin; rm -f ${SOFILE}
+
+.SUFFIXES:
+.SUFFIXES: .o .c
+
+.c.o:
+	@ echo compiling $<
+	@ ${CC} ${CCFLAGS} -I../include $<

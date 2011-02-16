@@ -1,0 +1,4 @@
+[esheldon@bach00 ~] rm -r /global/data/products/local/include/python2.5
+[esheldon@bach00 ~] rm /global/data/products/local/share/man/man1/python.1
+[esheldon@bach00 ~] rm /global/data/products/local/bin/python*
+

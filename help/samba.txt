@@ -1,0 +1,53 @@
+On lucid
+
+    sudo aptitude install samba smbfs
+
+edit 
+    /etc/samba/smb.conf 
+
+and make sure it uses this to demand samba users also have unix accounts
+    security = user
+
+then I only allowed looking at the shared area (note the name [shared] can be anything)
+
+[share]
+    comment = An area shared for all users
+    path = /home/share
+
+    writeable = yes
+
+    create mask = 0600
+
+    directory mode = 0700
+
+    locking = yes
+
+Made the directory:
+
+    mkdir -p /home/share
+    chmod -R a+rxw /home/share
+
+Added a user:
+    sudo adduser guest
+
+And added the samba user corresponding to this new user. Note we demanded
+that the samba user also had a unix account above:
+
+    sudo smbpasswd  -a guest
+
+Then restart samba:
+
+    sudo service smbd restar
+
+
+Now to auto-mount this in OS X:
+    First go to Go->connect to server
+
+        add smb://192.168.127.104/share
+    (or whatever) and put in guest and the password, save to keychain.
+
+    *If* it shows up on the desktop, all you have to do is then go to
+    your login items and drag it onto there. It will get mounted when
+    you log in.
+
+    Remember to tell sarah that address will only work on the local network!

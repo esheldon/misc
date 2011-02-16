@@ -1,0 +1,3 @@
+#05 * * * * /home/users/esheldon/shell_scripts/backup_svn &> /home/users/esheldon/logs/backup_svn.out
+40 * * * * /bin/ls | /usr/bin/tee testcron.out
+#03 * * * * echo hello > testcron.out

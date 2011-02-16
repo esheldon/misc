@@ -1,0 +1,394 @@
+
+# PATH Setup
+# Colon seperated unix directory paths for Modules, and for images
+ImagePath $HOME/.fvwm/icons:/usr/share/pixmaps:/usr/include/X11/pixmaps
+
+*FvwmScript: Path $[HOME]/.fvwm/scripts
+
+
+#
+# programs started with FVWM
+#
+AddToFunc InitFunction
++	I Exec exec Esetroot $[HOME]/.wallpaper
++	I Exec exec conky
+
+AddToFunc StartFunction
++	I Module FvwmButtons FvwmButtons-Panel
++	I Test (Init) Exec exec xscreensaver
+#
+# Window focus setup
+#
+# If you knock your mouse out of the xterm, it keeps focus while in root window
+Style *	SloppyFocus
+Style *	MouseFocusClickRaises
+
+
+# Don't scroll at the edge unless we are holding a window
+EdgeScroll 0 0
+
+# TileCascadePlacement makes new windows pop-up in blank regions of screen,
+# if this fails, windows are placed randomly
+Style * TileCascadePlacement
+
+
+#
+# Menus
+#
+
+# Leisure stuff that doesn't go anywhere else..
+AddToMenu Games   "Games" Title
++		"mahjongg"		Exec exec /usr/games/mahjongg &
++		"solitaire"		Exec exec /usr/games/sol &
++		"tetris"		Exec exec /usr/games/gnometris &
+
+AddToMenu RootMenu "Root Menu"  Title
++		"mrxvt"		Exec exec mrxvt &
+#+		"mrxvt-monaco10"		Exec exec mrxvt -xft -xftfn Monaco -xftsz 10 &
+#+		"mrxvt-monaco9"		Exec exec mrxvt -xft -xftfn Monaco -xftsz 9 &
++       "firefox"   Exec exec firefox &
++       "thunderbird"   Exec exec icedove &
++       "thunar"	Exec exec thunar &
++		"gvim"		Exec exec gvim &
++		"azureus"	Exec exec azureus &
+#+		"Eterm"		Exec exec Eterm -t myterm &
+#+		"picasa"	Exec exec picasa &
+#+		"xterm"     Exec exec xterm &
+#+		"aterm"		Exec exec aterm &
+#+		"pidgin"	Exec exec pidgin &
++		"adept"		Exec exec aterm -e sudo adept_manager &
++		"aptitude"  Exec exec aterm -geometry 150x50 -tn xterm -e sudo aptitude&
++		""			Nop
++		"Games"		Popup Games
++		"FVWM Console"	FvwmConsole -terminal mrxvt
++		"Lock Screen"	Exec exec xscreensaver-command -lock
++		"Restart Fvwm"  Restart
++ 		"Exit Fvwm"     FvwmForm FvwmForm-QuitVerify
+
+
+#
+# This defines the most common window operations
+#
+AddToMenu Window-Ops    "Window Ops"    Title
++                       "Move"          Move-or-Raise
++                       "Resize"        Resize-or-Raise
++                       "Raise"         Raise
++                       "Lower"         Lower
++                       "(De)Iconify"   Iconify
++                       "(Un)Stick"     Stick
++                       "(Un)Maximize"  Maximize-Func
++                       ""              Nop
++                       "Delete"        Delete
++                       "Close"         Close
++                       "Destroy"       Destroy
++                       ""              Nop
++                       "Refresh Screen" Refresh
+
+# A trimmed down version of "Window Ops", good for binding to decorations
+AddToMenu Window-Ops2   "Move"          Move-or-Raise
++                       "Resize"        Resize-or-Raise
++                       "Raise/Lower"   RaiseLower
++                       "Iconify"       Iconify
++                       "(Un)Stick"     Stick
++                       "(Un)Maximize"  Maximize-Func
++                       ""              Nop
++                       "Delete"        Delete
++                       "Close"         Close
++
+
+
+
+
+#
+# MOUSE Setup
+#
+# First, the root window. Button 1 brings up the Main Menu. B2 is the
+# window operations list, and B3 is the winlist module
+#     Button	Context Modifi 	Function
+Mouse 1		R   	A       Menu RootMenu Nop
+Mouse 2		R    	A       Menu Window-Ops Nop
+Mouse 3		R    	A      	WindowList
+
+# Now, title bar buttons
+# Left button is the Window-Ops2 menu, right is iconify, rightmost is maximize
+#			Button	Context Modifi 	Function
+Mouse 0		1       A       Menu Window-Ops2 Close
+#Mouse 0		2		A		Close
+Mouse 0		4    	A     	Iconify
+Mouse 0		2    	A     	Maximize-Func
+
+# Button 1 in Frame or Sides is a resize-or-raise, in Icons is a move or
+# de-iconify, and on Top does a move-or-raise
+#     Button	Context Modifi 	Function
+Mouse 1 	FS      A       Resize-or-Raise
+Mouse 1		I       A       Move-or-Iconify
+Mouse 1		T       A       Move-or-Raise
+
+#
+# Complex mouse functions
+#
+
+
+AddToFunc Move-or-Raise		I Raise
++				M Move
++				D Lower
+
+AddToFunc Move-or-Raise2        M Raise
++				M Move
++				D Lower
+
+# This maximizes until it hits objects on a higher level
+AddToFunc Maximize-Func	C Piperead \
+    "echo Maximize growonlayers $$(($[w.layer]+1)) -1 grow grow"
++						D Piperead \
+    "echo Maximize growonlayers $$(($[w.layer]+1)) -1 grow grow"
+
+AddToFunc Move-or-Iconify       I Raise
++                               M Move
++                               D Iconify
+
+AddToFunc Resize-or-Raise       I Raise
++                               M Resize
++                               D Lower
+
+AddToFunc Resize-or-Raise2      M Raise
++                               M Resize
++                               D Lower
+
+
+#---WindowMaker style alt-click to move
+Mouse 1 A	M	Move
+
+# double click on the to shrink the window to a "window-shade"
+AddToFunc ShadeFunction "D" WindowShade
++                      "I"  Raise
++                      "M"  Move
+
+Mouse 1 T         A     ShadeFunction 
+
+
+#
+# Keyboard setup
+#
+
+# press arrow + control anywhere, and scroll by 1 page
+#Key Left	A	C	Scroll -100 +0
+#Key Right	A	C	Scroll +100 +0
+#Key Up		A	C	Scroll +0   -100
+#Key Down	A	C	Scroll +0   +100
+
+# press arrow + meta anywhere, and scroll by 1 page
+Key Left	A	M	Scroll -100 +0
+Key Right	A	M	Scroll +100 +0
+Key Up		A	M	Scroll +0   -100
+Key Down	A	M	Scroll +0   +100
+
+Key Left A 1 Resize
+
+#
+# Window styles
+#
+
+Style * Colorset 41, HilightColorset 42
+#Style * BorderColorset 43, HilightBorderColorset 44
+
+# borderwidth doesn't seem to do anything
+Style * BorderWidth 5, HandleWidth 3
+Style * MWMBorder, FirmBorder
+
+#
+# Menu style
+#
+MenuStyle * MenuColorset 23
+
+# 
+# Buttons setup
+#
+
+DestroyModuleConfig FvwmButtons-Panel: *
+
+*FvwmButtons-Panel: Rows 1
+*FvwmButtons-Panel: Colorset 23
+
+# Make the width that of the full screen
+PipeRead 'echo "*FvwmButtons-PanelGeometry `expr $[vp.width] - 0`x35+0-0"'
+
+#*FvwmButtons-Panel: (1x1, \
+#	Icon 'firefox.png', \
+#	Action(Mouse 1) 'Exec exec firefox'\
+#)
+#*FvwmButtons-Panel: (\
+#	Icon 'mrxvt.png', \
+#	Action(Mouse 1) 'Exec exec mrxvt'\
+#)
+
+*FvwmButtons-Panel: (1x1 Swallow (Kill) "FvwmApplet-DigitalClock" "FvwmScript FvwmApplet-DigitalClock 23")
+
+*FvwmButtons-Panel: (3x1 Swallow "FvwmPager" "FvwmPager 0 0")
+
+
+*FvwmButtons-Panel: (15x1 Swallow "FvwmIconMan" "FvwmIconMan FvwmIconMan-TaskList")
+
+
+
+#*FvwmButtons-Panel: (1x1 Swallow "FvwmTaskBar" "FvwmTaskBar")
+
+Style "FvwmButtons-Panel"	\
+	NoTitle,				\
+	BorderWidth 0,			\
+	HandleWidth 0,			\
+	sticky,					\
+	WindowListSkip
+
+
+#Style "FvwmButtons-Panel"	\
+	NoTitle,				\
+	BorderWidth 0,			\
+	HandleWidth 0,			\
+	sticky,					\
+	StaysOnTop,				\
+	WindowListSkip
+
+
+#
+# task bar we aren't using
+#
+Style FvwmTaskBar NoTitle, BorderWidth 0, HandleWidth 0, StaysOnTop, \
+	WindowListSkip
+*FvwmTaskBar: NoDefaultStartButton
+*FvwmTaskBar: UseSkipList
+*FvwmTaskBar: ClockFormat %a %b %d %H:%M
+
+#
+# IconMan setup
+#
+DestroyModuleConfig FvwmIconMan-TaskList
+
+# left click will de-iconify if necessary, otherwise just give focus
+*FvwmIconMan-TaskList: Action Mouse 1 N sendcommand EWMHActivateWindowFunc
+
+# Note height is same as FvwmButtons above
+*FvwmIconMan-TaskList: ButtonGeometry 100x35
+
+# Make it see tasks on all desks
+*FvwmIconMan-TaskList: * Resolution Page
+# Make it run across
+*FvwmIconMan-TaskList: ManagerGeometry 1x1
+*FvwmIconMan-TaskList: * DrawIcons always
+
+*FvwmIconMan-TaskList: * Colorset 23
+*FvwmIconMan-TaskList: * PlainColorset 27
+*FvwmIconMan-TaskList: * FocusColorset 24
+*FvwmIconMan-TaskList: * SelectColorset 26
+*FvwmIconMan-TaskList: * IconColorset 25
+
+# Just the window title
+*FvwmIconMan-TaskList: Format "%t"
+# Title when no windows are open 
+*FvwmIconMan-TaskList: Title ""
+# No indentations
+*FvwmIconMan-TaskList: PlainButton up
+# don't sort by name
+*FvwmIconMan-TaskList: Sort none
+
+
+Style FvwmIconMan-TaskList WindowListSkip
+
+#
+# Pager setup
+#
+
+DesktopSize 6 0
+
+*FvwmPager: Colorset * 23
+*FvwmPager: Font none
+*FvwmPager: MiniIcons
+Style FvwmPager StaysOnTop, BorderWidth 0, HandleWidth 0
+
+
+
+
+# STYLE Flag Setup
+#
+# (decorations and window options)
+# Note: Order is important!! If compatible styles are set, styles are ORed
+# together. If conflicting styles are set, the last one specified is used.
+
+# change the default width, set a global icon, and give borders to popups
+Style * Icon x.xpm, DecorateTransient
+
+Style "Fvwm*"		NoTitle, Sticky, WindowListSkip
+Style "*lock"		NoTitle, Sticky, WindowListSkip
+Style "xbiff"		NoTitle, Sticky, WindowListSkip
+Style "xload"		NoTitle, Sticky, WindowListSkip, ClickToFocus
+Style "xsession"	NoTitle, Sticky, WindowListSkip, ClickToFocus
+Style "xconsole"	NoTitle, Sticky, WindowListSkip, ClickToFocus
+Style "xfsm"		NoTitle, Sticky, WindowListSkip, ClickToFocus
+Style "xdaliclock"	NoTitle, Sticky, WindowListSkip, ClickToFocus
+Style "FvwmButtons"	ClickToFocus
+Style "Time 3D"		NoTitle, Sticky
+Style "*onky"		WindowListSkip
+
+Style "IDL*"		Icon idlde.xpm
+Style "idl*"		Icon idlde.xpm
+Style "*pdf"		Icon acroread.png
+Style "*PDF"		Icon acroread.png
+Style "*roread"		Icon acroread.png
+Style "*term"		Icon konsole_blue.png
+Style "aterm"		Icon aterm.png
+Style "xterm"		Icon gnome-color-xterm.png
+Style "mrxvt"		Icon mrxvt.png
+Style "mrxvt"		MiniIcon mrxvt-mini.png
+
+
+Style "xcalc"		Icon xcalc.xpm
+
+Style "emacs"		NoPPosition, Icon emacs.png
+
+# Gkrellm style: sticky
+Style "gkrellm" Sticky,WindowListSkip,CirculateSkip,NeverFocus
+
+
+
+
+
+# Here is where configs differ
+
+
+
+
+# 23 menu,buttons,iconman,pager
+Colorset 23 \
+	Foreground linen, \
+	Background grey20
+
+# tasklist colorset for focused programs
+Colorset 24 \
+	Foreground linen, \
+	Background grey30
+
+# tasklist colorset for iconified programs
+Colorset 25 \
+	Foreground red, \
+	Background grey20
+
+# tasklist colorset for selected apps: what is this?
+Colorset 26 \
+	Foreground grey50, \
+	Background grey20
+
+# tasklist colorset for un-focused programs
+Colorset 27 \
+	Foreground grey50, \
+	Background grey20
+
+# window style, unfocused windows
+Colorset 41 \
+	Foreground grey50,		\
+	Background grey20
+
+# window style, focused windows
+Colorset 42						\
+	Foreground linen, \
+	Background grey30
+

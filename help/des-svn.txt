@@ -1,0 +1,5 @@
+new server
+svn co https://esheldon@des1.cosmology.uiuc.edu/svn/desdm/devel/shapelets/trunk shapelets
+
+old server
+svn co svn://michael@des.cosmology.uiuc.edu/pipeline/trunk pipeline

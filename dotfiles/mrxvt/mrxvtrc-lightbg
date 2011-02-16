@@ -1,0 +1,129 @@
+# turn off the funny buttons that show up when there are tabs
+# you can toggle with ctrl-shift-a
+mrxvt.hideButtons: true
+
+
+# turn off annoying menu at the top that appeared in
+# latest version
+mrxvt.showMenu: false
+
+# wow, super annoying
+Mrxvt.cursorBlink:      false
+
+# we want something a bit different for light bg
+Mrxvt.highlightColor:   yellow
+
+mrxvt.syncTabTitle: true
+
+mrxvt*foreground: black
+mrxvt*background: white
+mrxvt.cursorColor: blue
+mrxvt.cursorColor2: white
+
+# For transparency
+#mrxvt.transparent: false
+#mrxvt.transparentScrollbar: True
+#mrxvt.transparentMenubar: True
+#mrxvt.transparentTabbar: True
+#mrxvt.textShadow: black
+#mrxvt.textShadowMode: botright
+#mrxvt.shading: 60
+
+mrxvt.saveLines: 5000
+
+Mrxvt.cutChars: :=/~#@?%&_-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0abcdefghijklmnopqrstuvwxyz
+
+
+#mrxvt.bottomTabbar: True
+
+# Only show the tab bar if there is more than one tab.
+mrxvt.autohideTabbar:		True
+mrxvt.tabBackground: white
+#mrxvt.tabForeground: #dcdccc
+mrxvt.itabBackground: grey90
+#mrxvt.itabForeground: grey50
+
+mrxvt.scrollBar: True
+mrxvt.scrollbarStyle: rxvt
+mrxvt.scrollbarRight: True
+
+# Don't scroll to the bottom every time some output is produced.
+mrxvt.scrollTtyOutputInhibit:	true
+
+# Scroll to the bottom when a key is pressed.
+mrxvt.scrollTtyKeypress:	true
+#mrxvt.scrollColor: white
+mrxvt.troughColor: white
+
+# good old fixed font....
+mrxvt.font: fixed
+
+#mrxvt.xft: True
+#mrxvt.xftFont:			Bitstream Vera Sans Mono
+#mrxvt.xftSize: 12
+#mrxvt.xftAntialias: True
+
+#mrxvt.xftWeight: light
+
+# color bold fonts instead of using some shell hint
+#mrxvt.colorBD: magenta
+
+# this is key
+mrxvt.veryBoldFont: False
+
+
+# Most annoying thing!
+mrxvt.greektoggle_key: VoidSymbol
+
+Mrxvt.minVisibleTabs: 5
+
+# otherwise vim uses my default theme which is for
+# dark terminals
+mrxvt*termName: xterm-color
+
+# mac-style copy past:  thumb-c and thumb-v
+mrxvt.macro.Meta+c: Copy
+mrxvt.macro.Meta+v: Paste
+
+mrxvt.macro.Alt+f: ToggleFullscreen
+
+# in addition to ctrl+shift+t, this will also open a new tab
+mrxvt.macro.Alt+t: NewTab
+# next tab
+#mrxvt.macro.Alt+l: MoveTab +1
+# previous tab
+#mrxvt.macro.Alt+h: MoveTab -1
+
+
+# get rid of annoying resize font combination I'm always hitting accidentally
+# just remap them to something harmless: scroll to bottom
+Mrxvt.macro.Ctrl+equal: Scroll +1000000
+Mrxvt.macro.Ctrl+minus: Scroll +1000000
+Mrxvt.macro.Ctrl+Shift+plus: Copy
+Mrxvt.macro.Ctrl+Shift+underscore: Copy
+
+# now use alt for font changing:
+mrxvt.macro.Alt+equal: ResizeFont +1
+mrxvt.macro.Alt+minus: ResizeFont -1
+
+
+# defaults color map
+# color1: red, somewhat darker than normal red
+# color2: green
+# color3: yellow, somewhat darker
+# color4: blue
+# color5: magenta
+# color6: cyan
+# color7: white
+
+# 9-15 are the bold versions
+
+# remap for light background
+mrxvt.color2: green4
+mrxvt.color3: sienna
+mrxvt.color6: turquoise4
+
+# bold versions
+mrxvt.color10: green4
+mrxvt.color11: sienna
+mrxvt.color14: turquoise4

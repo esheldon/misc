@@ -1,0 +1,107 @@
+# vim: set filetype=python :
+import os
+#env = Environment(FORTRAN='ifort',F90='ifort',ENV=os.environ)
+# importing all environ because the intel compiler is not in
+# a standard place
+env = Environment(ENV=os.environ)
+
+f90 = ARGUMENTS.get('f90', None)
+if f90 is not None:
+    env['F90'] = f90
+    env['FORTRAN'] = f90
+
+if f90 == 'ifort':
+    env.Append(F90FLAGS=['-implicitnone','-fast'])
+else:
+    env.Append(F90FLAGS=['-fimplicit-none','-O2'])
+
+prefix = ARGUMENTS.get('prefix', None)
+
+objshear = env.Program('objshear',
+                       ['objshear.f90',
+                        'configlib.f90',
+                        'shearlib.f90',
+                        'lenslib.f90',
+                        'srclib.f90',
+                        'fileutil.f90',
+                        'healpix.f90',
+                        'gcirclib.f90',
+                        'sortlib.f90',
+                        'histogram.f90',
+                        'errlib.f90',
+                        'arrlib.f90',
+                        'intlib.f90',
+                        'cosmolib.f90'])
+
+
+if 'install' in COMMAND_LINE_TARGETS:
+    if prefix is None:
+        raise ValueError("please send prefix=")
+
+    bin_dir = os.path.join(prefix, 'bin')
+    env.Alias(target='install',
+              source=env.Install(dir=bin_dir, source=objshear))
+
+    tabfile=env.File('objshear.table')
+
+    ups_dir = os.path.join(prefix, 'ups')
+    env.Alias(target='install',
+              source=env.Install(dir=ups_dir, source=tabfile))
+
+# test stuff
+if 'test' in COMMAND_LINE_TARGETS:
+    test_scat  = env.Program('#test/test-scat', 
+                             ['#test/test-scat.f90',
+                              'srclib.f90',
+                              'fileutil.f90',
+                              'healpix.f90',
+                              'sortlib.f90',
+                              'histogram.f90',
+                              'errlib.f90',
+                              'arrlib.f90',
+                              'intlib.f90',
+                              'cosmolib.f90'])
+
+    test_lcat  = env.Program('#test/test-lcat', 
+                             ['#test/test-lcat.f90',
+                              'lenslib.f90',
+                              'cosmolib.f90',
+                              'intlib.f90',
+                              'arrlib.f90',
+                              'fileutil.f90'])
+
+    test_cosmo  = env.Program('#test/test-cosmo', 
+                             ['#test/test-cosmo.f90', 
+                              'cosmolib.f90','intlib.f90','arrlib.f90'])
+    test_gcirc  = env.Program('#test/test-gcirc', 
+                             ['#test/test-gcirc.f90', 
+                              'gcirclib.f90'])
+    test_config  = env.Program('#test/test-config', 
+                               ['#test/test-config.f90', 'configlib.f90','fileutil.f90'])
+    test_hist  = env.Program('#test/test-hist', 
+                               ['#test/test-hist.f90', 
+                                'histogram.f90',
+                                'arrlib.f90',
+                                'errlib.f90',
+                                'sortlib.f90'])
+
+if 'countpairs' in COMMAND_LINE_TARGETS:
+    objshear = env.Program('countpairs',
+                           ['countpairs.f90',
+                            'configlib.f90',
+                            'shearlib.f90',
+                            'lenslib.f90',
+                            'srclib.f90',
+                            'fileutil.f90',
+                            'healpix.f90',
+                            'gcirclib.f90',
+                            'sortlib.f90',
+                            'histogram.f90',
+                            'errlib.f90',
+                            'arrlib.f90',
+                            'intlib.f90',
+                            'cosmolib.f90'])
+
+
+
+

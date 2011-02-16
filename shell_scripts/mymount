@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+    echo usage: `basename $0` type
+    exit 45
+fi
+
+type=$1
+if [ $type = 'usb' ]; then
+    echo "sudo mount /dev/sdc1 /media/usb"
+    sudo mount /dev/sdc1 /media/usb
+fi

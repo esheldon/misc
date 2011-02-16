@@ -1,0 +1,71 @@
+Trying preemptive strike on 
+  tetex which has binary 3.0-1001 (latest 3.0-1002)
+  worked
+
+  also gtk+2 etc. no good, binary is too old.
+  I'm just going to do the rest, let it run all night.
+
+
+?Why are they all compiling? I used -b.  Maybe try apt-get.
+
+The first thing is to make sure you are using the latest version of fink (0.8.1
+or later).  I found I was still using 10.4-transitional, which cannot update
+itself.  This is because of a switch from using gcc3 to gcc4.  Sadly, the best
+solution is to move /sw to /sw.bak, install the latest fink, and reinstall
+all your packages.
+
+Usual blurb about installing Xcode.
+-----------------------------------
+This contains gcc and the blas/atlas/lapack stuff.
+
+Unstable branch
+---------------------------------
+numpy et al. are in the unstable branch, despite being
+more stable than many packages in the stable branch. 
+The easiest way to use the unstable branch is to go through
+the fink-commander (the gui front end) preferences menu.
+Once you enable that you can see scipy
+
+NumPy: fink install scipy-core-py24
+---------------------------------
+In fink, numpy is still known as scipy-core.  This will isntall like 20 other
+packages if you are starting from scratch. Most of these will have to
+be compiled so it could take a while.
+
+This works fine.
+
+SciPy: fink install scipy-py24
+--------------------------------
+This will automatically install numpy (scipy-core-py24)
+And also some other needed items such as netcdf, fftw3,
+g95 (ouch!). This actually only took a couple of hours for everything.
+
+
+IPython: fink install ipython-py24
+-----------------------------------
+No problems.
+
+Matplotlib: fink install matplotlib-py24
+------------------------------------------
+This has a huge number of dependencies!
+tetex, ghostscript (and fonts), atk, autoconf, automake
+docbook, expat, freetype, gd2, gettext, glib, glib2,
+gtk+2, html-tagset-pm, intltool, glade2, libjpeg,
+kpathsea4, libpng3, libtiff, libwww, libtool, libxml,
+libxslt, numarray (already have?), numeric, openjade,
+openmotif, opensp4, pango, pkgconfig, pygtk2, sgml, 
+tlib, xdg, m4
+
+
+Got a complaint during gettext install: Fink isn't sure how to install the
+above packages safely. You may be able to fix things by running:
+
+  fink scanpackages
+  sudo apt-get update
+  sudo apt-get install gettext-dev=0.10.40-25 gettext=0.10.40-25
+
+I did this and things are running again.
+
+
+
+

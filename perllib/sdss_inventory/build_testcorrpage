@@ -1,0 +1,536 @@
+#!/usr/local/bin/perl -w
+
+##############################################################################
+# main
+# Convert all the corshape files to .png files for each run/rerun
+# make html pointing to all this info
+#
+# processed_runs_index.html
+#  |
+#  --> run/rerun/run${run}-rerun${rerun}.html
+#     |
+#     --> camcol/bandpass/corshape-${runstring}_${camcol}_${bandpass}.html
+#        |
+#        --> corshape_${runstring}_${camcol}_${bandpass}*.png
+#
+##############################################################################
+
+# include some packages
+
+use strict;
+use Sys::Hostname;
+use File::Basename;
+use File::Spec;
+use Getopt::Long;
+use Cwd;
+
+use String::Between;
+use SDSS::DBMTools;
+use SDSS::StringOp;
+
+my $home;
+if ( exists($ENV{"HOME"}) ) {
+    $home = $ENV{"HOME"};
+} else {
+    die "Environment variable HOME is not set";
+}
+
+###############
+# switches
+###############
+
+my $renew=0;
+my $onlylocal=0;
+GetOptions('local' => \$onlylocal, 'renew' => \$renew) or die;
+
+###############
+# check args
+###############
+
+# datadirs
+if (@ARGV < 3) {
+    &print_syntax;
+    exit;
+}
+
+my $calibChunksdb = $ARGV[0];
+my $objcsdb = $ARGV[1];
+my $corrdb = $ARGV[2];
+
+$calibChunksdb =~ s/\.dbm?//;
+$objcsdb =~ s/\.dbm?//;
+$corrdb =~ s/\.dbm?//;
+
+print "\nDatabase Files: \n";
+print "$calibChunksdb \n$objcsdb \n$corrdb\n\n";
+
+###########################
+# set up output names
+###########################
+
+my $outdir = "/net/cheops1/data0/esheldon/WWW/process_status/";
+my $host = hostname;
+my $index = $outdir . "processed_runs_index.html";
+
+###################################################
+# number of pages in corshape file
+# set up comments
+###################################################
+
+# comments and order to show images for 
+# corshape file
+my %fileorder = ("01" => "1", 
+		 "02" => "2",
+		 "03" => "3",
+		 "04" => "4",
+		 "05" => "8",
+		 "06" => "11",
+		 "07" => "12",
+		 "08" => "7",
+		 "09" => "5",
+		 "10" => "6",
+		 "11" => "9",
+		 "12" => "10",
+		 "13" => "13",
+		 "14" => "14",
+		 "15" => "15");
+
+
+my %comments = ("1" => "Extinction vs Field", 
+		"2" => "PSF FWHM, e_1, and e_2  vs Field",
+		"3" => "RMS psf vs Field",
+		"4" => "\# Gals vs Galactic Lattitude",
+		"5" => "Residual Galaxy Ellipticity vs. Local PSF Ellipticity after Correction",
+		"6" => "Same but only size info used in Polarizability R",
+		"7" => "Gal Ellipticity vs. Local PSF",
+		"8" => "Number counts of galaxies in this band",
+		"9" => "Residual Gal Ellip vs. Smear Polarizability R",
+		"10" => "Residual Gal Ellip vs. R*e_PSF",
+		"11" => "PSF Size magnitude plot",
+		"12" => "R vs magnitude",
+		"13" => "Star Ellipticity vs. Local PSF",
+		"14" => "Residual Star Ellipticity vs Local PSF Ellipticity after Correction",
+		"15" => "Same but using R=1");
+		
+my $npages = (keys %comments) + 0;
+
+# now corshapeagain
+my %again_fileorder = ("01" => "1",
+		       "02" => "2",
+		       "03" => "3",
+		       "04" => "4",
+		       "05" => "5",
+		       "06" => "6");
+
+my %again_comments = ("1", "not used",
+		      "2", "not used",
+		      "3", "not used",
+		      "4", "Gal Ellip. vs. Local PSF ellip.   Re-corrected",
+		      "5", "Same but vs. ePSF*R",
+		      "6", "Same but vs. R");
+
+my $again_npages = (keys %again_comments) + 0;
+
+###################################################
+# Read corrected database
+###################################################
+
+my %runs;
+my %reruns;
+my %stripes;
+my %strips;
+my %camcols;
+my %n_tsObj;
+my %dirs;
+my %hosts;
+
+
+my %calibChunksDATA;
+dbmopen(%calibChunksDATA, $calibChunksdb, undef)
+    or die("Cannot open $calibChunksdb: $!\n");
+
+&read_calibChunksdb_bycamcol(\%calibChunksDATA, 
+			     \%runs, \%reruns, \%stripes, \%strips, 
+			     \%camcols, 
+			     \%n_tsObj, \%dirs, \%hosts);
+
+
+my %oruns;
+my %oreruns;
+my %ocamcols;
+my %n_fpAtlas;
+my %n_psField;
+my %n_fpM;
+my %odirs;
+my %ohosts;
+
+my %objcsDATA;
+dbmopen(%objcsDATA, $objcsdb, undef)
+    or die("Cannot open $objcsdb: $!\n");
+&read_objcsdb_bycamcol(\%objcsDATA,
+		       \%oruns, \%oreruns, 
+		       \%ocamcols, 
+		       \%n_fpAtlas, \%n_psField, \%n_fpM, 
+		       \%odirs, \%ohosts);
+
+my %cruns;
+my %creruns;
+my %cstripes;
+my %cstrips;
+my %ccamcols;
+my %n_adatc;
+my %adatdirs;
+my %chosts;
+
+my %CORRDATA;
+dbmopen(%CORRDATA, $corrdb, undef)
+    or die("Cannot open $corrdb: $!\n");
+
+&read_calibChunksdb_bycamcol(\%CORRDATA, 
+			     \%cruns, \%creruns, \%cstripes, \%cstrips, 
+			     \%ccamcols, 
+			     \%n_adatc, \%adatdirs, \%chosts);
+
+###########################################################
+# new keyed by run/rerun instead of run/rerun/camcol
+###########################################################
+
+my %truns;
+my %treruns;
+
+foreach my $key (keys %cruns) {
+
+    my $runstring = &run2string($cruns{$key});
+    my $key2 = $runstring . "-" . $creruns{$key};
+    $truns{$key2} = $cruns{$key};
+    $treruns{$key2} = $creruns{$key};
+
+}
+
+print "\nindex file: $index\n";
+print "Host: $host\n\n";
+chomp(my $date = `date`);
+
+
+
+###########################################################
+# make individual run/rerun/camcol/bandpass html files
+###########################################################
+
+foreach my $key (sort keys %cruns) {
+
+    my $adatdir;
+    my $corshape_dir;
+    if ($onlylocal) {
+
+	# first try data0
+	$corshape_dir = 
+	    "/net/${host}/data0/corrected.local/corr$cruns{$key}/" .
+		"$creruns{$key}/objcs/$ccamcols{$key}/";
+	# If not exist, try try data1
+	if (! -e $corshape_dir) {
+	    $corshape_dir = 
+	    "/net/${host}/data1/corrected.local/corr$cruns{$key}/" .
+		"$creruns{$key}/objcs/$ccamcols{$key}/";
+	    # try data2
+	    if (! -e $corshape_dir) {
+		$corshape_dir = 
+		    "/net/${host}/data2/corrected.local/corr$cruns{$key}/" .
+		    "$creruns{$key}/objcs/$ccamcols{$key}/";
+		# try data3
+		if (! -e $corshape_dir) {
+		    $corshape_dir = 
+			"/net/${host}/data3/corrected.local/corr$cruns{$key}/" .
+			"$creruns{$key}/objcs/$ccamcols{$key}/";
+		    # dummy name
+		    if (! -e $corshape_dir) {
+			$corshape_dir = "blah";
+		    }
+		}
+
+	
+	    }
+	}
+    } else {
+	$adatdir = $adatdirs{$key};
+    
+	# we really want to look in the objcs dir, for the corshape outputs
+	$corshape_dir = $adatdir;
+	$corshape_dir =~ s/calibChunks/objcs/;
+    }
+
+    my $runstring = &run2string($cruns{$key});
+    # try to chdir
+    if (chdir $corshape_dir) {
+
+	print "Working in $corshape_dir\n";
+	# make run/rerun/camcol directory in WWW 
+	my $rundir = $outdir . "$cruns{$key}";
+	if ( ! -e $rundir ) {
+	    mkdir $rundir;
+	}
+	my $rerundir = $outdir . "$cruns{$key}/$creruns{$key}";
+	if ( ! -e $rerundir ) {
+	    mkdir $rerundir;
+	}
+	my $camcoldir = $outdir . "$cruns{$key}/$creruns{$key}/$ccamcols{$key}";
+	if ( ! -e $camcoldir ) {
+	    mkdir $camcoldir;
+	}
+
+	# ok, now find the corshape files for each bandpass
+	# and convert to png in the output dir
+	my @colors = ("g", "r", "i");
+
+	foreach my $color (@colors) {
+	    # make this dir too
+	    my $colordir = $outdir . 
+		"$cruns{$key}/$creruns{$key}/$ccamcols{$key}/$color";
+	    if ( ! -e $colordir ) {
+		mkdir $colordir;
+	    }
+
+	    # beginning of file
+	    my $corshape_regexp = "corshape_${runstring}_$ccamcols{$key}_${color}_*.ps";
+
+	    chomp(my @corshape_files = `ls -X $corshape_regexp`);
+
+	    # did we find any?
+	    if ( @corshape_files  != 0) {
+		# get latest (last) one
+		my $corshape_file = $corshape_files[@corshape_files - 1];
+		my $corshapeagain_file = $corshape_file;
+		$corshapeagain_file =~ s/corshape/corshapeagain/;
+
+		my $png_file = "${colordir}/corshape_${runstring}_$ccamcols{$key}_${color}.png";
+		my $pngagain_file = $png_file;
+		$pngagain_file =~ s/corshape/corshapeagain/;
+
+		my $png_exist=0;
+		my $pngagain_exist=0;
+		# are there already png files there?
+		foreach my $tkey (sort keys %fileorder) {
+		    my $key2 = $fileorder{$tkey};
+
+		    # check corshape
+		    my $pf = "${colordir}/corshape_${runstring}_$ccamcols{$key}_${color}${key2}.png";
+		    
+		    # -s : must have nonzero size
+		    # I've had problems with zero size png files!
+		    if ( -s $pf ) {
+			$png_exist+=1;
+		    }
+		    
+		    # check corshapeagain: there will be fewer
+		    $pf =~ s/corshape/corshapeagain/;
+		    
+		    if ( -s $pf ) {
+			$pngagain_exist +=1;
+		    }
+
+		}
+
+		# write html file for this set of images
+		my $html_file = "${colordir}/corshape_${runstring}_$ccamcols{$key}_${color}.html";
+		
+		# Should we make png files in outdir
+		if ( ($renew) || 
+		     ( ($png_exist != $npages) && (! $renew) ) ||
+		     ( ($pngagain_exist != $again_npages) && (! $renew) )  ) { 
+		    print "Updating png files: $color\n";
+		    #print "$png_file\n";
+		    my $test = `pstoimg -antialias -density 100 -multipage -crop a -out $png_file $corshape_file`;
+		    #print "$pngagain_file\n";
+		    $test = `pstoimg -antialias -density 100 -multipage -crop a -out $pngagain_file $corshapeagain_file`;
+		}
+		
+
+		open HTMLHANDLE, ">" . $html_file or 
+		    die("Cannot open file $html_file: $!\n");
+
+		print HTMLHANDLE "<html>\n";
+		print HTMLHANDLE '<body bgcolor="#ffffff" link="#0066ff" vlink="#009999" text="#000000">' . "\n<p>";
+		#print HTMLHANDLE '<body bgcolor="#000000" link="#0066ff" vlink="#009999" text="#00ff00">' . "\n<p>";
+		print HTMLHANDLE "<head><title>Run: $cruns{$key} Rerun: $creruns{$key} Camcol: $ccamcols{$key} Bandpass: $color</title></head>\n";
+		print HTMLHANDLE "<H2>QA Plots for Run: $cruns{$key} Rerun: $creruns{$key} Camcol: $ccamcols{$key} Bandpass: $color</H2>\n";
+		print HTMLHANDLE "<hr>\n";
+
+		foreach my $tkey (sort keys %fileorder) {
+		    my $key2 = $fileorder{$tkey};
+
+		    my $pf = "corshape_${runstring}_$ccamcols{$key}_${color}${key2}.png";
+		    
+		    #print HTMLHANDLE $comments{$key2} . "<br>\n";
+		    #print HTMLHANDLE "<img src=\"./$pf\"><br><br>\n";
+
+		    print HTMLHANDLE "<a href=\"./$pf\">" . 
+			$comments{$key2} . "</a><br>\n";
+
+		}
+
+		print HTMLHANDLE "<hr size=1 noshade>\n";
+		print HTMLHANDLE "<H3>Re-corrected shapes</H3><br><br>\n";
+		foreach my $tkey (sort keys %again_fileorder) {
+		    my $key2 = $again_fileorder{$tkey};
+
+		    if ($again_comments{$key2} ne "not used") {
+			my $pf = "corshapeagain_${runstring}_$ccamcols{$key}_${color}${key2}.png";
+		    
+			print HTMLHANDLE "<a href=\"./$pf\">" . 
+			    $again_comments{$key2} . "</a><br>\n";
+		    }
+		}
+
+		print HTMLHANDLE "<hr>\n";
+		print HTMLHANDLE "<b>Email: esheldon at cfcp.uchicago.edu</b>\n";
+		print HTMLHANDLE "<!-- hhmts start --> Last modified: $date <!-- hhmts end -->\n";
+		print HTMLHANDLE "</body>\n";
+		print HTMLHANDLE "</html>\n";
+		close HTMLHANDLE;
+	    }
+	}
+    } else {
+	# we expect many dirs to be inaccessible in --local mode
+	if (! $onlylocal) { print "Cannot chdir to $corshape_dir: $!\n"; }
+    }
+}
+
+###########################################################
+# make run/rerun/ html files
+# if not yet processed or whatever, no file made
+###########################################################
+
+foreach my $key (sort keys %truns) {
+
+    my $runstring = &run2string($truns{$key});
+
+    my $runhtmlfile = $outdir . "$truns{$key}/$treruns{$key}" 
+	. "/run$truns{$key}-rerun$treruns{$key}.html";
+    print "Run file: $runhtmlfile\n";
+
+    if (open HTMLHANDLE, ">" . $runhtmlfile) { 
+
+	print HTMLHANDLE "<html>\n";
+	print HTMLHANDLE '<body bgcolor="#ffffff" link="#0066ff" vlink="#009999" text="#000000">' . "\n<p>";
+	print HTMLHANDLE "<head><title>Run: $truns{$key} Rerun: $treruns{$key} </title></head>\n";
+	print HTMLHANDLE "<H2>Processing Status for Run: $truns{$key} Rerun: $treruns{$key}</H2>\n";
+	print HTMLHANDLE "<hr>\n";
+	
+	# begin the table
+	# headers
+	print HTMLHANDLE "<table border=1>\n";
+	print HTMLHANDLE "<tr>" .
+	    "<th>Camcol</th>" .
+	    "<th>\#fpAtlas</th>" . 
+	    "<th>\#psField</th>" .
+	    "<th>\#fpM</th>" .
+	    "<th>\#tsObj</th>" .
+	    "<th>\#adatc</th>" .
+	    "<th COLSPAN=3>QA plots</th>" .
+	    "<th>Location</th>" . 
+	    "</tr>\n";
+	
+	# Table rows
+	my @cc = ("1", "2", "3", "4", "5", "6");
+	
+	foreach my $cam (@cc) {
+	    my $key2 = $key . "-" . $cam;
+	    
+	    my $tempdir = $adatdirs{$key2};
+	    $tempdir =~ s/calibChunks.*//;
+	    
+	    if (!exists($n_fpAtlas{$key2})) {$n_fpAtlas{$key2} = 0;}
+	    if (!exists($n_psField{$key2})) {$n_psField{$key2} = 0;}
+	    if (!exists($n_fpM{$key2})    ) {$n_fpM{$key2}     = 0;}
+	    if (!exists($n_tsObj{$key2})  ) {$n_tsObj{$key2}   = 0;}
+	    if (!exists($n_adatc{$key2})  ) {$n_adatc{$key2}   = 0;}
+
+	    print HTMLHANDLE "<tr>";
+	    print HTMLHANDLE "<td>$cam</td>";
+	    print HTMLHANDLE "<td nowrap align=left>$n_fpAtlas{$key2}</td>";
+	    print HTMLHANDLE "<td nowrap align=left>$n_psField{$key2}</td>";
+	    print HTMLHANDLE "<td nowrap align=left>$n_fpM{$key2}</td>";
+	    print HTMLHANDLE "<td nowrap align=left>$n_tsObj{$key2}</td>";
+	    print HTMLHANDLE "<td nowrap align=left>$n_adatc{$key2}</td>";
+	    
+	    my $html_file = "\"./$cam/g/corshape_" . $runstring . "_" . 
+		$cam . "_g.html\"";
+	    print HTMLHANDLE "<td><a href=$html_file>g$cam</a></td>";
+	    
+	    $html_file = "\"./$cam/r/corshape_" . $runstring . "_" . 
+		$cam . "_r.html\"";
+	    print HTMLHANDLE "<td><a href=$html_file>r$cam</a></td>";
+	    
+	    $html_file = "\"./$cam/i/corshape_" . $runstring . "_" . 
+		$cam . "_i.html\"";
+	    print HTMLHANDLE "<td><a href=$html_file>i$cam</a></td>";
+	    print HTMLHANDLE "<td>$tempdir</td>";
+	    print HTMLHANDLE "</tr>\n";
+	} 
+	
+	print HTMLHANDLE "</table>\n";
+	
+	print HTMLHANDLE "<hr>\n";
+	print HTMLHANDLE "<b>Email: esheldon at cfcp.uchicago.edu</b>\n";
+	print HTMLHANDLE "<!-- hhmts start --> Last modified: $date <!-- hhmts end -->\n";
+	print HTMLHANDLE "</body>\n";
+	print HTMLHANDLE "</html>\n";
+	close HTMLHANDLE;
+    } else {
+	print "Cannot open file $runhtmlfile: $!\n";
+    }
+}
+
+
+
+###########################################################
+# make main index file
+###########################################################
+
+## switch to outdir
+chdir $outdir or die("Cannot chdir to $outdir: $!\n");
+
+print "\nPrinting to index file: $index\n";
+open IHANDLE, ">" . $index or die("Cannot open file: $index: $!\n");
+
+print IHANDLE "<html>\n";
+print IHANDLE '<body bgcolor="#ffffff" link="#0066ff" vlink="#009999" text="#000000">' . "\n<p>";
+print IHANDLE "<head><title>Processed Run Status</title></head>\n";
+print IHANDLE "<H2>Processed Run Status</H2>\n";
+print IHANDLE "<hr>\n";
+#print IHANDLE "<table border=1>\n";
+
+#print IHANDLE "<tr><th>Run-Rerun</th>\n";
+
+print IHANDLE "<strong>Run-Rerun</strong><br><br>\n";
+
+#foreach my $key (sort keys %truns) {
+foreach my $key (sort keys %truns) {
+
+	my $runhtmlfile = "\"./$truns{$key}/$treruns{$key}" 
+	    . "/run$truns{$key}-rerun$treruns{$key}.html\"";
+	my $testfile = "./$truns{$key}/$treruns{$key}" 
+	    . "/run$truns{$key}-rerun$treruns{$key}.html";
+	if ( -e $testfile ) {
+#	    print IHANDLE "<tr>";
+#	    print IHANDLE "<td><a href=$runhtmlfile>$truns{$key}-$treruns{$key}</a></td>";
+#	    print IHANDLE "</tr>\n";
+	    print IHANDLE "<a href=$runhtmlfile>$truns{$key}-$treruns{$key}</a><br>\n";
+	}
+
+}
+
+#print IHANDLE "\n</table>\n";
+
+print IHANDLE "<hr>\n";
+print IHANDLE "<b>Email: esheldon at cfcp.uchicago.edu</b>\n";
+print IHANDLE "<!-- hhmts start --> Last modified: $date <!-- hhmts end -->\n";
+print IHANDLE "</body>\n";
+print IHANDLE "</html>\n";
+close IHANDLE;
+
+## syntax
+
+sub print_syntax {
+    print "-Syntax: build_testcorrpage --renew --local calibChunksdb_bycamcol objcsdb_bycamcol corrdb_bycamcol\n";
+}

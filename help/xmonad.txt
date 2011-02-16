@@ -1,0 +1,81 @@
+On ubuntu
+----------------
+
+You need to set up the custom desktop, as ubuntu no longer supports running the
+.xsession.  See help for unbutu install.
+
+Need to install
+    xmonad
+    xmobar
+    dmenu
+
+    And a panel/trayer
+        trayer (from ~/ccode/trayer_1.0-2_amd64.deb using dpkg -i debfile)
+        OR
+        fbpanel
+
+Link the proper xmobarrc and xmonad.hs file.  Last time it was
+    xmobarrc -> xmobarrc-treebeard
+    xmonad.hs -> xmonad-desktop.hs
+
+Link the proper xsession file, last time was 
+    .xsession -> .dotfiles/X/xinitrc.xmonad.treebeard
+
+Then all should work.
+
+
+Using fbpanel
+----------------------------------
+This is a much better option than trayer I think.
+
+
+first install libglib and libgtk dev packages
+    sudo aptitude install libglib2.0-dev
+    sudo aptitude install libgtk2.0-dev
+
+
+Downloaded latest version and installed fbpanel locally:
+    ./configure --prefix=/home/esheldon/local
+    make
+    make install
+
+The text config file is under ~/.dotfiles/fbpanel/default and you should
+link it under ~/.config/fbpanel/
+
+
+On updating ubuntu, xmonad also updated.  xmonad did not run, it instead spit
+out this message:
+
+    xmonad-i386-linux: getProcessStatus: does not exist
+
+Turns out this required re-compiling the xmonad startup script stored in
+~/.xmonad/xmonad-i386-linux but it wasn't auto-detected.  I had to remove it
+and then xmonad would re-compile and run fine.
+
+
+http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions
+
+full screen mplayer
+-----------------------------------
+
+# It won't go full screen unless you give -fstype none
+mplayer -fstype none filename
+
+# It will still have red boundary though.  We want to use smartBorders
+# to fix that.
+
+    import XMonad
+    import XMonad.Layout.NoBorders
+ 
+    main = xmonad $ 
+            defaultConfig
+                { layoutHook = smartBorders $ layoutHook defaultConfig
+                -- other fields like terminal, modMask, etc.
+                }
+
+My actual layoutHook:
+
+		layoutHook = avoidStruts $ smartBorders $ layoutHook defaultConfig,
+
+
+

@@ -1,0 +1,62 @@
+#!/usr/local/bin/perl -w
+
+use strict;
+
+my $vers1d="1d_23";
+my $specDir = "/net/cheops1/data0/spectra/${vers1d}";
+
+my %SPI;
+
+chdir $specDir or die "Cannot chdir to $specDir $!";
+
+chomp(my @dirlist = `ls -d [0-9][0-9][0-9][0-9]/1d`);
+
+foreach my $subdir (@dirlist) {
+
+    # process each file in this directory
+    opendir DIRHANDLE, $subdir or die("Cannot open $subdir");
+
+    my $where = index($subdir, "/");
+    my $plate = substr($subdir, 0, $where);
+
+    #print "Plate: $plate\n";
+    foreach my $file (readdir DIRHANDLE) {
+	&process_platedir($file, $plate);
+    }
+}
+
+my $header = sprintf("%5s %5s %8s\n","plate","mjd","n_spSpec");
+my $hlen = length $header;
+print $header;
+for (my $i=0;$i<$hlen;$i++) {print "-"};
+print "\n";
+
+foreach my $key (reverse sort keys %SPI) {
+    printf("%5d %5d %8d\n",$SPI{$key}{plate},$SPI{$key}{mjd},
+	   $SPI{$key}{n_spSpec});
+
+}
+exit;
+
+
+
+
+sub process_platedir {
+
+    my $file = $_[0];
+    my $plate = $_[1];
+    if ($file =~ /spSpec-\d\d\d\d\d-\d\d\d\d-\d\d\d.fit/) {
+	
+	# get the mjd
+	my $where = index($file, "-");
+	my $mjd = substr($file, $where+1, 5);
+	
+
+	my $key = "${plate}-${mjd}";
+
+	$SPI{$key}{n_spSpec} += 1;
+	$SPI{$key}{plate} = $plate;
+	$SPI{$key}{mjd} = $mjd;
+    }
+
+}

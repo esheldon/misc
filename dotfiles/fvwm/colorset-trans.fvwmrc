@@ -1,0 +1,47 @@
+
+
+Colorset 23 \
+	RootTransparent, \
+	Foreground contrast, \
+	Background average, \
+    Tint black 20, \
+	bgTint black 20
+Colorset 24 \
+	RootTransparent, \
+	fg contrast, \
+	bg average, \
+    Tint black 70, \
+	bgTint black 20
+Colorset \
+	25 RootTransparent, \
+	fg contrast, \
+	bg average, \
+    Tint red 20, \
+	bgTint red 20
+Colorset 26 \
+	RootTransparent, \
+	fg contrast, \
+	bg average, \
+    Tint black 70, \
+	bgTint black 70
+
+Colorset 41 \
+	RootTransparent buffer,		\
+	Foreground contrast,		\
+	Background average,			\
+	Tint black 20,				\
+	bgTint black 20
+
+Colorset 42						\
+	RootTransparent buffer, 
+	Foreground contrast, \
+	Background average, \
+	Tint black 20
+
+BorderStyle Inactive Colorset 42
+BorderStyle Active   Colorset 41
+TitleStyle AllInactive Colorset 42
+TitleStyle AllActive   Colorset 41
+ButtonStyle All
+
+

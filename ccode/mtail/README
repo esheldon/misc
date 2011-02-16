@@ -1,0 +1,65 @@
+Usage
+--------------
+
+    mtail [-c ncol] file1 file2 file3 ...
+
+Description
+--------------
+
+    Tail multiple files.  The files are shown in a grid of windows, with the
+    number of columns specified by the -c option.  By default a single column
+    is used.
+
+    e.g. for two columns
+
+        --------n1---------------n4-------
+                        |
+                        |
+                        |
+                        |
+        --------n2---------------n5-------
+                        |
+                        |
+                        |
+                        |
+        --------n3---------------n6-------
+                        |
+                        |
+                        |
+                        |
+
+    where n1,n2... etc. show where the file names are displayed.  The number of
+    rows is automatically adjusted to fit all the files within the specified
+    number of columns.  
+
+    If the file names become too long, the are truncated to fit the window with a
+    preceding ...
+
+    To exit the program, hit ctrl-c
+
+
+Installation
+-------------
+
+    To build and install:
+
+        make
+        make install
+
+    installs into /usr/local/bin
+
+    To install in an alternate prefix:
+
+        make install PREFIX=/some/path
+
+    Installs to /some/path/bin
+
+Dependencies
+--------------
+
+    The curses library and headers.  On ubuntu/debian you may have to install the
+    development packages:
+
+        sudo apt-get install libncurses5 libncurses5-dev
+
+

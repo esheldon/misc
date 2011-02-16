@@ -1,0 +1,25 @@
+NumpyVector.h
+-------------------------
+
+To use this template class, simply add the following to your c++ file:
+
+#include "NumpyVector.h"
+
+See the top of NumpyVector.h for examples.
+
+NumpyVoidVector.h
+-------------------------
+Similar to NumpyVector but the type is determined at runtime
+
+NumpyRecords.h
+-------------------------
+For arrays with fields, aka recarrays or structured arrays.
+
+
+The test sub-directory contains a swig tester module.
+
+To test:
+
+bash runswig.sh
+python setup.py build_ext --inplace
+python test.py

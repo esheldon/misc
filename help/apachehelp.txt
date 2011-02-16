@@ -1,0 +1,4 @@
+
+can run this for help
+
+/usr/local/apache/bin/apachectl help

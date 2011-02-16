@@ -1,0 +1,31 @@
+#!/bin/bash
+
+user=sdss3
+host=data.sdss3.org
+rerun=301
+
+pwdfile=~/.boss.txt
+
+localdir=$PHOTO_REDUX
+remotedir=dr8/groups/boss/photo/redux
+
+echo "copying to localdir: $localdir"
+
+if [ ! -e "$localdir" ]; then
+    mkdir -p "$localdir"
+fi
+
+cd $localdir
+
+rsync -av --password-file $pwdfile "$user@$host::$remotedir/runList.par" .
+
+mkdir -p $rerun
+cd $rerun
+
+rsync -avL --password-file $pwdfile \
+    --include "/[0-9]*" \
+    --include "/[0-9]*/astrom/" \
+    --include "/[0-9]*/astrom/asTrans*.fit*" \
+    --exclude "*" \
+    "$user@$host::$remotedir/$rerun/" .
+

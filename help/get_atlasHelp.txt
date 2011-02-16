@@ -1,0 +1,29 @@
+
+A procedure called get_atlas is now available.  You give it a photo structure
+and the index of an object in that structure.  It returns an image that
+contains the 5 atlas images associated with that object (5 colors).
+
+IDL> get_atlas
+Syntax - get_atlas, struct, index, im, dir=dir, field=field, run=run, 
+camcol=camcol, maxsize=maxsize, display=display
+maxsize = [maxrow,maxcol].    No display if display=1
+
+im is the returned image.  If you use read_photo_col to get struct, then 
+field, run, and camcol are in struct and need not be supplied.
+maxsize is the maximum size that each atlas subimage can be.  The default 
+is [500,500].  The picture is displayed to you unless you set display=1
+
+dir is the directory of the atlas image.  If you start idl in the atlas 
+directory, dir is unnecessary.  
+
+example: get the 25th object from struct.  Using stars file is quick.
+
+IDL> name = '/sdss3/data2/photo/run259/tsObj-000259-3-0-0011.stars.fit'
+IDL> read_photo_col, name, stars, nframes=1,start=250,struct_type='star'
+------
+IDL> dir = '/sdss/data7/mckay/run259/'
+IDL> get_atlas, stars, 25, atlasimage, dir=dir
+
+
+
+

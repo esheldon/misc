@@ -1,0 +1,46 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+my @dirlist = ("/net/cheops1/data0/imaging.local",
+	       "/net/cheops1/data1/imaging.local",
+	       "/net/cheops1/data2/imaging.local",
+	       "/net/cheops1/data3/imaging.local",
+	       "/net/cheops1/data4/imaging.local",
+	       "/net/cheops1/data5/imaging.local",
+
+	       "/net/cheops2/data0/imaging.local",
+	       "/net/cheops2/data1/imaging.local",
+	       "/net/cheops3/data0/imaging.local",
+	       "/net/cheops3/data1/imaging.local",
+	       "/net/cheops4/data0/imaging.local",
+	       "/net/cheops4/data1/imaging.local");
+
+my $imaging_dir = "/net/cheops1/data0/imaging";
+chdir($imaging_dir);
+chomp(my @ls_list = `ls -d [0-9]*`);
+
+#print $ls_list;
+
+foreach my $run (@ls_list) {
+    my @inlist = ();
+
+    foreach my $dir (@dirlist) {
+
+	my $rundir = "${dir}/$run";
+	if ( -d $rundir ) {
+	    push @inlist, $rundir;
+	}
+
+    }
+
+    if (@inlist > 1) {
+	foreach my $dupdir (@inlist) {
+	    print "$dupdir ";
+	    my $tlist = `ls $dupdir`;
+	    print $tlist;
+	}
+	print "\n";
+    }
+
+}

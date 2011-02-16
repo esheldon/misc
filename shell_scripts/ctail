@@ -1,0 +1,34 @@
+#!/bin/bash
+
+function usage {
+	echo "Usage: ctail -k keyword file_list"
+	echo "  runs tail -f on the file list, highlighting the optional"
+	echo "  keyword in red"
+
+}
+
+if [ $# -lt 1 ]; then
+	usage
+	exit 45
+fi
+
+keyword=""
+while getopts "k:" Option
+  do
+  case $Option in
+      k)  keyword=$OPTARG ;;
+	  [?]) usage
+           exit 45 ;;  
+  esac
+done
+shift $(($OPTIND - 1))
+
+
+
+# 31 == red
+# 1 == bold
+if [ "$keyword" == "" ]; then
+	tail -n 100 -f $*
+else
+	tail -n 100 -f $* | perl -pe "s/$keyword/\e[1;31m$&\e[0m/g"
+fi

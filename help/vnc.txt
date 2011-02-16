@@ -1,0 +1,78 @@
+The server:
+----------------------------------------------
+
+Start the server, simple:
+
+	vncserver
+
+It will tell you what display it is using, probably 1 if you are not running
+others.
+
+You can set the geometry:
+
+	vncserver -geometry 1282x1024 -depth 24
+
+To stop the server:
+
+	vncserver -kill :1
+
+The server number is used here.
+
+
+Running a client.
+----------------------------------------------
+
+Set up a tunnel, actually a double tunnel.  Say you will be running the server
+on lsst19, then the port is 590 followed by the display number. 
+
+	ssh -t -L 5901:localhost:17654 rssh.rhic.bnl.gov "ssh -L 17654:localhost:5901 lsst19.lst.bnl.gov"
+
+If display were 3 it would be 5903
+
+Now to connect.  Ubuntu comes with a viewer called vinagre:
+
+	vinagre: localhost:1
+
+If display were3, it would be localhost:3 If you install one of the other vnc
+viewere, it will probably name itselv vncviewer
+
+	vncviewer localhost:1
+
+
+
+* I can't get the clipboard to work copying into VNC only out.
+
+* I can't get my Xmodmap key bindings to hold.  Even runnig
+   Xmodmap inside the session didn't work.  this was true for vinagre and all
+   the other clients I tried.
+
+* screen gets confused thinking being in VNC that the current
+  shell is actually inside a screen session. running screen
+  will actually open a new window in an existing screen session!
+
+  You can overcome this using
+	      screen -m
+
+
+Some configuration:
+----------------------------------------------
+
+On the server, in ~/.vnc there is an xstartup file.  You can put your window
+manager of choice in there.  Might want to change twm to mwm for example.
+
+
+How to get clipboard working?
+
+
+
+Which client to install?
+----------------------------------------------
+
+I tried the java tightvnc but it kept stealing my tab keys.
+
+I then installed xtightvncviewer, also tight but not using
+the java wrapper.  Doesnt' steal the tab key but clipboard
+doesn't seem to work: I can copy from the vnc out but
+not in.
+
+

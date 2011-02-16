@@ -1,0 +1,67 @@
+
+Reading parameters from file pair_dd_p01_maxbcg02_dr4plus01_par.conf
+ sample         = maxbcg02_dr4plus01
+ primary_file   = /home/users/esheldon/correlate/input/primary/maxbcg02/input/primary_maxbcg02_input.st
+ secondary_file = /home/users/esheldon/correlate/input/secondary/dr4plus01/input/secondary_dr4plus01_input.st
+ rev_file       = /home/users/esheldon/correlate/input/secondary/dr4plus01/htm/secondary_dr4plus01_htm.bin
+ kcorr_file     = /home/users/esheldon/correlate/input/kcorr/morad01/input/kcorr_morad01_input.bin
+ output_file    = /global/early2/esheldon/correlate/output/dd/p01_maxbcg02_dr4plus01/output/dd_maxbcg02_dr4plus01_pairs.st
+
+ Correlation type = 3
+
+ h = 1
+ omega_m = 0.27
+ nrad = 18
+ rmin = 0.02
+ rmax = 11.5
+ nlum = 20
+ loglmin = 9.5
+ loglmax = 11.7
+ logRmin = -1.69894
+ logRmax = 1.0607
+ logBinsize = 0.153315
+ lmin = 0.316228
+ lmax = 50.1187
+ nkgmr = 20
+ kgmrmin = 0
+ kgmrmax = 2
+ comoving = 0
+ depth = 8
+
+Reading from kcorr file: /home/users/esheldon/correlate/input/kcorr/morad01/input/kcorr_morad01_input.bin
+ nz    = 80
+ zmin  = 0
+ zmax  = 0.395
+ zstep = 0.005
+ ngmr    = 21
+ gmrmin  = 0
+ gmrmax  = 2
+ gmrstep = 0.1
+ nrmi    = 21
+ rmimin  = 0
+ rmimax  = 1
+ rmistep = 0.05
+ nband   = 5
+
+Reading 677202 from primary file /home/users/esheldon/correlate/input/primary/maxbcg02/input/primary_maxbcg02_input.st
+Testing 
+     1 239.583344 27.233419 0.107571 285.325409
+     1590729 154.421637 33.666044 0.146048 371.332764
+
+Reading 42267404 from secondary file /home/users/esheldon/correlate/input/secondary/dr4plus01/input/secondary_dr4plus01_input.st
+Testing 
+     204.421265 -2.987070 1.561270 1.387770 3.238500 664776
+     349.779470 -10.860391 2.348530 5.801280 10.040700 756793
+
+Reading 42779421 rev data from file /home/users/esheldon/correlate/input/secondary/dr4plus01/htm/secondary_dr4plus01_htm.bin
+Testing 
+     min_htmind: 524288 max_htmind: 1036303
+     512017 40545895
+
+Each dot is 100 primaries
+Writing header for file /global/early2/esheldon/correlate/output/dd/p01_maxbcg02_dr4plus01/output/dd_maxbcg02_dr4plus01_pairs.st
+..................................................
+5000/677202 time: 369 sec
+..................................................
+10000/677202 time: 747 sec
+..............

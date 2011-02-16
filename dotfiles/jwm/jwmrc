@@ -1,0 +1,246 @@
+<?xml version="1.0"?>
+
+<JWM>
+
+    <StartupCommand>
+        xrdb -merge $HOME/.Xdefaults
+        conky
+    </StartupCommand>
+
+
+    <!-- The root menu, if this is undefined you will not get a menu. -->
+    <!-- Additional RootMenu attributes: onroot, labeled, label -->
+    <RootMenu height="32" onroot="123">
+        <Program icon="mrxvt.png" label="mrxvt">mrxvt</Program>
+        <Program icon="doomface.xpm" label="Firefox">firefox</Program>
+        <Program icon="vim-32.xpm" label="gvim">gvim</Program>
+		<!-- <Program icon="doomface.xpm" label="Thunar">thunar</Program>-->
+		<Program icon="Thunar.png" label="Thunar">thunar</Program>
+		<Program icon="Azureus.png" label="Azureus">azureus</Program>
+        <Separator/>
+        <Menu icon="mini.dirlink.xpm" label="Applications">
+            <Program icon="pidgin.png" label="Pidgin">pidgin</Program>
+            <Program icon="gnome-color-xterm.png" label="xterm">xterm</Program>
+            <Program icon="mplayer.xpm" label="Mplayer">gmplayer</Program>
+			<Program icon="xine.xpm" label="Xine">xine</Program>
+            <Program icon="gimp.png" label="Gimp">gimp</Program>
+        </Menu>
+        <Menu icon="mini.dirlink.xpm" label="Games">
+            <Program icon="gnome-mahjongg.png" label="mahjongg">
+                /usr/games/mahjongg
+            </Program>
+            <Program icon="aisleriot.xpm" label="solitaire">
+                /usr/games/sol
+            </Program>
+            <Program icon="gnome-gnometris.png" label="tetris">
+                /usr/games/gnometris
+            </Program>
+        </Menu>
+        <Separator/>
+        <Restart label="Restart JWM" icon="Jrecycle.xpm"/>
+        <Exit label="Exit JWM" confirm="true" icon="shutdown.xpm"/>
+    </RootMenu>
+
+    <Group>
+        <Class>Pidgin</Class>
+        <Option>sticky</Option>
+    </Group>
+
+    <Group>
+        <Name>gkrellm2</Name>
+        <Option>nolist</Option>
+    </Group>
+
+    <Group>
+        <Name>rxvt</Name>
+        <Option>vmax</Option>
+    </Group>
+
+	<Group>
+		<Name>xclock</Name>
+		<Option>noborder</Option>
+		<Option>notitle</Option>
+        <Option>sticky</Option>
+	</Group>
+
+    <!-- Additional tray attributes: autohide, width, border, layer, layout -->
+    <Tray  x="0" y="-1" height="24" layer="4">
+
+        <Clock>xclock</Clock>
+
+        <!-- Additional TrayButton attribute: label -->
+        <!-- <TrayButton icon="debian-logo.png">root:1</TrayButton> -->
+
+        <TrayButton label="_">showdesktop</TrayButton>
+
+
+        <!-- Additional Pager attributes; width, height -->
+        <Pager/>
+
+        <!-- Additional TaskList attribute: maxwidth -->
+        <TaskList maxwidth="160"/>
+
+        <Dock/>
+
+        <!-- Additional Swallow attribute: height -->
+        <!--
+        <Swallow name="xload" width="64">
+            xload -nolabel -bg black -fg skyblue -hl white
+        </Swallow>
+        -->
+
+
+    </Tray>
+
+    <!-- Visual Styles -->
+
+    <WindowStyle>
+
+        <Font>FreeSans-9:bold</Font>
+        <Width>4</Width>
+        <Height>20</Height>
+
+        <Active>
+            <Text>white</Text>
+            <!-- Old colors: <Title>#70849d:#2e3a67</Title> -->
+            <Title>#70849d:#3A4956</Title>
+
+            <Corner>white</Corner>
+            <Outline>black</Outline>
+        </Active>
+
+        <Inactive>
+            <Text>#aaaaaa</Text>
+            <Title>#808488:#303438</Title>
+            <Corner>#aaaaaa</Corner>
+            <Outline>black</Outline>
+        </Inactive>
+
+    </WindowStyle>
+
+    <TaskListStyle>
+        <!-- <Font>FreeSans-12:bold</Font> -->
+        <Font>FreeSans-10</Font>
+        <!-- <Font>-*-fixed-*-r-*-*-10-*-*-*-*-*-*-*</Font> -->
+        <ActiveForeground>white</ActiveForeground>
+        <ActiveBackground>#70849d:#3A4956</ActiveBackground>
+        <Foreground>grey80</Foreground>
+        <Background>gray20:black</Background>
+    </TaskListStyle>
+
+    <!-- Additional TrayStyle attribute: insert -->
+    <TrayStyle>
+        <Font>FreeSans-12:bold</Font>
+        <Background>gray10</Background>
+        <Foreground>white</Foreground>
+    </TrayStyle>
+
+    <PagerStyle>
+        <Outline>black</Outline>
+        <Foreground>#808488</Foreground>
+        <Background>grey20</Background>
+        <ActiveForeground>#70849d</ActiveForeground>
+        <ActiveBackground>#3A4956</ActiveBackground>
+    </PagerStyle>
+
+    <MenuStyle>
+		<Font>FreeSans-11</Font>
+		<!--<Font>Angelina-20</Font>-->
+		<!--<Font>LearningCurvePro-25</Font>-->
+		<!-- <Foreground>white</Foreground> -->
+        <Foreground>grey90</Foreground>
+        <Background>grey10</Background>
+        <ActiveForeground>white</ActiveForeground>
+        <ActiveBackground>#70849d:#3A4956</ActiveBackground>
+    </MenuStyle>
+
+    <PopupStyle>
+        <Font>FreeSans-10</Font>
+        <Outline>black</Outline>
+        <Foreground>black</Foreground>
+        <Background>yellow</Background>
+    </PopupStyle>
+ 
+    <IconPath>
+		$HOME/.icons
+    </IconPath>
+    <IconPath>
+        /usr/share/pixmaps
+    </IconPath>
+    <IconPath>
+		/usr/include/X11/pixmaps
+    </IconPath>
+    <IconPath>
+        /usr/share/icons/hicolor/48x48/apps
+    </IconPath>
+    <IconPath>
+        /usr/share/icons/crystalsvg/48x48/apps
+    </IconPath>
+    <IconPath>
+        /usr/share/app-install/icons
+    </IconPath>
+    <IconPath>
+        /usr/share/icons/Human/48x48/apps
+    </IconPath>
+
+    <!-- Virtual Desktops -->
+    <!-- Desktop tags can be contained within Desktops for desktop names. -->
+    <Desktops count="6">
+
+        <!-- Default background. Note that a Background tag can be
+        contained within a Desktop tag to give a specific background
+        for that desktop.
+
+        types: image: stretched image  tile: tiled
+        -->
+		<!-- <Background type="tile">$HOME/images/wallpapers/pattern/OBEY_yen_graphic_by_rana019.jpg -->
+			<Background type="command">qiv -y $HOME/images/wallpapers/cg/flightplan-r-1920.gif 
+			<!--
+			<Background type="command">qiv -y $HOME/images/wallpapers/dark-wood-1920x1200.jpg
+			-->
+			<!-- <Background type="command">qiv -z /usr/share/backgrounds/heron-simple.png -->
+        </Background>
+
+    </Desktops>
+
+    <!-- Double click speed (in milliseconds) -->
+    <DoubleClickSpeed>400</DoubleClickSpeed>
+
+    <!-- Double click delta (in pixels) -->
+    <DoubleClickDelta>2</DoubleClickDelta>
+
+    <!-- The focus model (sloppy or click) -->
+    <FocusModel>sloppy</FocusModel>
+
+    <!-- The snap mode (none, screen, or border) -->
+    <SnapMode distance="10">border</SnapMode>
+
+    <!-- The move mode (outline or opaque) -->
+    <MoveMode>opaque</MoveMode>
+
+    <!-- The resize mode (outline or opaque) -->
+    <ResizeMode>opaque</ResizeMode>
+
+    <!-- Key bindings -->
+    <Key key="Up">up</Key>
+    <Key key="Down">down</Key>
+    <Key key="Right">right</Key>
+    <Key key="Left">left</Key>
+    <Key key="h">left</Key>
+    <Key key="j">down</Key>
+    <Key key="k">up</Key>
+    <Key key="l">right</Key>
+    <Key key="Return">select</Key>
+    <Key key="Escape">escape</Key>
+
+	<Key mask="A" key="Tab">nextstacked</Key>
+    <Key mask="A" key="F4">close</Key>
+    <Key mask="A" key="#">desktop#</Key>
+    <Key mask="A" key="F1">root:1</Key>
+    <Key mask="A" key="F2">window</Key>
+	<!-- These are keys I added to the source -->
+	<Key mask="A" key="Right">desktop_next</Key>
+	<Key mask="A" key="Left">desktop_prev</Key>
+
+</JWM>
+

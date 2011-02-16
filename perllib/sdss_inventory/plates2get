@@ -1,0 +1,52 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+use Sort::Naturally;
+use SDSS::ReadYanny;
+use SDSS::StringOp;
+use Ascii::Read;
+use Hash::Op;
+
+my $dbm_dir = $ENV{"DBM_DIR"};
+
+my $fspec = "$dbm_dir/specList/qualityList.par";
+my %sphash = &read_yanny($fspec);
+
+# Get the struct
+my %tfsp = %{ $sphash{spqcweb} };
+my %fsp = &rekey_hoh_bycolumn(\%tfsp, ["plate","mjd"], {delete=>1});
+
+# Read in our list
+my $spec = "$dbm_dir/specdb/speclist.dat";
+my %sp  = &rdmyascii($spec, {keyby=>["plate","mjd"]} );
+
+# Read in the blacklist
+my $blackListFile = "$dbm_dir/blacklists/plate_blacklist.txt";
+my %blackList = &rdmyascii($blackListFile, {keyby=>["plate","mjd"]});
+
+# Compare the lists
+foreach my $fkey (reverse nsort keys %fsp) {
+
+    # Jim says only look at those plates that have passed
+#    if ( $fsp{$fkey}{pass} == 1 ) {
+	
+    # only get those that are not in the blacklist
+    if (! exists($blackList{$fkey}) ) {
+
+	if ( $fsp{$fkey}{nFailed} >= 0 ) {
+	    if (! exists($sp{$fkey})) {
+		# We don't have this plate-mjd
+		my $plate = &padchar($fsp{$fkey}{plate}, "0000");
+		print "$plate $fsp{$fkey}{mjd} 0\n";
+	    } elsif ( $sp{$fkey}{n_spSpec} < 640 ) {
+		# Plate-mjd exist but we don't have all the files
+		my $plate = &padchar($fsp{$fkey}{plate}, "0000");
+		print "$plate $sp{$fkey}{mjd} $sp{$fkey}{n_spSpec}\n";
+	    }
+	}
+    } # blacklist
+
+#    }
+}
+

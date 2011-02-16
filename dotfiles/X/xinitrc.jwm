@@ -1,0 +1,20 @@
+#!/bin/sh
+# under a display manager like gdm, will need to link this to ~/.Xsession
+# for startx ~/.xinitrc
+
+if [ -r ~/.Xdefaults ]; then
+	xrdb -merge ~/.Xdefaults
+fi
+if [ -r ~/.Xmodmap ]; then
+	xmodmap ~/.Xmodmap
+fi
+
+
+if [ `which xscreensaver` != "" ]; then
+	ison=`ps auxww | grep screensaver | grep -v grep`
+	if [ "$ison" == "" ]; then
+		exec xscreensaver -no-splash &
+	fi
+fi
+
+exec ~/local/jwm/bin/jwm

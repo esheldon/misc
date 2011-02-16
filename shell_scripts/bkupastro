@@ -1,0 +1,104 @@
+#!/bin/bash
+# usage: bkupastro [options]
+#
+# perform incremental backups using rsync
+# 
+# options is any string of the single letter options sent to rsync.
+# e.g. 
+#	bkupastro P
+# adds the -P option
+#
+#  Note the options
+#   -avx are already used, as well as longer
+# ones --delete --exclude-from --link-dest
+
+options=""
+if [ $# -gt 0 ]; then
+	options=$1
+	options="-$options"
+fi
+
+# put this into a file.  host should match $(hostname) on
+# local machine.  
+# excludelist is a path to an rsync exclude list relative to the dir
+#	don't forget the leading /
+# host dir backupname excludelist
+
+dirs2backup="bach00.astro.bnl.gov /home/users bach00:users /home/users/esheldon/.dotfiles/backup_excludes/astro.bnl.gov.users
+tutti.astro.bnl.gov /mount/tutti0/www tutti:www /home/users/esheldon/.dotfiles/backup_excludes/astro.bnl.gov.www"
+
+#dirs2backup="bach00.astro.bnl.gov /home/users bach00:users /home/users/esheldon/users-excludes
+#	tutti.astro.bnl.gov  /mount/tutti0/DES/runconfig tutti:runconfig none"
+
+#dirs2backup="bach00.astro.bnl.gov /home/users/esheldon/svn/esheldon/dotfiles bach00:esheldon-dotfiles /home/users/esheldon/.dotfiles/backup_excludes/astro.bnl.gov
+#	tutti.astro.bnl.gov /mount/tutti0/DES/runconfig tutti:runconfig none"
+
+thishost=$(hostname)
+
+backupdir=/mount/tutti1/backups
+cd $backupdir
+if [ "$?" != "0" ]; then
+	echo Could not cd to backup directory $backupdir
+	exit 45
+fi
+
+
+
+
+#for line in $dirs2backup; do
+while read dhost ddir bkupname excludes; do
+	echo $dhost
+	echo $ddir
+	echo $bkupname
+	echo $excludes
+
+	if [ "$dhost" == "$thishost" ]; then
+		remote_host=""
+	else
+		remote_host="$dhost:"
+	fi
+
+	if [ "$excludes" == "none" ]; then
+		excludesfrom=""
+	else
+		excludesfrom="--exclude-from=$excludes"
+	fi
+
+	if [ ! -e $bkupname ]; then
+		mkdir $bkupname
+	fi
+	pushd $bkupname
+
+	dt=`date "+%Y-%m-%dT%H:%M:%S"`
+	this_backup=$bkupname-$dt
+
+	command="
+		rsync
+			-avx
+			-e ssh
+			$options
+			--delete
+			$excludesfrom
+			--link-dest=../current
+			$remote_host$ddir/
+			./$this_backup/
+	"
+	echo "executing rsync command:"
+	echo "$command"
+
+	$command
+
+	if [ -e current ]; then
+		rm current
+	fi
+	ln -s $this_backup current
+	echo Done
+
+	popd
+done <<< "$dirs2backup"
+exit
+
+
+
+
+

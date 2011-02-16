@@ -1,0 +1,30 @@
+sensor sensor_config_version 1
+sensor sensor_sysdep_private 1
+sensor sensor_float_factor 10000
+sensor gkrellm_float_factor 1000
+sensor "GPU C" "nVidia GPU Core" 10000 0 0 0
+sensor "temp1" "applesmc-hwmon0/temp1" 10000 0 0 0
+sensor "temp10" "applesmc-hwmon0/temp10" 10000 0 0 0
+sensor "temp11" "applesmc-hwmon0/temp11" 10000 0 0 0
+sensor "temp12" "applesmc-hwmon0/temp12" 10000 0 0 0
+sensor "temp13" "applesmc-hwmon0/temp13" 10000 0 0 0
+sensor "temp14" "applesmc-hwmon0/temp14" 10000 0 0 0
+sensor "temp15" "applesmc-hwmon0/temp15" 10000 0 0 0
+sensor "temp16" "applesmc-hwmon0/temp16" 10000 0 0 0
+sensor "temp17" "applesmc-hwmon0/temp17" 10000 0 0 0
+sensor "temp18" "applesmc-hwmon0/temp18" 10000 0 0 0
+sensor "temp19" "applesmc-hwmon0/temp19" 10000 0 0 0
+sensor "temp2" "applesmc-hwmon0/temp2" 10000 0 0 0
+sensor "temp20" "applesmc-hwmon0/temp20" 10000 0 0 0
+sensor "temp3" "applesmc-hwmon0/temp3" 10000 0 0 0
+sensor "temp4" "applesmc-hwmon0/temp4" 10000 0 0 0
+sensor "temp5" "applesmc-hwmon0/temp5" 10000 0 0 0
+sensor "temp6" "applesmc-hwmon0/temp6" 10000 0 0 0
+sensor "temp7" "applesmc-hwmon0/temp7" 10000 0 0 0
+sensor "temp8" "applesmc-hwmon0/temp8" 10000 0 0 0
+sensor "temp9" "applesmc-hwmon0/temp9" 10000 0 0 0
+sensor "fan1" "applesmc-hwmon0/fan1" 10000 0 0 0
+sensor "fan2" "applesmc-hwmon0/fan2" 10000 0 0 0
+sensor units_fahrenheit 0
+sensor show_units 1
+sensor volt_display_mode 0

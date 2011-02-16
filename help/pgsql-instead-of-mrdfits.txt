@@ -1,0 +1,35 @@
+Using mrdfits/mwrfits:
+--------------------------
+
+# Write some data
+mwrfits, struct, file, /create
+# Read the data
+t = mrdfits(file, 1)
+
+# extract some objects based on properties
+w=where(t.x gt 3 and t.y lt 25)
+
+# but if file is huge you can't do it
+# in a simple way
+
+
+Using postgres
+--------------------------
+
+# Write some data
+pg=obj_new('postgres')
+pg->struct2table, struct, 'test_table'
+
+# Read some data
+t = pg->query('select * from test_table')
+
+
+# extract some objects based on properties
+# Either grab all and select from it in the
+# standard way:
+w=where(t.x gt 3 and t.y lt 25)
+
+# or just grab the subset directly from the db
+# useful when the table is too big for memory
+
+t=pg->query('select * from test_table where x > 3 and y < 25')

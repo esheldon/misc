@@ -1,0 +1,11 @@
+#!/usr/local/bin/perl -w
+
+use Ascii::Convert;
+
+if (@ARGV < 1) {
+    print "-Syntax: ascii2html file > output\n";
+    exit;
+}
+
+my $infile = $ARGV[0];
+&ascii2html($infile);

@@ -1,0 +1,22 @@
+lens catalog
+
+    * Finish python code to create lcat.
+
+    * Fill in aeta_rel and DL within the C++ code.
+
+    * create new desmocks file
+
+source catalog
+
+    * fill in aeta_rel in C++ code for that type of catalog
+
+    * create new desmocks file
+
+    * make C++ code work without min=0 for rev.
+
+    * sort by htm index?
+
+    ***
+    *** histogram is converting everything to double!
+    *** for integer types use int64 or something and use
+    *** the fortran code

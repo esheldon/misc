@@ -1,0 +1,4 @@
+To save some trouble, the easiest way to remove the buttons from the right of the screen is to open a terminal and execute 
+  eesh -e "button_show" 
+  e will remember that the buttons are hidden and won't show them any more. To get them back execute 
+  eesh -e "button_show all" (I think this is the correct command) 

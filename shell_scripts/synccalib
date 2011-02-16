@@ -1,0 +1,29 @@
+#!/bin/bash
+
+user=sdss3
+host=data.sdss3.org
+
+pwdfile=~/.boss.txt
+
+
+if [ $# -lt 1 ]; then
+    echo synccalib PHOTO_CALIB
+    exit 45
+fi
+
+dirname=$1
+
+localdir=$PHOTO_CALIB_BASE/$dirname
+#remotedir=sas/bosswork/groups/boss/calib/$dirname
+remotedir=dr8/groups/boss/calib/$dirname
+
+
+if [ ! -e "$localdir" ]; then
+    mkdir -p "$localdir"
+fi
+
+cd $localdir
+
+
+rsync -av --password-file $pwdfile  "$user@$host::$remotedir/" .
+

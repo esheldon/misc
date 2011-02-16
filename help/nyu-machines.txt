@@ -1,0 +1,16 @@
+These are to be our processor machines:
+-------------------------------------------
+prism
+snell
+line
+
+These are data farms, although early still sees the others
+-----------------------------------------------------------
+evolve
+early
+moshimoshi
+dwarf
+metal
+bias
+pogson
+

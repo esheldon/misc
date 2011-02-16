@@ -1,0 +1,65 @@
+##########################################################################
+# vim: set filetype=csh :
+# My "universal" cshrc
+##########################################################################
+
+# skip the setup if not interactive shell
+
+if ( $?USER == 0 || $?prompt == 0 ) exit
+
+set sysname = `uname`
+set hname = `uname -n`
+set hname = `echo $hname | sed "s/\..*//g"` #only first part of name
+set htype = `uname -s`
+set savehist=200
+set history=200
+set autolist="ambiguous"
+set matchbeep="nomatch"
+set prompt_type="normal"
+
+setenv EDITOR vi
+setenv LESS "-XP[%f] %lb/%L"
+setenv RSYNC_RSH "ssh"
+unset autologout
+
+set defaultDotfileDir = ${HOME}/.dotfiles/default
+
+# All cheopsen have same configuration
+set CHEOPSTEST = `echo $hname | grep -i cheops`
+set COSMOTEST = `echo $HOST | grep -i cosmo.fas.nyu.edu`
+set NYUPHYSICSTEST = `echo $HOST | grep -i physics.nyu.edu`
+
+if ( $hname == "fangorn" || $sysname == "Darwin") then
+    set dotfileDir = ${HOME}/.dotfiles/fangorn
+else if ( $CHEOPSTEST != "") then
+    set dotfileDir = ${HOME}/.dotfiles/cheops
+else if ( $NYUPHYSICSTEST != "" || $hname == "bias" || $hname == "anvil") then
+    set dotfileDir = ${HOME}/.dotfiles/cosmo.fas.nyu.edu
+else if ( $COSMOTEST != "") then
+    set dotfileDir = ${HOME}/.dotfiles/cosmo.fas.nyu.edu
+else
+    set dotfileDir = ${HOME}/.dotfiles/${hname}
+endif 
+
+if ( ! -d $dotfileDir ) then
+    set dotfileDir = $defaultDotfileDir
+    if ( ! -d $dotfileDir ) then
+	    # no configuraton found
+        echo No configuration found!
+	    exit
+    endif
+endif
+
+
+# Source all the relevant files
+foreach f (path perl python cvs_setup term aliases ls_colors idl_setup pg_setup misc des_setup)
+    set file = $dotfileDir/$f
+    set dfile = $defaultDotfileDir/$f
+    if ( -f $file ) then
+        source $file
+    else if ( -f $dfile ) then
+        source $dfile
+    endif
+end
+exit
+

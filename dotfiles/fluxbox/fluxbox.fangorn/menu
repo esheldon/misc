@@ -1,0 +1,21 @@
+[begin] (fluxbox)
+[exec] (Eterm) {Eterm} </usr/share/pixmaps/gnome-eterm.png>
+[exec] (Firefox) {firefox} </usr/share/pixmaps/firefox.png>
+[exec] (Xine) {xine} </usr/share/pixmaps/xine.xpm>
+[submenu] (Apps) {} 
+    [exec] (Pidgin) {pidgin} </usr/share/pixmaps/pidgin-menu.xpm>
+    [exec] (Gimp) {gimp} </usr/share/pixmaps/gimp.xpm>
+    [exec] (xterm) {xterm} </usr/share/pixmaps/gnome-color-xterm.png>
+    [exec] (gvim) {gvim} </usr/share/pixmaps/vim-32.xpm>
+[end]
+[submenu] (Games) {}
+    [exec] (Mahjongg) {/usr/games/mahjongg} </usr/share/icons/hicolor/48x48/apps/gnome-mahjongg.png>
+[end]
+[submenu] (Styles) {}
+    [stylesdir] (/usr/share/fluxbox/styles) {}
+[end]
+[reconfig] (Reconfigure) {}
+[restart] (Restart) {}
+[exit] (Exit) {}
+[include] (/etc/X11/fluxbox/fluxbox-menu)
+[end]

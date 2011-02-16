@@ -1,0 +1,318 @@
+#!/usr/local/bin/perl -w
+
+use strict;
+use SDSS::StringOp;
+use Time::Duration;
+use Getopt::Long;
+use Sort::Naturally;
+use Hash::Print;
+
+# Defaults
+my %par;
+$par{minrun} = 0;
+$par{maxrun} = 999999;
+$par{minrerun} = 0;
+$par{maxrerun} = 49;
+$par{newest} = 0;
+$par{oldest} = 0;
+$par{atlas} = 0;
+$par{print_runlist} = 0;
+$par{server} = "das.sdss.org";
+$par{user} = "sdss";
+$par{pfile} = "$ENV{HOME}/.pfile";
+$par{help} = 0;
+$par{print_parameters} = 0;
+
+# Input parameters
+GetOptions('minrun=i' => \$par{minrun}, 
+	   'maxrun=i' => \$par{maxrun},
+	   'minrerun=i' => \$par{minrerun}, 
+	   'maxrerun=i' => \$par{maxrerun},
+	   'newest' => \$par{newest}, 
+	   'oldest' => \$par{oldest},
+	   'atlas' => \$par{atlas}, 
+	   'print_runlist' => \$par{print_runlist},
+	   'server=i' => \$par{server},
+	   'user=i' => \$par{user},
+	   'pfile=i' => \$par{pfile},
+	   'help' => \$par{help},
+	   'print_parameters' => \$par{print_parameters});
+
+if ($par{help}) {
+    system("perldoc rsync_list_imaging");
+    exit;
+}
+if ($par{print_parameters}) {
+    &print_hash(\%par);
+    exit;
+}
+
+
+my @runlist = &get_runlist(\%par);
+if ($par{print_runlist}) {
+    foreach my $run (@runlist)  {
+	print "$run\n";
+    }
+    exit;
+}
+
+# don't count run search in duration
+my $tm = time();
+
+my @camcols = (1, 2, 3, 4, 5, 6);
+
+if ($par{atlas}) {
+    print "run rerun camcol tsObj fpAtlas\n";
+    print "---------------------------------\n";
+} else {
+    print "run rerun camcol tsObj\n";
+    print "------------------------\n";
+}
+
+
+foreach my $run (@runlist) {
+
+    # get a list of reruns    
+    my @rerunList = &get_reruns($run, \%par);
+
+    foreach my $rerun (@rerunList) {
+
+	foreach my $camcol (@camcols) {
+		
+	    # Check for tsObj files
+	    my $n_tsObj = get_tsObj_count($run, $rerun, $camcol, \%par);
+
+	    # only print if there are tsObj files!
+	    if ($n_tsObj > 0) {
+
+		# should we also check for atlas images?
+		if ($par{atlas}) {
+		    my $n_fpAtlas = get_fpAtlas_count($run, $rerun, $camcol, \%par);
+		    print "$run $rerun $camcol $n_tsObj $n_fpAtlas\n";
+		} else {
+		    print "$run $rerun $camcol $n_tsObj\n";
+		}
+	    }
+
+	} # camcols
+	
+    } # reruns
+  
+} # loop over runs
+
+print "Runtime: ",duration(time()-$tm),"\n";
+exit;
+
+# end main program
+
+
+
+#########################################################################
+# run an rsync command to list the runs, return numerically
+# sorted list
+#########################################################################
+
+sub get_runlist {
+
+    my $par = shift;
+
+    my @runlist = `rsync --password-file=$$par{pfile} "rsync://$$par{user}\@$$par{server}/data/[0-9]*"`;
+    my @out_runlist;
+
+    foreach my $line (@runlist) {
+	chomp($line);
+
+	my @sline = split " ", $line;
+	
+	if (@sline == 5 && $sline[4] =~ /^[0-9]+$/ && $sline[4] >= $$par{minrun} && $sline[4] <= $$par{maxrun}) {
+	    my $run = $sline[4];
+	    push @out_runlist, $run;
+	}
+
+    }
+
+    return nsort (@out_runlist);
+
+}
+
+# choose the proper reruns based on parameters.
+sub get_reruns {
+
+    my $run = shift;
+    my $par = shift;
+
+    # comes back sorted
+    my @rerunlist = &get_all_reruns($run, $par);    
+    
+    my $nreruns = @rerunlist;
+    if ($$par{newest}) {
+	return $rerunlist[$nreruns-1];
+    } if ($$par{oldest}) {
+	return $rerunlist[0];
+    } else {
+	return @rerunlist;
+    }
+
+}
+
+#########################################################################
+# get a list of reruns and return in sorted order
+#########################################################################
+
+sub get_all_reruns {
+
+    my $run = shift;
+    my $par = shift;
+    
+    my @rerunLines = 
+	`rsync --password-file=$$par{pfile} "rsync://$$par{user}\@$$par{server}/data/$run/[0-9]*"`;    
+    my @rerunList;
+
+    foreach my $rerunLine (@rerunLines) {
+	
+	chomp($rerunLine);
+	
+	my @srerunLine = split " ", $rerunLine;
+	if (@srerunLine == 5 && $srerunLine[4]=~ /^[0-9]+$/ && 
+	    $srerunLine[4] >= $$par{minrerun} && $srerunLine[4] <= $$par{maxrerun}) {
+	    my $rerun = $srerunLine[4];
+	    push @rerunList, $rerun;
+	}
+    }
+
+    return nsort @rerunList;
+
+}
+
+
+
+#########################################################################
+# Count tsObj file list
+#########################################################################
+sub get_tsObj_count {
+
+    my $run = shift;
+    my $rerun = shift;
+    my $camcol = shift;
+    my $par = shift;
+
+    my @tsObjLines = 
+	`rsync -L --password-file=$$par{pfile} "rsync://$$par{user}\@$$par{server}/data/$run/$rerun/calibChunks/$camcol/tsObj*"`;    
+	
+    my $runstring = &run2string($run);
+    my $matchString = "^tsObj-$runstring-$camcol-$rerun-[0-9][0-9][0-9][0-9]\\.fit\$";
+	
+    my $n_tsObj = 0;
+    foreach my $tsObjLine (@tsObjLines) {
+		
+	chomp($tsObjLine);
+	my @stsObjLine = split " ", $tsObjLine;
+		
+	if (@stsObjLine == 5 && $stsObjLine[4] =~ m/$matchString/) {
+	    my $tsObj = $stsObjLine[4];
+	    $n_tsObj += 1;
+	    #print "file = $tsObj\n";
+	}
+		
+    } # lines in tsObj search
+
+    return $n_tsObj;
+}
+
+#########################################################################
+# Count fpAtlas file list
+#########################################################################
+
+sub get_fpAtlas_count {
+
+    my $run = shift;
+    my $rerun = shift;
+    my $camcol = shift;
+    my $par = shift;
+
+    my @fpAtlasLines = 
+	`rsync -L --password-file=$$par{pfile} "rsync://$$par{user}\@$$par{server}/data/$run/$rerun/objcs/$camcol/fpAtlas*"`;    
+
+    my $runstring = &run2string($run);
+    my $matchString = "^fpAtlas-$runstring-$camcol-[0-9][0-9][0-9][0-9]\\.fit\$";
+		
+    my $n_fpAtlas = 0;
+    foreach my $fpAtlasLine (@fpAtlasLines) {
+		
+	chomp($fpAtlasLine);
+	my @sfpAtlasLine = split " ", $fpAtlasLine;
+	
+	if (@sfpAtlasLine == 5 && $sfpAtlasLine[4] =~ m/$matchString/) {
+	    my $fpAtlas = $sfpAtlasLine[4];
+	    $n_fpAtlas += 1;
+	}
+		
+    } # lines in fpAtlas search
+
+    return $n_fpAtlas;
+}
+
+
+
+########################## End of Code #############################
+
+=head1 NAME
+
+rsync_list_imaging
+
+=head1 SYNOPSIS
+
+rsync_list_imaging 
+     --minrun= --maxrun= --minrerun= --maxrerun=
+     --newest --oldest
+     --server= --user= --pfile=
+     --atlas
+     --print_runlist
+     --print_parameters
+     --help
+
+=head1 DESCRIPTION
+
+This module searches for runs with tsObj files on the rsync server 
+and prints the run infoand tsObj counts.  Optionally it can also count
+the fpAtlas files, but this takes longer.   A line is printed for each
+camera columns that contains tsObj files.  Note, if there are fpAtlas
+files but not tsObj files, no line is printed.
+
+
+=head2 Example
+
+ prompt> rsync_list_imaging --minrun=5330 --maxrun=9999 --newest --atlas 
+ run rerun camcol tsObj fpAtlas
+ ---------------------------------
+ 5330 40 1 118 118
+ 5330 40 2 118 118
+ 5330 40 3 118 118
+ 5330 40 4 118 118
+ 5330 40 5 118 118
+ 5330 40 6 118 118
+ ....
+
+=head1 OPTIONS
+
+ --minrun=   The minimum run for which to search.  Default 0
+ --maxrun=   The maximum run for which to search.  Default 999999
+ --minrerun= The minimum rerun for which to search.  Default 0
+ --maxrerun= The maximum rerun for which to search.  Default 49
+ --newest    Only list the newest rerun found within [minrerun,maxrerun]
+ --oldest    Only list the oldest rerun found within [minrerun,maxrerun]
+ --server=   The rsync server. Default server=das.sdss.org
+ --user=     User name. Default user=sdss
+ --pfile=    Password file to use.  Default pfile=~/.pfile
+ --atlas     List the fpAtlas counts as well as tsObj. This takes longer of course.
+ --print_runlist    List all runs that will be checked and exit
+ --print_parameters List all parameters and exit
+
+=head1 AUTHOR
+
+Erin Sheldon, NYU
+
+
+=cut
+
+#################### End of Docs #####################

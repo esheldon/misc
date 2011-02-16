@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# This syncs all data from the /red directory
+
+host=des06.fnal.gov
+
+outdir=$DESDATA/coadd
+mkdir -p $outdir
+cd $outdir
+
+rsync \
+    -ahP  \
+    $host:/blue-orch/Archive/DES/coadd/ .
+
+

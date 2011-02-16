@@ -1,0 +1,5 @@
+# overall data directory
+data_dir = /home/esheldon/data
+# des project directory
+des_data_dir = /home/esheldon/data/DES
+

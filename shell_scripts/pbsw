@@ -1,0 +1,136 @@
+#!/bin/bash
+#
+# pbsw [-h username]
+#
+# Watch the pbs queue.  This script executes qsub and shows the results,
+# refreshing every 30 seconds..  If the username is sent, only jobs for
+# that user are shown.
+#
+# Hit enter at any time to redisplay.  Hit "q" and then enter to quit cleanly.
+#
+
+# 30=black 31=red 32=green 33=yellow 34=blue 35=magenta 36=cyan 37=white
+function print_black() {
+    printf "\033[0;0;30m${1}\033[39m"
+}
+function print_red() {
+    printf "\033[0;0;31m${1}\033[39m"
+}
+function print_green() {
+    printf "\033[0;0;32m${1}\033[39m"
+}
+function print_yellow() {
+    printf "\033[0;0;33m${1}\033[39m"
+}
+function print_blue() {
+    printf "\033[0;0;34m${1}\033[39m"
+}
+function print_magenta() {
+    printf "\033[0;0;35m${1}\033[39m"
+}
+function print_cyan() {
+    printf "\033[0;0;36m${1}\033[39m"
+}
+function print_white() {
+    printf "\033[0;0;37m${1}\033[39m"
+}
+
+
+function display_qstat() {
+    qs=$1
+    user=$2
+
+    nlines=$(tput lines)
+    # account for our header
+    uselines=$(($nlines-3))
+
+    # need a subshell for this to work
+    echo "$qs" | {
+        # Job ID               Username Queue    Jobname          SessID NDS   TSK Memory Time  S Time
+
+        njobs=0
+        nrunning=0;nqueued=0;nsuspended=0;nexiting=0;nheld=0;nmoving=0;nwait=0;
+        while read jobid username queue jobname sessid nds tsk memory allowtime status runtime rest; do
+            if [[ "$runtime" != "" && "$jobid" != "Job" && "$status" != "-" ]]; then
+                njobs=$(($njobs+1))
+                case $status in
+                    R) nrunning=$(($nrunning+1)) ;;
+                    Q) nqueued=$(($nqueued+1)) ;;
+                    S) nsuspended=$(($nsuspended+1)) ;;
+                    E) nexiting=$(($nexiting+1)) ;;
+                    H) nheld=$(($nheld+1)) ;;
+                    T) nmoving=$(($nmoving+1)) ;;
+                    W) nwait=$(($nwaiti+1)) ;;
+                esac
+            fi
+        done
+
+        if [ "$user" != "None" ]; then
+            #print_blue "Jobs for $user: "
+            print_magenta "Jobs for $user: "
+        else
+            #print_blue "Jobs: "
+            print_magenta "Jobs: "
+        fi
+        printf "$njobs  "
+
+        print_green "Running: "; printf "$nrunning ";
+        print_yellow "Queued: " ; printf "$nqueued  ";
+
+        if [ "$nsuspended" != "0" ] ; then
+            print_magenta "Suspended: " ; printf "$nsuspended  ";
+        fi
+        if [ "$nheld" != "0" ] ; then
+            print_red "held: " ;   printf "$nheld  ";
+        fi
+        if [ "$nexiting" != "0" ]; then
+            print_magenta "Exiting: " ; printf "$nexiting ";
+        fi
+        printf "\n\n" ;
+
+    }
+    
+    echo "$qs" | awk 'NF > 10 { print }' | head -n $uselines
+}
+
+
+while getopts "h" Option; do
+    case $Option in
+        h) echo "usage: pbsw [-h username]" 
+           exit 45 ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+user="None"
+if [[ $# -gt 0 ]]; then
+    user=$1
+fi
+
+# the shells on riemann are not smart enough for screen
+if [[ "$(echo $TERM | screen)" != "" ]]; then
+    export TERM=xterm-color
+fi
+
+sleeptime=30
+
+qsold="None"
+while [ 1 ]; do
+    if [[ "$user" == "None" ]]; then
+        qs="$(qstat -n -1)"
+    else
+        qs="$(qstat -n -1 -u $user)"
+    fi
+
+	if [[ "$qs" != "$qsold" ]]; then
+        clear
+        display_qstat "$qs" "$user"
+	fi
+	qsold=$qs
+
+    answer="none"
+    read -t $sleeptime answer
+    if [[ "$answer" == "q" ]]; then
+        exit 0
+    fi
+done

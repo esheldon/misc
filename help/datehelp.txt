@@ -1,0 +1,3 @@
+Setting the system clock:
+
+date -s "Tue Jul 17 15:34:00 EDT 2001"

@@ -1,0 +1,32 @@
+CC	= cc
+LD	= cc
+INCLUDE	= -I../include
+CCFLAGS	= ${INCLUDE} -DLINKAGE -DCHECK_LEAKS -DSTAND_ALONE -O -32 -KPIC
+ARFLAGS = 	-rlc
+LIBOBJS	= atlasImages.o\
+          dataIo.o\
+          dervish.o\
+          get_atlas.o\
+          main_mask.o\
+          phSpanUtil.o\
+          read.o\
+          rice.o\
+          write.o
+
+LINKLIB	= ../lib/libAtlas.a
+
+all: ${LINKLIB}
+
+${LINKLIB}: ${LIBOBJS}
+	@ echo linking ${LINKLIB}
+	@ ${AR} ${ARFLAGS} $@ $?
+
+clean: 
+	- rm -f ${LIBOBJS}; cd ../lib; rm -f ${LINKLIB}
+
+.SUFFIXES:
+.SUFFIXES: .o .c
+
+.c.o:
+	@ echo compiling $<
+	@ ${CC} -c ${CCFLAGS} $<

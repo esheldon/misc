@@ -1,0 +1,59 @@
+#!/bin/bash
+
+user=sdss3
+#host=data.sdss3.org
+host=mirror.sdss3.org
+
+pwdfile=~/.boss.txt
+
+sweepdir=$1
+
+localdir=$BOSS_ROOT/target
+remotedir=sas/bosswork/groups/boss/target
+
+#if [ $# -lt 0 ]; then
+#    echo "usage: synctarget target_run"
+#    exit 45
+#fi
+
+#run=$1
+#localdir=$localdir/$run
+#remotedir=$remotedir/$run
+
+echo $localdir
+echo $remotedir
+
+#if [ ! -e "$localdir" ]; then
+#    echo "making localdir $localdir"
+#    mkdir -p "$localdir"
+#fi
+
+cd $localdir
+
+if [ $# -gt 0 ]; then
+    rsync --dry-run -avL --password-file $pwdfile \
+        --include "/comm*" \
+        --include "/main*" \
+        --exclude "/*/*collate-[0-9]*fits" \
+        --exclude "/*/*collate-bitmask-[0-9]*fits" \
+        --exclude "/*/*collate-noknown-[0-9]*fits" \
+        --include "/*/*collate*fits" \
+        --exclude "*" \
+        "$user@$host::$remotedir/" .
+else
+    rsync -avLP --password-file $pwdfile \
+        --include "/*" --include "/*/*collate*fits" --exclude "*" \
+        "$user@$host::$remotedir/" .
+fi
+
+exit
+
+if [ $# -gt 1 ]; then
+    rsync --dry-run -av --password-file $pwdfile \
+        --include "*collate.fits" --exclude "*" \
+        "$user@$host::$remotedir/" .
+else
+    rsync -avP --password-file $pwdfile \
+        --include "*collate.fits" --exclude "*" \
+        "$user@$host::$remotedir/" .
+fi

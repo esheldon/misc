@@ -1,0 +1,20 @@
+http://ii2.sourceforge.net/
+
+Some help for TeX install
+    http://guides.macrumors.com/Installing_LaTeX_on_a_Mac
+
+Packages I installed:
+---------------------------
+gwTeX based on Tex Live, basic
+ghostscript 8 (had to do "update" after clicking install & configure)
+These must be installed in order
+  Xaw3d -> ghostview
+
+freetype2
+png library
+
+jpeg tools and library
+ImageMagick
+
+fftw
+

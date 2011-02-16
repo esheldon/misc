@@ -1,0 +1,3 @@
+15 * * * * /home/users/esheldon/shell_scripts/backup_svn &> /home/users/esheldon/logs/backup_svn.out
+#17 * * * * /bin/ls > /home/users/esheldon/tmp/testcron_early.out
+

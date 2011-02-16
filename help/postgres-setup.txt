@@ -1,0 +1,301 @@
+Tricks
+----------------------------------------
+I screwed up the isprimary column of my table.  This can be calculated
+from resolve_status, but doing "UPDATE" was going to take more than
+a year!  I got this query online and in a smaller table it was
+much faster
+
+ALTER TABLE 
+    gal 
+ALTER COLUMN 
+    isprimary 
+TYPE 
+    smallint 
+USING 
+    ((resolve_status & 256) <> 0)::int
+
+
+Mac (see below for linux)
+-------------------------------------------------
+# On my mac, I instlled postgresql and -dev packages
+
+fink install postgresql
+
+# to get the dev packages needed for the IDL extensions
+# you have to specify the version you are using, e.g.
+fink install postgresql82-dev
+
+sudo mkdir /Users/data
+sudo mkdir /Users/data/pgsql
+sudo mkdir /Users/data/pgsql/data
+sudo chown postgres:postgres /Users/data/pgsql/data
+
+sudo -u postgres initdb -D /Users/data/pgsql/data
+
+# It told me:
+#
+#Success. You can now start the database server using:
+#
+#      postgres-8.2 -D /Users/data/pgsql/data
+#or
+#      pg_ctl-8.2 -D /Users/data/pgsql/data -l logfile start
+#
+#I used this:
+
+sudo -u postgres pg_ctl -D /Users/data/pgsql/data -l /Users/data/pgsql/data/logfile start
+
+# I followed these instructions to make it a system service.  
+http://ripary.com/postgresql.html
+# Also see bottom
+# This starts it at boot and allows the following commands:
+sudo SystemStarter stop PostgreSQL
+sudo SystemStarter start PostgreSQL
+sudo SystemStarter restart PostgreSQL
+
+# I had to reduce the shared_buffers to 1000kB for some reason,
+# not really clear why it worked for so long!!!
+
+
+#It also told me it was using "trust" authentication for local stuff.
+
+# Create database, can't remember why the template1
+psql -U postgres -d template1
+
+# then simple
+create database sdss;
+create user sdss;
+
+# Put these into pg_setup.sh
+export PGDATABASE=sdss
+export PGUSER=sdss
+
+#Done! Since I don't need to serve this to other machines or worry about
+#security it is simple.
+
+Linux
+-----------------------------------------------------------------
+
+At NYU Mulin already had the server running.  I had to initialize the database
+and set up the tables.
+
+http://www.postgresql.org/docs/8.0/interactive/admin.html
+
+As root:
+
+> mkdir /export/early2/pgsql
+> mkdir /export/early2/pgsql/data
+> chown -R postgres:postgres /export/early2/pgsql
+> su postgres
+> initdb -D /export/early2/pgsql/data
+
+
+# because Mulin had already started things, I had to do this
+# before anything else.
+# as root:
+> cd /etc/init.d
+> ./postgresql stop
+# change PGDATA and PGLOG in /etc/init.d/postgresql to point to right
+# place and restart
+> ./postgresql start
+
+
+
+
+# I had some environment vars set, so to use psql I had to be explicit:
+> psql -U postgres -d template1
+template1=# create database sdss;
+template1=# create user sdss;
+
+# Set a password for the postgres account.  Anyone wanting to use this
+# account will need to know this password.  They can put it into their
+# .pgpass file as    *:*:*:postgres:thepassword
+
+sdss=# alter user postgres with password 'something_in_single_quotes';
+
+# to give everyone access to a postgresql table:
+GRANT SELECT ON sometable TO PUBLIC;
+
+
+
+# Performance tuning in postgresql.conf
+#
+# Memory available to postgres: makes a big difference for speed
+# Start at 4MB (512) for a workstation
+# Medium size data set and 256-512MB available RAM: 16-32MB (2048-4096)
+# Large dataset and lots of available RAM (1-4GB): 64-256MB (8192-32768) 
+# on tutti I went for 32768: 4GB
+shared_buffers = 524288
+# actually, seems you can now use this notation
+shared_buffers = 4GB
+
+# Change the maximum size of the input query 
+max_stack_depth = 16384
+
+
+
+# setting up client machines
+
+
+# in postgresql.conf
+# this is OK, because Mulin lets no  outside computers connect
+# to this machine
+listen_addresses = '*'
+
+# Add these types of lines to pg_hba.conf.  Note, don't set
+# the md5 before you set the password.
+# TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
+host    all         postgres    128.122.53.82/32      md5
+host    all         sdss        128.122.53.82/32      trust
+
+
+# status of current clients.
+# Mulin will make sure all 8.0.1 next week.
+howdy: Forgot about howdy!!!!!!!
+
+early: fine
+evolve: fine
+hola: fine
+
+
+bias: IDL client works, but psql not in path and is too new: 8.1.3 not
+    back compatible in psql
+
+pogson: psql in path is old one, the newer one is too new.  This is
+    actually an OK setup.
+
+anvil: old client, won't work
+
+
+Ubuntu:
+-----------------
+
+just did 
+    aptitude install postgres
+That installed server and clients.  But to get devel headers had to install
+    aptitude install libpq-dev
+
+Installs in a wierd way with pg_hba.conf under /etc.  Also creates the cluster
+automatically under /var which sucks.
+
+I had to edit the pg_hba to give trust authentication to local
+local   all         postgres                          trust sameuser
+local   all         all                          trust sameuser
+
+And then I could do psql as postgrs and create the databases.  I had to 
+  grant all on database des to des;
+
+
+Centos
+------------------------
+centos 5 comes with SELinux turned on.  In this situation, the postgres user
+cannot read files from the other users, so no COPY statements are allowed
+unless created by postgres.
+
+Better to turn it off perhaps.  This can be done by editing the file:
+  /etc/selinux/config 
+and change
+	SELINUX=enforcing
+to
+	SELINUX=permissive
+
+or disabled
+
+Also you can run this from the command line for the current session:
+    /usr/sbin/setenforce 0
+but after reboot it will be back on.
+
+
+
+-----------------------------------------------------------------
+
+Adding a PostgreSQL Startup Item on OS X
+
+A PostgreSQL startup item configures Mac OS X to start the PostgreSQL server when your computer starts. Stopping, starting, and restarting the server becomes then as simple as
+
+$ sudo SystemStarter stop PostgreSQL
+$ sudo SystemStarter start PostgreSQL
+$ sudo SystemStarter restart PostgreSQL
+
+See the SystemStarter man page for information. You can disable automatic startup at any time by editing /etc/hostconfig.
+
+To add a PostgreSQL startup item:
+
+   1.
+
+      Create the PostgreSQL startup item directory:
+
+      $ sudo mkdir /Library/StartupItems/PostgreSQL
+
+   2.
+
+      Create the PostgreSQL startup script, /Library/StartupItems/PostgreSQL/PostgreSQL:
+
+      #!/bin/sh
+
+      # Source common setup, including /etc/hostconfig
+      . /etc/rc.common
+
+      StartService ( ) {
+          # Don't start unless PostgreSQL is enabled in /etc/hostconfig
+          if [ "${POSTGRESQL:-NO-}" = "-YES-" ]; then
+              ConsoleMessage "Starting PostgreSQL"
+              sudo -u postgres /usr/local/pgsql/bin/pg_ctl \
+                  -D /Library/PostgreSQL/data \
+                  -l /Library/PostgreSQL/data/logfile start
+          fi
+      }
+
+      StopService ( ) {
+          ConsoleMessage "Stopping PostgreSQL"
+          sudo -u postgres /usr/local/pgsql/bin/pg_ctl -D /Library/PostgreSQL/data stop
+      }
+
+      RestartService ( ) {
+          if [ "${POSTGRESQL:-NO-}" = "-YES-" ]; then
+              ConsoleMessage "Restarting PostgreSQL"
+              StopService
+              StartService
+          else
+              StopService
+          fi
+      }
+
+      RunService "$1"
+
+   3.
+
+      Make the PostgreSQL script executable:
+
+      sudo chmod 755 /Library/StartupItems/PostgreSQL/PostgreSQL
+
+   4.
+
+      Create the PostgreSQL startup parameters file, /Library/StartupItems/PostgreSQL/StartupParameters.plist:
+
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+              <key>Description</key>
+              <string>PostgreSQL</string>
+              <key>OrderPreference</key>
+              <string>Late</string>
+              <key>Provides</key>
+              <array>
+                      <string>PostgreSQL</string>
+              </array>
+              <key>Requires</key>
+              <array>
+                      <string>Network</string>
+              </array>
+      </dict>
+      </plist>
+
+   5.
+
+      Append a PostgreSQL entry to /etc/hostconfig:
+
+      $ sudo perl -e 'open H,">>/etc/hostconfig";print H "POSTGRESQL=-YES-\n";'
+
+

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+#camcol="[0-9]*"
+camcol="any"
+extra_flags=""
+while getopts "c:P" Option
+  do
+  case $Option in
+      c)  camcol=$OPTARG ;;
+      P)  extra_flags="-P" ;;
+      [?]) echo "Usage: syncobjcs [-r run -c camcol]"
+           exit $WRONG_ARGS
+           ;;  
+  esac
+done
+shift $(($OPTIND - 1))
+
+
+user=sdss3
+host=data.sdss3.org
+
+pwdfile=~/.boss.txt
+
+localdir=/mount/tutti1/esheldon/sweep_reduce/regauss
+remotedir=sas/bosswork/groups/boss/target/esheldon/sweep-reduce/regauss
+#remotedir=raid008/bosswork/groups/boss/target/esheldon/sweep-reduce/regauss
+
+if [ ! -e "$localdir" ]; then
+    mkdir -p "$localdir"
+fi
+
+cd $localdir
+
+if [[ "$camcol" != "any" ]]; then
+    rsync -av $extra_flags --password-file $pwdfile \
+        --include "/*/" \
+        --include "/*/sweepgal-regauss-*-$camcol-*-*.fits" \
+        --exclude "*" \
+        "$user@$host::$remotedir/" .
+else
+    rsync -av $extra_flags --password-file $pwdfile "$user@$host::$remotedir/" .
+fi
+
+exit
+

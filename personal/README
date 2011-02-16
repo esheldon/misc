@@ -1,0 +1,3 @@
+gpg -ca name produces ascii armored, password protected file name.asc
+
+gpg -d name.asc writes decrypts and writes to stdout

@@ -1,0 +1,45 @@
+#!/bin/sh
+
+margins=25
+
+dargs=1
+if [ $# -lt $dargs ]
+then
+    echo "Usage: `basename $0` [-m margins] input_file [output_file]"
+    echo "Only global margins allowed. Default is $margins"
+    exit
+fi
+
+
+
+# look for optional things first
+while getopts "m:" Option
+do
+  case $Option in
+      m) margins=$OPTARG;;
+      [?]) echo "`basename $0`: unknown option $1 ignored";;
+  esac
+done
+shift $(($OPTIND - 1))
+
+# Input file
+input_file=$1
+
+# temporary output file
+tmpfile=`echo $input_file | sed -E "s/(\.eps|\.ps)/\.pdf/"`
+tmpfile=`echo $tmpfile | sed -E "s/(\.EPS|\.PS)/\.pdf/"`
+
+# tmp dir to hold file
+tmpdir=/tmp
+
+# Did user send output file?
+if [ $# -eq 2 ]
+then
+    output_file=$2
+else
+    output_file=$tmpfile
+fi
+
+ps2pdf $input_file $tmpdir/$tmpfile
+pdfcrop --margins $margins $tmpdir/$tmpfile $output_file
+rm $tmpdir/$tmpfile

@@ -1,0 +1,190 @@
+#!/usr/local/bin/perl 
+
+###########################################################################
+# Figure out which runs are at fermi, meet certain criteria, and we don't
+# have all of certain files that exist there (tsObj, etc)
+#
+# default is to print by camcol
+###########################################################################
+
+use strict;
+use Getopt::Long;
+
+use SDSS::DBMTools;
+use SDSS::StringOp;
+use SDSS::HashOp;
+use SDSS::PrintTools;
+use Ascii::Read;
+
+use Hash::Op;
+
+use Hash::Print;
+use DBI;
+
+# criteria for the fermilab runs
+my $minrerun = 40;
+my $maxrerun = 49;
+
+# switches
+my $byrun=0;
+my $bystripe=0;
+my $dohelp=0;
+GetOptions('bystripe' => \$bystripe, 'byrun' => \$byrun, 'help'=>\$dohelp)
+    or die;
+
+if ($dohelp) {
+    &runs2get_printsyntax;
+    exit;
+}
+
+
+#######################################
+# Open and read the run database
+#######################################
+
+my $dbh = DBI->connect("dbi:Pg:dbname=sdss", "sdss", "");
+my $RI = $dbh->selectall_hashref("select * from runlist", "column_id");
+
+
+
+#######################################
+# Read the imagingRoot from fermilab
+#######################################
+
+my %FRI = &read_fermiruns;
+
+# read steve's runlist for the stripe strip
+
+my %SRI = &read_steves_runlist();
+
+# loop over the imagingRoot stuff and check if we have the run/rerun and
+# if so do we have the right number of files
+
+# this loops over *outer* keys
+
+my %GetRI;
+
+foreach my $key (keys %FRI) {
+
+    my $frerun = $FRI{$key}{rerun};
+
+    my $runstring = &run2string($FRI{$key}{run});
+    my $stripestring = &stripe2string($FRI{$key}{stripe});
+	
+
+    # check for each camcol in this run.  If not exist of number of 
+    # selected files doesn't match, then define it (bad).
+	
+    my $newkey;
+    if ($bystripe) {
+	$newkey = "$stripestring-$FRI{$key}{strip}-$key";
+    } else {
+	$newkey = $key;
+    }
+	
+    my $bad = 0;
+	
+
+
+    # check if we even have this run/rerun/camcol
+    if ( ! exists($RI->{$key}->{run}) ||
+	 $RI->{$key}->{n_tsObj} < $FRI{$key}{tsObj} ||
+	 $RI->{$key}->{n_fpAtlas} < $FRI{$key}{fpAtlas} ) {
+	
+	# Sometimes steve's runlist is a little screwy
+	# Use ours when we can
+	$GetRI{$newkey}{stripe} = $SRI{$runstring}{stripe};
+	$GetRI{$newkey}{strip} = $SRI{$runstring}{strip};
+	
+	$GetRI{$newkey}{run} = $FRI{$key}{run};
+	$GetRI{$newkey}{rerun} = $FRI{$key}{rerun};
+	$GetRI{$newkey}{camcol} = $FRI{$key}{camcol};
+	
+	# Using += means if its not defined then zero is used
+	# will add up over camcol
+	
+	$GetRI{$newkey}{n_tsObj} += $RI->{$key}->{n_tsObj};
+	$GetRI{$newkey}{n_fpAtlas} += $RI->{$key}->{n_fpAtlas};
+	
+	$GetRI{$newkey}{fn_tsObj} += $FRI{$key}{tsObj};
+	$GetRI{$newkey}{fn_fpAtlas} += $FRI{$key}{fpAtlas};
+	
+    }
+
+}
+
+
+#######################################
+# Set up how we will print the hash
+#######################################
+
+my @columns;
+my @keycols;
+
+if ($bystripe) { 
+    @columns = ("stripe", "strip", "run", "rerun");
+    if (! $byrun) {
+	@keycols = ("stripe","strip","run","rerun","camcol");
+	push @columns, "camcol";
+    } else {
+	@keycols = ("stripe","strip","run","rerun");
+    }
+} else {
+    @columns = ("run", "rerun");
+    if (! $byrun) {
+	@keycols = ("run","rerun","camcol");
+	push @columns, "camcol";
+    } else {
+	@keycols = ("run","rerun");
+    }
+
+    push @columns, ("stripe","strip");
+} 
+
+push @columns, ("n_tsObj", "fn_tsObj", "n_fpAtlas", "fn_fpAtlas", 
+		"n_tsField", "fn_tsField", "n_psField", "fn_psField", 
+		"n_fpM", "fn_fpM");
+my %colformat = &rundb_colformat;
+    
+##########################################
+# rekey the hash for printing
+##########################################
+
+my %nGetRI = &rekey_hoh_bycolumn(\%GetRI, \@keycols, {delete=>1});
+
+##########################################
+# Print the header and hash
+##########################################
+
+&print_rundb_header(\%nGetRI, \@columns, \%colformat);
+&print_rundb_hash(\%nGetRI, \@columns, \%colformat);
+
+
+exit;
+
+sub runs2get_printsyntax {
+    print "-Syntax: runs2get --byrun --bystripe --help\n";
+}
+
+
+sub read_fermiruns {
+
+    my $file = "/net/cheops1/data0/imaging/dbm/imagingRoot/tsobj_fpatlas_list.dat";
+
+    my %hash = &rdmyascii($file);
+    
+    # now rekey
+    my %outhash;
+    foreach my $key (keys %hash) {
+
+	my $runstring = &run2string($hash{$key}{run});
+	my $newkey = "$runstring-$hash{$key}{rerun}-$hash{$key}{camcol}";
+
+	$outhash{$newkey} = $hash{$key}
+
+    }
+
+    
+    return %outhash;
+
+}

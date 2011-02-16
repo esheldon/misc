@@ -1,0 +1,65 @@
+#!/bin/bash
+
+function usage {
+    echo "Usage examples: "
+    echo
+    echo "    im2html [-p] file_list"
+    echo
+    echo "    ls | grep png | im2html [-p]"
+}
+
+function print_imageline {
+    f=$1
+    printnames=$2
+
+    if [ "$printnames" == "Y" ]; then
+        n=$(basename $f)
+        echo "        $n<p>"
+    fi
+	echo "        <img src=\"$f\"><br>"
+	echo "        <p>"
+}
+
+
+printnames="N"
+use_stdin="N"
+
+while getopts "ph" Option
+  do
+  case $Option in
+      p)  printnames="Y" ;;
+      h) usage 
+          exit 45;; 
+      [?]) usage
+           exit 45;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+
+if [ $# -lt 1 ]; then
+    use_stdin="Y"
+else
+	flist=$*
+fi
+
+
+echo "
+<html>
+    <body bgcolor=white>
+"
+
+if [ "$use_stdin" == "Y" ]; then
+    while read f; do
+        print_imageline $f $printnames
+    done
+else
+    for f in $flist; do
+        print_imageline $f $printnames
+    done
+fi
+
+echo "
+    </body>
+</html>
+"

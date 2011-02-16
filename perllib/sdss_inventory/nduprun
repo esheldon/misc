@@ -1,0 +1,41 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+use SDSS::DBMTools;
+use SDSS::StringOp;
+use SDSS::HashOp;
+
+#####################
+# Read run database
+#####################
+
+my %RI = &read_rundb_byrun;
+
+my %duprun;
+
+foreach my $key (sort keys %RI) {
+
+    # sometimes keep old reruns of corrected files
+    if ( ($RI{$key}{n_tsObj} > 0) || ($RI{$key}{n_fpAtlas} > 0) ) {
+	my $newkey = &run2string($RI{$key}{run});
+
+	$duprun{$newkey}{run} = $RI{$key}{run};
+	
+	$duprun{$newkey}{nrerun} += 1;
+	if (exists($duprun{$newkey}{reruns})) {
+	    $duprun{$newkey}{reruns} = "$duprun{$newkey}{reruns}, $RI{$key}{rerun}";
+	} else {
+	    $duprun{$newkey}{reruns} = $RI{$key}{rerun};
+	}
+    }
+    
+}
+
+print " Run Nreruns Reruns\n";
+print "--------------------\n";
+foreach my $key (sort keys %duprun) {
+
+    printf("%4d %7d %s\n", 
+	   $duprun{$key}{run}, $duprun{$key}{nrerun}, $duprun{$key}{reruns});
+}

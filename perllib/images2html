@@ -1,0 +1,849 @@
+#!/usr/bin/perl -w
+#
+# Usage: images2html directory
+#
+# author: Erin Sheldon
+# Note: if cssURL is given in .conf file, and it is not
+#   absolute, it is copied into the top directory.
+
+use strict;
+use Getopt::Long;
+use integer;
+
+my $nargs = @ARGV;
+if ($nargs == 0) {
+    print "-Syntax: images2html directory [file list]\n";
+    exit;
+}
+
+# Get the inputs
+my $imageDir = shift @ARGV;
+
+############################################################
+# Get the list of images.  These may be input in addition
+# to the directory
+############################################################
+
+my @imageList;
+my $nImageList;
+if ($nargs >= 2) {
+    push @imageList, @ARGV;
+    $nImageList = @imageList;
+} else {    
+
+    @imageList = &getFileList($imageDir);
+    $nImageList = @imageList;
+    if ($nImageList == 0) {
+	print "No image files found\n";
+	exit;
+    }
+}
+
+
+# look for a config file, either in this directory
+# or a global one in the user's directory
+my %configHash;
+my $configFile = "$imageDir/images2html.conf";
+
+my $home = $ENV{"HOME"};
+my $configFile2 = "$home/.images2html";
+
+
+if (-f $configFile ) {
+    %configHash = &parseConfig($configFile);
+} elsif (-f $configFile2) {
+    %configHash = &parseConfig($configFile2);
+} else {
+    %configHash = &configDefaults;
+}
+
+
+# add $imageDir and @imageList to the %configHash
+$configHash{imageDir} = $imageDir;
+$configHash{imageList} = \@imageList;
+
+# Check for a css file
+&checkCSS();
+
+# Print out our configuration
+foreach my $key (keys %configHash) {
+    print "$key = $configHash{$key}\n";
+}
+
+# Create the subdirectores to contain thumbnails, html files, etc.
+&createDirectories;
+
+# Create thumbnails
+&createThumbnails();
+
+# Generate the index pages and individual HTML pages
+&createIndexHTML();
+
+
+sub createIndexHTML {
+
+    ###############################################
+    # makes use of global variable %configHash
+    ###############################################
+
+    # Get the arguments
+    my $imageDir  = $configHash{imageDir};
+    my $imageList = $configHash{imageList};
+    my $rows      = $configHash{rows};
+    my $columns   = $configHash{columns};
+
+    # Set some parameters
+    my $imagesPerPage = $rows*$columns;
+
+    my $thumbDir   = "images2html/thumbnails";
+    my $reducedDir = "images2html/reduced";
+    my $htmlDir    = "images2html/html";
+
+    my $cssURL = $configHash{cssURL};
+
+    my $nImages = @$imageList;
+
+    my $nPage = $nImages/$imagesPerPage;
+    my $leftOver = $nImages % $imagesPerPage;
+
+    if ($leftOver > 0) {
+	$nPage += 1;
+    }
+
+
+    print "\nimagesPerPage = $imagesPerPage\n";
+    print "nImages = $nImages\n";
+    print "nPage = $nPage\n";
+    print "leftOver = $leftOver\n";
+
+    # Create the image list for the bottom
+    my $nPerLine = 15;
+    for (my $i=0; $i<$nImages; $i++) {
+	
+    }
+
+    #####################################
+    # Create the image indexs
+    #####################################
+
+    # Loop over the pages
+    my $ii = 0;
+    
+    for (my $pageNum =0; $pageNum < $nPage; $pageNum++) {
+
+	my $indexName = &indexName($pageNum);
+
+	print "Index Name = $indexName\n";
+
+	# Open the Index
+	open INDEX, "> $imageDir/$indexName" or die "Cannot open $indexName : $!";
+	print INDEX "<html>\n";
+	print INDEX "<!-- Created by images2html Erin Sheldon -->\n";
+	print INDEX "<head>\n";
+        print INDEX "<link rel=\"STYLESHEET\" type=\"text/css\" href=\"$cssURL\">\n";
+	print INDEX "</head>\n";
+
+	print INDEX "<body>\n";
+
+	print INDEX "<div id=\"content\">\n";
+	print INDEX "  <div class=\"thumbtable\">\n";
+
+	# Loop over rows and columns
+	for (my $row=0; $row<$rows; $row++) {
+
+	    if ($ii < $nImages) {
+		print INDEX "    <div class=\"row\">\n";
+
+		for (my $col=0; $col<$columns; $col++) {
+		
+		    if ($ii < $nImages) {
+			my $image = $$imageList[$ii];
+			my $imageHTML = &htmlName($image);
+			
+			# Create the image html
+			&createImageHTML($ii, $indexName);
+			
+			#print "  Image = $image\n";
+			#print "  ImageHTML = $imageHTML\n";
+			print INDEX "      <div class=\"td\">\n";
+			print INDEX "        <a href=\"$htmlDir/$imageHTML\">";
+			
+			print INDEX "<img src=\"$thumbDir/$image\">";
+			print INDEX "</a>\n";
+			if ($configHash{indexShowNames} eq "yes") {
+			    print INDEX "        <br><span class=\"thumbname\">$image</span>\n";
+			}
+			print INDEX "      </div>\n";
+			
+			$ii++;
+		    } 
+		    
+		} # columns
+		print INDEX "    </div>\n";
+	    } # don't print empty rows
+	} #rows
+
+	print INDEX "  </div>\n"; # thumbnail table
+
+	# At the bottom, the previous and next index
+	my $prevIndex = &indexName($pageNum-1);
+	my $nextIndex = &indexName($pageNum+1);
+	if ($pageNum == 0) {
+	    $prevIndex = "";
+	} else {
+	    $prevIndex = "<a href=\"$prevIndex\">Previous</a>"
+	}
+	if ($pageNum == ($nPage-1)) {
+	    print "pageNum = $pageNum\n";
+	    $nextIndex = "";
+	} else {
+	    $nextIndex = "<a href=\"$nextIndex\">Next</a>";
+	}
+
+	# The "previous" and "next" links
+	print INDEX "  <div class=\"prevNext\">\n";       
+	print INDEX "    <div class=\"prevNextRow\">\n";
+	print INDEX "      <div class=\"prevtd\">\n";
+	print INDEX "        $prevIndex\n";
+	print INDEX "      </div>\n";
+	print INDEX "      <div class=\"nexttd\">\n";
+	print INDEX "        $nextIndex\n";
+	print INDEX "      </div>\n";
+	print INDEX "    </div>\n"; #prevNextRow
+	print INDEX "  </div>\n"; #prevNext
+
+	print INDEX "</div>\n";  # "content"
+
+
+	my @indexList = &indexNavList($nPage, $pageNum);
+
+	print INDEX "<div id=\"navigation\">\n";
+	print INDEX "  <hr>\n";
+	print INDEX "  <h2>Index List</h2>\n";
+
+	foreach my $index (@indexList) {
+	    print INDEX "  $index<br>\n";
+	}
+	print INDEX "</div>\n";
+	print INDEX "</html>\n";
+	print INDEX "</body>\n";
+	close INDEX;
+
+    } # loop over index pages
+
+}
+
+# Create a list of the index names with links for those that aren't
+# the current page
+sub indexNavList {
+
+    my $nPage = shift;
+    my $currentPage = shift;
+
+    my @indexList;
+
+    for (my $i=0; $i<$nPage; $i++) {
+	my $indexName = &indexName($i);
+
+	my $tmpName;
+	if ($i == $currentPage) {
+	    $tmpName = "$indexName";	    
+	} else {
+	    $tmpName = "<a href=\"$indexName\">$indexName</a>";
+	}
+
+	push @indexList, $tmpName;
+
+    }
+
+    return @indexList;
+}
+
+sub createImageHTML {
+
+    ###############################################
+    # makes use of global variable %configHash
+    ###############################################
+
+    my $imageNum = shift;
+    my $indexName = shift;
+
+    my $imageDir = $configHash{imageDir};
+    my $imageList = $configHash{imageList};
+    my $doReduce = $configHash{doReduce};
+
+    my $imageName = $$imageList[$imageNum];
+    my $imageHTML = &htmlName($imageName);
+
+    my $htmlDir = "$imageDir/images2html/html";
+
+    my $cssURL = $configHash{cssURL};
+
+    if ( $configHash{cssAbsoluteURL} eq "no" ) {
+	$cssURL = "../../$cssURL";
+    }
+    # clicking will link to the next image
+    my $nextImage;
+    if ($imageNum == ($nImageList-1)) {
+	$nextImage = $imageList[0];
+    } else {
+	$nextImage = $imageList[$imageNum+1];
+    }
+	
+    my $nextImageHTML = &htmlName($nextImage);    
+
+    open HTML, "> $htmlDir/$imageHTML" or 
+	die "Cannot open $imageHTML: $!";
+
+    print HTML "<html>\n";
+    print HTML "<!-- Created by images2html Erin Sheldon -->\n";    
+    print HTML "<head>\n";
+    print HTML "<link rel=\"STYLESHEET\" type=\"text/css\" href=\"$cssURL\">\n";
+    print HTML "</head>\n";
+    
+    print HTML "<body>\n";
+    
+    print HTML "<div id=\"content\">\n";
+
+    print HTML "  <div class=\"imagetable\">\n";
+    print HTML "    <em>$imageName</em><br>\n";
+
+    if ($doReduce eq "yes") {
+	print HTML "    <a href=\"$nextImageHTML\"><img src=\"../reduced/$imageName\"></a>\n";
+    } else {
+	print HTML "    <a href=\"$nextImageHTML\"><img src=\"../../$imageName\"></a>\n";
+    }
+
+    if ( -e "$imageDir/$imageName.txt" ) {
+	# read from the description file
+	print HTML "    <br>\n";
+
+	open DESCRIPTION, "< $imageDir/$imageName.txt" or 
+	    die "Cannot open $imageDir/$imageName.txt: $!";
+
+	while (my $dline = <DESCRIPTION>) {
+	    chomp($dline);
+	    print HTML "    $dline<br>\n";
+	}
+	close(DESCRIPTION);
+    }
+
+    print HTML "  </div>\n";
+
+    print HTML "</div>\n";
+
+    print HTML "\n";
+    print HTML "<div id=\"navigation\">\n";
+    print HTML "  <hr>\n";
+    print HTML "  <h2>Image List</h2>\n";
+
+    my @imageNavList = &imageNavList($imageName);
+    foreach my $imlink (@imageNavList) {
+	print HTML "  $imlink\n";
+    }
+
+    print HTML "  <br>\n";
+    print HTML "  <a href=\"../../$imageName\">Full res</a><br>\n";
+    print HTML "  <a href=\"../../$indexName\">$indexName</a>\n";
+    print HTML "</div>\n";
+
+    print HTML "</body>\n";
+    print HTML "</html>\n";
+
+    close HTML;
+}
+
+# Create a list of image pages with links for those that aren't the current
+# image
+sub imageNavList {
+
+    ###############################################
+    # makes use of global variable %configHash
+    ###############################################
+
+    my $imageList = $configHash{imageList};
+
+    my $currentImage = shift;
+
+    my @imageNavList;
+
+    # Will use the global variable @imageList
+    my $ii=1;
+    foreach my $image (@$imageList) {
+
+	my $tmpName;
+	if ($image eq $currentImage) {
+	    $tmpName = "$ii";
+	} else {
+	    my $htmlName = &htmlName($image);
+	    $tmpName = "<a href=\"../html/$htmlName\">$ii</a>";
+	}
+
+	if ($ii % 5 == 0) {
+	    $tmpName = "$tmpName<br>";
+	}
+
+	push @imageNavList, $tmpName;
+
+	$ii++;
+    }
+
+    return @imageNavList;
+}
+
+
+sub createDirectories {
+
+    ###############################################
+    # makes use of global variable %configHash
+    ###############################################
+
+    my $imageDir = $configHash{imageDir};
+
+    # Make a directory to hold the generated files
+    my $images2htmlDir = "$imageDir/images2html";
+    if ( -d $images2htmlDir ) {
+	print "IMAGES2HTML directory $images2htmlDir exists\n";
+    } else {
+	print "Creating IMAGES2HTML Directory $images2htmlDir\n";
+	mkdir $images2htmlDir;
+    }
+
+    # Make a directory to hold html files
+    my $htmlDir = "$images2htmlDir/html";
+    if ( -d $htmlDir ) {
+	print "HTML directory $htmlDir exists\n";
+    } else {
+	print "Creating HTML Directory $htmlDir\n";
+	mkdir $htmlDir;
+    }
+
+
+    # Make a directory to hold the thumbnails
+    my $thumbDir = "$images2htmlDir/thumbnails";
+    if ( -d $thumbDir ) {
+	print "Thumbnail directory $thumbDir exists\n";
+    } else {
+	print "Creating Thumbnail directory $thumbDir\n";
+	mkdir $thumbDir;
+    }
+    
+    # Make a directory to hold the thumbnails
+    my $reducedDir = "$images2htmlDir/reduced";
+    if ( -d $reducedDir ) {
+	print "Reduced directory $reducedDir exists\n";
+    } else {
+	print "Creating Reduced directory $reducedDir\n";
+	mkdir $reducedDir;
+    }
+
+    # Make a directory to hold the style sheet
+    my $stylesDir = "$images2htmlDir/styles";
+    if ( -d $stylesDir ) {
+	print "Styles directory $stylesDir exists\n";
+    } else {
+	print "Creating Styles directory $stylesDir\n";
+	mkdir $stylesDir;
+    }
+
+}
+
+
+
+
+sub parseConfig {
+
+    my $configFile = $_[0];
+
+    print "Parsing config file $configFile\n";
+
+    open(CONFIG_FILE, $configFile) || 
+	die "Cannot open config file: $configFile\n";
+
+    my %configHash = &configDefaults;
+
+    foreach my $line (<CONFIG_FILE>) {
+	chomp($line);
+
+	# remove comments
+	my $commIndex = index($line, "#");
+	if ($commIndex != -1) {
+	    $line = substr($line, 0, $commIndex);
+	}
+	
+	my @ln = split " ", $line;
+	if (@ln == 2) {
+	    $configHash{$ln[0]} = $ln[1];
+	}
+    }
+
+    close CONFIG_FILE;
+    return %configHash;
+}
+
+sub configDefaults {
+    my %configHash;
+
+    # Set the defaults
+    $configHash{rows} = 3;
+    $configHash{columns} = 4;
+    $configHash{thumbSize} = "100x100";
+    $configHash{doReduce} = "yes";
+    $configHash{reducedSize} = "640x640";
+    $configHash{indexShowNames} = "yes";
+
+    return %configHash;
+}
+
+
+sub getFileList {
+
+    my $imageDir = $_[0];
+
+    opendir DIRHANDLE, $imageDir or die("Cannot open $imageDir");
+
+    my @imageList;
+
+    foreach my $file (readdir DIRHANDLE) {
+
+	if ($file =~ m/\.jpg$/  ||
+	    $file =~ m/\.jpeg$/ ||
+	    $file =~ m/\.JPG$/  ||
+	    $file =~ m/\.JPEG$/ ||
+	    $file =~ m/\.png$/  ||
+	    $file =~ m/\.PNG$/ ) {
+
+	    push @imageList, $file;
+	}
+    }
+
+    return @imageList;
+
+}
+
+sub createThumbnails {
+
+    ###############################################
+    # makes use of global variable %configHash
+    ###############################################
+
+    my $imageDir = $configHash{imageDir};
+    my $imageList = $configHash{imageList};
+    my $thumbSize = $configHash{thumbSize};
+    my $doReduce = $configHash{doReduce};
+    my $reducedSize = $configHash{reducedSize};
+
+    my $images2htmlDir = "$imageDir/images2html";
+
+    foreach my $file (@$imageList) {
+
+	my $thumbnail = "$images2htmlDir/thumbnails/$file";
+	my $reducedImage = "$images2htmlDir/reduced/$file";
+
+	if (! -f $thumbnail ) {
+
+	    print "Creating thumbnail: $thumbnail\n";
+
+	    system("convert",
+		   "-size",
+		   "$thumbSize",
+		   "$imageDir/$file", 
+		   "-resize", 
+		   "${thumbSize}\>", 
+		   $thumbnail) ==0 or die("Failed");
+	}
+	if (! -f $reducedImage && $doReduce eq "yes") {
+	    print "Creating reduced image: $reducedImage\n";
+
+	    system("convert",
+		   "-size",
+		   "$reducedSize",
+		   "$imageDir/$file", 
+		   "-resize", 
+		   "${reducedSize}\>", 
+		   $reducedImage) ==0 or die("Failed");
+	}
+    }
+
+}
+
+
+sub indexName {
+
+    my $pageNum = shift;
+
+    my $indexName;
+    if ($pageNum == 0) {    
+	$indexName = "index.html";
+    } else {
+
+	my $base = "00";
+	my $baseLength = 2;
+
+	my $pageLength = length $pageNum;
+	my $id = substr($base, 0, $baseLength-$pageLength) . $pageNum;
+	$indexName = "index$id.html";
+    }
+
+    return $indexName;
+}
+
+
+
+sub htmlName {
+
+    my $imageName = shift;
+
+    my $pos = rindex($imageName, ".");
+    my $imageHTML = substr($imageName, 0, $pos);
+    $imageHTML = "$imageHTML.html";
+
+    return $imageHTML;
+}
+
+
+sub checkCSS {
+
+    # name for local CSS files
+#    my $localCSS = "$imageDir/images2html.css";
+    my $localCSS = "images2html.css";
+    # check if the cssURL was input
+    if (!exists($configHash{cssURL}) ) {
+	$configHash{cssURL} = $localCSS;
+	$configHash{cssAbsoluteURL} = "no";
+	
+	# If it doesn't exist, we will write one
+	if (! -f $localCSS) {
+	    print "Writing default CSS file\n";
+	    &writeStyle($localCSS);
+	}
+    } else {
+	# is the input css file location absolute?
+	if ($configHash{cssURL} =~ "http") {
+	    print "Using absolute css URL: $configHash{cssURL}\n";
+	    $configHash{cssAbsoluteURL} = "yes";
+	} else {
+
+	    # Only copy if its not already the "localCSS"
+	    if ( !($configHash{cssURL} eq $localCSS) ) {
+
+		print "Copying cssURL file $configHash{cssURL} to $localCSS\n";
+		if (! -f $configHash{cssURL}) {
+		    print "Cannot find $configHash{cssURL}. Writing default CSS file\n";
+		    &writeStyle($localCSS);
+		    $configHash{cssURL} = $localCSS;
+		    $configHash{cssAbsoluteURL} = "no";
+		}
+		system("cp -f $configHash{cssURL} $localCSS") == 0 or
+		    die "Cannot copy $configHash{cssURL} to $localCSS: $!";
+		
+		$configHash{cssAbsoluteURL} = "no";
+	    }
+	}
+    }
+}
+
+
+sub writeStyle {
+
+    my $cssURL = shift;
+
+    my $imageDir = $configHash{imageDir};
+
+    my $style = &style;
+
+    open CSS, "> $imageDir/$cssURL" or
+	die "Cannot open $imageDir/$cssURL: $!";
+#    open CSS, "> $cssURL" or
+#	die "Cannot open $imageDir/$cssURL: $!";
+
+    print CSS $style;
+
+    close CSS;
+}
+
+sub style {
+
+    my $style="
+/* Colors used: 
+    #595B30  A kind of brown for the main text color
+    #F0E68C  Khaki for the main background
+    #898B60  A tannish color for nav background a few others
+    #ffe4c4  bisque. visited links in navigation bar
+*/
+
+/******************************************/
+/* Styling rules for the body             */
+/******************************************/
+
+html,body 
+{
+  margin:0;
+
+  color:#595B30;      /* A kind of brown */
+  background:#F0E68C; /* khaki; */
+}
+
+a:link {color:#595B30; text-decoration:none}
+a:visited {color:#595B30; text-decoration:none}
+a:hover {text-decoration:underline}
+
+/*-----------------------------------------------*/
+/* The main content, with absolute positioning   */
+/*-----------------------------------------------*/
+
+#content 
+{
+  position:absolute;
+  top:3em;
+  left:12em;
+}
+
+/*-----------------------------------------------*/
+/* A navigation bar will be on the left          */
+/*-----------------------------------------------*/
+
+#navigation 
+{
+  width:8em;
+  height:100%;
+  padding:0.5em;
+
+  background:#898B60; /* A tannish color */
+}
+
+#navigation hr { display:none }
+#navigation h2 { color:#595B30 }
+#navigation a:link {color:white}
+#navigation a:visited {color:#ffe4c4} /* bisque */
+
+
+/*--------------------------------------------------------*/
+/* A class for the main table division on the index pages */
+/*--------------------------------------------------------*/
+
+.thumbtable 
+{
+  display:table; 
+  border-collapse:separate;
+
+  margin:10px auto;
+
+
+  width:640px;
+  height:480px;
+
+  /* this puts a background, and the border spacing, combined with 
+     a background color of the td's, creates the border. I switched to
+     putting an actual border on, see the row div.td */
+  /*border-spacing:2px;*/
+  /*background:#898B60;*/
+}
+
+.thumbname 
+{ 
+  font-style:italic;
+  font-size:small;
+
+  color:#898B60;
+}
+
+/*-----------------------------------------------*/
+/* rows and data classes                         */
+/*-----------------------------------------------*/
+
+.row 
+{
+  display:table-row;
+}
+
+.row div 
+{
+  display:table-cell;
+  border-spacing:2px;
+  height:33%; 
+
+  background:#595B30;
+
+}
+
+/* td is a subclass I guess */
+
+.row div.td 
+{
+  text-align:center;
+  vertical-align:middle;
+  width:25%;
+
+  /* these replace the effect of border-spacing and background in
+     the main thumbtable. Better, since \"missing\" images are filled
+     with the body background */
+  border: 1px #898B60 solid;
+}
+
+.row div.td img { border-color:#595B30 }
+
+/*-----------------------------------------------*/
+/* A class for the bottom \"previous\" and \"next\"  */
+/* index                                         */
+/*-----------------------------------------------*/
+
+.prevNext 
+{  
+  margin-left:auto;
+  margin-right:auto;
+  margin-top:0px;
+  margin-bottom:0px;
+  width:640px;
+  /*border: 2px black solid;*/
+  /*height:5em;*/
+}
+
+.prevNextRow 
+{  
+  display:table-row;
+}
+
+.prevNextRow div
+{ 
+  display:table-cell;
+}
+
+.prevNextRow div.prevtd
+{  
+  /*border: red 2px solid;*/
+  width:1%;
+  text-align:left;
+  font-style:italic;
+}
+.prevNextRow div.nexttd
+{  
+  /*border: red 2px solid;*/
+  width:1%;
+  text-align:right;
+  font-style:italic;
+}
+
+
+
+/*-----------------------------------------------*/
+/* A class for containing the images             */
+/*-----------------------------------------------*/
+
+.imagetable 
+{
+  display:table; 
+  border-collapse:separate;
+
+  margin:10px auto;
+  border-spacing:2px;
+}
+
+.imagetable img { border-color:#898B60 }
+
+";
+
+return $style;
+
+}
+

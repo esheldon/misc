@@ -1,0 +1,12 @@
+shell access:
+        access is through ssh keys.  I have my usual
+        one uploaded, if it doesn't work you can
+        do an update through the admin pages
+
+
+        You might have to create a shell.
+        ssh erinsheldon,sdssidl@shell.sourceforge.net create
+        Then log in
+        ssh erinsheldon,sdssidl@shell.sourceforge.net
+        I set links to the web area, and the actual files are
+        served from htdocs

@@ -1,0 +1,19 @@
+To get fixed font working in debian:
+
+Ensure xfonts-100dpi is installed
+dpkg-reconfigure fontconfig-config
+    And say "yes" to the question about bitmapped fonts.
+
+Works in xfce4-terminal but not gnome-terminal currently.
+
+Then I had to reset the fonts for firefox under 
+    edit/preferences/content/fonts&colors/advanced
+    Fonts for: Western
+    Proportional: Serif Size: 16
+    Serif: serif
+    Sans-serif: sans-serif
+    Monospace: monospace Size: 12
+    
+
+To get some fonts to work in my ~/.fonts directory have to run mkfontdir
+~/.fonts

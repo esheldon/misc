@@ -1,0 +1,18 @@
+#!/usr/bin/perl -w
+# print the header of an idlstruct file
+
+if (@ARGV < 1) {
+    print "-Syntax: head_idlstruct idlstructFile\n";
+    exit;
+}
+
+while (<>) {
+
+    chomp($_);
+    if ($_ eq "END") {
+	exit;
+    } else {
+	print "$_\n";
+    }
+
+}

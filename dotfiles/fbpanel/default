@@ -1,0 +1,101 @@
+# fbpanel <profile> config file
+# see http://fbpanel.sf.net/docs.html for complete configuration guide
+
+
+Global {
+    edge = top
+    allign = right
+    margin = 0
+    widthtype = percent
+    width = 15
+    height = 16
+    transparent = true
+    tintcolor = black
+    alpha = 255
+    setdocktype = true
+    setpartialstrut = true
+    autohide = false
+    heightWhenHidden = 2
+}
+
+Plugin {
+    type = space
+    config {
+        size = 2
+    }
+}
+
+
+Plugin {
+    type = menu
+    config {
+        image = ~/local/products/Linux64/fbpanel/6.1/share/fbpanel/images/default.xpm
+        systemmenu {
+        }
+    }
+}
+
+
+
+Plugin {
+    type = space
+    config {
+        size = 3
+    }
+}
+
+
+Plugin {
+    type = cpu
+}
+
+# we get fast transfers in the local network, use 3000
+Plugin {
+    type = net
+    config {
+        interface = eth0
+        TxLimit = 200
+        RxLimit = 3000
+        TxColor = cyan
+        RxColor = red
+    }
+}
+
+Plugin {
+    type = space
+    config {
+        size = 3
+    }
+}
+
+#plugin {
+#    type = volume
+#}
+
+#Plugin {
+#    type = space
+#    config {
+#        size = 3
+#    }
+#}
+
+#Plugin {
+#    type = mem
+#    config {
+#        ShowSwap = false
+#    }
+#}
+
+#Plugin {
+#    type = space
+#    config {
+#        size = 3
+#    }
+#}
+
+
+Plugin {
+    type = tray
+}
+
+

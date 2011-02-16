@@ -1,0 +1,19 @@
+tag a version
+mk_sdssidl_help, version
+
+go to sdssidl.sourceforge.net and go to admin/file releases.
+
+release name: e.g. v1.3.0
+upload change log: CHANGES.txt
+
+refresh
+
+ftp the .tar.gz file to upload.sourceforge.net in the incoming directory.
+refresh
+choose the .tar.gz file
+At the bottom set the pulldowns.
+
+upload doc .tar.gz file to esheldon@shell.sourceforge.net:
+copy into sdssidl linked dir, untar and move to htdocs
+
+Should be ready.

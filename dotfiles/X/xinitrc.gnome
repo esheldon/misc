@@ -1,0 +1,12 @@
+#!/bin/sh
+# under a display manager like gdm, will need to link this to ~/.Xsession
+# for startx ~/.xinitrc
+
+if [ -r ~/.Xdefaults ]; then
+	xrdb -merge ~/.Xdefaults
+fi
+if [ -r ~/.Xmodmap ]; then
+	xmodmap ~/.Xmodmap
+fi
+
+exec /usr/bin/gnome-session

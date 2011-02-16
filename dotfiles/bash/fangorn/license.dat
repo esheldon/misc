@@ -1,0 +1,4 @@
+PACKAGE vip_crs idl_lmgrd 999.900 709020A1678735FAE779 COMPONENTS="vip:999.900 idl_rt:999.900 \
+                             idl_wavelet:999.900 idl_dm:999.900 idl:999.900"
+                             FEATURE vip_crs idl_lmgrd 999.900 permanent uncounted AC5E5E8AF2699107EFAD HOSTID=ANY ISSUER="Team \
+                             CROSSFiRE 2003" NOTICE="Not to be sold" ck=70 SN=123456789

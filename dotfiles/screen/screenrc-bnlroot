@@ -1,0 +1,47 @@
+################
+#
+# 256 colours
+# ... http://frexx.de/xterm-256-notes/
+
+# terminfo and termcap for nice 256 color terminal
+# allow bold colors - necessary for some reason
+attrcolor b ".I"
+# tell screen how to set colors. AB = background, AF=foreground
+termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+# erase background with current bg color
+defbce "on"
+
+# kill startup message
+startup_message off
+
+# This tells screen that my prompt ends in "] ", the default title is
+# bash, and to look at the prompt for hints at the current process for use
+# in the window title
+shelltitle "] |bash"
+
+caption splitonly "%?%F%{= kG}%:%{= kw}%? %n %t%=%{= db}"
+hardstatus alwayslastline "%{= kw} %-Lw%{=b kG} %n%f %t %{-}%+Lw %=%{= kR} %h%{-} %{+b} %C%a %D %d %M %Y %{= dd}"
+
+
+# more intuitive movement through regions
+# normal navigation is only through C-a tab
+# note t is usually "print system time" so I won't miss that
+# if vertical split every becomes standard, can bin h and l to left right
+# again no loss since h is hardcopy and l is redisplay
+bind j focus down
+bind k focus up
+bind b focus bottom
+bind t focus top
+
+
+
+defscrollback 10000
+
+# startup
+screen -t root@bach03 4
+screen -t root@bach02 3
+screen -t root@bach01 2
+screen -t root@bach00 1
+screen -t root@tutti 0
+
+

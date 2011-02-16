@@ -1,0 +1,4 @@
+rm apply_maskIDL.so
+
+gcc -fPIC -O6 -lm -lgsl -lgslcblas -shared -o apply_maskIDL.so apply_maskIDL.c 
+

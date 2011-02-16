@@ -1,0 +1,85 @@
+This is a way to install Python with NumPy, the numerical python package, and
+SciPy, as set of routines to do scientific analysis with python. Plotting is
+also supported by the matplotlib packages. The packages below are the minimal
+you need to install.
+
+Everything just works which is why I prefer the MacPython distro to others.
+The problem is that you don't necessarily get the latest greatest you could get
+with the svn checkout, but it may be possible to use svn as well.  I haven't
+yet tried.
+
+
+TeX
+-------------------------------------------------------
+Make sure you have tex installed, so you can make figures with labels and
+symbols created using tex. And so you can write papers of course.
+  http://ii2.sourceforge.net/tex-index.html
+
+Xcode
+-------------------------------------------------------
+This comes for free with OS X since at least tiger, probably before. Check
+your install disk. 
+
+
+
+MacPython
+--------------------------------------------------------
+Main homepage:
+  http://homepages.cwi.nl/~jack/macpython/
+Package download for python 2.4:
+  http://www.pythonmac.org/packages/py24-fat/
+
+Packages I installed from http://www.pythonmac.org/packages/py24-fat/:
+  Package    Version   Description
+  --------------------------------
+  python     2.4.3     Probably newer than what you have by default. 
+  numpy      1.0b5     NumPy See http://scipy.org/ and http://numpy.scipy.org/
+  matplotlib 0.87.5    Plotting - http://matplotlib.sourceforge.net/
+  scipy      0.5.1     http://scipy.org/
+
+  Optional but perhaps useful. 
+  wxPython   2.6       For a different GUI than TK.  I have yet to see 
+                       advantages to this over TK.
+
+Getting it working
+-----------------------------------
+
+PATH
+  You will need to have this in your path for executables:
+    /Library/Frameworks/Python.framework/Versions/Current/bin/python
+  Note one of the install scripts modifies your shell startup file to
+  do this but messes up the syntax (this is the one bug I have found)
+  so you need to do this yourself.
+
+NUMERIX
+
+  You should set an environment variable
+    setenv NUMERIX numpy
+  This is used by some packages that are currently moving from the older
+  numerical packages (numarray,numeric) to distinguish your preference. In
+  the future the default will be numpy but do this for now just in case.
+
+PLOTTING
+  To get plotting to work you should create a file in a new directory
+    .matplotlib/matplotlibrc
+  And add the following at minimum:
+
+  backend      : TkAgg  # If you installed wxPython you can leave this off or set to WxAgg
+  numerix      : numpy  # numpy, Numeric or numarray
+  text.usetex  : True   # use latex for all text handling.  For more information, see
+                        # http://www.scipy.org/Wiki/Cookbook/Matplotlib/UsingTex
+    
+  You can get see full set of options by looking at this file:
+    /Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/matplotlib/mpl-data/matplotlibrc
+  The tex is especially nice.  See here for example usage
+  of tex: 
+    http://www.scipy.org/Cookbook/Matplotlib/UsingTex
+
+
+Some additional packages
+-------------------------------
+
+pyfits: Pure python FITS reader that uses numpy.
+  http://www.stsci.edu/resources/software_hardware/pyfits
+  
+  To install: sudo python setup.py install

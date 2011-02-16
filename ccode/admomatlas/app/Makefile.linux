@@ -1,0 +1,28 @@
+CC	= cc
+LD	= cc
+INCLUDE	= -I../include
+CCFLAGS	= ${INCLUDE} -DLINKAGE=
+ARFLAGS = 	-rlcs
+EXECUTABLE	= admomatlas
+LIBRARY	= ../lib/libAtlas.a
+OBJS	= ../phadmom/phadmom.o admomatlas.o
+
+LDLIBS	= ${LIBRARY} -lm
+
+${EXECUTABLE}: ${OBJS}
+	@ echo linking $@
+	@ ${LD} -o $@ ${CCFLAGS} ${OBJS} ${LDLIBS}
+
+all: ${EXECUTABLE}
+	- cp ${EXECUTABLE} ../bin
+
+clean:
+	- rm -f ${OBJS}; rm -f ${EXECUTABLE}; 
+	- cd ../bin/; rm -f ${EXECUTABLE}; 
+
+.SUFFIXES:
+.SUFFIXES: .o .c
+
+.c.o:
+	@ echo compiling $<
+	@ ${CC} -c -g ${CCFLAGS} $<

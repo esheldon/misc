@@ -1,0 +1,16 @@
+Config { font = "-zevv-peep-medium-r-normal--16-140-75-75-c-80-iso8859-15"
+       , bgColor = "black"
+       , fgColor = "grey"
+       , position = TopW L 85
+	   , lowerOnStart = True
+       , commands = [ Run Weather "EGPF" ["-t"," <tempF>F","-L","64","-H","77","--normal","green","--high","red","--low","lightblue"] 36000
+                    , Run Memory ["-t","Mem: <usedratio>%"] 100
+                    , Run Swap [] 100
+                    , Run Date "%a %b %_d %l:%M" "date" 10
+                    , Run StdinReader
+                    ]
+       , sepChar = "%"
+       , alignSep = "}{"
+       , template = "%StdinReader% }{ %memory% * %swap% | <fc=#ee9a00>%date%</fc> | %EGPF%"
+       }
+

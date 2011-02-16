@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# use this one only if your sure the existing plate directories don't need
+# to be updated!
+
+# run in background?
+logfile="wgetlog-spectra.log"
+back=" "
+if [ $# -eq 1 ]
+then
+    back=" --background --output-file=$logfile "
+fi
+
+vers1d="1d_23"
+
+#datadir="/net/cheops3/data1/spectra/"
+datadir="/net/cheops1/data0/spectra/"
+
+#switch to local directory
+olddir=$cwd
+localdir=$datadir
+cd $localdir
+
+# get existing plate directories
+cd $vers1d
+dirs=`ls -d [0-9]*`
+cd ..
+
+# we don't care about this crap I don't think
+exclude_dirs="spectroRoot/${vers1d}/tmp4bkup"
+exclude_dirs="${exclude_dirs},spectroRoot/${vers1d}/markman"
+
+# this is gotten by wget_sne
+exclude_dirs="${exclude_dirs},spectroRoot/${vers1d}/sne"
+
+i=0
+for d in $dirs
+do
+  if [ "$exclude_dirs" == "" ]
+  then
+      exclude_dirs="spectroRoot/${vers1d}/$d"
+  else
+      exclude_dirs="${exclude_dirs},spectroRoot/${vers1d}/$d"
+  fi
+  
+done
+
+#echo $exclude_dirs
+#exit
+
+#host, etc.
+host="http://das.sdss.org/"
+user="sdss"
+passwd="54chips"
+
+# what files to keep
+accept="spSpec*,spDiag1d*"
+
+# remote directory on host
+remotedir="spectroRoot/${vers1d}/"
+
+# arguments to wget.
+wgetargs=" --mirror --dot-style=mega -nH --cut-dirs=1 --no-parent --tries 50 " 
+wgetargs="$wgetargs $back --accept $accept --exclude-directories=$exclude_dirs"
+
+# quoted thing treated as one arg, so don't quote $wgetargs. 
+# Also separate other arguments
+wget $wgetargs "$host$remotedir" "--http-user=$user" "--http-passwd=$passwd"
+
+echo "run this command to follow log file:"
+echo "tail -f $localdir$logfile"
+
+cd $olddir
+
+exit 0
+

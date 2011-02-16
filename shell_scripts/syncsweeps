@@ -1,0 +1,48 @@
+#!/bin/bash
+
+user=sdss3
+host=data.sdss3.org
+
+pwdfile=~/.boss.txt
+
+
+if [ $# -lt 1 ]; then
+    echo syncsweeps PHOTO_SWEEP [rerun type camcol]
+    exit 45
+fi
+
+sweepdir=$1
+
+localdir=$PHOTO_SWEEP_BASE/$sweepdir
+# note: turns out these held the exact same files
+#remotedir=sas/bosswork/groups/boss/sweeps/$sweepdir
+remotedir=dr8/groups/boss/sweeps/$sweepdir
+
+
+if [ ! -e "$localdir" ]; then
+    mkdir -p "$localdir"
+fi
+
+cd $localdir
+
+
+if [ $# -eq 1 ]; then
+
+    rsync -av --password-file $pwdfile \
+        --exclude "*.dat" --exclude "*.sh" --exclude "*.pro" --exclude "*.o*" \
+        --exclude "delete_runs" --exclude "exclude_runs" \
+        "$user@$host::$remotedir/" .
+else
+
+    rerun=$2
+    type=$3
+    camcol=$4
+
+    rsync -av --password-file $pwdfile \
+        --include "/$rerun" --include "/$rerun/*-$camcol-*$type*" --exclude "*"  \
+        "$user@$host::$remotedir/" .
+
+    #rsync -av --password-file $pwdfile \
+    #    --include "/$rerun" --include "/$rerun/*-$camcol-*$type*" --exclude "*"  \
+    #    "rsync://$user@$host/$remotedir/" .
+fi

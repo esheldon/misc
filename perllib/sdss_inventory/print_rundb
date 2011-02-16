@@ -1,0 +1,95 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Getopt::Long;
+
+use SDSS::StringOp;
+use SDSS::HashOp;
+use SDSS::DBMTools;
+use SDSS::PrintTools;
+
+############################################
+# switches
+############################################
+
+my $byrun=0;
+my $bystripe=0;
+my $docorr=0;
+my $notcorr=0;
+my $allcolumns=0;
+GetOptions('byrun' => \$byrun, 
+	   'bystripe' => \$bystripe, 
+	   'corr' => \$docorr,
+	   'notcorr' => \$notcorr,
+	   'allcolumns' => \$allcolumns)
+    or die;
+
+# $notcorr implies docorr
+if ($notcorr) {$docorr=1};
+
+##############################################
+# Read in the run database
+##############################################
+
+# The hash of hashes that contains our data
+my %RI;
+
+if ($byrun) {
+    %RI = &read_rundb_byrun;
+} else {
+    %RI = &read_rundb;
+}
+ 
+###################################################
+# Should we use the default columns to print or 
+# the user's input columns?
+###################################################
+
+my @columns;
+if (@ARGV > 0) {
+    # Use the input columns
+    @columns = @ARGV;
+} else {
+    # Use one of the predefined sets of columns
+
+    @columns = &rundb_columns({"byrun"=>$byrun,
+			       "bystripe"=>$bystripe,
+			       "docorr"=>$docorr,
+			       "all"=>$allcolumns});
+}
+
+########################################################
+# Get the default print formats
+########################################################
+
+my %colformat = &rundb_colformat;
+
+######################################################
+# Print the header
+######################################################
+
+&print_rundb_header(\%RI, \@columns, \%colformat);
+
+#########################################
+# Print the columns. 
+#########################################
+
+# Should we re-key by stripe-strip?
+
+if ($bystripe) {
+
+    my @newkeys = &sort_bystripe(\%RI, $byrun);
+    &print_rundb_hash(\%RI, \@columns, \%colformat, 
+		      {"docorr"  => $docorr, 
+		       "notcorr" => $notcorr,
+		       "keys"    => [ @newkeys ]}); 
+
+} else {
+
+    &print_rundb_hash(\%RI, \@columns, \%colformat, 
+		      {"docorr"=>$docorr, "notcorr"=>$notcorr});
+
+}
+
+# we're done
+exit;

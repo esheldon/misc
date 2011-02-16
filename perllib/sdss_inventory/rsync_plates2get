@@ -1,0 +1,97 @@
+#!/usr/bin/perl -w
+
+use strict;
+use SDSS::StringOp;
+
+my $dbm_dir;
+if ( exists($ENV{"DBM_DIR"}) ) {
+    $dbm_dir = $ENV{"DBM_DIR"};
+} else {
+    die "Environment variable DBM_DIR is not set";
+}
+
+my $vers1d="1d_23";
+my $plates2get_file = "${dbm_dir}/collate/plates2get.dat";
+
+##########################
+# Create wget arguments
+##########################
+
+# host, etc
+my $home;
+if ( exists($ENV{"HOME"}) ) {
+    $home = $ENV{"HOME"};
+} else {
+    die "Environment variable HOME is not set";
+}
+my $host = "rsync://sdss\@das.sdss.org";
+my $pFile="${home}/.pfile";
+
+#########################################################################
+# Open the plates2get file and loop over it, getting the plates we want
+#########################################################################
+
+my $snecode_dir = "/net/cheops1/home/products/sncode/active_SNfinderv1.8";
+my $snOutDir = "/home/www/html/SN";
+my $specDir = "/net/cheops1/data0/spectra/${vers1d}";
+
+open(PLATES2GET, $plates2get_file) or die "can't open file $plates2get_file\n";
+
+foreach my $line (<PLATES2GET>) {
+
+    chdir($specDir) or die "Cannot go to directory $specDir: $!\n";
+
+    my @ln = split " ",$line;
+
+    my $plate = $ln[0];
+    my $mjd = $ln[1];
+    my $nspec = $ln[2];
+
+    my $platestr = &stripe2string($plate);
+
+    print "Downloading plate: $plate mjd: $mjd\n";
+    print "Here is a chance to kill it\n";
+    #sleep 10;
+
+    # remote directory on host
+    my $remoteDir="data/spectro/${vers1d}/$platestr";
+
+    my @args = ("rsync", 
+		"-avL", 
+		"--password-file=$pFile",
+		"--exclude=spPlot*",
+		"${host}/${remoteDir}/",
+		"$specDir/$plate");
+
+    system(@args) == 0
+	or die "system @args failed: $?";
+
+    # Run the sne processing code
+    # outputs go to STDOUT
+    chdir($snecode_dir);
+
+    # IaTemplate.lis instead of SNTemplate.lis
+    my $platedir = "$specDir/$platestr/1d";
+
+    @args = ("./findSNe",
+	     $platedir,
+	     "filts.lis",
+	     "eig.lis",
+	     "IaTemplate.lis",
+	     $snOutDir);
+
+    system(@args) == 256
+	or die "system @args failed: $?";
+
+    chomp(my $date = `date`);
+    my $message = "$mjd-$platestr downloaded and processed: $date";
+    my $subject = "\"$mjd-$platestr has been processed\"";
+
+    my $out = `echo $message | mail esheldon\@cfcp.uchicago.edu -s $subject`;
+    print $out;
+
+    print "Done\n";
+    
+}
+
+close(PLATES2GET);

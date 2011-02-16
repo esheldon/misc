@@ -1,0 +1,101 @@
+VIM TUTURIAL
+
+a  Append
+A  Append to end of line
+b  Previous word
+B  Previous WORD
+c  Change {motion}
+C  Change to end of line
+d  Delete {motion}
+D  Delete to end of line
+e  End of word
+E  End of WORD
+f  Forward to char
+F  Backward to char
+g  G-series of commands
+ga Describe character
+gg Beginning of file
+gj Down screen line
+gk Up screen line
+gq Format # See Q
+gqap Format a paragraph
+gqG Format from here to end of file
+=G Indent from here to end of file
+g* Search for current word without boundary
+g# Search for current word backward without boundary
+G  End of file
+h  Left
+H  Top of screen
+i  Insert
+I  Insert at first non-blank character
+j  Down
+J  Join lines
+k  Up
+K  Help on word (man, etc.)
+l  Right
+L  Bottom of screen
+m  Set mark
+M  Middle of screen
+n  Next match for search
+N  Previous match for search
+o  Open line
+O  Open line above
+p  Put
+P  Put before
+q  Record macro
+Q  format text. Paragraph in normal mode, selected text in visual. 
+r  Replace character
+R  Replace mode
+^r Redo
+s  Remove character with string
+t  Go to character
+T  Go backward to character
+u  Undo
+v  Visual mode
+V  Line visual mode
+w  Next word
+W  Next WORD
+x  Delete character
+X  Backward delete character
+y  Yank {motion}
+Y  Yank line (usually remapped to yank to end of line)
+z  Z-series of commands
+zt Take line to top of screen
+zz Take line to center of screen
+zb Take line to bottom of screen
+ZZ Write and quit
+
+`  Go to line and column of mark
+~  Change case
+#  Search for current word backward
+$  End of line
+^  To the first non-blank character of the line
+*  Search for current word
+(  Beginning of sentence
+)  End of sentence
+-  Previous line
+_  To the first non-blank character of the line
+=  Indent
++  Next line
+|  Go to column
+{  Beginning of paragraph
+}  End of paragraph
+;  Repeat last character-find
+:  "ex" command
+'  Go to line of mark
+.  Repeat last action
+<  Reduce indent
+>  Increase indent
+
+
+substitution: http://www.geocities.com/volontir/
+--------------------
+:range s/pattern/string/cgiI
+
+Replace all occurences, confirmin each
+:%s/pattern/string/c
+
+e.g. :%s/hubble/Hubble/c
+
+Switch to the last buffer
+:b #

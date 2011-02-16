@@ -1,0 +1,14 @@
+ubuntu and debian no longer provide a "run .xsession" option in gdm.
+
+Create  /usr/share/xsessions/Xsession.desktop
+
+And put this in there:
+
+
+[Desktop Entry]
+Name=Xsession
+Comment=Just run the goddam ~/.xsession
+Exec=/etc/X11/Xsession
+
+I think that the .xsession must be executable.
+

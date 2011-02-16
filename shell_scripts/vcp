@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# Copy files, using pv to watch the progres and estimate a time
+# of arrival
+#
+# Only works on individual files and dumps them into the directory
+# named as the last argument
+#
+
+on_die() {
+    echo "Dying.."
+    exit 0
+}
+
+trap 'on_die' SIGINT
+
+if (($#<2)); then
+    echo "usage: `basename $0` SRC DST"
+    exit 1
+else
+    for (( i=1; i < $#; i++ ))
+    do
+        f=${@:${i}:1}
+        bname=$(basename "$f")
+        pv -N "$bname"   "$f" > "${!#}/$bname"
+    done
+fi
+

@@ -1,0 +1,65 @@
+#!/bin/bash
+
+function archeck {
+    run=$1
+    filetype=$2
+    fromsite=$3
+    tosite=$4
+
+    #
+    # uncomment one of these, whichever is right.
+    #
+    # 1) res=$(arverify -project DES -run "$run" -filetype "$filetype" -show-site "$tosite")
+    #  or
+    # 2) res=$(arverify -project DES -run "$run" -filetype "$filetype" "$fromsite" "$tosite")
+    #
+    # or with new system from Don's confluence page 
+    #    QUESTION: Don's page claims it uses two dashed for long versions instead 
+    #    of one like the original command. is this true?
+    #
+    # 3) res=$(descmd arverify --project DES --run "$run" --filetype "$filetype" --show-site "$tosite")
+
+    # example output for 2)
+    tmp="
+Executing Database Query... Retrieved 17980 rows.
+Processing file data... Done
+Processing size data... Done
+
+Number of files: 17980
+Est. aggregate size: 268.27 GiB.
+
+Database records from this listing for archive site: bnl
+desardata: 17980 of 17980  - 268.27 GiB
+bnl: 1099 of 17980  - 16.39 GiB
+destest3: 17980 of 17980  - 268.27 GiB
+deslogin: 1 of 17980  - 15.47 MiB
+
+No Archive site specified for direct verification.  Exiting...
+
+
+Removing temporary files...
+    "
+
+    res=$(echo "$tmp" | grep "$tosite:")
+    if [[ "$res" == "" ]]; then
+        # the site isn't even listed, happens when first starting
+        # a copy
+        echo "Unknown"
+    else
+        echo "$res" | awk '{if ($2 == $4) print "done"; else print $2,"/",$4;}'
+    fi
+}
+
+fname=$1
+
+while read run filetype fromsite tosite; do 
+    echo $run $filetype $fromsite $tosite
+    # uncomment one of these, whichever is right.
+    # descmd arcp -project DES -run "$run" -filetype "$filetype" "$fromsite" "$tosite")
+    # descmd arcp --project DES --run "$run" --filetype "$filetype" "$fromsite" "$tosite")
+    check=$(archeck "$run" "$filetype" "$fromsite" "$tosite")
+    while [[ "$check" != "done" ]]; do
+        echo "status: $check"
+        sleep 60
+    done
+done < "$fname"

@@ -1,0 +1,3 @@
+Use k9copy to cope the dvd to disk; can use k9copy to create the iso or go directly to k3b.
+
+Use k3b to burn to a dvd.  If you used k9copy to make an iso, load it, otherwise load the video_ts

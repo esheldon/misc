@@ -1,0 +1,1 @@
+gcc apply_mask.c -lm -O6 -lgsl -lgslcblas -o apply_mask

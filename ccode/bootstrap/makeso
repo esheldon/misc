@@ -1,0 +1,5 @@
+rm *.o *.so
+
+cc -c -O2 bootstrap.c call_bootstrap.c 
+
+ld -S -o call_bootstrap.so -shared call_bootstrap.o bootstrap.o

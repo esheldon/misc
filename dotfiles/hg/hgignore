@@ -1,0 +1,27 @@
+# Ignore file constructed using Visual Studio 2003
+# and viewer release source 1_20_15. This ignore
+# file may need additions for other compilers and
+# future client releases. 
+
+# use glob syntax.
+syntax: glob
+
+# Ignore this ignore file and hgrc if present
+#
+.hgignore
+.hgrc
+
+
+# Ignore compiled binaries
+#
+*.dll
+*.so
+*.o
+*.pyc
+
+# ignore the distutils build directory
+build
+
+# ignore backup files and vim swap files
+*~
+*.swp

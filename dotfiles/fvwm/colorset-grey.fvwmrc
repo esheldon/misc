@@ -1,0 +1,37 @@
+
+
+# 23 menu,buttons,iconman,pager
+Colorset 23 \
+	Foreground linen, \
+	Background grey20
+
+# tasklist colorset for focused programs
+Colorset 24 \
+	Foreground linen, \
+	Background grey30
+
+# tasklist colorset for iconified programs
+Colorset 25 \
+	Foreground red, \
+	Background grey20
+
+# tasklist colorset for selected apps: what is this?
+Colorset 26 \
+	Foreground grey50, \
+	Background grey20
+
+# tasklist colorset for un-focused programs
+Colorset 27 \
+	Foreground grey50, \
+	Background grey20
+
+# window style, unfocused windows
+Colorset 41 \
+	Foreground grey50,		\
+	Background grey20
+
+# window style, focused windows
+Colorset 42						\
+	Foreground linen, \
+	Background grey30
+

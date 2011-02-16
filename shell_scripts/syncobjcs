@@ -1,0 +1,53 @@
+#!/bin/bash
+# sync the fpAtlas and psField files
+#
+# A good approach is to specify a camcol but no run and run a few camcols
+# in parallel
+
+run="[0-9]*"
+camcol="[0-9]*"
+while getopts "c:r:" Option
+  do
+  case $Option in
+      c)  camcol=$OPTARG ;;
+      r)  run=$OPTARG ;;
+      [?]) echo "Usage: syncobjcs [-r run -c camcol]"
+           exit $WRONG_ARGS
+           ;;  
+  esac
+done
+shift $(($OPTIND - 1))
+
+
+user=sdss3
+host=data.sdss3.org
+rerun=301
+
+pwdfile=~/.boss.txt
+
+localdir=$PHOTO_REDUX
+#         dr8/groups/boss/photo/redux/301/756/objcs/3/fpAtlas-000756-3-0125.fit
+remotedir=dr8/groups/boss/photo/redux
+
+echo "copying to localdir: $localdir"
+echo "copying run: $run"
+echo "copying camcol: $camcol"
+
+if [ ! -e "$localdir" ]; then
+    mkdir -p "$localdir"
+fi
+
+cd $localdir
+
+mkdir -p $rerun
+cd $rerun
+
+rsync -avL --password-file $pwdfile \
+    --include "/$run/" \
+    --include "/$run/objcs/" \
+    --include "/$run/objcs/$camcol/" \
+    --include "/$run/objcs/$camcol/fpAtlas*.fit*" \
+    --include "/$run/objcs/$camcol/psField*.fit*" \
+    --exclude "*" \
+    "$user@$host::$remotedir/$rerun/" .
+

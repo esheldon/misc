@@ -1,0 +1,5 @@
+rm *.o *.so
+
+cc -c -O2 CompEA4.c call_CompEA4.c 
+
+ld -S -o call_CompEA4.so -shared call_CompEA4.o CompEA4.o

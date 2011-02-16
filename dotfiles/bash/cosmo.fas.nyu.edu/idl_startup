@@ -1,0 +1,7 @@
+setupplot      ;setup plotting defaults
+
+esheldon_setup
+astrolib
+
+device, retain=2
+!EDIT_INPUT = 500

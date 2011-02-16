@@ -1,0 +1,19 @@
+Mostly hardware stuff
+
+Doing "slow" active optics
+
+	just do some test images as a function of altitude make a table and use the
+	lookup table.  Need to have "donut" images to correct for next image
+	to tweak around the model.
+
+SW
+	
+	not so long in sim mode would be better.  Work with data
+	as soon as possible.
+
+	used other data sets they think too much since new optics
+	means new problems.
+
+	instrumental effects worked with too late
+
+	and don't spend too much time on hardware things that will get fixed.
