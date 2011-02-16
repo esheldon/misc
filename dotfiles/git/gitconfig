@@ -1,0 +1,5 @@
+[user]
+	name = Erin Sheldon
+	email = erin.sheldon@gmail.com
+[core]
+	excludesfile = /home/users/esheldon/.gitignore
