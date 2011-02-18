@@ -1,6 +1,8 @@
 setup local -r ~/local
 
 setup mercurial
+setup pv
+setup parallel
 
 setup vim
 
