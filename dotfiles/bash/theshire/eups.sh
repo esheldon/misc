@@ -5,6 +5,8 @@ if [ -e "$f" ]; then
     setup local -r ~/local
     setup tmux
 
+    setup parallel
+
     setup scipy
 	setup scons
 	setup wl -r ~/exports/wl-local
@@ -30,9 +32,11 @@ if [ -e "$f" ]; then
 
     setup stomp -r ~/exports/stomp-local
 
+    setup fimage -r ~/exports/fimage-local
     setup admom -r ~/exports/admom-local
 
     setup sdsspy -r ~/exports/sdsspy-local
+    setup columns -r ~/exports/columns-local
 fi
 
 
