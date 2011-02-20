@@ -1,5 +1,10 @@
 #!/bin/bash
 
+
+function usage() {
+    echo "Usage: mcurl [-d -v verbosity -s] url"
+    exit 45
+}
 verbosity="2"
 
 
@@ -13,12 +18,15 @@ while getopts "dsv:" Option; do
             ;;
         s) verbosity="0"
             ;;
-        [?]) echo "Usage: mcurl [-d -s] url"
-            exit $WRONG_ARGS
+        [?]) usage
             ;;  
     esac
 done
 shift $(($OPTIND - 1))
+
+if [[ $# -lt 1 ]]; then
+    usage
+fi
 
 if [[ $verbosity != "2" ]]; then
     options="$options -s"
@@ -36,7 +44,7 @@ for f in $flist; do
     lastchar=$(echo $f | awk '{print substr($0,length,1)}')
 
     if [[ $lastchar != "/" ]]; then
-        if [[ $verbosity == "2" ]]; then
+        if [[ $verbosity == "2" && $dryrun != "y" ]]; then
             echo
         fi
         if [[ $verbosity == "1" || $verbosity == "2" ]]; then

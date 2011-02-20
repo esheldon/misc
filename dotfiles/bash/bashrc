@@ -42,6 +42,8 @@ astrobnltest=`echo $host | grep -i astro.bnl.gov`
 rplaytest=`echo $host | grep -i rplay`
 lsst_bnl_test=$(uname -n | grep -i lst.bnl)
 
+riemann_test=$(uname -n | grep n000)
+
 if [[ $hname == "fangorn" || $sysname == "Darwin" ]]; then
     dotfileDir=$ddir/fangorn
 elif [[ "$hname" == "theshire" ]]; then
@@ -61,7 +63,7 @@ elif [[ $cosmotest != "" ]]; then
 elif [[ $eepctest != "" ]]; then
     dotfileDir=$ddir/default
     host="eepc"
-elif [[ "$hname" == "ln000" ]]; then
+elif [[ $riemann_test != "" ]]; then
 	dotfileDir=$ddir/riemann
 elif [[ "$hname" == "desdb" ]]; then
 	dotfileDir=$ddir/desdb
