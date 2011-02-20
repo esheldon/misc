@@ -4,3 +4,5 @@
 export PHOTOZ_DIR=~/photoz
 
 export LENSDIR=~/lensing
+
+export REGAUSSIM_DIR=~/data/regauss-sim

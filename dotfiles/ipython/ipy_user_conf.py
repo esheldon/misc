@@ -28,9 +28,16 @@ def main():
     # the often used where function
     try:
         ip.ex("import numpy")
+        ip.ex("from numpy import array")
+        ip.ex("from numpy import zeros")
+        ip.ex("from numpy import ones")
         ip.ex("from numpy import where")
         ip.ex("from numpy import arange")
         ip.ex("from numpy import linspace")
+        ip.ex("from numpy import sqrt")
+        ip.ex("from numpy import exp")
+        ip.ex("from numpy import cos")
+        ip.ex("from numpy import sin")
     except:
         print "Could not import numpy"
 

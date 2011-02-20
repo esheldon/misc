@@ -1,0 +1,50 @@
+#!/bin/bash
+
+verbosity="2"
+
+
+dryrun="n"
+options=""
+while getopts "dsv:" Option; do
+    case $Option in
+        d) dryrun="y" 
+            ;;
+        v) verbosity=$OPTARG
+            ;;
+        s) verbosity="0"
+            ;;
+        [?]) echo "Usage: mcurl [-d -s] url"
+            exit $WRONG_ARGS
+            ;;  
+    esac
+done
+shift $(($OPTIND - 1))
+
+if [[ $verbosity != "2" ]]; then
+    options="$options -s"
+fi
+
+url="$1"
+flist=$(curl -s "$url"  | grep -v "Parent Directory" | grep -v "\?" | grep -i href | awk -F 'href="' '{print $2}' | awk -F '"' '{print $1}')
+
+urlprint=$url
+if [[ $(echo $url | awk '{print substr($0,length,1)}') == "/" ]]; then
+    urlprint=$(echo $url | awk '{print substr($0,0,length-1)}')
+fi
+
+for f in $flist; do
+    lastchar=$(echo $f | awk '{print substr($0,length,1)}')
+
+    if [[ $lastchar != "/" ]]; then
+        if [[ $verbosity == "2" ]]; then
+            echo
+        fi
+        if [[ $verbosity == "1" || $verbosity == "2" ]]; then
+            echo "$urlprint/$f"
+        fi
+        if [[ $dryrun == "n" ]]; then
+            curl $options -O "$url/$f"
+        fi
+    fi
+
+done
