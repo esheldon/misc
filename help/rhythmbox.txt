@@ -1,4 +1,0 @@
-If you don't have a ~/Music directory it will instead search your entire ~/
-directory : fucking stupidest thing I have *ever* seen.
-
-I had a ~/music directory so I just symlinked it and it worked.

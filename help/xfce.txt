@@ -1,3 +1,0 @@
-It will not load my xinirc, or at least the modmap gets reset. So added a 
-   applications/settings/autostarted applications
-and just made it run my .xinitrc

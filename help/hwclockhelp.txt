@@ -1,4 +1,0 @@
-Setting the hardware clock to the time
-on the system clock
-
-/sbin/hwclock --systohc

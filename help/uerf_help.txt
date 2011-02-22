@@ -1,5 +1,0 @@
-This command tells you bootup info, such as
-how much memory etc.
-
-uerf
-

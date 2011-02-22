@@ -1,8 +1,0 @@
-Focus follows mouse:
-    defaults write org.x.X11 wm_ffm -bool true 
-
-Don't start the stupid xterm, just run something that does
-nothing
-    defaults write org.x.X11_launcher app_to_run /usr/X11/bin/xprop
-And to make it start xterm again
-    defaults write org.x.X11_launcher app_to_run /usr/X11/bin/xterm
