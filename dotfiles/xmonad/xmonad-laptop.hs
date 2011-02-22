@@ -37,5 +37,5 @@ main = do
         },
         -- rebind apple command key to mod. also windows on such kbrds
         modMask = mod4Mask, 
-        terminal = "xterm -fa Terminus:pixelsize=12"
+        terminal = "xfce4-terminal"
 	}
