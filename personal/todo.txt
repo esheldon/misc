@@ -45,7 +45,7 @@ shears:
             psf_sigma=5
             forcegauss=False
 
-            Result:
+            Result: +/- 0.015
         run 04:
             objmodel gauss
             psfmodel dauss
@@ -53,7 +53,7 @@ shears:
             forcegauss=True
             conv fft
 
-            Result:
+            Result: +/- 0.015
 
         run 05:
             objmodel gauss
@@ -62,8 +62,13 @@ shears:
             forcegauss=True
             conv fconv
 
-            Result:
+            Result: +/- 0.015
 
+        NOTE for the above they result in different simulations, for example
+        at the same chosen s2 get different actual R due to subtleties of
+        the convolution.
+
+        NOTE: I ran at even higher resolution but the result did not change.
 
 
 
