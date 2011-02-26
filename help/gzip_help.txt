@@ -1,3 +1,0 @@
-to gzip a file and keep the original file intact:
-
-gzip -c file_name > out_name.gz
