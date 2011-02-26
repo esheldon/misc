@@ -1,3 +1,0 @@
-device,retain=2
-
-will make idl to the backing store
