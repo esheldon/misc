@@ -1,82 +1,16 @@
-zphot:
+call about cottage - called
+register - called
+call arun - called, look into it
+figure out what's going on with the p(z) stuff
+figure out if I could attend the ccapp workshop - morgan says go ahead
+call ryan
 
-    Match primus and see how well we recover it with
-    what we currently did.
+zphot:
 
     Get some validation plots, good ones, 
     from carlos, or have him send me the data.
 
 shears:
-    regauss simulations:
-
-    Start with high-res PSF, sigma in pixels of 5
-
-    Gauss-Gauss
-        run 00: 
-            objmodel gauss
-            psfmodel gauss
-            psf_sigma=5
-            forcegauss=False
-
-            Result: Works essentially perfectly
-        run 01:
-            objmodel gauss
-            psfmodel gauss
-            psf_sigma=5
-            forcegauss=True
-            conv fft
-
-            Result: not so great, only good to 2% at high ellip.
-
-        run 02:
-            objmodel gauss
-            psfmodel gauss
-            psf_sigma=5
-            forcegauss=True
-            conv fconv
-
-            Result: Performs almost as well as analytic
-            (Much slower!)
-
-    Gauss-dgauss
-        run 03: 
-            objmodel gauss
-            psfmodel dauss
-            psf_sigma=5
-            forcegauss=False
-
-            Result: +/- 0.015
-        run 04:
-            objmodel gauss
-            psfmodel dauss
-            psf_sigma=5
-            forcegauss=True
-            conv fft
-
-            Result: +/- 0.015
-
-        run 05:
-            objmodel gauss
-            psfmodel dauss
-            psf_sigma=5
-            forcegauss=True
-            conv fconv
-
-            Result: +/- 0.015
-
-        NOTE for the above they result in different simulations, for example
-        at the same chosen s2 get different actual R due to subtleties of
-        the convolution.
-
-        NOTE: I ran at even higher resolution but the result did not change.
-
-
-
-    * See what happens if I increase nsub for *not* forcegauss. It might
-      be that some of the error is from that and not further downstream,e.g.
-      in the fftconvolve in regauss.
-
-
 
     Test with old princeton file:
         Note princeton file has r+i combined, which is a bit problematic,
@@ -87,15 +21,7 @@ shears:
 
     Match Frank's file
 
-MaxBCG:
-    
-    See if mem_match_id is in my catalogs, if so we can do matches.
-
-    Do overall total to estimate what kind of splits we can do.
-
 BOSS 
-
-    Is QSO stuff from adam in main QSO paper?
 
     Target Selection Overview Paper
 
@@ -109,9 +35,4 @@ BOSS
             - Check the orderby example when the full data are loaded,
                 as it looks for pal 5 and needs runs not in test db
 
-    DR8 paper
-        - photoz description
-        - Will hold dummy link for paper
-
-    Talk about hosting SDSS III
 
