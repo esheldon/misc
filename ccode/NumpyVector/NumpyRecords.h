@@ -75,7 +75,7 @@
       // function get() or procedurally using copy().
       //
 
-      // copy id as it's actual type, int32
+      // copy id as int32, it's declared type
       int32_t i  = rec.get<int32_t>("id", 1);
 
       // can also convert fields to other types
@@ -96,7 +96,9 @@
       rec.copy("str", svec);
       rec.copy("f4field", svec);
 
-      // You can also get a NumpyVector or NumpyVoidVector view of a field
+      // You can also get a NumpyVector or NumpyVoidVector view of a field Copy
+      // is performed if the data types differ or data is not the native byte
+      // order.   NumpyVector provides an iterator.
       NumpyVector<double> dvec;
       rec.get("x", dvec);
 
@@ -114,9 +116,8 @@
       // the elsize() method. 
       //
       
-      // get a pointer to field "id" in the 8th row:
-      // Do not perform pointer arithmetic on the int32 pointer, rather
-      // see above for an example using strides
+      // get a pointer to field "id" in the 8th row: Do not perform ++ on int32
+      // pointer, rather see below for an example using the stride
       npy_int32* i = (npy_int32*) rec.ptr("id", 8);
  
  
@@ -156,7 +157,7 @@
       }
  
     // Accessing string fields via ptr().  Because numpy strings are not null
-    // terminated, you should use std::string or you own constructed null
+    // terminated, you should use std::string or your own constructed null
     // terminated string as a container for them
 
     npy_intp strsize = rec.elsize("str");
