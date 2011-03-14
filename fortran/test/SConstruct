@@ -1,0 +1,22 @@
+# vim: set filetype=python :
+
+# importing all environ because the intel compiler is not in
+# a standard place
+
+import os
+env = Environment(ENV=os.environ)
+
+f90 = ARGUMENTS.get('f90', None)
+if f90 is not None:
+    env['F90'] = f90
+    env['FORTRAN'] = f90
+
+if f90 == 'ifort':
+    env.Append(F90FLAGS=['-implicitnone','-fast'])
+else:
+    env.Append(F90FLAGS=['-fimplicit-none','-O2'])
+
+test = env.Program('test', ['test.f90'])
+
+
+

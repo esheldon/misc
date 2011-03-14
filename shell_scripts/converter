@@ -94,9 +94,6 @@ fi
 # use graphics magick if available.  The newer versions
 # of imagemagick suck balls
 if [[ $(which gm 2> /dev/null) == "" ]]; then
-    if [[ $verbose == "Y" ]]; then
-        echo "found GraphicsMagick!"
-    fi
     progname="convert"
 else
     progname="gm convert"
