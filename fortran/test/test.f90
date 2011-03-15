@@ -32,11 +32,6 @@ contains
 
   end function interpf8
 
-  real*8 function tmp(i, j) result(val)
-    integer*8 i,j
-    val = i*j**2 + 35 + exp(float(i))
-  end function tmp
-
 end module interpolate
 
 
@@ -52,7 +47,7 @@ program test
   real*8 xx,yy,zz
 
   !n=100000000000_8
-  n=1000000000_8
+  n=100000000_8
 
   do i=1,25
     x(i) = i
@@ -61,20 +56,11 @@ program test
 
   yy = 0
 !!!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,r) REDUCTION (+:yy)
-!$OMP PARALLEL DO REDUCTION(+:yy)
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) REDUCTION(+:yy)
   do i=1,n
-    !j = j**2 + j + 25
-    !j = mod(i,25)
     
     xx = mod(i,25)
     yy = yy + interpf8(x,y,xx)
-    !call random_number(r)
-    !!rint *,r,i
-    !yy = yy + exp(r) + r
-
-    !do k=1,n
-    !  zz = exp(-xx + k**2) + cos(yy + k) + sin(float(j*k + i))
-    !enddo
 
   enddo
 !$OMP END PARALLEL DO
