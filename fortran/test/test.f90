@@ -32,33 +32,50 @@ contains
 
   end function interpf8
 
+  real*8 function tmp(i, j) result(val)
+    integer*8 i,j
+    val = i*j**2 + 35 + exp(float(i))
+  end function tmp
+
 end module interpolate
+
+
 
 program test
   use interpolate
-  real*8, dimension(:), allocatable :: x
-  real*8, dimension(:), allocatable :: y
-  integer*4 i,n
-  real*8 xmin,xmax,xstep
+  use omp_lib
+  real*8 x(25), y(25)
+  real*8 r
 
-  n=1000
-  xmin=0.
-  xmax=10.
-  xstep=(xmax-xmin)/n
+  integer*8 i,j,k,l
+  integer*8 n
+  real*8 xx,yy,zz
 
-  allocate(x(n))
-  allocate(y(n))
-  do i=1,n
-    x(i) = (i-1)*xstep
+  n=100000000000_8
+
+  do i=1,25
+    x(i) = i
     y(i) = x(i)**2
   enddo
 
-  print *, 0.9, interpf8(x,y,0.9_8)
-  print *, 1.0, interpf8(x,y,1.0_8)
-  print *, 1.5, interpf8(x,y,1.5_8)
-  print *, 8.7, interpf8(x,y,8.7_8)
-  print *, 10.0, interpf8(x,y,10.0_8)
-  print *, 10.3, interpf8(x,y,10.3_8)
+  yy = 0
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,r) REDUCTION (+:yy)
+  do i=1,n
+    !j = j**2 + j + 25
+    !j = mod(i,25)
+    
+    call random_number(r)
+    !!rint *,r,i
+    yy = yy + exp(r) + r
+
+    !do k=1,n
+    !  zz = exp(-xx + k**2) + cos(yy + k) + sin(float(j*k + i))
+    !enddo
+
+  enddo
+!$OMP END PARALLEL DO
+
+  print *,yy
 end program test
 
 
