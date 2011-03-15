@@ -12,9 +12,9 @@ if f90 is not None:
     env['FORTRAN'] = f90
 
 if f90 == 'ifort':
-    env.Append(F90FLAGS=['-implicitnone','-fast'])
+    env.Append(F90FLAGS=['-implicitnone','-fast','-openmp'],LINKFLAGS=['-fast','-openmp'])
 else:
-    env.Append(F90FLAGS=['-fimplicit-none','-O2'])
+    env.Append(F90FLAGS=['-fimplicit-none','-O2','-fopenmp'],LINKFLAGS=['-fopenmp'])
 
 test = env.Program('test', ['test.f90'])
 
