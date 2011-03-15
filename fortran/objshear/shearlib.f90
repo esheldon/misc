@@ -162,9 +162,9 @@ contains
     end subroutine calc_shear
 
     subroutine process_lens(shdata, ilens, lensum)
-        type(sheardata), intent(inout) ::  shdata
+        type(sheardata), intent(in) ::  shdata
         integer*4, intent(in) :: ilens
-        type(lens_sums) lensum
+        type(lens_sums), intent(inout) :: lensum
 
         integer*4 j, k, isrc, pix, listpix(MAXPIX), npixfound, n_in_bin
 

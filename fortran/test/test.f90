@@ -51,7 +51,8 @@ program test
   integer*8 n
   real*8 xx,yy,zz
 
-  n=100000000000_8
+  !n=100000000000_8
+  n=1000000000_8
 
   do i=1,25
     x(i) = i
@@ -59,14 +60,17 @@ program test
   enddo
 
   yy = 0
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,r) REDUCTION (+:yy)
+!!!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,r) REDUCTION (+:yy)
+!$OMP PARALLEL DO REDUCTION(+:yy)
   do i=1,n
     !j = j**2 + j + 25
     !j = mod(i,25)
     
-    call random_number(r)
+    xx = mod(i,25)
+    yy = yy + interpf8(x,y,xx)
+    !call random_number(r)
     !!rint *,r,i
-    yy = yy + exp(r) + r
+    !yy = yy + exp(r) + r
 
     !do k=1,n
     !  zz = exp(-xx + k**2) + cos(yy + k) + sin(float(j*k + i))
@@ -74,6 +78,7 @@ program test
 
   enddo
 !$OMP END PARALLEL DO
+!!!$OMP END PARALLEL DO
 
   print *,yy
 end program test
