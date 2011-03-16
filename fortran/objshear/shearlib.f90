@@ -6,6 +6,9 @@ module shearlib
     use configlib
     use cosmolib
     use healpix, only : HALFPI, DEG2RAD, query_disc
+    use fileutil
+
+    implicit none
 
     ! (shape noise)**2 in ellipticity
     real*8, private, parameter :: SN2  = 0.1024
@@ -25,9 +28,9 @@ module shearlib
 
     integer*4, private, parameter :: MAXPIX=5000000, inclusive=1
 
-    integer*4, private :: maxpix_used = 0
+    !integer*4, private :: maxpix_used = 0
 
-    type lens_sums
+    type lens_sum
 
         integer*4 zindex
         real*8 weight
@@ -38,7 +41,7 @@ module shearlib
         real*8,    dimension(:), allocatable :: osum
         real*8,    dimension(:), allocatable :: rsum
 
-    end type lens_sums
+    end type lens_sum
 
 
     type sheardata 
@@ -88,7 +91,7 @@ contains
 
 
         call add_source_dc(shdata%sources)
-        call add_source_hpixid(shdata%pars%nside, shdata%pars%nest, shdata%sources)
+        call add_source_hpixid(shdata%pars%nside, shdata%sources)
         call print_source_firstlast(shdata%sources)
 
         print '(a)',"Calculating src sin/cosc"
@@ -120,51 +123,55 @@ contains
     end subroutine load_shear_data
 
 
-    subroutine calc_shear(shdata)
-        type(sheardata), intent(inout) :: shdata
-        integer*4 i
+    subroutine calc_shear(shdata, lensums)
+        type(sheardata), intent(in) :: shdata
+        type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
+        integer*4 i, nprint
 
-        type(lens_sums) lensum, lensum_tot
-        integer*4 :: nlens, nbin, lun=75
+        type(lens_sum) lensum_tot, tlensum
+        integer*4 :: nlens, nbin
 
         nlens = size(shdata%lenses)
         nbin  = shdata%pars%nbin
-        print '(a,a)',"Opening output file: ",shdata%pars%output_file
-        open(unit=lun,file=shdata%pars%output_file,access='STREAM', &
-             status='replace')
-        write (lun)nlens
-        write (lun)nbin
+        nprint = 10
 
-        call init_lens_sums(lensum, nbin)
-        call init_lens_sums(lensum_tot, nbin)
+        call init_lens_sums(lensums, nlens, nbin)
+        call init_lens_sum(tlensum, nbin)
 
+        ! make sure these are called first, for thread safety
+        print '(a,i0,a,i0)',"Processing ",nlens," lenses.  Each dot is ",nprint
+
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
         do i=1,nlens
-            if (mod(i,1000) == 0) then
-                print '(".",$)'
-            end if
+            !if (mod(i,nprint) == 0) then
+                !print '(".",$)'
+                !print '(i0,"/",i0)',i,nlens
+            !end if
+            print '(".",$)'
 
-            call reset_lens_sums(lensum)
-            lensum%zindex = shdata%lenses(i)%zindex
+            !lensums(i)%zindex = shdata%lenses(i)%zindex
 
             if (shdata % lenses(i) % z > minz) then
-                call process_lens(shdata, i, lensum)
-                call add_lens_sums(lensum, lensum_tot)
+                !call process_lens(shdata, i, lensums(i))
+                call process_lens(shdata, i, tlensum)
             endif
-            call write_lens_sums(lun, lensum)
 
         end do
-        print *
-        print '(a,i0)',"Max pix used: ",maxpix_used
+!$OMP END PARALLEL DO
 
-        close(lun)
+        print *
+        !print '(a,i0)',"Max pix used: ",maxpix_used
+
+        call add_lens_sums(lensums, lensum_tot)
         call print_shear_sums(lensum_tot)
 
     end subroutine calc_shear
 
+
     subroutine process_lens(shdata, ilens, lensum)
         type(sheardata), intent(in) ::  shdata
         integer*4, intent(in) :: ilens
-        type(lens_sums), intent(inout) :: lensum
+        type(lens_sum), intent(inout) :: lensum
 
         integer*4 j, k, isrc, pix, listpix(MAXPIX), npixfound, n_in_bin
 
@@ -182,9 +189,11 @@ contains
         call query_disc(shdata%pars%nside,    &
                         shdata%lenses(ilens)%ra, shdata%lenses(ilens)%dec, &
                         search_angle, listpix, npixfound,   &
-                        shdata%pars%nest, inclusive)
-        if (npixfound > maxpix_used) maxpix_used = npixfound
+                        inclusive)
+        print *,'OK'
+        return
 
+        !if (npixfound > maxpix_used) maxpix_used = npixfound
         do j=1,npixfound
             pix = listpix(j)
             if (pix >= shdata%minid .and. pix <= shdata%maxid) then
@@ -273,7 +282,7 @@ contains
         type(source), intent(in) :: src
         real*8, intent(in) :: r, cos2theta, sin2theta
         real*8, intent(in) :: scinv
-        type(lens_sums), intent(inout) :: lensum
+        type(lens_sum), intent(inout) :: lensum
 
         real*8 scinv2, gamma1, gamma2, weight
         real*8 logr
@@ -305,9 +314,31 @@ contains
     end subroutine calc_shear_sums
 
 
-    subroutine write_lens_sums(lun, lensum)
+    subroutine write_lens_sums(filename, lensums)
+
+        character(len=*), intent(in) :: filename
+        type(lens_sum), dimension(:), intent(in) :: lensums
+        integer*4 i
+        integer*4 nlens, nbin, lun
+
+        lun = get_lun()
+
+        nlens = size(lensums)
+        nbin  = size(lensums(0)%npair)
+        print '(a,a)',"Opening output file: ",filename
+        open(unit=lun, file=filename, access='STREAM', status='replace')
+        write (lun)nlens
+        write (lun)nbin
+ 
+        do i=1,size(lensums)
+            call write_lens_sum(lun, lensums(i))
+        end do
+
+    end subroutine write_lens_sums
+
+    subroutine write_lens_sum(lun, lensum)
         integer*4, intent(in) :: lun
-        type(lens_sums), intent(in) :: lensum
+        type(lens_sum), intent(in) :: lensum
 
 
         write(lun)lensum%zindex
@@ -318,11 +349,11 @@ contains
         write(lun)lensum%wsum
         write(lun)lensum%dsum
         write(lun)lensum%osum
-    end subroutine write_lens_sums
+    end subroutine write_lens_sum
 
 
     subroutine print_shear_sums(lensum)
-        type(lens_sums), intent(in) :: lensum
+        type(lens_sum), intent(in) :: lensum
 
         real*8, dimension(:), allocatable :: rbins
         real*8, dimension(:), allocatable :: dsig
@@ -357,9 +388,21 @@ contains
  
     end subroutine print_shear_sums
 
-    subroutine init_lens_sums(lensum, nbin)
+    subroutine init_lens_sums(lensums, nlens, nbin)
+        type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
+        integer*4, intent(in) :: nlens, nbin
 
-        type(lens_sums), intent(inout) :: lensum
+        integer*4 i
+
+        allocate(lensums(nlens))
+        do i=1,nlens
+            call init_lens_sum(lensums(i), nbin)
+        end do
+    end subroutine init_lens_sums
+
+    subroutine init_lens_sum(lensum, nbin)
+
+        type(lens_sum), intent(inout) :: lensum
         integer*4 nbin
 
         allocate(lensum%npair(nbin))
@@ -368,13 +411,13 @@ contains
         allocate(lensum%osum(nbin))
         allocate(lensum%rsum(nbin))
 
-        call reset_lens_sums(lensum)
-    end subroutine init_lens_sums
+        call reset_lens_sum(lensum)
+    end subroutine init_lens_sum
 
 
-    subroutine reset_lens_sums(lensum)
+    subroutine reset_lens_sum(lensum)
 
-        type(lens_sums), intent(inout) :: lensum
+        type(lens_sum), intent(inout) :: lensum
 
         integer*4 i
 
@@ -388,23 +431,28 @@ contains
             lensum % rsum(i) = 0
         end do
 
-    end subroutine reset_lens_sums
+    end subroutine reset_lens_sum
 
     subroutine add_lens_sums(lsrc, ldest)
 
-        type(lens_sums), intent(in) :: lsrc
-        type(lens_sums), intent(inout) :: ldest
+        type(lens_sum), dimension(:), intent(in) :: lsrc
+        type(lens_sum), intent(inout) :: ldest
 
-        integer*4 i
+        integer*4 i, j, nbin
 
-        do i=1,size(ldest%npair)
-            ldest %weight = ldest %weight + lsrc %wsum(i)
+        nbin = size(lsrc(0) % npair)
+        call init_lens_sum(ldest, nbin)
 
-            ldest %npair(i) = ldest %npair(i) + lsrc %npair(i)
-            ldest %wsum(i) = ldest %wsum(i) + lsrc %wsum(i)
-            ldest %dsum(i) = ldest %dsum(i) + lsrc %dsum(i)
-            ldest %osum(i) = ldest %osum(i) + lsrc %osum(i)
-            ldest %rsum(i) = ldest %rsum(i) + lsrc %rsum(i)
+        do j=1,size(lsrc)
+            do i=1,size(ldest%npair)
+                ldest %weight = ldest %weight + lsrc(j) %wsum(i)
+
+                ldest %npair(i) = ldest %npair(i) + lsrc(j) %npair(i)
+                ldest %wsum(i) = ldest %wsum(i) + lsrc(j) %wsum(i)
+                ldest %dsum(i) = ldest %dsum(i) + lsrc(j) %dsum(i)
+                ldest %osum(i) = ldest %osum(i) + lsrc(j) %osum(i)
+                ldest %rsum(i) = ldest %rsum(i) + lsrc(j) %rsum(i)
+            end do
         end do
 
     end subroutine add_lens_sums
@@ -438,7 +486,6 @@ contains
         type(sheardata) shdata
 
         write(*,'(a)')"healpix info:"
-        write(*,'("    nest:    ",i0)')shdata%pars%nest
         write(*,'("    nside:   ",i0)')shdata%pars%nside
         write(*,'("    minid:   ",i0)')shdata%minid
         write(*,'("    maxid:   ",i0)')shdata%maxid

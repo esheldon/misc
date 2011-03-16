@@ -109,7 +109,6 @@ contains
         print '("    ",a,f7.3)',"omega_m: ",pars%omega_m
         print '("    ",a,i0)',"npts: ",pars%npts
         print '("    ",a,i0)',"nside: ",pars%nside
-        print '("    ",a,i0)',"nest: ",pars%nest
         print '("    ",a,i0)',"sigmacrit_style: ",pars%sigmacrit_style
         print '("    ",a,i0)',"nbin: ",pars%nbin
         print '("    ",a,f15.8)',"rmin: ",pars%rmin
