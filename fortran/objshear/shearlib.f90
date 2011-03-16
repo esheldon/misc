@@ -128,7 +128,7 @@ contains
         type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
         integer*4 i, nprint
 
-        type(lens_sum) lensum_tot!, tlensum
+        type(lens_sum) lensum_tot
         integer*4 :: nlens, nbin
 
         nlens = size(shdata%lenses)
@@ -136,31 +136,28 @@ contains
         nprint = 10
 
         call init_lens_sums(lensums, nlens, nbin)
-        !call init_lens_sum(tlensum, nbin)
 
         ! make sure these are called first, for thread safety
         print '(a,i0,a,i0)',"Processing ",nlens," lenses.  Each dot is ",nprint
 
 !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
         do i=1,nlens
-            !if (mod(i,nprint) == 0) then
-                !print '(".",$)'
+            if (mod(i,nprint) == 0) then
+                print '(".",$)'
                 !print '(i0,"/",i0)',i,nlens
-            !end if
+            end if
             print '(".",$)'
 
-            !lensums(i)%zindex = shdata%lenses(i)%zindex
+            lensums(i)%zindex = shdata%lenses(i)%zindex
 
             if (shdata % lenses(i) % z > minz) then
                 call process_lens(shdata, i, lensums(i))
-                !call process_lens(shdata, i, tlensum)
             endif
 
         end do
 !$OMP END PARALLEL DO
 
         print *
-        !print '(a,i0)',"Max pix used: ",maxpix_used
 
         call add_lens_sums(lensums, lensum_tot)
         call print_shear_sums(lensum_tot)
@@ -178,7 +175,7 @@ contains
         ! static storage...
         !integer*4, dimension(MAXPIX) :: listpix
         integer*4, allocatable, dimension(:) :: listpix
-        real*4 zl, dl, dlc
+        real*8 zl, dl, dlc
         real*8 search_angle, cos_search_angle, theta, scinv
         real*8 phi, r, cos2theta, sin2theta
 

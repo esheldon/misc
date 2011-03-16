@@ -8,8 +8,8 @@ module lenslib
         real*8 ra
         real*8 dec
 
-        real*4 z
-        real*4 dc
+        real*8 z
+        real*8 dc
 
         integer*4 zindex
 
