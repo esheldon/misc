@@ -128,7 +128,7 @@ contains
         type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
         integer*4 i, nprint
 
-        type(lens_sum) lensum_tot, tlensum
+        type(lens_sum) lensum_tot!, tlensum
         integer*4 :: nlens, nbin
 
         nlens = size(shdata%lenses)
@@ -136,7 +136,7 @@ contains
         nprint = 10
 
         call init_lens_sums(lensums, nlens, nbin)
-        call init_lens_sum(tlensum, nbin)
+        !call init_lens_sum(tlensum, nbin)
 
         ! make sure these are called first, for thread safety
         print '(a,i0,a,i0)',"Processing ",nlens," lenses.  Each dot is ",nprint
@@ -152,8 +152,8 @@ contains
             !lensums(i)%zindex = shdata%lenses(i)%zindex
 
             if (shdata % lenses(i) % z > minz) then
-                !call process_lens(shdata, i, lensums(i))
-                call process_lens(shdata, i, tlensum)
+                call process_lens(shdata, i, lensums(i))
+                !call process_lens(shdata, i, tlensum)
             endif
 
         end do
@@ -173,12 +173,16 @@ contains
         integer*4, intent(in) :: ilens
         type(lens_sum), intent(inout) :: lensum
 
-        integer*4 j, k, isrc, pix, listpix(MAXPIX), npixfound, n_in_bin
-
+        integer*4 j, k, isrc, pix, npixfound, n_in_bin
+        ! I had to make this allocatable.  I think it was using
+        ! static storage...
+        !integer*4, dimension(MAXPIX) :: listpix
+        integer*4, allocatable, dimension(:) :: listpix
         real*4 zl, dl, dlc
         real*8 search_angle, cos_search_angle, theta, scinv
         real*8 phi, r, cos2theta, sin2theta
 
+        allocate(listpix(MAXPIX))
         zl = shdata%lenses(ilens)%z
         dlc = shdata%lenses(ilens)%dc
         dl = dlc/(1+zl)
@@ -187,11 +191,10 @@ contains
         cos_search_angle = cos(search_angle)
 
         call query_disc(shdata%pars%nside,    &
-                        shdata%lenses(ilens)%ra, shdata%lenses(ilens)%dec, &
+                        shdata%lenses(ilens)%ra, &
+                        shdata%lenses(ilens)%dec, &
                         search_angle, listpix, npixfound,   &
                         inclusive)
-        print *,'OK'
-        return
 
         !if (npixfound > maxpix_used) maxpix_used = npixfound
         do j=1,npixfound
@@ -226,7 +229,8 @@ contains
                 end do ! sources in pixel
             end if ! pixel is in source pixel list
         end do
-
+        
+        deallocate(listpix)
     end subroutine process_lens
 
 
@@ -385,6 +389,10 @@ contains
         print '("mean radius: ",F14.7)',sum(lensum%rsum)/sum(lensum%npair)
         print '("mean dsig:   ",F14.7)',sum(lensum%dsum)/sum(lensum%wsum)
         print '("mean osig:   ",F14.7)',sum(lensum%osum)/sum(lensum%wsum)
+
+        deallocate(rbins)
+        deallocate(dsig)
+        deallocate(osig)
  
     end subroutine print_shear_sums
 

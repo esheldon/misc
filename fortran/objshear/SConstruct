@@ -5,17 +5,27 @@ import os
 # a standard place
 env = Environment(ENV=os.environ)
 
+with_openmp = ARGUMENTS.get('with_openmp',True)
+if with_openmp == 'false' or with_openmp == 'False':
+    with_openmp=False
+else:
+    with_openmp=True
 f90 = ARGUMENTS.get('f90', None)
+
 if f90 is not None:
     env['F90'] = f90
     env['FORTRAN'] = f90
 
 if f90 == 'ifort':
-    #env.Append(F90FLAGS=['-implicitnone','-fast'])
-    env.Append(F90FLAGS=['-implicitnone','-fast','-openmp'],LINKFLAGS=['-fast','-openmp'])
+    if with_openmp:
+        env.Append(F90FLAGS=['-implicitnone','-fast','-openmp'],LINKFLAGS=['-fast','-openmp'])
+    else:
+        env.Append(F90FLAGS=['-implicitnone','-fast'])
 else:
-    #env.Append(F90FLAGS=['-fimplicit-none','-O2'])
-    env.Append(F90FLAGS=['-fimplicit-none','-O2','-fopenmp'],LINKFLAGS=['-fopenmp'])
+    if with_openmp:
+        env.Append(F90FLAGS=['-fimplicit-none','-O2','-fopenmp'],LINKFLAGS=['-fopenmp'])
+    else:
+        env.Append(F90FLAGS=['-fimplicit-none','-O2'])
 
 prefix = ARGUMENTS.get('prefix', None)
 
