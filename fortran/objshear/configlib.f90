@@ -9,8 +9,8 @@ module configlib
         character*256 source_file
         character*256 output_file
 
-        real*4 H0
-        real*4 omega_m
+        real*8 H0
+        real*8 omega_m
         integer*4 npts  ! for cosmo integration
 
         integer*4 nside ! hpix
@@ -19,13 +19,13 @@ module configlib
         integer*4 sigmacrit_style
 
         integer*4 nbin
-        real*4 rmin
-        real*4 rmax
+        real*8 rmin
+        real*8 rmax
 
         ! we fill these in
-        real*4 log_rmin
-        real*4 log_rmax
-        real*4 log_binsize
+        real*8 log_rmin
+        real*8 log_rmax
+        real*8 log_binsize
 
     end type config
 

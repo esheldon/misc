@@ -13,7 +13,7 @@ contains
         real*8, intent(in) :: x1, x2
         integer*4, intent(in) :: npts
 
-        real*4, intent(inout), dimension(:), allocatable :: x, w
+        real*8, intent(inout), dimension(:), allocatable :: x, w
         
 
         integer*4 :: i, j, m

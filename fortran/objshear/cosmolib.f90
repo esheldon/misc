@@ -9,21 +9,21 @@ module cosmolib
     ! class variables
     integer*4, save, private :: has_been_init = 0
     integer*4, save :: npts
-    real*4, private, save, dimension(:), allocatable :: xxi, wwi
+    real*8, private, save, dimension(:), allocatable :: xxi, wwi
 
-    real*4, save :: H0
-    real*4, save :: omega_m
-    real*4, save :: omega_l
+    real*8, save :: H0
+    real*8, save :: omega_m
+    real*8, save :: omega_l
 
     ! The hubble distance c/H0
-    real*4, save :: DH
+    real*8, save :: DH
 
     ! use in scinv for dlens in Mpc
-    real*4, private, parameter :: four_pi_G_over_c_squared = 6.0150504541630152e-07
+    real*8, private, parameter :: four_pi_G_over_c_squared = 6.0150504541630152e-07
 
 
     ! for integral calculations
-    real*4, private :: f1,f2,z,ezinv;
+    real*8, private :: f1,f2,z,ezinv;
 
     interface angdist
         module procedure angdist_2z
@@ -39,7 +39,7 @@ contains
     ! you must initialize
     subroutine cosmo_init(H0_new, omega_m_new, npts_new)
 
-        real*4, intent(in) :: H0_new, omega_m_new
+        real*8, intent(in) :: H0_new, omega_m_new
         integer*4, intent(in) :: npts_new
 
         H0      = H0_new
@@ -64,8 +64,8 @@ contains
 
     end subroutine set_cosmo_weights
 
-    real*4 function ez_inverse_integral(zmin, zmax) result(val)
-        real*4, intent(in) :: zmin, zmax
+    real*8 function ez_inverse_integral(zmin, zmax) result(val)
+        real*8, intent(in) :: zmin, zmax
         integer*4 i
 
 
@@ -83,10 +83,10 @@ contains
 
     end function ez_inverse_integral
 
-    real*4 function ez_inverse(z)
-        real*4, intent(in) :: z
+    real*8 function ez_inverse(z)
+        real*8, intent(in) :: z
 
-        real*4 oneplusz3
+        real*8 oneplusz3
 
         oneplusz3 = (1.0+z)**3
         ez_inverse = omega_m*oneplusz3 + omega_l;
@@ -95,25 +95,25 @@ contains
 
 
 
-    real*4 function cdist(zmin, zmax)
-        real*4, intent(in) :: zmin, zmax
+    real*8 function cdist(zmin, zmax)
+        real*8, intent(in) :: zmin, zmax
         cdist = DH*ez_inverse_integral(zmin, zmax)
     end function cdist
 
-    real*4 function angdist_2z(zmin, zmax) result(angdist)
-        real*4, intent(in) :: zmin, zmax
+    real*8 function angdist_2z(zmin, zmax) result(angdist)
+        real*8, intent(in) :: zmin, zmax
         angdist = DH*ez_inverse_integral(zmin, zmax)/(1+zmax)
     end function angdist_2z
 
-    real*4 function angdist_pre(dcmin, dcmax, zmax) result(angdist)
-        real*4, intent(in) :: dcmin, dcmax, zmax
+    real*8 function angdist_pre(dcmin, dcmax, zmax) result(angdist)
+        real*8, intent(in) :: dcmin, dcmax, zmax
         angdist = (dcmax-dcmin)/(1+zmax)
     end function angdist_pre
 
 
-    real*4 function scinv_2z(zl, zs) result(scinv)
-        real*4, intent(in) :: zl,zs
-        real*4 dcl, dcs
+    real*8 function scinv_2z(zl, zs) result(scinv)
+        real*8, intent(in) :: zl,zs
+        real*8 dcl, dcs
 
         if (zs <= zl) then 
             scinv=0.0
@@ -126,9 +126,9 @@ contains
         scinv = dcl/(1.+zl)*(dcs-dcl)/dcs * four_pi_G_over_c_squared
     end function scinv_2z
 
-    real*4 function scinv_pre(zl, dcl, dcs) result(scinv)
+    real*8 function scinv_pre(zl, dcl, dcs) result(scinv)
         ! Here dcl and dcs are COMOVING
-        real*4, intent(in) :: zl,dcl,dcs
+        real*8, intent(in) :: zl,dcl,dcs
         if (dcs <= dcl) then 
             scinv=0.0
             return
