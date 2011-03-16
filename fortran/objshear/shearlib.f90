@@ -324,7 +324,7 @@ contains
         lun = get_lun()
 
         nlens = size(lensums)
-        nbin  = size(lensums(0)%npair)
+        nbin  = size(lensums(1)%npair)
         print '(a,a)',"Opening output file: ",filename
         open(unit=lun, file=filename, access='STREAM', status='replace')
         write (lun)nlens
@@ -440,7 +440,7 @@ contains
 
         integer*4 i, j, nbin
 
-        nbin = size(lsrc(0) % npair)
+        nbin = size(lsrc(1) % npair)
         call init_lens_sum(ldest, nbin)
 
         do j=1,size(lsrc)
