@@ -59,7 +59,7 @@ program test
 !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) REDUCTION(+:yy)
   do i=1,n
     
-    xx = mod(i,25)
+    xx = dble( mod(i,25) )
     yy = yy + interpf8(x,y,xx)
 
   enddo

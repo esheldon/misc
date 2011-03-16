@@ -68,11 +68,10 @@ contains
     end subroutine add_source_dc
 
 
-    subroutine add_source_hpixid(nside, nest, sources)
+    subroutine add_source_hpixid(nside, sources)
 
-        use healpix, only : RAD2DEG, npix, pixarea, eq2pix_nest, eq2pix_ring
+        use healpix, only : RAD2DEG, npix, pixarea, eq2pix_ring
         integer*4, intent(in) :: nside
-        integer*4, intent(in) :: nest
         type(source), dimension(:) :: sources
 
         integer*4 i, id, minid, maxid
@@ -85,11 +84,7 @@ contains
 
         
         do i=1,size(sources)
-            if (nest==1) then
-                call eq2pix_nest(nside, sources(i)%ra, sources(i)%dec, id)
-            else
-                call eq2pix_ring(nside, sources(i)%ra, sources(i)%dec, id)
-            endif
+            call eq2pix_ring(nside, sources(i)%ra, sources(i)%dec, id)
 
             sources(i)%hpixid = id
 
