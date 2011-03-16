@@ -200,7 +200,6 @@ contains
         integer*4 :: list_size, nlost
         logical(LGT) :: do_inclusive
 
-        return
         !=======================================================================
 
         call eq2vec(ra, dec, vector0)
