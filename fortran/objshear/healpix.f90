@@ -180,12 +180,12 @@ contains
         ! v1.2, EH, IAP, 2008-03-30: fixed bug appearing when disc centered on 
         !           either pole
         !=======================================================================
-        integer*4, intent(in)                 :: nside
-        real*8,    intent(in)                 :: ra,dec
-        real*8,    intent(in)                 :: radius
+        integer*4, intent(in)                  :: nside
+        real*8,    intent(in)                  :: ra,dec
+        real*8,    intent(in)                  :: radius
         integer*4, intent(inout), dimension(:) :: listpix
-        integer*4, intent(out)                :: nlist
-        integer*4, intent(in), optional       :: inclusive
+        integer*4, intent(out)                 :: nlist
+        integer*4, intent(in), optional        :: inclusive
 
         real*8, dimension(3)  :: vector0
 

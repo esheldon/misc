@@ -128,7 +128,7 @@ contains
         type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
         integer*4 i, nprint
         !integer*4, dimension(MAXPIX) :: listpix
-        integer*4, allocatable, dimension(:) :: listpix
+        !integer*4, allocatable, dimension(:) :: listpix
 
         type(lens_sum) lensum_tot
         integer*4 :: nlens, nbin
@@ -139,20 +139,21 @@ contains
 
         call init_lens_sums(lensums, nlens, nbin)
 
-        allocate(listpix(MAXPIX))
+        !allocate(listpix(MAXPIX))
 
         ! make sure these are called first, for thread safety
         print '(a,i0,a)',"Processing ",nlens," lenses."
 
 !!!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) FIRSTPRIVATE(listpix)
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,listpix)
+!!!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,listpix)
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
         do i=1,nlens
             print '(".",$)'
 
             lensums(i)%zindex = shdata%lenses(i)%zindex
 
             if (shdata % lenses(i) % z > minz) then
-                call process_lens(shdata, i, lensums(i), listpix)
+                call process_lens(shdata, i, lensums(i))
             endif
 
         end do
@@ -161,9 +162,9 @@ contains
         print *
         print '(a)','Done lens loop'
 
-        print '(a)','running deallocate on listpix'
-        deallocate(listpix)
-        print '(a)','done deallocate'
+        !print '(a)','running deallocate on listpix'
+        !deallocate(listpix)
+        !print '(a)','done deallocate'
 
         call add_lens_sums(lensums, lensum_tot)
         call print_shear_sums(lensum_tot)
@@ -171,22 +172,20 @@ contains
     end subroutine calc_shear
 
 
-    subroutine process_lens(shdata, ilens, lensum, listpix)
+    subroutine process_lens(shdata, ilens, lensum)
         type(sheardata), intent(in) ::  shdata
         integer*4, intent(in) :: ilens
         type(lens_sum), intent(inout) :: lensum
-        integer*4, dimension(:), intent(inout) :: listpix
+        !integer*4, allocatable, dimension(:), intent(inout) :: listpix
+        !integer*4, dimension(MAXPIX), automatic :: listpix
+        integer*4, dimension(:), allocatable :: listpix
 
         integer*4 j, k, isrc, pix, npixfound, n_in_bin
-        ! I had to make this allocatable.  I think it was using
-        ! static storage...
-        !integer*4, dimension(MAXPIX) :: listpix
-        !integer*4, allocatable, dimension(:) :: listpix
         real*8 zl, dl, dlc
         real*8 search_angle, cos_search_angle, theta, scinv
         real*8 phi, r, cos2theta, sin2theta
 
-        !allocate(listpix(MAXPIX))
+        allocate(listpix(MAXPIX))
         zl = shdata%lenses(ilens)%z
         dlc = shdata%lenses(ilens)%dc
         dl = dlc/(1+zl)
@@ -237,7 +236,7 @@ contains
         end do
         
         !print '(a)','Doing de-allocate'
-        !deallocate(listpix)
+        deallocate(listpix)
         !print '(a)','Finished de-allocate'
     end subroutine process_lens
 
