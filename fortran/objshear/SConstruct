@@ -5,11 +5,12 @@ import os
 # a standard place
 env = Environment(ENV=os.environ)
 
-with_openmp = ARGUMENTS.get('with_openmp',True)
-if with_openmp == 'false' or with_openmp == 'False':
-    with_openmp=False
+with_openmp = ARGUMENTS.get('with_openmp',False)
+if with_openmp not in ['false','False',False]:
+    with_openmp = True
 else:
-    with_openmp=True
+    with_openmp=False
+
 f90 = ARGUMENTS.get('f90', None)
 
 if f90 is not None:

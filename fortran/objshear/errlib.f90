@@ -1,6 +1,8 @@
 ! vim:set ft=fortran:
 module errlib
 
+    implicit none
+
 contains
     subroutine fatal_error(msg)
         character (len=*), intent(in), optional :: msg

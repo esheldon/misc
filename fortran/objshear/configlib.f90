@@ -1,10 +1,9 @@
 ! vim:set ft=fortran:
 module configlib
 
-    ! should be factor of two so the struct will pack
-    !integer, parameter :: NZVALS = 10
+    implicit none
+
     type config
-        sequence
         character*256 lens_file
         character*256 source_file
         character*256 output_file
@@ -14,7 +13,6 @@ module configlib
         integer*4 npts  ! for cosmo integration
 
         integer*4 nside ! hpix
-        integer*4 nest  ! hpix
 
         integer*4 sigmacrit_style
 
@@ -72,8 +70,6 @@ contains
 
         read(lun,'(a)')tmp
         read(lun,*)pars%nside
-        read(lun,'(a)')tmp
-        read(lun,*)pars%nest
 
 
         read(lun,'(a)')tmp

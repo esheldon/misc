@@ -1,7 +1,11 @@
 ! vim:set ft=fortran:
 module srclib
 
+    implicit none
+
     ! should be factor of two so the struct will pack
+    ! also, ifort tells me the padding and hpixid need to
+    ! both be at the end
     !integer, parameter :: NZVALS = 10
     type source
         sequence
@@ -12,10 +16,12 @@ module srclib
         real*8 g2
         real*8 err
 
-        integer*4 hpixid
 
-        real*8 z;
-        real*8 dc;
+        real*8 z
+        real*8 dc
+
+        integer*4 hpixid
+        integer*4 padding
 
         !real*8 scinv(NZVALS)
 
@@ -63,7 +69,7 @@ contains
 
         print '(a,i0)',"Adding dc to sources"
         do i=1,size(sources)
-            sources(i)%dc = cdist(0.0, sources(i)%z)
+            sources(i)%dc = cdist(0.0_8, sources(i)%z)
         end do
     end subroutine add_source_dc
 

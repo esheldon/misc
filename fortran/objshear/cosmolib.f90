@@ -5,6 +5,7 @@ module cosmolib
     !
     ! For integration, 5 points is essentially exact and very fast.
 
+    implicit none
 
     ! class variables
     integer*4, save, private :: has_been_init = 0
@@ -120,8 +121,8 @@ contains
             return
         end if
 
-        dcl = cdist(0.0, zl)
-        dcs = cdist(0.0, zs)
+        dcl = cdist(0.0_8, zl)
+        dcs = cdist(0.0_8, zs)
 
         scinv = dcl/(1.+zl)*(dcs-dcl)/dcs * four_pi_G_over_c_squared
     end function scinv_2z
