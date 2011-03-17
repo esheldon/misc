@@ -1,6 +1,8 @@
 ! vim:set ft=fortran:
 module histogram
 
+    implicit none
+
 contains
 
     subroutine histf8(array, sort_index, binsize, h, rev, binmin, binmax)

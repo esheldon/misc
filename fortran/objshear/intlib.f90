@@ -1,6 +1,8 @@
 ! vim:set ft=fortran:
 module intlib
 
+    implicit none
+
     integer, parameter, public :: dp  = SELECTED_REAL_KIND(12,200)
     real*8, parameter, public :: M_PI    = 3.141592653589793238462643383279502884197_dp
 
@@ -20,8 +22,8 @@ contains
         real*8 :: xm, xl, z1, z, p1, p2, p3, pp, EPS, abszdiff
 
 
-        call reallocatef4(x, npts)
-        call reallocatef4(w, npts)
+        call reallocatef8(x, npts)
+        call reallocatef8(w, npts)
 
         pp = 0.0
         EPS = 4.e-11

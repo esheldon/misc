@@ -2,6 +2,8 @@
 
 module bit_manipulation
 
+    implicit none
+
     private
 
     integer*4, parameter :: oddbits=89478485,evenbits=178956970

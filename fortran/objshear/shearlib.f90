@@ -56,7 +56,7 @@ module shearlib
         integer*4 maxid
         integer*4, allocatable, dimension(:) :: rev
 
-        ! use some extra memory (~2.5) for speed.
+        ! use some extra memory for speed.
         real*8, dimension(:), allocatable :: sinsdec
         real*8, dimension(:), allocatable :: sinsra
         real*8, dimension(:), allocatable :: cossdec
@@ -127,6 +127,7 @@ contains
         type(sheardata), intent(in) :: shdata
         type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
         integer*4 i, nprint
+        !integer*4 thread_id
 
         type(lens_sum) lensum_tot
         integer*4 :: nlens, nbin
@@ -138,15 +139,11 @@ contains
         call init_lens_sums(lensums, nlens, nbin)
 
         ! make sure these are called first, for thread safety
-        print '(a,i0,a,i0)',"Processing ",nlens," lenses.  Each dot is ",nprint
+        print '(a,i0,a)',"Processing ",nlens," lenses."
 
 !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
         do i=1,nlens
-            if (mod(i,nprint) == 0) then
-                print '(".",$)'
-                !print '(i0,"/",i0)',i,nlens
-            end if
-            print '(".",$)'
+            !print '(".",$)'
 
             lensums(i)%zindex = shdata%lenses(i)%zindex
 
@@ -326,7 +323,7 @@ contains
 
         nlens = size(lensums)
         nbin  = size(lensums(1)%npair)
-        print '(a,a)',"Opening output file: ",filename
+        print '(a,a)',"Writing output file: ",trim(filename)
         open(unit=lun, file=filename, access='STREAM', status='replace')
         write (lun)nlens
         write (lun)nbin

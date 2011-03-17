@@ -3,6 +3,8 @@ program main
 
     use shearlib
 
+    implicit none
+
     type(sheardata) shdata
     character*256 config_file
 

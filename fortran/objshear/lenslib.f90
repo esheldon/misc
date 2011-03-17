@@ -1,6 +1,8 @@
 ! vim:set ft=fortran:
 module lenslib
 
+    implicit none
+
     ! should be factor of two so the struct will pack
     !integer, parameter :: NZVALS = 10
     type lens
@@ -58,7 +60,7 @@ contains
 
         print '(a,i0)',"Adding dc to lenses"
         do i=1,size(lenses)
-            lenses(i)%dc = cdist(0.0, lenses(i)%z)
+            lenses(i)%dc = cdist(0.0_8, lenses(i)%z)
         end do
     end subroutine add_lens_dc
 

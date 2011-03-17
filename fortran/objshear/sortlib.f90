@@ -1,6 +1,8 @@
 ! vim:set ft=fortran:
 module sortlib
 
+    implicit none
+
 contains
 
 

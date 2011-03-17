@@ -3,6 +3,8 @@ program main
 
     use shearlib
 
+    implicit none
+
     type(sheardata) shdata
     type(lens_sum), dimension(:), allocatable :: lensums
 
@@ -21,5 +23,7 @@ program main
     call calc_shear(shdata, lensums)
 
     call write_lens_sums(shdata % pars % output_file, lensums)
+
+    print'(a)','Done'
 
 end program main
