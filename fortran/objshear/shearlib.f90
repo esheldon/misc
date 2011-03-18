@@ -235,9 +235,9 @@ contains
             end if ! pixel is in source pixel list
         end do
         
-        !print '(a)','Doing de-allocate'
+        print '(a)','Doing de-allocate'
         deallocate(listpix)
-        !print '(a)','Finished de-allocate'
+        print '(a)','Finished de-allocate'
     end subroutine process_lens
 
 

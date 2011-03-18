@@ -19,7 +19,8 @@ if f90 is not None:
 
 if f90 == 'ifort':
     if with_openmp:
-        env.Append(F90FLAGS=['-implicitnone','-fast','-openmp'],LINKFLAGS=['-fast','-openmp'])
+        #env.Append(F90FLAGS=['-implicitnone','-fast','-openmp'],LINKFLAGS=['-fast','-openmp'])
+        env.Append(F90FLAGS=['-implicitnone','-O2','-openmp','-c'],LINKFLAGS=['-O2','-openmp'])
     else:
         env.Append(F90FLAGS=['-implicitnone','-fast'])
 else:
