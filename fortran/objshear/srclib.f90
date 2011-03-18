@@ -16,14 +16,13 @@ module srclib
         real*8 g2
         real*8 err
 
-
+        !real*8 scinv(NZVALS)
         real*8 z
         real*8 dc
 
         integer*4 hpixid
         integer*4 padding
 
-        !real*8 scinv(NZVALS)
 
     end type source
 
