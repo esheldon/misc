@@ -7,6 +7,7 @@ module shearlib
     use cosmolib
     use healpix, only : HALFPI, DEG2RAD, query_disc
     use fileutil
+    use arrlib
 
     implicit none
 
@@ -128,11 +129,12 @@ contains
         type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
         integer*4 i, nprint
         !integer*4, dimension(MAXPIX) :: listpix
-        !integer*4, allocatable, dimension(:) :: listpix
-        integer*4 status
+        integer*4, allocatable, dimension(:) :: listpix
 
         type(lens_sum) lensum_tot
         integer*4 :: nlens, nbin
+
+        call alloc(listpix, MAXPIX, 0)
 
         nlens = size(shdata%lenses)
         nbin  = shdata%pars%nbin
@@ -150,8 +152,8 @@ contains
 
             if (shdata % lenses(i) % z > minz) then
 
-                print '(a)','Calling process_lens_omp'
-                call process_lens_omp(shdata, i, lensums(i))
+                !print '(a)','Calling process_lens_omp'
+                call process_lens_omp(shdata, i, lensums(i),listpix)
 
             endif
 
@@ -160,19 +162,21 @@ contains
         print *
         print '(a)','Done lens loop'
 
+        deallocate(listpix)
         call add_lens_sums(lensums, lensum_tot)
         call print_shear_sums(lensum_tot)
 
     end subroutine calc_shear
 
 
-    subroutine process_lens_omp(shdata, ilens,  lensum)
+    subroutine process_lens_omp(shdata, ilens,  lensum, listpix)
         type(sheardata), intent(in) ::  shdata
         integer*4, intent(in) :: ilens
         type(lens_sum), intent(inout) :: lensum
 
         !integer*4, dimension(MAXPIX) :: listpix
-        integer*4, allocatable, dimension(:) :: listpix
+        integer*4, dimension(:), intent(inout) :: listpix
+        !integer*4, allocatable, dimension(:) :: listpix
 
         real*8 weight
         real*8, allocatable, dimension(:) :: wsum
@@ -187,20 +191,13 @@ contains
         real*8 phi, r, cos2theta, sin2theta
         integer*4 nbin
 
-        print '(a)','Getting nbin'
         nbin=size(lensum%npair)
-        print '(a,i0)','Allocating nbin: ',nbin
         weight=0
-        allocate(wsum(nbin))
-        allocate(dsum(nbin))
-        allocate(osum(nbin))
-        allocate(rsum(nbin))
-        allocate(npair(nbin))
-        print '(a)',"Done Allocating"
-
-        print '(a)','Allocating listpix'
-        allocate(listpix(MAXPIX))
-
+        call alloc(wsum,  nbin, 0.0_8)
+        call alloc(dsum,  nbin, 0.0_8)
+        call alloc(osum,  nbin, 0.0_8)
+        call alloc(rsum,  nbin, 0.0_8)
+        call alloc(npair, nbin, 0_8)
 
         zl = shdata%lenses(ilens)%z
         dlc = shdata%lenses(ilens)%dc
@@ -209,14 +206,11 @@ contains
         search_angle = shdata%pars%rmax/dl
         cos_search_angle = cos(search_angle)
 
-        print '(a)','Calling query_disc'
-        print '(a,i0)','Size of listpix:',size(listpix)
         call query_disc(shdata%pars%nside,    &
                         shdata%lenses(ilens)%ra, &
                         shdata%lenses(ilens)%dec, &
                         search_angle, listpix, npixfound,   &
                         inclusive)
-        print '(a)','Done Calling query_disc'
 
 !$OMP PARALLEL DO DEFAULT(SHARED) &
 !$OMP PRIVATE(j,pix,n_in_bin,k,isrc,phi,cos2theta,sin2theta,r,scinv) &
@@ -263,15 +257,11 @@ contains
         lensum%rsum = rsum
         lensum%npair = npair
 
-        print '(a)',"De-Allocating"
         deallocate(wsum)
         deallocate(dsum)
         deallocate(osum)
         deallocate(rsum)
         deallocate(npair)
-        deallocate(listpix)
-        print '(a)',"Done De-Allocating"
-
         
     end subroutine process_lens_omp
 

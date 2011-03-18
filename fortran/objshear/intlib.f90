@@ -22,8 +22,8 @@ contains
         real*8 :: xm, xl, z1, z, p1, p2, p3, pp, EPS, abszdiff
 
 
-        call reallocatef8(x, npts)
-        call reallocatef8(w, npts)
+        call alloc(x, npts, 0.0_8)
+        call alloc(w, npts, 0.0_8)
 
         pp = 0.0
         EPS = 4.e-11

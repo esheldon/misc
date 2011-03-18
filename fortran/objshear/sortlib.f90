@@ -34,7 +34,7 @@ contains
 
         integer*4 left, right, i
 
-        call reallocatei4(ind, size(arr))
+        call alloc(ind, size(arr),0)
         do i=1,size(arr)
             ind(i) = i
         end do
@@ -55,7 +55,7 @@ contains
 
         integer*4 left, right, i
 
-        call reallocatei4(ind, size(arr))
+        call alloc(ind, size(arr),0)
         do i=1,size(arr)
             ind(i) = i
         end do
