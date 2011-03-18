@@ -129,6 +129,7 @@ contains
         integer*4 i, nprint
         !integer*4, dimension(MAXPIX) :: listpix
         !integer*4, allocatable, dimension(:) :: listpix
+        integer*4 status
 
         type(lens_sum) lensum_tot
         integer*4 :: nlens, nbin
@@ -139,32 +140,25 @@ contains
 
         call init_lens_sums(lensums, nlens, nbin)
 
-        !allocate(listpix(MAXPIX))
-
         ! make sure these are called first, for thread safety
         print '(a,i0,a)',"Processing ",nlens," lenses."
 
-!!!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) FIRSTPRIVATE(listpix)
-!!!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,listpix)
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
         do i=1,nlens
             print '(".",$)'
 
             lensums(i)%zindex = shdata%lenses(i)%zindex
 
             if (shdata % lenses(i) % z > minz) then
-                call process_lens(shdata, i, lensums(i))
+
+                print '(a)','Calling process_lens_omp'
+                call process_lens_omp(shdata, i, lensums(i))
+
             endif
 
         end do
-!$OMP END PARALLEL DO
 
         print *
         print '(a)','Done lens loop'
-
-        !print '(a)','running deallocate on listpix'
-        !deallocate(listpix)
-        !print '(a)','done deallocate'
 
         call add_lens_sums(lensums, lensum_tot)
         call print_shear_sums(lensum_tot)
@@ -172,20 +166,131 @@ contains
     end subroutine calc_shear
 
 
+    subroutine process_lens_omp(shdata, ilens,  lensum)
+        type(sheardata), intent(in) ::  shdata
+        integer*4, intent(in) :: ilens
+        type(lens_sum), intent(inout) :: lensum
+
+        !integer*4, dimension(MAXPIX) :: listpix
+        integer*4, allocatable, dimension(:) :: listpix
+
+        real*8 weight
+        real*8, allocatable, dimension(:) :: wsum
+        real*8, allocatable, dimension(:) :: dsum
+        real*8, allocatable, dimension(:) :: osum
+        real*8, allocatable, dimension(:) :: rsum
+        integer*8, allocatable, dimension(:) :: npair
+
+        integer*4 j, k, isrc, pix, npixfound, n_in_bin
+        real*8 zl, dl, dlc
+        real*8 search_angle, cos_search_angle, theta, scinv
+        real*8 phi, r, cos2theta, sin2theta
+        integer*4 nbin
+
+        print '(a)','Getting nbin'
+        nbin=size(lensum%npair)
+        print '(a,i0)','Allocating nbin: ',nbin
+        weight=0
+        allocate(wsum(nbin))
+        allocate(dsum(nbin))
+        allocate(osum(nbin))
+        allocate(rsum(nbin))
+        allocate(npair(nbin))
+        print '(a)',"Done Allocating"
+
+        print '(a)','Allocating listpix'
+        allocate(listpix(MAXPIX))
+
+
+        zl = shdata%lenses(ilens)%z
+        dlc = shdata%lenses(ilens)%dc
+        dl = dlc/(1+zl)
+
+        search_angle = shdata%pars%rmax/dl
+        cos_search_angle = cos(search_angle)
+
+        print '(a)','Calling query_disc'
+        print '(a,i0)','Size of listpix:',size(listpix)
+        call query_disc(shdata%pars%nside,    &
+                        shdata%lenses(ilens)%ra, &
+                        shdata%lenses(ilens)%dec, &
+                        search_angle, listpix, npixfound,   &
+                        inclusive)
+        print '(a)','Done Calling query_disc'
+
+!$OMP PARALLEL DO DEFAULT(SHARED) &
+!$OMP PRIVATE(j,pix,n_in_bin,k,isrc,phi,cos2theta,sin2theta,r,scinv) &
+!$OMP REDUCTION(+:weight,wsum,dsum,osum,rsum,npair)
+        do j=1,npixfound
+            pix = listpix(j)
+            if (pix >= shdata%minid .and. pix <= shdata%maxid) then
+                pix = listpix(j) - shdata%minid + 1
+                n_in_bin = shdata%rev(pix+1) - shdata%rev(pix)
+                do k=1,n_in_bin
+                    isrc = shdata%rev( shdata%rev(pix) + k -1 )
+
+                    call get_pair_info(shdata%coslra(ilens),  &
+                                       shdata%sinlra(ilens),  &
+                                       shdata%cosldec(ilens), &
+                                       shdata%sinldec(ilens), &
+                                       shdata%sinsdec(isrc),  &
+                                       shdata%cossdec(isrc),  &
+                                       shdata%sinsra(isrc),   &
+                                       shdata%cossra(isrc),   &
+                                       cos_search_angle,      &
+                                       phi, cos2theta, sin2theta)
+
+                    if (phi > 0 ) then
+                        r = phi*dl
+                        scinv = sigmacritinv(zl,dlc, shdata%sources(isrc)%dc)
+                        if (scinv > 0) then
+                            call calc_shear_sums_omp(shdata%pars, &
+                                shdata%sources(isrc), &
+                                r,cos2theta,sin2theta,scinv, &
+                                weight,wsum,dsum,osum,rsum,npair)
+                        end if
+                    end if
+
+                end do ! sources in pixel
+            end if ! pixel is in source pixel list
+        end do
+!$OMP END PARALLEL DO
+
+        lensum%weight = weight
+        lensum%wsum = wsum
+        lensum%dsum = dsum
+        lensum%osum = osum
+        lensum%rsum = rsum
+        lensum%npair = npair
+
+        print '(a)',"De-Allocating"
+        deallocate(wsum)
+        deallocate(dsum)
+        deallocate(osum)
+        deallocate(rsum)
+        deallocate(npair)
+        deallocate(listpix)
+        print '(a)',"Done De-Allocating"
+
+        
+    end subroutine process_lens_omp
+
     subroutine process_lens(shdata, ilens, lensum)
         type(sheardata), intent(in) ::  shdata
         integer*4, intent(in) :: ilens
         type(lens_sum), intent(inout) :: lensum
+        !integer*4, dimension(:), intent(inout) :: listpix
         !integer*4, allocatable, dimension(:), intent(inout) :: listpix
-        !integer*4, dimension(MAXPIX), automatic :: listpix
-        integer*4, dimension(:), allocatable :: listpix
+        integer*4, dimension(MAXPIX) :: listpix
+        !integer*4, dimension(:), allocatable :: listpix
 
         integer*4 j, k, isrc, pix, npixfound, n_in_bin
         real*8 zl, dl, dlc
         real*8 search_angle, cos_search_angle, theta, scinv
         real*8 phi, r, cos2theta, sin2theta
 
-        allocate(listpix(MAXPIX))
+        !allocate(listpix(MAXPIX))
+
         zl = shdata%lenses(ilens)%z
         dlc = shdata%lenses(ilens)%dc
         dl = dlc/(1+zl)
@@ -235,10 +340,11 @@ contains
             end if ! pixel is in source pixel list
         end do
         
-        print '(a)','Doing de-allocate'
-        deallocate(listpix)
-        print '(a)','Finished de-allocate'
+        !print '(a)','Doing de-allocate'
+        !deallocate(listpix)
+        !print '(a)','Finished de-allocate'
     end subroutine process_lens
+
 
 
     subroutine get_pair_info(coslra,sinlra,cosldec,sinldec, &
@@ -285,6 +391,51 @@ contains
         end if
         
     end subroutine get_pair_info
+
+
+    subroutine calc_shear_sums_omp(pars, src, r, cos2theta, sin2theta, scinv, &
+                                   weight, wsum, dsum, osum, rsum, npair)
+                                   
+        type(config), intent(in) :: pars
+        type(source), intent(in) :: src
+        real*8, intent(in) :: r, cos2theta, sin2theta
+        real*8, intent(in) :: scinv
+
+        real*8, intent(inout) :: weight
+        real*8, dimension(:), intent(inout) :: wsum
+        real*8, dimension(:), intent(inout) :: dsum
+        real*8, dimension(:), intent(inout) :: osum
+        real*8, dimension(:), intent(inout) :: rsum
+        integer*8, dimension(:), intent(inout) :: npair
+
+        real*8 scinv2, gamma1, gamma2, w
+        real*8 logr
+        integer*4 rbin
+
+        logr = log10(r)
+        rbin = int( (logr-pars%log_rmin)/pars%log_binsize ) + 1
+
+        if (rbin >= 1 .and. rbin <= pars%nbin) then
+
+            scinv2 = scinv*scinv
+
+            gamma1 = -(src%g1*cos2theta + src%g2*sin2theta)
+            gamma2 =  (src%g1*sin2theta - src%g2*cos2theta)
+            w = scinv2/(GSN2 + src%err**2)
+
+            weight = weight + w
+
+            wsum(rbin)  = wsum(rbin) + w
+            dsum(rbin)  = dsum(rbin) + w*gamma1/scinv
+            osum(rbin)  = osum(rbin) + w*gamma2/scinv
+
+            npair(rbin) = npair(rbin) + 1
+            rsum(rbin)  = rsum(rbin) + r
+
+        end if ! valid radial bin
+
+
+    end subroutine calc_shear_sums_omp
 
 
 
