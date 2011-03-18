@@ -510,15 +510,16 @@ contains
         real*8, dimension(:), allocatable :: rbins
         real*8, dimension(:), allocatable :: dsig
         real*8, dimension(:), allocatable :: osig
-        integer*8 nbin, i
+        integer*4 i, nbin
         integer*8 :: npair = 0
         real*8 :: wsum=0, dsum=0, osum=0
 
         nbin = size(lensum%rsum)
 
-        allocate(rbins(nbin))
-        allocate(dsig(nbin))
-        allocate(osig(nbin))
+        call alloc(rbins, nbin, 0.0_8)
+        call alloc(dsig, nbin, 0.0_8)
+        call alloc(osig, nbin, 0.0_8)
+
         rbins = lensum % rsum/lensum % npair
         dsig  = lensum % dsum/lensum % wsum
         osig  = lensum % osum/lensum % wsum
