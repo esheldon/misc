@@ -65,10 +65,10 @@ contains
         nbin = int( (mbinmax-mbinmin)*bininv ) + 1
 
         ! allocate the outputs
-        call reallocatei4(h, nbin)
+        call alloc(h, nbin, 0)
         h=0
         if (dorev) then
-            call reallocatei4(rev, size(array) + nbin + 1);
+            call alloc(rev, size(array) + nbin + 1, 0);
             rev=(size(rev)+1)
         endif
 
@@ -165,10 +165,10 @@ contains
         nbin = int( dfloat(mbinmax-mbinmin)*bininv ) + 1
 
         ! allocate the outputs
-        call reallocatei4(h, nbin)
+        call alloc(h, nbin, 0)
         h=0
         if (dorev) then
-            call reallocatei4(rev, size(array) + nbin + 1);
+            call alloc(rev, size(array) + nbin + 1, 0);
             rev=dfloat(size(rev)+1)
         endif
 
