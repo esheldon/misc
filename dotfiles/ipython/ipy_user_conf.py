@@ -89,6 +89,12 @@ def main():
         print "Could not import sdsspy"
 
     try:
+        ip.ex("import es_sdsspy")
+    except:
+        print "Could not import es_sdsspy"
+
+
+    try:
         ip.ex("from esutil import oracle_util as ou")
         try:
             ip.ex("oc = ou.Connection()")
