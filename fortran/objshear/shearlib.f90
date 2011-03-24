@@ -79,7 +79,8 @@ contains
         type(sheardata), intent(inout) ::  shdata
         integer*4 i
 
-        call read_config(config_file, shdata%pars)
+        !call read_config(config_file, shdata%pars)
+        call read_config_new(config_file, shdata%pars)
         call print_config(shdata % pars)
         return
 
