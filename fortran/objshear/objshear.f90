@@ -18,6 +18,7 @@ program main
     call getarg(1,config_file)
 
     call load_shear_data(config_file, shdata)
+    call exit(0)
 
 
     call calc_shear(shdata, lensums)

@@ -30,6 +30,101 @@ module configlib
 
 contains
 
+    real*8 function pair2f8(pair) result(val)
+        character(len=*), intent(inout) :: pair
+
+        character(100) key
+
+        pair=adjustl(pair)
+
+        read (pair(scan(pair,' ')+1:),*) val
+
+    end function pair2f8
+
+
+
+    subroutine pair2string(pair, val)
+        character(len=*), intent(inout) :: pair
+        character(len=*), intent(inout) :: val
+
+        character(100) key
+
+        pair=adjustl(pair)
+
+        key=pair(1:scan(pair,' '))
+        val=trim(adjustl(pair(scan(pair,' ')+1:)))
+
+    end subroutine pair2string
+
+    subroutine read_config_new(filename, pars)
+        use fileutil
+
+        character(len=*) :: filename
+        type(config) pars
+
+        character(255) lensin_dir
+        character(255) lensout_dir
+        character(255) tmp
+
+        integer :: lun
+        lun = get_lun()
+
+
+        print '("Reading config file (",i0,"): ",a)',lun,trim(filename)
+        open(unit=lun,file=filename,status='OLD')
+
+        tmp=''
+        read(lun,'(a)') tmp
+        call pair2string(tmp, pars%lens_file)
+
+        read(lun,'(a)') tmp
+        call pair2string(tmp, pars%source_file)
+
+        !read(lun,'(a)') tmp
+        !read(lun,'(a)') tmp
+        !pars%source_file = trim(adjustl(tmp))
+
+        read(lun,'(a)') tmp
+        read(lun,'(a)') tmp
+        pars%output_file = trim(adjustl(tmp))
+
+        tmp = ''
+        read(lun,'(a)')tmp
+        pars%h0 = pair2f8(tmp)
+        !read(lun,*)pars%h0
+        !read(lun,'(a)')tmp
+        !read(lun,*)pars%omega_m
+
+        read(lun,'(a)')tmp
+        read(lun,*)pars%npts
+
+
+        read(lun,'(a)')tmp
+        read(lun,*)pars%nside
+
+
+        read(lun,'(a)')tmp
+        read(lun,*)pars%sigmacrit_style
+
+        read(lun,'(a)')tmp
+        read(lun,*)pars%nbin
+
+        read(lun,'(a)')tmp
+        read(lun,*)pars%rmin
+        read(lun,'(a)')tmp
+        read(lun,*)pars%rmax
+
+
+        close(lun)
+
+        pars%log_rmin = log10(pars%rmin);
+        pars%log_rmax = log10(pars%rmax);
+        pars%log_binsize = ( pars%log_rmax - pars%log_rmin )/pars%nbin
+
+
+
+    end subroutine read_config
+
     subroutine read_config(filename, pars)
         use fileutil
 
@@ -59,7 +154,6 @@ contains
         read(lun,'(a)') tmp
         pars%output_file = trim(adjustl(tmp))
 
-        read(lun,'(a)')tmp
         read(lun,*)pars%h0
         read(lun,'(a)')tmp
         read(lun,*)pars%omega_m
@@ -93,6 +187,7 @@ contains
 
 
     end subroutine read_config
+
 
 
     subroutine print_config(pars)

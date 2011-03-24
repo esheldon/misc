@@ -60,6 +60,49 @@ contains
     end subroutine read_source_cat
 
 
+    subroutine read_source_cat_new(filename, sources)
+        use fileutil
+
+        ! read the binary version
+        type(source), dimension(:), allocatable :: sources
+        character(len=*):: filename
+
+        integer*4 nsource
+        integer*4 i
+
+        integer :: lun
+
+        lun = get_lun()
+
+        print '("Reading source cat file (",i0,"): ",a)',lun,trim(filename)
+
+        open(unit=lun,file=filename,access='STREAM')
+
+        read (lun)nsource
+        write (*,'("    Found ",i0," sources, reading...",$)'),nsource
+
+        allocate(sources(nsource))
+
+        do i=1,nsource
+            read(lun)sources(i)%ra
+            read(lun)sources(i)%dec
+            read(lun)sources(i)%g1
+            read(lun)sources(i)%g2
+            read(lun)sources(i)%err
+            read(lun)sources(i)%z
+            read(lun)sources(i)%dc
+            read(lun)sources(i)%hpixid
+            read(lun)sources(i)%padding
+        enddo
+        !read(lun)sources
+
+        print *,"Done"
+
+        close(lun)
+
+    end subroutine read_source_cat_new
+
+
     subroutine add_source_dc(sources)
         ! add comoving distance
         use cosmolib

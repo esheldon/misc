@@ -81,6 +81,7 @@ contains
 
         call read_config(config_file, shdata%pars)
         call print_config(shdata % pars)
+        return
 
         call cosmo_init(shdata%pars%H0, shdata%pars%omega_m, shdata%pars%npts)
 
@@ -88,6 +89,7 @@ contains
         call add_lens_dc(shdata%lenses)
         call print_lens_firstlast(shdata%lenses)
 
+        !call read_source_cat_new(shdata%pars%source_file, shdata%sources)
         call read_source_cat(shdata%pars%source_file, shdata%sources)
 
 
