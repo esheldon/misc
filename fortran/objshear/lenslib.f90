@@ -36,7 +36,6 @@ contains
         open(unit=lun,file=filename,access='STREAM')
 
         read (lun)nlens
-        nlens=10
         write (*,'("    Found ",i0," lenses, reading...",$)'),nlens
 
         allocate(lenses(nlens))

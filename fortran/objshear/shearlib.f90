@@ -130,7 +130,6 @@ contains
         type(sheardata), intent(in) :: shdata
         type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
         integer*8 i, nprint
-        !integer*8, dimension(MAXPIX) :: listpix
         integer*8, allocatable, dimension(:) :: listpix
 
         type(lens_sum) lensum_tot
@@ -179,9 +178,7 @@ contains
         integer*8, intent(in) :: ilens
         type(lens_sum), intent(inout) :: lensum
 
-        !integer*8, dimension(MAXPIX) :: listpix
-        integer*8, dimension(:), intent(inout) :: listpix
-        !integer*8, allocatable, dimension(:) :: listpix
+        integer*8, dimension(:), allocatable, intent(inout) :: listpix
 
         real*8 weight
         real*8, allocatable, dimension(:) :: wsum
@@ -275,18 +272,13 @@ contains
         type(sheardata), intent(in) ::  shdata
         integer*8, intent(in) :: ilens
         type(lens_sum), intent(inout) :: lensum
-        !integer*8, dimension(:), intent(inout) :: listpix
-        !integer*8, allocatable, dimension(:), intent(inout) :: listpix
-        integer*8, dimension(MAXPIX) :: listpix
-        !integer*8, dimension(:), allocatable :: listpix
+        integer*8, allocatable, dimension(:) :: listpix
 
         integer*8 k, isrc, n_in_bin
         integer*8 j, pix, npixfound
         real*8 zl, dl, dlc
         real*8 search_angle, cos_search_angle, theta, scinv
         real*8 phi, r, cos2theta, sin2theta
-
-        !allocate(listpix(MAXPIX))
 
         zl = shdata%lenses(ilens)%z
         dlc = shdata%lenses(ilens)%dc
@@ -305,8 +297,10 @@ contains
 
         !if (npixfound > maxpix_used) maxpix_used = npixfound
         do j=1,npixfound
+        !do j=0,npixfound-1
             pix = listpix(j)
             if (pix >= shdata%minid .and. pix <= shdata%maxid) then
+                ! add one to make 1-offset
                 pix = listpix(j) - shdata%minid + 1
                 n_in_bin = shdata%rev(pix+1) - shdata%rev(pix)
                 do k=1,n_in_bin
@@ -337,9 +331,6 @@ contains
             end if ! pixel is in source pixel list
         end do
         
-        !print '(a)','Doing de-allocate'
-        !deallocate(listpix)
-        !print '(a)','Finished de-allocate'
     end subroutine process_lens
 
 
