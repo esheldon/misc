@@ -1,52 +1,5 @@
 ! vim:set ft=fortran:
 
-module bit_manipulation
-
-    implicit none
-
-    private
-
-    integer*4, parameter :: oddbits=89478485,evenbits=178956970
-
-    public :: swapLSBMSB, invswapLSBMSB, invLSB, invMSB
-
-contains
-
-    !! Returns i with even and odd bit positions interchanged.
-    function swapLSBMSB(i)
-        integer*4 :: swapLSBMSB
-        integer*4, intent(in) :: i
-
-        swapLSBMSB = IAND(i,evenbits)/2 + IAND(i,oddbits)*2
-    end function swapLSBMSB
-
-    !! Returns NOT(i) with even and odd bit positions interchanged.
-    function invswapLSBMSB(i)
-        integer*4 :: invswapLSBMSB
-        integer*4, intent(in) :: i
-
-        invswapLSBMSB = NOT(swapLSBMSB(i))
-    end function invswapLSBMSB
-
-    !! Returns i with odd (1,3,5,...) bits inverted.
-    function invLSB(i)
-        integer*4 :: invLSB
-        integer*4, intent(in) :: i
-
-        invLSB = IEOR(i,oddbits)
-    end function invLSB
-
-    !! Returns i with even (0,2,4,...) bits inverted.
-    function invMSB(i)
-        integer*4 :: invMSB
-        integer*4, intent(in) :: i
-
-        invMSB = IEOR(i,evenbits)
-    end function invMSB
-
-end module bit_manipulation
-
-
 module healpix
 
     integer, parameter, public :: lgt = KIND(.TRUE.)
@@ -58,7 +11,8 @@ module healpix
 
     real*8, parameter, public :: RAD2DEG = 180.0_DP / PI
     real*8, parameter, public :: DEG2RAD = PI / 180.0_DP
-    integer*4, parameter, private :: ns_max=8192 ! 2^13 : largest nside available
+    !integer*4, parameter, private :: ns_max=8192 ! 2^13 : largest nside available
+    integer*4, parameter, private :: ns_max=268435456 ! 2^28 : largest nside available
 
 contains
 
@@ -86,13 +40,14 @@ contains
         integer*4, intent(in) :: nside
         real*8, intent(in) :: ra, dec
 
-        integer*4, intent(out) :: ipix
+        !integer*4, intent(out) :: ipix
+        integer*8, intent(out) :: ipix
 
         real*8 :: theta, phi
 
-        integer*4 ::  nl4, jp, jm
+        integer*8 ::  nl4, jp, jm
         real*8 ::  z, za, tt, tp, tmp, temp1, temp2
-        integer*4 ::  ir, ip, kshift
+        integer*8 ::  ir, ip, kshift
 
         call radec_degrees_to_thetaphi_radians(ra, dec, theta, phi)
 
@@ -111,28 +66,28 @@ contains
         if ( za <= twothird ) then ! Equatorial region ------------------
             temp1 = nside*(.5_dp+tt)
             temp2 = nside*.75_dp*z
-            jp = int(temp1-temp2) ! index of  ascending edge line
-            jm = int(temp1+temp2) ! index of descending edge line
+            jp = int(temp1-temp2, kind=8) ! index of  ascending edge line
+            jm = int(temp1+temp2, kind=8) ! index of descending edge line
 
             ir = nside + 1 + jp - jm ! in {1,2n+1} (ring number counted from z=2/3)
             kshift = 1 - modulo(ir,2) ! kshift=1 if ir even, 0 otherwise
 
             nl4 = 4*nside
-            ip = INT( ( jp+jm - nside + kshift + 1 ) / 2 ) ! in {0,4n-1}
+            ip = INT( ( jp+jm - nside + kshift + 1 ) / 2, kind=8) ! in {0,4n-1}
             if (ip >= nl4) ip = ip - nl4
 
             ipix = 2*nside*(nside-1) + nl4*(ir-1) + ip
 
         else ! North & South polar caps -----------------------------
 
-            tp = tt - INT(tt)      !MODULO(tt,1.0_dp)
+            tp = tt - INT(tt,kind=8)      !MODULO(tt,1.0_dp)
             tmp = nside * SQRT( 3.0_dp*(1.0_dp - za) )
 
-            jp = INT(tp          * tmp ) ! increasing edge line index
-            jm = INT((1.0_dp - tp) * tmp ) ! decreasing edge line index
+            jp = INT(tp          * tmp , kind=8) ! increasing edge line index
+            jm = INT((1.0_dp - tp) * tmp , kind=8) ! decreasing edge line index
 
             ir = jp + jm + 1        ! ring number counted from the closest pole
-            ip = INT( tt * ir )     ! in {0,4*ir-1}
+            ip = INT( tt * ir , kind=8)     ! in {0,4*ir-1}
             if (ip >= 4*ir) ip = ip - 4*ir
 
             if (z>0._dp) then
@@ -183,23 +138,25 @@ contains
         integer*4, intent(in)                  :: nside
         real*8,    intent(in)                  :: ra,dec
         real*8,    intent(in)                  :: radius
-        integer*4, intent(inout), dimension(:) :: listpix
-        integer*4, intent(out)                 :: nlist
+        integer*8, intent(inout), dimension(:) :: listpix
+        integer*8, intent(out)                 :: nlist
         integer*4, intent(in), optional        :: inclusive
 
         real*8, dimension(3)  :: vector0
 
-        integer*4 :: irmin, irmax, ilist, iz, ip, nir, npix
+        integer*4 irmin, irmax, iz, ip, nir
+
+        integer*8 :: ilist, npix, list_size, nlost
+        integer*8, DIMENSION(:),   ALLOCATABLE  :: listir
+
         real*8 :: norm_vect0
         real*8 :: x0, y0, z0, radius_eff, fudge
         real*8 :: a, b, c, cosang
         real*8 :: dth1, dth2
         real*8 :: phi0, cosphi0, cosdphi, dphi
         real*8 :: rlat0, rlat1, rlat2, zmin, zmax, z
-        integer*4, DIMENSION(:),   ALLOCATABLE  :: listir
         integer*4 :: status
         character(len=*), parameter :: code = "QUERY_DISC"
-        integer*4 :: list_size, nlost
         logical(LGT) :: do_inclusive
 
         !=======================================================================
@@ -389,7 +346,7 @@ contains
         integer*4, intent(in)                 :: nside, iz
         integer*4, intent(out)                :: nir
         real*8,     intent(in)                :: phi0, dphi
-        integer*4, intent(out), dimension(0:) :: listir
+        integer*8, intent(out), dimension(0:) :: listir
 
         !     logical(kind=lgt) :: conservative = .true.
         logical(kind=lgt) :: conservative = .false.
