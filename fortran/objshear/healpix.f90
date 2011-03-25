@@ -138,7 +138,7 @@ contains
         integer*8, intent(in)                  :: nside
         real*8,    intent(in)                  :: ra,dec
         real*8,    intent(in)                  :: radius
-        integer*8, intent(inout), dimension(:) :: listpix
+        integer*8, allocatable, intent(inout), dimension(:) :: listpix
         integer*8, intent(out)                 :: nlist
         integer*8, intent(in), optional        :: inclusive
 
@@ -270,7 +270,9 @@ contains
            endif
            do ip = 0, nir-1
               ilist = ilist + 1
-              listpix(ilist) = listir(ip)
+              ! 1-offset
+              listpix(ilist+1) = listir(ip)
+              !listpix(ilist) = listir(ip)
            enddo
 
         1000   continue
