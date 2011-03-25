@@ -11,7 +11,7 @@ contains
 
     subroutine alloci4(array, num, initval)
         integer*4, allocatable, dimension(:) :: array
-        integer*4 num
+        integer*8 num
         integer*4 initval
 
         if (allocated(array)) then
@@ -28,7 +28,7 @@ contains
 
     subroutine alloci8(array, num, initval)
         integer*8, allocatable, dimension(:) :: array
-        integer*4 num
+        integer*8 num
         integer*8 initval
 
         if (allocated(array)) then
@@ -47,7 +47,7 @@ contains
 
     subroutine allocf8(array, num, initval)
         real*8, allocatable, dimension(:) :: array
-        integer*4 num
+        integer*8 num
         real*8 initval
 
         if (allocated(array)) then

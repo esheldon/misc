@@ -9,8 +9,8 @@ contains
     real*8, dimension(:), intent(in) :: y
     real*8, intent(in) :: u
 
-    integer*4 ilo,ihi
-    integer*4 i
+    integer*8 ilo,ihi
+    integer*8 i
 
     ilo=size(x)-1
     ihi=size(x)

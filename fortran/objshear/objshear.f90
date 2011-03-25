@@ -15,10 +15,10 @@ program main
         stop 45
     end if
 
+    config_file=''
     call getarg(1,config_file)
 
     call load_shear_data(config_file, shdata)
-
     call calc_shear(shdata, lensums)
 
     call write_lens_sums(shdata % pars % output_file, lensums)

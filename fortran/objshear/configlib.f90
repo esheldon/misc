@@ -10,13 +10,13 @@ module configlib
 
         real*8 H0
         real*8 omega_m
-        integer*4 npts  ! for cosmo integration
+        integer*8 npts  ! for cosmo integration
 
-        integer*4 nside ! hpix
+        integer*8 nside ! hpix
 
-        integer*4 sigmacrit_style
+        integer*8 sigmacrit_style
 
-        integer*4 nbin
+        integer*8 nbin
         real*8 rmin
         real*8 rmax
 
@@ -27,19 +27,13 @@ module configlib
 
     end type config
 
-    !interface read_conf
-    !    module procedure read_conf_F8
-    !    module procedure read_conf_I4
-    !    module procedure read_conf_I8
-    !    module procedure read_conf_string
-    !end interface
-
 contains
 
     real*8 function read_conf_F8(lun) result(val)
         integer, intent(in) :: lun
         character(255) key_val_pair
 
+        key_val_pair=''
         read(lun,'(a)') key_val_pair
 
         val = conf_extractF8(key_val_pair)
@@ -49,6 +43,7 @@ contains
         integer, intent(in) :: lun
         character(255) key_val_pair
 
+        key_val_pair=''
         read(lun,'(a)') key_val_pair
 
         val = conf_extractI8(key_val_pair)
@@ -57,6 +52,7 @@ contains
         integer, intent(in) :: lun
         character(255) key_val_pair
 
+        key_val_pair=''
         read(lun,'(a)') key_val_pair
 
         val = conf_extractI4(key_val_pair)
@@ -66,6 +62,7 @@ contains
         integer, intent(in) :: lun
         character(255) key_val_pair
 
+        key_val_pair=''
         read(lun,'(a)') key_val_pair
 
         call conf_extract_string(key_val_pair, val)
@@ -74,8 +71,6 @@ contains
 
     real*8 function conf_extractF8(pair) result(val)
         character(len=*), intent(inout) :: pair
-
-        character(100) key
 
         pair=adjustl(pair)
 
@@ -86,8 +81,6 @@ contains
     integer*8 function conf_extractI8(pair) result(val)
         character(len=*), intent(inout) :: pair
 
-        character(100) key
-
         pair=adjustl(pair)
 
         read (pair(scan(pair,' ')+1:),*) val
@@ -95,8 +88,6 @@ contains
     end function
     integer*4 function conf_extractI4(pair) result(val)
         character(len=*), intent(inout) :: pair
-
-        character(100) key
 
         pair=adjustl(pair)
 
@@ -115,6 +106,7 @@ contains
         pair=adjustl(pair)
 
         key=pair(1:scan(pair,' '))
+        val=''
         val=trim(adjustl(pair(scan(pair,' ')+1:)))
 
     end subroutine
@@ -140,10 +132,10 @@ contains
 
         pars%h0 = read_conf_F8(lun)
         pars%omega_m = read_conf_F8(lun)
-        pars%npts = read_conf_I4(lun)
-        pars%nside = read_conf_I4(lun)
-        pars%sigmacrit_style = read_conf_I4(lun)
-        pars%nbin = read_conf_I4(lun)
+        pars%npts = read_conf_I8(lun)
+        pars%nside = read_conf_I8(lun)
+        pars%sigmacrit_style = read_conf_I8(lun)
+        pars%nbin = read_conf_I8(lun)
         pars%rmin = read_conf_F8(lun)
         pars%rmax = read_conf_F8(lun)
 

@@ -8,8 +8,8 @@ module cosmolib
     implicit none
 
     ! class variables
-    integer*4, save, private :: has_been_init = 0
-    integer*4, save :: npts
+    integer*8, save, private :: has_been_init = 0
+    integer*8, save :: npts
     real*8, private, save, dimension(:), allocatable :: xxi, wwi
 
     real*8, save :: H0
@@ -41,7 +41,7 @@ contains
     subroutine cosmo_init(H0_new, omega_m_new, npts_new)
 
         real*8, intent(in) :: H0_new, omega_m_new
-        integer*4, intent(in) :: npts_new
+        integer*8, intent(in) :: npts_new
 
         H0      = H0_new
         omega_m = omega_m_new
@@ -59,7 +59,7 @@ contains
     subroutine set_cosmo_weights(npts_new)
 
         use intlib
-        integer*4, intent(in) :: npts_new
+        integer*8, intent(in) :: npts_new
         npts = npts_new
         call gauleg(-1.0_dp, 1.0_dp, npts, xxi, wwi)
 
@@ -67,7 +67,7 @@ contains
 
     real*8 function ez_inverse_integral(zmin, zmax) result(val)
         real*8, intent(in) :: zmin, zmax
-        integer*4 i
+        integer*8 i
 
 
         f1 = (zmax-zmin)/2.
@@ -143,7 +143,7 @@ contains
         logical, optional :: do_printall
         logical printall
 
-        integer*4 i
+        integer*8 i
 
         if (has_been_init == 0) then
             print '(a)',"cosmo has not yet been init"
