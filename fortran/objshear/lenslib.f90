@@ -3,8 +3,6 @@ module lenslib
 
     implicit none
 
-    ! should be factor of two so the struct will pack
-    !integer, parameter :: NZVALS = 10
     type lens
         sequence
         real*8 ra
@@ -13,9 +11,7 @@ module lenslib
         real*8 z
         real*8 dc
 
-        integer*4 zindex
-
-        integer*4 padding;
+        integer*8 zindex
 
     end type lens
 
@@ -28,8 +24,8 @@ contains
         type(lens), dimension(:), allocatable :: lenses 
         character(len=*):: filename
 
-        integer*4 nlens
-        integer*4 i
+        integer*8 nlens
+        integer*8 i
 
         integer :: lun
 
@@ -40,6 +36,7 @@ contains
         open(unit=lun,file=filename,access='STREAM')
 
         read (lun)nlens
+        nlens=10
         write (*,'("    Found ",i0," lenses, reading...",$)'),nlens
 
         allocate(lenses(nlens))
@@ -56,10 +53,10 @@ contains
         ! add comoving distance
         use cosmolib
         type(lens), dimension(:) :: lenses
-        integer*4 i
+        integer*8 i
 
         print '(a,i0)',"Adding dc to lenses"
-        do i=1,size(lenses)
+        do i=1,size(lenses, kind=8)
             lenses(i)%dc = cdist(0.0_8, lenses(i)%z)
         end do
     end subroutine add_lens_dc
@@ -73,21 +70,20 @@ contains
         print '(a15,$)',"dec"
         print '(a15,$)',"z"
         print '(a15,$)',"dc"
-        print '(a10,$)',"zindex"
-        print '(a10)',"padding"
+        print '(a10)',"zindex"
 
         call print_lens_row(lenses, 1)
-        call print_lens_row(lenses, size(lenses))
+        call print_lens_row(lenses, size(lenses, kind=8))
     end subroutine print_lens_firstlast
 
     subroutine print_lens_row(lenses, row)
         type(lens), dimension(:) :: lenses
-        integer*4 row
+        integer*8 row
 
         write (*,'(4F15.8,i10,i10)') &
             lenses(row)%ra, lenses(row)%dec, &
             lenses(row)%z, lenses(row)%dc, &
-            lenses(row)%zindex, lenses(row)%padding
+            lenses(row)%zindex
     end subroutine print_lens_row
 
 

@@ -11,20 +11,20 @@ module healpix
 
     real*8, parameter, public :: RAD2DEG = 180.0_DP / PI
     real*8, parameter, public :: DEG2RAD = PI / 180.0_DP
-    !integer*4, parameter, private :: ns_max=8192 ! 2^13 : largest nside available
-    integer*4, parameter, private :: ns_max=268435456 ! 2^28 : largest nside available
+    !integer*8, parameter, private :: ns_max=8192 ! 2^13 : largest nside available
+    integer*8, parameter, private :: ns_max=268435456 ! 2^28 : largest nside available
 
 contains
 
-    integer*4 function npix(nside)
-        integer*4, intent(in) :: nside
+    integer*8 function npix(nside)
+        integer*8, intent(in) :: nside
         npix = 12*nside*nside
     end function npix
 
     real*8 function pixarea(nside)
-        integer*4, intent(in) :: nside
+        integer*8, intent(in) :: nside
 
-        integer*4 np
+        integer*8 np
         np = npix(nside)
         pixarea = 2.0*TWOPI/np
     end function pixarea
@@ -37,10 +37,10 @@ contains
         !     resolution parameter nside
         !=======================================================================
 
-        integer*4, intent(in) :: nside
+        integer*8, intent(in) :: nside
         real*8, intent(in) :: ra, dec
 
-        !integer*4, intent(out) :: ipix
+        !integer*8, intent(out) :: ipix
         integer*8, intent(out) :: ipix
 
         real*8 :: theta, phi
@@ -135,19 +135,19 @@ contains
         ! v1.2, EH, IAP, 2008-03-30: fixed bug appearing when disc centered on 
         !           either pole
         !=======================================================================
-        integer*4, intent(in)                  :: nside
+        integer*8, intent(in)                  :: nside
         real*8,    intent(in)                  :: ra,dec
         real*8,    intent(in)                  :: radius
         integer*8, intent(inout), dimension(:) :: listpix
         integer*8, intent(out)                 :: nlist
-        integer*4, intent(in), optional        :: inclusive
+        integer*8, intent(in), optional        :: inclusive
 
         real*8, dimension(3)  :: vector0
 
-        integer*4 irmin, irmax, iz, ip, nir
+        integer*8 irmin, irmax, iz, ip, nir
 
         integer*8 :: ilist, npix, list_size, nlost
-        integer*8, DIMENSION(:),   ALLOCATABLE  :: listir
+        integer*8, dimension(:),   allocatable  :: listir
 
         real*8 :: norm_vect0
         real*8 :: x0, y0, z0, radius_eff, fudge
@@ -155,7 +155,7 @@ contains
         real*8 :: dth1, dth2
         real*8 :: phi0, cosphi0, cosdphi, dphi
         real*8 :: rlat0, rlat1, rlat2, zmin, zmax, z
-        integer*4 :: status
+        integer*8 :: status
         character(len=*), parameter :: code = "QUERY_DISC"
         logical(LGT) :: do_inclusive
 
@@ -179,11 +179,12 @@ contains
         endif
 
         !     --------- allocate memory -------------
-        ALLOCATE( listir(0: 4*nside-1), STAT = status)
+        allocate( listir(0: 4*nside-1), STAT = status)
         if (status /= 0) then
            write(unit=*,fmt="(a)") code//"> can not allocate memory for listir :"
            call fatal_error("> program abort ")
         endif
+        listir=0
 
         dth1 = 1.0_dp / (3.0_dp*real(nside,kind=dp)**2)
         dth2 = 2.0_dp / (3.0_dp*real(nside,kind=dp))
@@ -280,7 +281,7 @@ contains
 
 
         !     ------- deallocate memory and exit ------
-        DEALLOCATE(listir)
+        deallocate(listir)
 
         return
     end subroutine query_disc
@@ -298,12 +299,12 @@ contains
         ! if shift > 0, returns the ring immediatly south (of smaller index) of z
         !
         !=======================================================================
-        integer*4             :: ring_num_result
+        integer*8             :: ring_num_result
         real*8,     INTENT(IN) :: z
-        integer*4, INTENT(IN) :: nside
-        integer*4,      intent(in), optional :: shift
+        integer*8, INTENT(IN) :: nside
+        integer*8,      intent(in), optional :: shift
 
-        integer*4 :: iring
+        integer*8 :: iring
         real*8 :: my_shift
         !=======================================================================
 
@@ -343,8 +344,8 @@ contains
         !     the pixel id-numbers are in {0,12*nside^2-1}
         !     the indexing is RING
         !=======================================================================
-        integer*4, intent(in)                 :: nside, iz
-        integer*4, intent(out)                :: nir
+        integer*8, intent(in)                 :: nside, iz
+        integer*8, intent(out)                :: nir
         real*8,     intent(in)                :: phi0, dphi
         integer*8, intent(out), dimension(0:) :: listir
 
@@ -352,8 +353,8 @@ contains
         logical(kind=lgt) :: conservative = .false.
         logical(kind=lgt) :: take_all, to_top, do_ring
 
-        integer*4 :: ip_low, ip_hi, i, in, inext, diff
-        integer*4 :: npix, nr, nir1, nir2, ir, ipix1, ipix2, kshift, ncap
+        integer*8 :: ip_low, ip_hi, i, in, inext, diff
+        integer*8 :: npix, nr, nir1, nir2, ir, ipix1, ipix2, kshift, ncap
         real*8     :: phi_low, phi_hi, shift
         !=======================================================================
 

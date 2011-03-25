@@ -23,21 +23,21 @@ contains
         use errlib
 
         real*8,    intent(in), dimension(:) :: array
-        integer*4, intent(in), dimension(:) :: sort_index
+        integer*8, intent(in), dimension(:) :: sort_index
         real*8,    intent(in)               :: binsize
 
-        integer*4, intent(inout), dimension(:), allocatable            :: h
-        integer*4, intent(inout), dimension(:), allocatable, optional  :: rev
+        integer*8, intent(inout), dimension(:), allocatable            :: h
+        integer*8, intent(inout), dimension(:), allocatable, optional  :: rev
 
         real*8, optional :: binmin
         real*8, optional :: binmax
         real*8 mbinmin, mbinmax
 
-        integer*4 nbin
+        integer*8 nbin
         logical dorev
 
-        integer*4 binnum, binnum_old, array_index, tbin, offset
-        integer*4 i
+        integer*8 binnum, binnum_old, array_index, tbin, offset
+        integer*8 i
 
         real*8 bininv
 
@@ -65,10 +65,10 @@ contains
         nbin = int( (mbinmax-mbinmin)*bininv) + 1
 
         ! allocate the outputs
-        call alloc(h, nbin, 0)
+        allocate(h(nbin)); h=0
         h=0
         if (dorev) then
-            call alloc(rev, size(array) + nbin + 1, 0);
+            allocate(rev(size(array) + nbin + 1)); rev=0
             rev=(size(rev)+1)
         endif
 
@@ -123,21 +123,21 @@ contains
         use errlib
 
         integer*4, intent(in), dimension(:) :: array
-        integer*4, intent(in), dimension(:) :: sort_index
-        integer*4, intent(in)               :: binsize
+        integer*8, intent(in), dimension(:) :: sort_index
+        integer*8, intent(in)               :: binsize
 
-        integer*4, intent(inout), dimension(:), allocatable            :: h
-        integer*4, intent(inout), dimension(:), allocatable, optional  :: rev
+        integer*8, intent(inout), dimension(:), allocatable            :: h
+        integer*8, intent(inout), dimension(:), allocatable, optional  :: rev
 
-        integer*4, optional :: binmin
-        integer*4, optional :: binmax
-        integer*4 mbinmin, mbinmax
+        integer*8, optional :: binmin
+        integer*8, optional :: binmax
+        integer*8 mbinmin, mbinmax
 
-        integer*4 nbin
+        integer*8 nbin
         logical dorev
 
-        integer*4 binnum, binnum_old, array_index, tbin, offset
-        integer*4 i
+        integer*8 binnum, binnum_old, array_index, tbin, offset
+        integer*8 i
 
         real*8 bininv
 
@@ -165,10 +165,10 @@ contains
         nbin = int( dfloat(mbinmax-mbinmin)*bininv ) + 1
 
         ! allocate the outputs
-        call alloc(h, nbin, 0)
+        allocate(h(nbin)); h=0
         h=0
         if (dorev) then
-            call alloc(rev, size(array) + nbin + 1, 0);
+            allocate(rev(size(array) + nbin + 1)); rev=0
             rev=dfloat(size(rev)+1)
         endif
 
@@ -233,7 +233,7 @@ contains
         integer*8, optional :: binmax
         integer*8 mbinmin, mbinmax
 
-        integer*4 nbin
+        integer*8 nbin
         logical dorev
 
         integer*8 binnum, binnum_old, array_index, tbin, offset
@@ -265,10 +265,10 @@ contains
         nbin = int( dfloat(mbinmax-mbinmin)*bininv) + 1
 
         ! allocate the outputs
-        call alloc(h, nbin, 0_8)
+        allocate(h(nbin)); h=0
         h=0
         if (dorev) then
-            call alloc(rev, size(array) + nbin + 1, 0_8);
+            allocate(rev(size(array) + nbin + 1)); rev=0
             rev=dfloat(size(rev)+1)
         endif
 

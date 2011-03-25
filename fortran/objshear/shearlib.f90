@@ -27,14 +27,14 @@ module shearlib
     !       1000000  at 5Mpc
     !   doing 5000000 at 10Mpc
 
-    integer*4, private, parameter :: MAXPIX=5000000
-    integer*4, private, parameter :: inclusive=1
+    integer*8, private, parameter :: MAXPIX=5000000
+    integer*8, private, parameter :: inclusive=1
 
-    !integer*4, private :: maxpix_used = 0
+    !integer*8, private :: maxpix_used = 0
 
     type lens_sum
 
-        integer*4 zindex
+        integer*8 zindex
         real*8 weight
 
         integer*8, dimension(:), allocatable :: npair
@@ -78,7 +78,7 @@ contains
 
         character(len=*), intent(in) :: config_file
         type(sheardata), intent(inout) ::  shdata
-        integer*4 i
+        integer*8 i
 
         !call read_config(config_file, shdata%pars)
         call read_config(config_file, shdata%pars)
@@ -129,14 +129,14 @@ contains
     subroutine calc_shear(shdata, lensums)
         type(sheardata), intent(in) :: shdata
         type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
-        integer*4 i, nprint
-        !integer*4, dimension(MAXPIX) :: listpix
+        integer*8 i, nprint
+        !integer*8, dimension(MAXPIX) :: listpix
         integer*8, allocatable, dimension(:) :: listpix
 
         type(lens_sum) lensum_tot
-        integer*4 :: nlens, nbin
+        integer*8 :: nlens, nbin
 
-        call alloc(listpix, MAXPIX, 0_8)
+        allocate(listpix(MAXPIX)); listpix=0
 
         nlens = size(shdata%lenses)
         nbin  = shdata%pars%nbin
@@ -154,18 +154,21 @@ contains
 
             if (shdata % lenses(i) % z > minz) then
 
-                !print '(a)','Calling process_lens_omp'
                 call process_lens_omp(shdata, i, lensums(i),listpix)
 
             endif
 
         end do
 
+        print '(a)','Freeing listpix'
+        deallocate(listpix)
+
         print *
         print '(a)','Done lens loop'
 
-        deallocate(listpix)
+        print '(a)','add lens sums'
         call add_lens_sums(lensums, lensum_tot)
+        print '(a)','print lens sums'
         call print_shear_sums(lensum_tot)
 
     end subroutine calc_shear
@@ -173,12 +176,12 @@ contains
 
     subroutine process_lens_omp(shdata, ilens,  lensum, listpix)
         type(sheardata), intent(in) ::  shdata
-        integer*4, intent(in) :: ilens
+        integer*8, intent(in) :: ilens
         type(lens_sum), intent(inout) :: lensum
 
-        !integer*4, dimension(MAXPIX) :: listpix
+        !integer*8, dimension(MAXPIX) :: listpix
         integer*8, dimension(:), intent(inout) :: listpix
-        !integer*4, allocatable, dimension(:) :: listpix
+        !integer*8, allocatable, dimension(:) :: listpix
 
         real*8 weight
         real*8, allocatable, dimension(:) :: wsum
@@ -187,20 +190,20 @@ contains
         real*8, allocatable, dimension(:) :: rsum
         integer*8, allocatable, dimension(:) :: npair
 
-        integer*4 k, isrc, n_in_bin
+        integer*8 k, isrc, n_in_bin
         integer*8 j, npixfound, pix
         real*8 zl, dl, dlc
         real*8 search_angle, cos_search_angle, theta, scinv
         real*8 phi, r, cos2theta, sin2theta
-        integer*4 nbin
+        integer*8 nbin
 
         nbin=size(lensum%npair)
         weight=0
-        call alloc(wsum,  nbin, 0.0_8)
-        call alloc(dsum,  nbin, 0.0_8)
-        call alloc(osum,  nbin, 0.0_8)
-        call alloc(rsum,  nbin, 0.0_8)
-        call alloc(npair, nbin, 0_8)
+        allocate(wsum(nbin)); wsum=0
+        allocate(dsum(nbin)); dsum=0
+        allocate(osum(nbin)); osum=0
+        allocate(rsum(nbin)); rsum=0
+        allocate(npair(nbin)); npair=0
 
         zl = shdata%lenses(ilens)%z
         dlc = shdata%lenses(ilens)%dc
@@ -270,14 +273,14 @@ contains
 
     subroutine process_lens(shdata, ilens, lensum)
         type(sheardata), intent(in) ::  shdata
-        integer*4, intent(in) :: ilens
+        integer*8, intent(in) :: ilens
         type(lens_sum), intent(inout) :: lensum
-        !integer*4, dimension(:), intent(inout) :: listpix
-        !integer*4, allocatable, dimension(:), intent(inout) :: listpix
+        !integer*8, dimension(:), intent(inout) :: listpix
+        !integer*8, allocatable, dimension(:), intent(inout) :: listpix
         integer*8, dimension(MAXPIX) :: listpix
-        !integer*4, dimension(:), allocatable :: listpix
+        !integer*8, dimension(:), allocatable :: listpix
 
-        integer*4 k, isrc, n_in_bin
+        integer*8 k, isrc, n_in_bin
         integer*8 j, pix, npixfound
         real*8 zl, dl, dlc
         real*8 search_angle, cos_search_angle, theta, scinv
@@ -404,7 +407,7 @@ contains
 
         real*8 scinv2, gamma1, gamma2, w
         real*8 logr
-        integer*4 rbin
+        integer*8 rbin
 
         logr = log10(r)
         rbin = int( (logr-pars%log_rmin)/pars%log_binsize ) + 1
@@ -442,7 +445,7 @@ contains
 
         real*8 scinv2, gamma1, gamma2, weight
         real*8 logr
-        integer*4 rbin
+        integer*8 rbin
 
         logr = log10(r)
         rbin = int( (logr-pars%log_rmin)/pars%log_binsize ) + 1
@@ -474,8 +477,8 @@ contains
 
         character(len=*), intent(in) :: filename
         type(lens_sum), dimension(:), intent(in) :: lensums
-        integer*4 i
-        integer*4 nlens, nbin, lun
+        integer*8 i
+        integer*8 nlens, nbin, lun
 
         lun = get_lun()
 
@@ -490,10 +493,12 @@ contains
             call write_lens_sum(lun, lensums(i))
         end do
 
+        close(lun)
+
     end subroutine write_lens_sums
 
     subroutine write_lens_sum(lun, lensum)
-        integer*4, intent(in) :: lun
+        integer*8, intent(in) :: lun
         type(lens_sum), intent(in) :: lensum
 
 
@@ -514,15 +519,15 @@ contains
         real*8, dimension(:), allocatable :: rbins
         real*8, dimension(:), allocatable :: dsig
         real*8, dimension(:), allocatable :: osig
-        integer*4 i, nbin
+        integer*8 i, nbin
         integer*8 :: npair = 0
         real*8 :: wsum=0, dsum=0, osum=0
 
         nbin = size(lensum%rsum)
 
-        call alloc(rbins, nbin, 0.0_8)
-        call alloc(dsig, nbin, 0.0_8)
-        call alloc(osig, nbin, 0.0_8)
+        allocate(rbins(nbin)); rbins=0
+        allocate(dsig(nbin)); dsig=0
+        allocate(osig(nbin)); osig=0
 
         rbins = lensum % rsum/lensum % npair
         dsig  = lensum % dsum/lensum % wsum
@@ -551,9 +556,9 @@ contains
 
     subroutine init_lens_sums(lensums, nlens, nbin)
         type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
-        integer*4, intent(in) :: nlens, nbin
+        integer*8, intent(in) :: nlens, nbin
 
-        integer*4 i
+        integer*8 i
 
         allocate(lensums(nlens))
         do i=1,nlens
@@ -564,7 +569,7 @@ contains
     subroutine init_lens_sum(lensum, nbin)
 
         type(lens_sum), intent(inout) :: lensum
-        integer*4 nbin
+        integer*8 nbin
 
         allocate(lensum%npair(nbin))
         allocate(lensum%wsum(nbin))
@@ -580,7 +585,7 @@ contains
 
         type(lens_sum), intent(inout) :: lensum
 
-        integer*4 i
+        integer*8 i
 
         lensum % zindex = 0
         lensum % weight = 0
@@ -599,7 +604,7 @@ contains
         type(lens_sum), dimension(:), intent(in) :: lsrc
         type(lens_sum), intent(inout) :: ldest
 
-        integer*4 i, j, nbin
+        integer*8 i, j, nbin
 
         nbin = size(lsrc(1) % npair)
         call init_lens_sum(ldest, nbin)

@@ -3,10 +3,6 @@ module srclib
 
     implicit none
 
-    ! should be factor of two so the struct will pack
-    ! also, ifort tells me the padding and hpixid need to
-    ! both be at the end
-    !integer, parameter :: NZVALS = 10
     type source
         sequence
         real*8 ra
@@ -33,8 +29,8 @@ contains
         type(source), dimension(:), allocatable :: sources
         character(len=*):: filename
 
-        integer*4 nsource
-        integer*4 i
+        integer*8 nsource
+        integer*8 i
 
         integer :: lun
 
@@ -63,7 +59,7 @@ contains
         ! add comoving distance
         use cosmolib
         type(source), dimension(:) :: sources
-        integer*4 i
+        integer*8 i
 
         print '(a,i0)',"Adding dc to sources"
         do i=1,size(sources)
@@ -75,10 +71,10 @@ contains
     subroutine add_source_hpixid(nside, sources)
 
         use healpix, only : RAD2DEG, npix, pixarea, eq2pix
-        integer*4, intent(in) :: nside
+        integer*8, intent(in) :: nside
         type(source), dimension(:) :: sources
 
-        integer*4 i
+        integer*8 i
         integer*8 id
 
         print '(a,i0)',"Adding source healpix id, nside=",nside
@@ -113,12 +109,12 @@ contains
         print '(a15)',"dc"
 
         call print_source_row(sources, 1)
-        call print_source_row(sources, size(sources))
+        call print_source_row(sources, size(sources,kind=8))
     end subroutine print_source_firstlast
 
     subroutine print_source_row(sources, row)
         type(source), dimension(:) :: sources
-        integer*4 row
+        integer*8 row
 
         write (*,'(5F15.8,i10,2F15.8)') &
             sources(row)%ra, sources(row)%dec, &

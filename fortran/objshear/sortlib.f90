@@ -30,11 +30,11 @@ contains
         use arrlib
 
         real*8, intent(in), dimension(:) :: arr
-        integer*4, intent(inout), dimension(:), allocatable :: ind
+        integer*8, intent(inout), dimension(:), allocatable :: ind
 
-        integer*4 left, right, i
+        integer*8 left, right, i
 
-        call alloc(ind, size(arr),0)
+        allocate(ind(size(arr))); ind=0
         do i=1,size(arr)
             ind(i) = i
         end do
@@ -51,11 +51,11 @@ contains
         use arrlib
 
         integer*4, intent(in), dimension(:) :: arr
-        integer*4, intent(inout), dimension(:), allocatable :: ind
+        integer*8, intent(inout), dimension(:), allocatable :: ind
 
-        integer*4 left, right, i
+        integer*8 left, right, i
 
-        call alloc(ind, size(arr),0)
+        allocate(ind(size(arr))); ind=0
         do i=1,size(arr)
             ind(i) = i
         end do
@@ -73,9 +73,9 @@ contains
         integer*8, intent(in), dimension(:) :: arr
         integer*8, intent(inout), dimension(:), allocatable :: ind
 
-        integer*4 left, right, i
+        integer*8 left, right, i
 
-        call alloc(ind, size(arr),0_8)
+        allocate(ind(size(arr))); ind=0
         do i=1,size(arr)
             ind(i) = i
         end do
@@ -91,10 +91,10 @@ contains
 
     recursive subroutine qsortf8_recurse(arr, ind, left, right)
         real*8, intent(in), dimension(:) :: arr
-        integer*4, intent(inout), dimension(:) :: ind
-        integer*4, intent(in) :: left, right
+        integer*8, intent(inout), dimension(:) :: ind
+        integer*8, intent(in) :: left, right
 
-        integer*4 pivot, leftidx, rightidx
+        integer*8 pivot, leftidx, rightidx
 
         leftidx=left
         rightidx=right
@@ -113,7 +113,7 @@ contains
                     rightidx = rightidx - 1
                 end do
 
-                call swapi4( ind(leftidx), ind(rightidx) )
+                call swapi8( ind(leftidx), ind(rightidx) )
 
                 leftidx = leftidx+1
                 rightidx = rightidx-1
@@ -136,10 +136,10 @@ contains
 
     recursive subroutine qsorti4_recurse(arr, ind, left, right)
         integer*4, intent(in), dimension(:) :: arr
-        integer*4, intent(inout), dimension(:) :: ind
-        integer*4, intent(in) :: left, right
+        integer*8, intent(inout), dimension(:) :: ind
+        integer*8, intent(in) :: left, right
 
-        integer*4 pivot, leftidx, rightidx
+        integer*8 pivot, leftidx, rightidx
 
         leftidx=left
         rightidx=right
@@ -158,7 +158,7 @@ contains
                     rightidx = rightidx - 1
                 end do
 
-                call swapi4( ind(leftidx), ind(rightidx) )
+                call swapi8( ind(leftidx), ind(rightidx) )
 
                 leftidx = leftidx+1
                 rightidx = rightidx-1
@@ -180,9 +180,9 @@ contains
     recursive subroutine qsorti8_recurse(arr, ind, left, right)
         integer*8, intent(in), dimension(:) :: arr
         integer*8, intent(inout), dimension(:) :: ind
-        integer*4, intent(in) :: left, right
+        integer*8, intent(in) :: left, right
 
-        integer*4 pivot, leftidx, rightidx
+        integer*8 pivot, leftidx, rightidx
 
         leftidx=left
         rightidx=right
