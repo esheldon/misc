@@ -30,7 +30,7 @@ contains
     end function pixarea
 
 
-    subroutine eq2pix_ring(nside, ra, dec, ipix)
+    subroutine eq2pix(nside, ra, dec, ipix)
         !=======================================================================
         !     renders the pixel number ipix (RING scheme) for a pixel which contains
         !     a point on a sphere at coordinates theta and phi, given the map
@@ -54,7 +54,7 @@ contains
         !-----------------------------------------------------------------------
         if (nside<1 .or. nside>ns_max) call fatal_error ("nside out of range")
         if (theta<0.0_dp .or. theta>pi)  then
-            print *,"eq2pix_ring: theta : ",theta," is out of range [0, Pi]"
+            print *,"eq2pix: theta : ",theta," is out of range [0, Pi]"
             call fatal_error
         endif
 
@@ -99,7 +99,7 @@ contains
         endif
 
         return
-    end subroutine eq2pix_ring
+    end subroutine eq2pix
 
 
     subroutine query_disc ( nside, ra, dec, radius, listpix, nlist, inclusive)

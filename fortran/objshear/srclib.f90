@@ -58,47 +58,6 @@ contains
     end subroutine read_source_cat
 
 
-    subroutine read_source_cat_new(filename, sources)
-        use fileutil
-
-        ! read the binary version
-        type(source), dimension(:), allocatable :: sources
-        character(len=*):: filename
-
-        integer*4 nsource
-        integer*4 i
-
-        integer :: lun
-
-        lun = get_lun()
-
-        print '("Reading source cat file (",i0,"): ",a)',lun,trim(filename)
-
-        open(unit=lun,file=filename,access='STREAM')
-
-        read (lun)nsource
-        write (*,'("    Found ",i0," sources, reading...",$)'),nsource
-
-        allocate(sources(nsource))
-
-        do i=1,nsource
-            read(lun)sources(i)%ra
-            read(lun)sources(i)%dec
-            read(lun)sources(i)%g1
-            read(lun)sources(i)%g2
-            read(lun)sources(i)%err
-            read(lun)sources(i)%z
-            read(lun)sources(i)%dc
-            read(lun)sources(i)%hpixid
-        enddo
-        !read(lun)sources
-
-        print *,"Done"
-
-        close(lun)
-
-    end subroutine read_source_cat_new
-
 
     subroutine add_source_dc(sources)
         ! add comoving distance
@@ -115,7 +74,7 @@ contains
 
     subroutine add_source_hpixid(nside, sources)
 
-        use healpix, only : RAD2DEG, npix, pixarea, eq2pix_ring
+        use healpix, only : RAD2DEG, npix, pixarea, eq2pix
         integer*4, intent(in) :: nside
         type(source), dimension(:) :: sources
 
@@ -130,7 +89,7 @@ contains
 
         
         do i=1,size(sources)
-            call eq2pix_ring(nside, sources(i)%ra, sources(i)%dec, id)
+            call eq2pix(nside, sources(i)%ra, sources(i)%dec, id)
 
             sources(i)%hpixid = id
 
