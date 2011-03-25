@@ -27,7 +27,8 @@ module shearlib
     !       1000000  at 5Mpc
     !   doing 5000000 at 10Mpc
 
-    integer*4, private, parameter :: MAXPIX=5000000, inclusive=1
+    integer*4, private, parameter :: MAXPIX=5000000
+    integer*4, private, parameter :: inclusive=1
 
     !integer*4, private :: maxpix_used = 0
 
@@ -53,9 +54,9 @@ module shearlib
         type(lens), dimension(:), allocatable :: lenses
 
         ! healpix info
-        integer*4 minid
-        integer*4 maxid
-        integer*4, allocatable, dimension(:) :: rev
+        integer*8 minid
+        integer*8 maxid
+        integer*8, allocatable, dimension(:) :: rev
 
         ! use some extra memory for speed.
         real*8, dimension(:), allocatable :: sinsdec
@@ -132,12 +133,12 @@ contains
         type(lens_sum), dimension(:), allocatable, intent(inout) :: lensums
         integer*4 i, nprint
         !integer*4, dimension(MAXPIX) :: listpix
-        integer*4, allocatable, dimension(:) :: listpix
+        integer*8, allocatable, dimension(:) :: listpix
 
         type(lens_sum) lensum_tot
         integer*4 :: nlens, nbin
 
-        call alloc(listpix, MAXPIX, 0)
+        call alloc(listpix, MAXPIX, 0_8)
 
         nlens = size(shdata%lenses)
         nbin  = shdata%pars%nbin
@@ -178,7 +179,7 @@ contains
         type(lens_sum), intent(inout) :: lensum
 
         !integer*4, dimension(MAXPIX) :: listpix
-        integer*4, dimension(:), intent(inout) :: listpix
+        integer*8, dimension(:), intent(inout) :: listpix
         !integer*4, allocatable, dimension(:) :: listpix
 
         real*8 weight
@@ -188,7 +189,8 @@ contains
         real*8, allocatable, dimension(:) :: rsum
         integer*8, allocatable, dimension(:) :: npair
 
-        integer*4 j, k, isrc, pix, npixfound, n_in_bin
+        integer*4 k, isrc, n_in_bin
+        integer*8 j, npixfound, pix
         real*8 zl, dl, dlc
         real*8 search_angle, cos_search_angle, theta, scinv
         real*8 phi, r, cos2theta, sin2theta
@@ -274,10 +276,11 @@ contains
         type(lens_sum), intent(inout) :: lensum
         !integer*4, dimension(:), intent(inout) :: listpix
         !integer*4, allocatable, dimension(:), intent(inout) :: listpix
-        integer*4, dimension(MAXPIX) :: listpix
+        integer*8, dimension(MAXPIX) :: listpix
         !integer*4, dimension(:), allocatable :: listpix
 
-        integer*4 j, k, isrc, pix, npixfound, n_in_bin
+        integer*4 k, isrc, n_in_bin
+        integer*8 j, pix, npixfound
         real*8 zl, dl, dlc
         real*8 search_angle, cos_search_angle, theta, scinv
         real*8 phi, r, cos2theta, sin2theta
@@ -625,18 +628,18 @@ contains
 
         type(sheardata) shdata
 
-        integer*4, allocatable, dimension(:) :: sort_ind
-        integer*4, allocatable, dimension(:) :: h
-        integer*4 :: binsize = 1
+        integer*8, allocatable, dimension(:) :: sort_ind
+        integer*8, allocatable, dimension(:) :: h
+        integer*8 :: binsize = 1
 
         print '(a)',"Getting healpix sort index"
-        call qsorti4(shdata%sources%hpixid, sort_ind)
+        call qsorti8(shdata%sources%hpixid, sort_ind)
 
         shdata%minid = shdata%sources(sort_ind(1))%hpixid
         shdata%maxid = shdata%sources(sort_ind(size(shdata%sources)))%hpixid
 
         print '(a)',"Getting healpix revind"
-        call histi4(shdata%sources%hpixid, sort_ind, binsize, &
+        call histi8(shdata%sources%hpixid, sort_ind, binsize, &
                     h, shdata%rev)
 
     end subroutine get_hpix_rev

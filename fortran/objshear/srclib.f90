@@ -20,9 +20,7 @@ module srclib
         real*8 z
         real*8 dc
 
-        integer*4 hpixid
-        integer*4 padding
-
+        integer*8 hpixid
 
     end type source
 
@@ -92,7 +90,6 @@ contains
             read(lun)sources(i)%z
             read(lun)sources(i)%dc
             read(lun)sources(i)%hpixid
-            read(lun)sources(i)%padding
         enddo
         !read(lun)sources
 
@@ -122,7 +119,8 @@ contains
         integer*4, intent(in) :: nside
         type(source), dimension(:) :: sources
 
-        integer*4 i, id, minid, maxid
+        integer*4 i
+        integer*8 id
 
         print '(a,i0)',"Adding source healpix id, nside=",nside
         print '(a,i0)',"    number of pixels: ",npix(nside)
