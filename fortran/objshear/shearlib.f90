@@ -159,15 +159,12 @@ contains
 
         end do
 
-        print '(a)','Freeing listpix'
-        deallocate(listpix)
-
         print *
         print '(a)','Done lens loop'
+        deallocate(listpix)
 
-        print '(a)','add lens sums'
+
         call add_lens_sums(lensums, lensum_tot)
-        print '(a)','print lens sums'
         call print_shear_sums(lensum_tot)
 
     end subroutine calc_shear
