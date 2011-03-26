@@ -3,8 +3,10 @@ module srclib
 
     implicit none
 
+    ! we can't have the allocatable in here or else we can get a huge overhead
+    ! in memory usage. Not sure why
     type source
-        sequence
+        !sequence
         real*8 ra
         real*8 dec
 
@@ -12,25 +14,37 @@ module srclib
         real*8 g2
         real*8 err
 
-        !real*8 scinv(NZVALS)
+        integer*8 hpixid
+
+#ifdef NINTERP
+        real*8 scinv(NINTERP)
+#else
         real*8 z
         real*8 dc
-
-        integer*8 hpixid
+#endif
 
     end type source
 
+    type source_cat
+        integer*8 sigmacrit_style
+        real*8, dimension(:), allocatable :: zlinterp
+        real*8, dimension(:,:), allocatable :: scinv
+
+        type(source), dimension(:), allocatable :: sources
+    end type source_cat
+
 contains
 
-    subroutine read_source_cat(filename, sources)
+    subroutine read_source_cat(filename, scat)
         use fileutil
 
         ! read the binary version
-        type(source), dimension(:), allocatable :: sources
         character(len=*):: filename
+        type(source_cat) scat
 
         integer*8 nsource
         integer*8 i
+        integer*8 nz
 
         integer :: lun
 
@@ -40,14 +54,54 @@ contains
 
         open(unit=lun,file=filename,access='STREAM')
 
-        read (lun)nsource
-        write (*,'("    Found ",i0," sources, reading...",$)'),nsource
+        read (lun) scat%sigmacrit_style
+        print '(a,i0)',"    Found sigmacrit_style: ",scat%sigmacrit_style
 
-        allocate(sources(nsource))
+        if (scat%sigmacrit_style == 2) then
+            read (lun) nz
+            print '(a,i0)',"      nz: ",nz
 
-        read(lun)sources
+#ifdef NINTERP
+            if (nz /= NINTERP) then
+                print '(a)','Mismatch in number of zl interpolation points'
+                print '(a,i0,a,i0)','Expected ',NINTERP,' but found ',nz,' in the file'
+                exit(45)
+            endif
+#endif
+            allocate(scat%zlinterp(nz))
+            print '(a)',"      reading zl"
+            read (lun)scat%zlinterp
 
-        print *,"Done"
+        endif
+
+        read (lun) nsource
+        print '(a,i0,a,$)',"    Found ",nsource," sources, reading..."
+
+        if (scat%sigmacrit_style == 2) then
+            allocate(scat%scinv(nsource,nz))
+        endif
+
+        allocate(scat%sources(nsource))
+
+        !read(lun) scat%sources
+
+        do i=1,nsource
+            read (lun), scat%sources(i)%ra
+            read (lun), scat%sources(i)%dec
+            read (lun), scat%sources(i)%g1
+            read (lun), scat%sources(i)%g2
+            read (lun), scat%sources(i)%err
+            read (lun), scat%sources(i)%hpixid
+
+            if (scat%sigmacrit_style == 2) then
+                read (lun), scat%scinv(i,:)
+            else
+                read (lun), scat%sources(i)%z
+                read (lun), scat%sources(i)%dc
+            endif
+        enddo
+
+        print '(a)',"Done"
 
         close(lun)
 

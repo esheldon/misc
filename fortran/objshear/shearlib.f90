@@ -50,8 +50,9 @@ module shearlib
 
         type(config) pars
 
-        type(source), dimension(:), allocatable :: sources
+        type(source_cat) scat 
         type(lens), dimension(:), allocatable :: lenses
+
 
         ! healpix info
         integer*8 minid
@@ -79,6 +80,7 @@ contains
         character(len=*), intent(in) :: config_file
         type(sheardata), intent(inout) ::  shdata
         integer*8 i
+        integer*8 nsource
 
         !call read_config(config_file, shdata%pars)
         call read_config(config_file, shdata%pars)
@@ -90,23 +92,27 @@ contains
         call add_lens_dc(shdata%lenses)
         call print_lens_firstlast(shdata%lenses)
 
-        call read_source_cat(shdata%pars%source_file, shdata%sources)
+        call read_source_cat(shdata%pars%source_file, shdata%scat)
 
+        nsource = size( shdata%scat%sources, kind=8)
 
-        call add_source_dc(shdata%sources)
-        call add_source_hpixid(shdata%pars%nside, shdata%sources)
-        call print_source_firstlast(shdata%sources)
+        if (shdata%scat%sigmacrit_style == 1) then
+            call add_source_dc(shdata%scat%sources)
+        endif
+        call add_source_hpixid(shdata%pars%nside, shdata%scat%sources)
+        call print_source_firstlast(shdata%scat%sources)
 
         print '(a)',"Calculating src sin/cosc"
-        allocate(shdata%sinsdec(size(shdata%sources)))
-        allocate(shdata%cossdec(size(shdata%sources)))
-        allocate(shdata%sinsra(size(shdata%sources)))
-        allocate(shdata%cossra(size(shdata%sources)))
-        do i=1,size(shdata%sources)
-            shdata%sinsra(i)  = sin( shdata %sources(i)%ra*DEG2RAD )
-            shdata%sinsdec(i) = sin( shdata %sources(i)%dec*DEG2RAD )
-            shdata%cossra(i)  = cos( shdata %sources(i)%ra*DEG2RAD )
-            shdata%cossdec(i) = cos( shdata %sources(i)%dec*DEG2RAD )
+        allocate(shdata%sinsdec(nsource))
+        allocate(shdata%cossdec(nsource))
+        allocate(shdata%sinsra(nsource))
+        allocate(shdata%cossra(nsource))
+
+        do i=1,nsource
+            shdata%sinsra(i)  = sin( shdata %scat%sources(i)%ra*DEG2RAD )
+            shdata%sinsdec(i) = sin( shdata %scat%sources(i)%dec*DEG2RAD )
+            shdata%cossra(i)  = cos( shdata %scat%sources(i)%ra*DEG2RAD )
+            shdata%cossdec(i) = cos( shdata %scat%sources(i)%dec*DEG2RAD )
         end do
 
         allocate(shdata%sinldec(size(shdata%lenses)))
@@ -236,10 +242,10 @@ contains
 
                     if (phi > 0 ) then
                         r = phi*dl
-                        scinv = sigmacritinv(zl,dlc, shdata%sources(isrc)%dc)
+                        scinv = sigmacritinv(zl,dlc, shdata%scat%sources(isrc)%dc)
                         if (scinv > 0) then
                             call calc_shear_sums_omp(shdata%pars, &
-                                shdata%sources(isrc), &
+                                shdata%scat%sources(isrc), &
                                 r,cos2theta,sin2theta,scinv, &
                                 weight,wsum,dsum,osum,rsum,npair)
                         end if
@@ -316,10 +322,10 @@ contains
 
                     if (phi > 0 ) then
                         r = phi*dl
-                        scinv = sigmacritinv(zl,dlc, shdata%sources(isrc)%dc)
+                        scinv = sigmacritinv(zl,dlc, shdata%scat%sources(isrc)%dc)
                         if (scinv > 0) then
                             call calc_shear_sums(shdata%pars, &
-                                shdata%sources(isrc), &
+                                shdata%scat%sources(isrc), &
                                 r,cos2theta,sin2theta,scinv,lensum)
                         end if
                     end if
@@ -622,15 +628,17 @@ contains
         integer*8, allocatable, dimension(:) :: sort_ind
         integer*8, allocatable, dimension(:) :: h
         integer*8 :: binsize = 1
+        integer*8 nsource
+        nsource = size(shdata%scat%sources, kind=8)
 
         print '(a)',"Getting healpix sort index"
-        call qsorti8(shdata%sources%hpixid, sort_ind)
+        call qsorti8(shdata%scat%sources%hpixid, sort_ind)
 
-        shdata%minid = shdata%sources(sort_ind(1))%hpixid
-        shdata%maxid = shdata%sources(sort_ind(size(shdata%sources)))%hpixid
+        shdata%minid = shdata%scat%sources(sort_ind(1))%hpixid
+        shdata%maxid = shdata%scat%sources(sort_ind(nsource))%hpixid
 
         print '(a)',"Getting healpix revind"
-        call histi8(shdata%sources%hpixid, sort_ind, binsize, &
+        call histi8(shdata%scat%sources%hpixid, sort_ind, binsize, &
                     h, shdata%rev)
 
     end subroutine get_hpix_rev

@@ -5,6 +5,8 @@ import os
 # a standard place
 env = Environment(ENV=os.environ)
 
+progname='objshear'
+
 with_openmp = ARGUMENTS.get('with_openmp',True)
 if with_openmp not in ['true','True',True]:
     with_openmp = False
@@ -19,20 +21,37 @@ if f90 is not None:
 
 if f90 == 'ifort':
     if with_openmp:
-        #env.Append(F90FLAGS=['-implicitnone','-fast','-openmp','-C'],LINKFLAGS=['-fast','-openmp','-C'])
-        env.Append(F90FLAGS=['-implicitnone','-fast','-openmp'],LINKFLAGS=['-fast','-openmp'])
+        #f90flags=['-implicitnone','-fast','-openmp','-C']
+        #linkflags=['-fast','-openmp','-C']
+
+        f90flags=['-implicitnone','-fast','-openmp','-fpp']
+        linkflags=['-fast','-openmp','-fpp']
     else:
-        #env.Append(F90FLAGS=['-implicitnone','-fast','-C'],LINKFLAGS=['-fast','-g','-C'])
-        env.Append(F90FLAGS=['-implicitnone','-fast'],LINKFLAGS=['-fast'])
+        #f90flags=['-implicitnone','-fast','-C']
+        #linkflags=['-fast','-g','-C']
+
+        f90flags=['-implicitnone','-fast']
+        linkflags=['-fast']
 else:
     if with_openmp:
-        env.Append(F90FLAGS=['-fimplicit-none','-O2','-fopenmp'],LINKFLAGS=['-fopenmp'])
+        f90flags=['-fimplicit-none','-O2','-fopenmp']
+        linkflags=['-fopenmp']
     else:
-        env.Append(F90FLAGS=['-fimplicit-none','-O2'])
+        f90flags=['-fimplicit-none','-O2']
+        linkflags=[]
+
+if 'ninterp' in ARGUMENTS:
+    n = ARGUMENTS['ninterp']
+    f90flags.append('-DNINTERP%d' % int(n))
+    progname += n
+
+env.Append(F90FLAGS=f90flags)
+if len(linkflags) > 0:
+    env.Append(LINKFLAGS=linkflags)
 
 prefix = ARGUMENTS.get('prefix', None)
 
-objshear = env.Program('objshear',
+objshear = env.Program(progname,
                        ['objshear.f90',
                         'configlib.f90',
                         'shearlib.f90',
