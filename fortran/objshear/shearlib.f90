@@ -100,7 +100,7 @@ contains
             call add_source_dc(shdata%scat%sources)
         endif
         call add_source_hpixid(shdata%pars%nside, shdata%scat%sources)
-        call print_source_firstlast(shdata%scat%sources)
+        call print_source_firstlast(shdata%scat)
 
         print '(a)',"Calculating src sin/cosc"
         allocate(shdata%sinsdec(nsource))
@@ -177,6 +177,8 @@ contains
 
 
     subroutine process_lens_omp(shdata, ilens,  lensum, listpix)
+        use interplib
+
         type(sheardata), intent(in) ::  shdata
         integer*8, intent(in) :: ilens
         type(lens_sum), intent(inout) :: lensum
@@ -242,7 +244,22 @@ contains
 
                     if (phi > 0 ) then
                         r = phi*dl
-                        scinv = sigmacritinv(zl,dlc, shdata%scat%sources(isrc)%dc)
+                        if (shdata%scat%sigmacrit_style == 1) then
+                            !if ((zl >= 0.02) .and. (zl <= 0.605)) then
+                                scinv = sigmacritinv(zl,dlc, shdata%scat%sources(isrc)%dc)
+                            !else
+                            !    scinv=0
+                            !endif
+                        else
+                            if ( (zl >= shdata%scat%zlmin) .and. (zl <= shdata%scat%zlmax) ) then
+
+                                    scinv = interpf8(shdata%scat%zlinterp, &
+                                                     shdata%scat%scinv(isrc,:), &
+                                                     zl)
+                            else
+                                scinv=0
+                            endif
+                        endif
                         if (scinv > 0) then
                             call calc_shear_sums_omp(shdata%pars, &
                                 shdata%scat%sources(isrc), &

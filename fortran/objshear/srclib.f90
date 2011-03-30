@@ -16,17 +16,19 @@ module srclib
 
         integer*8 hpixid
 
-#ifdef NINTERP
-        real*8 scinv(NINTERP)
-#else
+        ! these won't be used if we are interpolating the
+        ! inverse critical density
         real*8 z
         real*8 dc
-#endif
 
     end type source
 
     type source_cat
+        integer*8 nel
         integer*8 sigmacrit_style
+        integer*8 nzl
+        real*8 zlmin
+        real*8 zlmax
         real*8, dimension(:), allocatable :: zlinterp
         real*8, dimension(:,:), allocatable :: scinv
 
@@ -59,23 +61,28 @@ contains
 
         if (scat%sigmacrit_style == 2) then
             read (lun) nz
+            scat%nzl = nz
             print '(a,i0)',"      nz: ",nz
 
-#ifdef NINTERP
-            if (nz /= NINTERP) then
-                print '(a)','Mismatch in number of zl interpolation points'
-                print '(a,i0,a,i0)','Expected ',NINTERP,' but found ',nz,' in the file'
-                exit(45)
-            endif
-#endif
             allocate(scat%zlinterp(nz))
-            print '(a)',"      reading zl"
+            print '(a,$)',"      reading zl: "
             read (lun)scat%zlinterp
+            do i=1,nz 
+                print '(F5.3," ",$)',scat%zlinterp(i)
+            end do
+            print *
 
+            scat%zlmin = scat%zlinterp(1)
+            scat%zlmax = scat%zlinterp(nz)
+
+        else
+            nz=0
         endif
 
         read (lun) nsource
         print '(a,i0,a,$)',"    Found ",nsource," sources, reading..."
+
+        scat%nel = nsource
 
         if (scat%sigmacrit_style == 2) then
             allocate(scat%scinv(nsource,nz))
@@ -150,8 +157,8 @@ contains
 
 
 
-    subroutine print_source_firstlast(sources)
-        type(source), dimension(:) :: sources
+    subroutine print_source_firstlast(scat)
+        type(source_cat), intent(in) :: scat
 
         print '(a15,$)',"ra"
         print '(a15,$)',"dec"
@@ -159,26 +166,40 @@ contains
         print '(a15,$)',"g2"
         print '(a15,$)',"err"
         print '(a10,$)',"hpixid"
-        print '(a15,$)',"z"
-        print '(a15)',"dc"
+        if (scat%sigmacrit_style == 1) then
+            print '(a15,$)',"z"
+            print '(a15)',"dc"
+        else
+            print '(a15,$)',"scinv(1)"
+            print '(a15)',"scinv(-1)"
+        endif
 
-        call print_source_row(sources, 1)
-        call print_source_row(sources, size(sources,kind=8))
+        call print_source_row(scat, 1)
+        call print_source_row(scat, scat%nel)
     end subroutine print_source_firstlast
 
-    subroutine print_source_row(sources, row)
-        type(source), dimension(:) :: sources
+    subroutine print_source_row(scat, row)
+        type(source_cat), intent(in) :: scat
         integer*8 row
+        real*8 val1, val2
 
-        write (*,'(5F15.8,i10,2F15.8)') &
-            sources(row)%ra, sources(row)%dec, &
-            sources(row)%g1, sources(row)%g2, sources(row)%err, &
-            sources(row)%hpixid, &
-            sources(row)%z, &
-            sources(row)%dc
-        !do j=1,NZVALS
-        !    write (lun,'(" ",F0.6,$)') sources(i)%scinv(j)
-        !end do
+        if (scat%sigmacrit_style == 1) then
+            val1 = scat%sources(row)%z
+            val2 = scat%sources(row)%dc
+        else
+            val1 = scat%scinv(row,1)
+            val2 = scat%scinv(row,size(scat%zlinterp))
+        endif
+
+        print '(5F15.8,i10,2F15.8)',    &
+            scat%sources(row)%ra,       &
+            scat%sources(row)%dec,      &
+            scat%sources(row)%g1,       &
+            scat%sources(row)%g2,       &
+            scat%sources(row)%err,      &
+            scat%sources(row)%hpixid,   &
+            val1, val2
+
     end subroutine print_source_row
 
 
