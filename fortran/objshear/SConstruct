@@ -40,10 +40,6 @@ else:
         f90flags=['-fimplicit-none','-O2']
         linkflags=[]
 
-if 'ninterp' in ARGUMENTS:
-    n = ARGUMENTS['ninterp']
-    f90flags.append('-DNINTERP%d' % int(n))
-    progname += n
 
 env.Append(F90FLAGS=f90flags)
 if len(linkflags) > 0:
@@ -65,6 +61,7 @@ objshear = env.Program(progname,
                         'errlib.f90',
                         'arrlib.f90',
                         'intlib.f90',
+                        'interplib.f90',
                         'cosmolib.f90'])
 
 
