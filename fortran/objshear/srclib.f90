@@ -3,39 +3,39 @@ module srclib
 
     implicit none
 
-    ! we can't have the allocatable in here or else we can get a huge overhead
-    ! in memory usage. Not sure why
-    type source
-        !sequence
-        real*8 ra
-        real*8 dec
-
-        real*8 g1
-        real*8 g2
-        real*8 err
-
-        integer*8 hpixid
-
-        ! these won't be used if we are interpolating the
-        ! inverse critical density
-        real*8 z
-        real*8 dc
-
-    end type source
-
     type source_cat
+
+        ! number of sources in the catalog
         integer*8 nel
+
+        ! the style of sigmacrit: 1 for true z, 2 for interpolate scinv
         integer*8 sigmacrit_style
+
+
+        real*8, dimension(:), allocatable :: ra
+        real*8, dimension(:), allocatable :: dec
+        real*8, dimension(:), allocatable :: g1
+        real*8, dimension(:), allocatable :: g2
+        real*8, dimension(:), allocatable :: err
+
+        integer*8, dimension(:), allocatable :: hpixid
+
+        ! only used for true z
+        real*8, dimension(:), allocatable :: z
+        real*8, dimension(:), allocatable :: dc
+
+        ! only used if interpolating scinv
         integer*8 nzl
         real*8 zlmin
         real*8 zlmax
         real*8, dimension(:), allocatable :: zlinterp
         real*8, dimension(:,:), allocatable :: scinv
 
-        type(source), dimension(:), allocatable :: sources
+
     end type source_cat
 
 contains
+
 
     subroutine read_source_cat(filename, scat)
         use fileutil
@@ -84,27 +84,33 @@ contains
 
         scat%nel = nsource
 
+        allocate(scat%ra(nsource))
+        allocate(scat%dec(nsource))
+        allocate(scat%g1(nsource))
+        allocate(scat%g2(nsource))
+        allocate(scat%err(nsource))
+        allocate(scat%hpixid(nsource))
+
         if (scat%sigmacrit_style == 2) then
             allocate(scat%scinv(nsource,nz))
+        else
+            allocate(scat%z(nsource))
+            allocate(scat%dc(nsource))
         endif
 
-        allocate(scat%sources(nsource))
-
-        !read(lun) scat%sources
-
         do i=1,nsource
-            read (lun), scat%sources(i)%ra
-            read (lun), scat%sources(i)%dec
-            read (lun), scat%sources(i)%g1
-            read (lun), scat%sources(i)%g2
-            read (lun), scat%sources(i)%err
-            read (lun), scat%sources(i)%hpixid
+            read (lun), scat%ra(i)
+            read (lun), scat%dec(i)
+            read (lun), scat%g1(i)
+            read (lun), scat%g2(i)
+            read (lun), scat%err(i)
+            read (lun), scat%hpixid(i)
 
             if (scat%sigmacrit_style == 2) then
                 read (lun), scat%scinv(i,:)
             else
-                read (lun), scat%sources(i)%z
-                read (lun), scat%sources(i)%dc
+                read (lun), scat%z(i)
+                read (lun), scat%dc(i)
             endif
         enddo
 
@@ -114,26 +120,23 @@ contains
 
     end subroutine read_source_cat
 
-
-
-    subroutine add_source_dc(sources)
-        ! add comoving distance
+    subroutine add_source_dc(scat)
         use cosmolib
-        type(source), dimension(:) :: sources
+        type(source_cat), intent(inout) :: scat
         integer*8 i
 
         print '(a,i0)',"Adding dc to sources"
-        do i=1,size(sources)
-            sources(i)%dc = cdist(0.0_8, sources(i)%z)
+        do i=1,scat%nel
+            scat%dc(i) = cdist(0.0_8, scat%z(i))
         end do
     end subroutine add_source_dc
 
 
-    subroutine add_source_hpixid(nside, sources)
+    subroutine add_source_hpixid(nside, scat)
 
         use healpix, only : RAD2DEG, npix, pixarea, eq2pix
         integer*8, intent(in) :: nside
-        type(source), dimension(:) :: sources
+        type(source_cat), intent(inout) :: scat
 
         integer*8 i
         integer*8 id
@@ -145,10 +148,10 @@ contains
         print '(a,f15.8)',"    linear scale arcsec: ",sqrt(pixarea(nside))*RAD2DEG*3600
 
         
-        do i=1,size(sources)
-            call eq2pix(nside, sources(i)%ra, sources(i)%dec, id)
+        do i=1,scat%nel
+            call eq2pix(nside, scat%ra(i), scat%dec(i), id)
 
-            sources(i)%hpixid = id
+            scat%hpixid(i) = id
 
         end do
 
@@ -184,20 +187,20 @@ contains
         real*8 val1, val2
 
         if (scat%sigmacrit_style == 1) then
-            val1 = scat%sources(row)%z
-            val2 = scat%sources(row)%dc
+            val1 = scat%z(row)
+            val2 = scat%dc(row)
         else
             val1 = scat%scinv(row,1)
             val2 = scat%scinv(row,size(scat%zlinterp))
         endif
 
         print '(5F15.8,i10,2F15.8)',    &
-            scat%sources(row)%ra,       &
-            scat%sources(row)%dec,      &
-            scat%sources(row)%g1,       &
-            scat%sources(row)%g2,       &
-            scat%sources(row)%err,      &
-            scat%sources(row)%hpixid,   &
+            scat%ra(row),       &
+            scat%dec(row),      &
+            scat%g1(row),       &
+            scat%g2(row),       &
+            scat%err(row),      &
+            scat%hpixid(row),   &
             val1, val2
 
     end subroutine print_source_row

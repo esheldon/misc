@@ -94,12 +94,12 @@ contains
 
         call read_source_cat(shdata%pars%source_file, shdata%scat)
 
-        nsource = size( shdata%scat%sources, kind=8)
+        nsource = shdata%scat%nel
 
         if (shdata%scat%sigmacrit_style == 1) then
-            call add_source_dc(shdata%scat%sources)
+            call add_source_dc(shdata%scat)
         endif
-        call add_source_hpixid(shdata%pars%nside, shdata%scat%sources)
+        call add_source_hpixid(shdata%pars%nside, shdata%scat)
         call print_source_firstlast(shdata%scat)
 
         print '(a)',"Calculating src sin/cosc"
@@ -109,10 +109,10 @@ contains
         allocate(shdata%cossra(nsource))
 
         do i=1,nsource
-            shdata%sinsra(i)  = sin( shdata %scat%sources(i)%ra*DEG2RAD )
-            shdata%sinsdec(i) = sin( shdata %scat%sources(i)%dec*DEG2RAD )
-            shdata%cossra(i)  = cos( shdata %scat%sources(i)%ra*DEG2RAD )
-            shdata%cossdec(i) = cos( shdata %scat%sources(i)%dec*DEG2RAD )
+            shdata%sinsra(i)  = sin( shdata %scat%ra(i)*DEG2RAD )
+            shdata%sinsdec(i) = sin( shdata %scat%dec(i)*DEG2RAD )
+            shdata%cossra(i)  = cos( shdata %scat%ra(i)*DEG2RAD )
+            shdata%cossdec(i) = cos( shdata %scat%dec(i)*DEG2RAD )
         end do
 
         allocate(shdata%sinldec(size(shdata%lenses)))
@@ -245,7 +245,7 @@ contains
                     if (phi > 0 ) then
                         r = phi*dl
                         if (shdata%scat%sigmacrit_style == 1) then
-                            scinv = sigmacritinv(zl,dlc, shdata%scat%sources(isrc)%dc)
+                            scinv = sigmacritinv(zl,dlc, shdata%scat%dc(isrc))
                         else
                             if ( (zl >= shdata%scat%zlmin) .and. (zl <= shdata%scat%zlmax) ) then
 
@@ -258,7 +258,9 @@ contains
                         endif
                         if (scinv > 0) then
                             call calc_shear_sums_omp(shdata%pars, &
-                                shdata%scat%sources(isrc), &
+                                shdata%scat%g1(isrc), &
+                                shdata%scat%g2(isrc), &
+                                shdata%scat%err(isrc), &
                                 r,cos2theta,sin2theta,scinv, &
                                 weight,wsum,dsum,osum,rsum,npair)
                         end if
@@ -335,10 +337,12 @@ contains
 
                     if (phi > 0 ) then
                         r = phi*dl
-                        scinv = sigmacritinv(zl,dlc, shdata%scat%sources(isrc)%dc)
+                        scinv = sigmacritinv(zl,dlc, shdata%scat%dc(isrc))
                         if (scinv > 0) then
                             call calc_shear_sums(shdata%pars, &
-                                shdata%scat%sources(isrc), &
+                                shdata%scat%g1(isrc), &
+                                shdata%scat%g2(isrc), &
+                                shdata%scat%err(isrc), &
                                 r,cos2theta,sin2theta,scinv,lensum)
                         end if
                     end if
@@ -397,11 +401,14 @@ contains
     end subroutine get_pair_info
 
 
-    subroutine calc_shear_sums_omp(pars, src, r, cos2theta, sin2theta, scinv, &
+    subroutine calc_shear_sums_omp(pars, g1, g2, err, &
+                                   r, cos2theta, sin2theta, scinv, &
                                    weight, wsum, dsum, osum, rsum, npair)
                                    
         type(config), intent(in) :: pars
-        type(source), intent(in) :: src
+        real*8, intent(in) :: g1
+        real*8, intent(in) :: g2
+        real*8, intent(in) :: err
         real*8, intent(in) :: r, cos2theta, sin2theta
         real*8, intent(in) :: scinv
 
@@ -423,9 +430,9 @@ contains
 
             scinv2 = scinv*scinv
 
-            gamma1 = -(src%g1*cos2theta + src%g2*sin2theta)
-            gamma2 =  (src%g1*sin2theta - src%g2*cos2theta)
-            w = scinv2/(GSN2 + src%err**2)
+            gamma1 = -(g1*cos2theta + g2*sin2theta)
+            gamma2 =  (g1*sin2theta - g2*cos2theta)
+            w = scinv2/(GSN2 + err**2)
 
             weight = weight + w
 
@@ -443,9 +450,11 @@ contains
 
 
 
-    subroutine calc_shear_sums(pars, src, r, cos2theta, sin2theta, scinv, lensum)
+    subroutine calc_shear_sums(pars, g1, g2, err, r, cos2theta, sin2theta, scinv, lensum)
         type(config), intent(in) :: pars
-        type(source), intent(in) :: src
+        real*8, intent(in) :: g1
+        real*8, intent(in) :: g2
+        real*8, intent(in) :: err
         real*8, intent(in) :: r, cos2theta, sin2theta
         real*8, intent(in) :: scinv
         type(lens_sum), intent(inout) :: lensum
@@ -461,9 +470,9 @@ contains
 
             scinv2 = scinv*scinv
 
-            gamma1 = -(src%g1*cos2theta + src%g2*sin2theta)
-            gamma2 =  (src%g1*sin2theta - src%g2*cos2theta)
-            weight = scinv2/(GSN2 + src%err**2)
+            gamma1 = -(g1*cos2theta + g2*sin2theta)
+            gamma2 =  (g1*sin2theta - g2*cos2theta)
+            weight = scinv2/(GSN2 + err**2)
 
             lensum%weight = lensum%weight + weight
 
@@ -642,16 +651,16 @@ contains
         integer*8, allocatable, dimension(:) :: h
         integer*8 :: binsize = 1
         integer*8 nsource
-        nsource = size(shdata%scat%sources, kind=8)
+        nsource = shdata%scat%nel
 
         print '(a)',"Getting healpix sort index"
-        call qsorti8(shdata%scat%sources%hpixid, sort_ind)
+        call qsorti8(shdata%scat%hpixid, sort_ind)
 
-        shdata%minid = shdata%scat%sources(sort_ind(1))%hpixid
-        shdata%maxid = shdata%scat%sources(sort_ind(nsource))%hpixid
+        shdata%minid = shdata%scat%hpixid(sort_ind(1))
+        shdata%maxid = shdata%scat%hpixid(sort_ind(nsource))
 
         print '(a)',"Getting healpix revind"
-        call histi8(shdata%scat%sources%hpixid, sort_ind, binsize, &
+        call histi8(shdata%scat%hpixid, sort_ind, binsize, &
                     h, shdata%rev)
 
     end subroutine get_hpix_rev
