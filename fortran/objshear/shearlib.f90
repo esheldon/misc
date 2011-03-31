@@ -245,11 +245,7 @@ contains
                     if (phi > 0 ) then
                         r = phi*dl
                         if (shdata%scat%sigmacrit_style == 1) then
-                            !if ((zl >= 0.02) .and. (zl <= 0.605)) then
-                                scinv = sigmacritinv(zl,dlc, shdata%scat%sources(isrc)%dc)
-                            !else
-                            !    scinv=0
-                            !endif
+                            scinv = sigmacritinv(zl,dlc, shdata%scat%sources(isrc)%dc)
                         else
                             if ( (zl >= shdata%scat%zlmin) .and. (zl <= shdata%scat%zlmax) ) then
 
