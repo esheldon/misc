@@ -18,6 +18,7 @@ setup pyfits
 
 setup scons
 
+setup cosmology -r ~/exports/cosmology-local
 
 # this will setupRequired the current idlutils, so we will call this first
 # and then setup up the trunk
@@ -32,9 +33,9 @@ setup recfile -r ~/exports/recfile-local
 
 # clean this because in gdl_setup.sh we are concatenating
 # GDL_PATH and IDL_PATH
-export GDL_PATH=""
-setup gdl
-setup gdladd -r ~/gdladd
+#export GDL_PATH=""
+#setup gdl
+#setup gdladd -r ~/gdladd
 
 # will set up cfitsio/ccfits/tmv
 setup wl -r ~/exports/wl-local
@@ -68,6 +69,6 @@ fi
 
 setup openssh
 
-setup gnuplotpy
+#setup gnuplotpy
 setup biggles
 
