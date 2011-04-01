@@ -173,8 +173,8 @@ contains
             print '(a15,$)',"z"
             print '(a15)',"dc"
         else
-            print '(a15,$)',"scinv(1)"
-            print '(a15)',"scinv(-1)"
+            print '(a25,$)',"scinv(1)"
+            print '(a25)',"scinv(-1)"
         endif
 
         call print_source_row(scat, 1)
@@ -194,7 +194,7 @@ contains
             val2 = scat%scinv(row,size(scat%zlinterp))
         endif
 
-        print '(5F15.8,i10,2F15.8)',    &
+        print '(5F15.8,i10,2E)',    &
             scat%ra(row),       &
             scat%dec(row),      &
             scat%g1(row),       &
