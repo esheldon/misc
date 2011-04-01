@@ -97,16 +97,19 @@ contains
 
 
     real*8 function cdist(zmin, zmax)
+        ! comoving distance
         real*8, intent(in) :: zmin, zmax
         cdist = DH*ez_inverse_integral(zmin, zmax)
     end function cdist
 
     real*8 function angdist_2z(zmin, zmax) result(angdist)
+        ! angular diameter distance
         real*8, intent(in) :: zmin, zmax
         angdist = DH*ez_inverse_integral(zmin, zmax)/(1+zmax)
     end function angdist_2z
 
     real*8 function angdist_pre(dcmin, dcmax, zmax) result(angdist)
+        ! angular diameter distance
         real*8, intent(in) :: dcmin, dcmax, zmax
         angdist = (dcmax-dcmin)/(1+zmax)
     end function angdist_pre
