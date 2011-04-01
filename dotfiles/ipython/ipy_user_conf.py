@@ -44,6 +44,11 @@ def main():
         print "Could not import numpy"
 
     try:
+        ip.ex("import cosmology")
+    except:
+        print "Could not import cosmology"
+
+    try:
         ip.ex("import admom")
     except:
         print "Could not import admom"
