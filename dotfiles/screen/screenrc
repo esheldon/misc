@@ -36,7 +36,7 @@ shelltitle "] |bash"
 caption splitonly "%?%F%{= kG}%:%{= kw}%? %n %t%=%{= db}"
 #hardstatus alwayslastline "%{= kw} %-Lw%{=b kG} %n%f %t %{-}%+Lw %=%{= kR} %h%{-} %{+b} %C%a %D %d %M %Y %{= dd}"
 
-hardstatus alwayslastline '%{= kG}%{G}%H %{g}%= %{= kw}%?%-Lw%?%{W}%n*%f%t%?(%u)%?%{w}%?%+Lw%?%?%= %{g}%{B} %m-%d %{W}%c %{g}'
+hardstatus alwayslastline '%{= kG}%{G}%H %{g}%= %{= kw}%?%-Lw%?%{y}%n*%f%t%?(%u)%?%{w}%?%+Lw%?%?%= %{g}%{B} %m-%d %{W}%c %{g}'
 
 
 
