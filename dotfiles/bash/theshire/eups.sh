@@ -2,6 +2,8 @@ f=/home/esheldon/local/products/eups/bin/setups.sh
 if [ -e "$f" ]; then
 	source $f
 
+    setup cosmology -r ~/exports/cosmology-local
+
     setup local -r ~/local
     setup tmux
 
@@ -15,10 +17,6 @@ if [ -e "$f" ]; then
 	setup esutil -r ~/exports/esutil-local
 
     setup recfile -r ~/exports/recfile-local
-
-	#setup sdssidl -r ~/svn/sdssidl
-	#setup esidl -r ~/idl.lib
-	#setup idlgoddard
 
     # this will also set up numpy and plotutils
     setup biggles

@@ -1,6 +1,8 @@
 ! vim:set ft=fortran:
 module gcirclib
 
+    implicit none
+
     integer, parameter, private :: dp  = SELECTED_REAL_KIND(12,200)
     real*8, parameter, private :: PI = 3.141592653589793238462643383279502884197_dp
     real*8, parameter, private :: HALFPI= 1.570796326794896619231321691639751442099_dp

@@ -1,6 +1,8 @@
 ! vim:set ft=fortran:
 module intlib
 
+    implicit none
+
     integer, parameter, public :: dp  = SELECTED_REAL_KIND(12,200)
     real*8, parameter, public :: M_PI    = 3.141592653589793238462643383279502884197_dp
 
@@ -11,17 +13,19 @@ contains
         use arrlib
 
         real*8, intent(in) :: x1, x2
-        integer*4, intent(in) :: npts
+        integer*8, intent(in) :: npts
 
-        real*4, intent(inout), dimension(:), allocatable :: x, w
+        real*8, intent(inout), dimension(:), allocatable :: x, w
         
 
-        integer*4 :: i, j, m
+        integer*8 :: i, j, m
         real*8 :: xm, xl, z1, z, p1, p2, p3, pp, EPS, abszdiff
 
 
-        call reallocatef4(x, npts)
-        call reallocatef4(w, npts)
+        allocate(x(npts)); x=0
+        allocate(w(npts)); w=0
+
+
 
         pp = 0.0
         EPS = 4.e-11

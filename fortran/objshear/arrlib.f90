@@ -1,11 +1,18 @@
 ! vim:set ft=fortran:
 module arrlib
 
+    implicit none
+
+    interface alloc
+        module procedure alloci4, alloci8, allocf8
+    end interface
+
 contains
 
-    subroutine reallocatei4(array, num)
+    subroutine alloci4(array, num, initval)
         integer*4, allocatable, dimension(:) :: array
-        integer*4 num
+        integer*8 num
+        integer*4 initval
 
         if (allocated(array)) then
             if (size(array) /= num) then
@@ -15,12 +22,14 @@ contains
         else
             allocate(array(num))
         end if
+        array=initval
 
-    end subroutine reallocatei4
+    end subroutine alloci4
 
-    subroutine reallocatef4(array, num)
-        real*4, allocatable, dimension(:) :: array
-        integer*4 num
+    subroutine alloci8(array, num, initval)
+        integer*8, allocatable, dimension(:) :: array
+        integer*8 num
+        integer*8 initval
 
         if (allocated(array)) then
             if (size(array) /= num) then
@@ -30,15 +39,16 @@ contains
         else
             allocate(array(num))
         end if
+        array=initval
 
-    end subroutine reallocatef4
+    end subroutine alloci8
 
 
 
-
-    subroutine reallocatef8(array, num)
+    subroutine allocf8(array, num, initval)
         real*8, allocatable, dimension(:) :: array
-        integer*4 num
+        integer*8 num
+        real*8 initval
 
         if (allocated(array)) then
             if (size(array) /= num) then
@@ -49,7 +59,9 @@ contains
             allocate(array(num))
         end if
 
-    end subroutine reallocatef8
+        array=initval
+
+    end subroutine allocf8
 
 
 end module arrlib

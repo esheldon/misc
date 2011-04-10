@@ -44,6 +44,11 @@ def main():
         print "Could not import numpy"
 
     try:
+        ip.ex("import cosmology")
+    except:
+        print "Could not import cosmology"
+
+    try:
         ip.ex("import admom")
     except:
         print "Could not import admom"
@@ -87,6 +92,12 @@ def main():
         ip.ex("from sdsspy import yanny")
     except:
         print "Could not import sdsspy"
+
+    try:
+        ip.ex("import es_sdsspy")
+    except:
+        print "Could not import es_sdsspy"
+
 
     try:
         ip.ex("from esutil import oracle_util as ou")

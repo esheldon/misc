@@ -74,7 +74,7 @@ void calcweights(struct TrainCatalog* tcat, struct PhotoCatalog* pcat, int nnear
     }
     for (size_t i=0; i<ntrain; i++) {
         // will get distance to closest n_near neighbors in the train sample
-        // the zeroth element will hold the farthest also  the indices
+        // the zeroth element will hold the farthest. also get the indices
 
         KDTreeNNeighOfIndex(kd_train, nnear, i, dist, indices);
 
@@ -85,6 +85,8 @@ void calcweights(struct TrainCatalog* tcat, struct PhotoCatalog* pcat, int nnear
         KDTreeCopyPoint(kd_train, i, point);
         int nmatch = KDTreePointRadMatch(kd_photo,point,dist[0],matchind);
 
+        // can we make this weighted?  Count a weight instead of "1" for
+        // each photometric object?
         tcat->weights[i] = ((double)nmatch)/((double)nnear);
         total_weights += tcat->weights[i];
 

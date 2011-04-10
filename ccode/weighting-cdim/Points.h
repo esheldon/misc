@@ -3,15 +3,6 @@
 
 #include "dims.h"
 
-// Idea is we could make this be float or double at compile time
-// but note we still have double everywhere in the rest of the code
-// so this would take a major overhaul
-#ifdef USEFLOAT
-typedef float ptype;
-#else
-typedef double ptype;
-#endif
-
 // A set of NDIM dimensional points
 struct Points {
     // this is the actual number of points, each of which
@@ -33,7 +24,7 @@ struct Points {
     // To get the value for point "i" in its dimension "dim", index with
     //     data[i + npts*dim]
 
-    ptype* data;
+    double* data;
 };
 
 struct Points* PointsAlloc(size_t npts);
