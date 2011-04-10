@@ -392,10 +392,6 @@ void NumpyVector<T>::init(PyObject* obj)  throw (const char *) {
         mArray = PyArray_CheckFromAny(
                 obj, descr, min_depth, max_depth, requirements, NULL);
 
-        /*
-        // We MUST decref this no matter what
-        mArray = PyArray_FROM_OTF(obj, mTypeNum, requirements);
-        */
         if (mArray == NULL) {
             // this causes a segfault, don't do it
             //Py_XDECREF(descr);

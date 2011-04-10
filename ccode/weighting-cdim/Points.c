@@ -9,7 +9,7 @@ struct Points* PointsAlloc(size_t npts) {
 
     p->npts = npts;
     p->size = npts*NDIM;
-    p->data = malloc(p->size*sizeof(ptype));
+    p->data = malloc(p->size*sizeof(double));
     assert(p->data != NULL);
 
     return p;

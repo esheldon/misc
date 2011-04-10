@@ -1,6 +1,8 @@
 ! vim:set ft=fortran:
 module fileutil
 
+    implicit none
+
 contains
 
     function get_lun() result( lun )
@@ -46,4 +48,4 @@ contains
 
 
 
-  end module fileutil
+end module fileutil
