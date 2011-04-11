@@ -1,5 +1,8 @@
 *.pyc
 *~
 .*.swp
+*.o
+*.mod
+.deps
 
 .sconsign.dblite

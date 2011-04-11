@@ -10,7 +10,6 @@ contains
 
     ! from numerical recipes
     subroutine gauleg(x1, x2, npts, x, w)
-        use arrlib
 
         real*8, intent(in) :: x1, x2
         integer*8, intent(in) :: npts
