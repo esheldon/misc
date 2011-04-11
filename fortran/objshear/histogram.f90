@@ -19,7 +19,6 @@ contains
         !       h: The histogram
         !   optional outputs:
         !       rev: The reverse indices.
-        use arrlib
         use errlib
 
         real*8,    intent(in), dimension(:) :: array
@@ -119,7 +118,6 @@ contains
         !       h: The histogram
         !   optional outputs:
         !       rev: The reverse indices.
-        use arrlib
         use errlib
 
         integer*4, intent(in), dimension(:) :: array
@@ -219,7 +217,6 @@ contains
         !       h: The histogram
         !   optional outputs:
         !       rev: The reverse indices.
-        use arrlib
         use errlib
 
         integer*8, intent(in), dimension(:) :: array
