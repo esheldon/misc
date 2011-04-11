@@ -7,6 +7,8 @@ if [ -e "$f" ]; then
     setup local -r ~/local
     setup tmux
 
+    setup swig
+
     setup parallel
 
     setup scipy
@@ -14,7 +16,8 @@ if [ -e "$f" ]; then
 	setup wl -r ~/exports/wl-local
     setup tmv -r ~/exports/tmv-local
 
-	setup esutil -r ~/exports/esutil-local
+	#setup esutil -r ~/exports/esutil-local
+	setup esutil -r ~/exports/esutil-test
 
     setup recfile -r ~/exports/recfile-local
 

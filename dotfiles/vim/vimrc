@@ -58,10 +58,7 @@ set statusline=%F%m%r%h%w%=%(\ %04v\ %04l/%04L\ [%p%%]%)
 set noerrorbells
 set vb
 set t_vb=
-if has('autocmd')
-    " special for gui
-    autocmd GUIEnter * set vb t_vb=
-endif
+autocmd GUIEnter * set vb t_vb=
 
 " allow backspacing over everything in insert mode
 set backspace=indent,eol,start
@@ -71,9 +68,6 @@ set ruler			" show the cursor position all the time
 set showcmd			" display incomplete commands
 set incsearch		" do incremental searching
 
-
-" For Win32 GUI: remove 't' flag from 'guioptions': no tearoff menu entries
-" let &guioptions = substitute(&guioptions, "t", "", "g")
 
 " Don't use Ex mode, use Q for formatting
 " The following mappings make Q normally reformat the current paragraph (or
@@ -101,14 +95,6 @@ noremap Y y$
 
 " Let h,l and cursor ceys wrap across begin and end line"
 set whichwrap=h,l,[,]
-
-
-" More intuitive to scroll with ctrl-j,ctrl-k 
-" And page up/down to ctrl-p,ctrl-n (which are just the same as j,k now
-"map <c-j> <c-e>
-"map <c-k> <c-y>
-"map <c-p> <s-up>
-"map <c-n> <s-down>
 
 
 let uname = substitute(system("/usr/bin/uname"),"\n","","g")
@@ -263,45 +249,37 @@ if &t_Co > 2 || has("gui_running")
 endif 
 
 
-" Only do this part when compiled with support for autocommands.
-if has("autocmd")
 
-    " Enable file type detection.
-    " Use the default filetype settings, so that mail gets 'tw' set to 72,
-    " 'cindent' is on in C files, etc.
-    " Also load indent files, to automatically do language-dependent indenting.
-    filetype plugin indent on
+" Enable file type detection.
+" Use the default filetype settings, so that mail gets 'tw' set to 72,
+" 'cindent' is on in C files, etc.
+" Also load indent files, to automatically do language-dependent indenting.
+filetype plugin indent on
 
-    " Put these in an autocmd group, so that we can delete them easily.
-    augroup vimrcEx
-        au!
+" Put these in an autocmd group, so that we can delete them easily.
+augroup vimrcEx
+    au!
 
-        " For all text files set 'textwidth' to 78 characters.
-        autocmd FileType text setlocal textwidth=78
+    " For all text files set 'textwidth' to 78 characters.
+    autocmd FileType text setlocal textwidth=78
 
-        " When editing a file, always jump to the last known cursor position.
-        " Don't do it when the position is invalid or when inside an event handler
-        " (happens when dropping a file on gvim).
-        autocmd BufReadPost *
-                    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-                    \   exe "normal g`\"" |
-                    \ endif
+    " When editing a file, always jump to the last known cursor position.
+    " Don't do it when the position is invalid or when inside an event handler
+    " (happens when dropping a file on gvim).
+    autocmd BufReadPost *
+                \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                \   exe "normal g`\"" |
+                \ endif
 
-    augroup END
+augroup END
 
-else
-
-    set autoindent		" always set autoindenting on
-
-
-endif " has("autocmd")
 
 
 
 "autocmd FileType c,cpp,cc,h,hpp set cindent
 set autoindent
 set tabstop=4
-set softtabstop=4
+"set softtabstop=4
 set shiftwidth=4
 " expand tabs into spaces
 set expandtab
@@ -325,12 +303,7 @@ set smartcase
 set guioptions-=T
 
 
-" compatability
-if has("vms")
-    set nobackup		" do not keep a backup file, use versions instead
-else
-    set backup		" keep a backup file
-endif
+set backup		" keep a backup file
 
 
 " show paren matches
