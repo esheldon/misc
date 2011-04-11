@@ -44,6 +44,11 @@ def main():
         print "Could not import numpy"
 
     try:
+        ip.ex("import zphot")
+    except:
+        print "Could not import zphot"
+
+    try:
         ip.ex("import cosmology")
     except:
         print "Could not import cosmology"
@@ -129,6 +134,7 @@ def main():
         
     try:
         ip.ex("import columns")
+        ip.ex("from columns import Columns")
     except:
         print "Could not import columns"
 

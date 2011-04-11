@@ -7,7 +7,6 @@ module shearlib
     use cosmolib
     use healpix, only : HALFPI, DEG2RAD, query_disc
     use fileutil
-    use arrlib
 
     implicit none
 

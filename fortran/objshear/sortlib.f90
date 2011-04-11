@@ -27,7 +27,6 @@ contains
 !         quicksort(array, pivot + 1, right)
 
     subroutine qsortf8(arr, ind)
-        use arrlib
 
         real*8, intent(in), dimension(:) :: arr
         integer*8, intent(inout), dimension(:), allocatable :: ind
@@ -48,7 +47,6 @@ contains
 
 
     subroutine qsorti4(arr, ind)
-        use arrlib
 
         integer*4, intent(in), dimension(:) :: arr
         integer*8, intent(inout), dimension(:), allocatable :: ind
@@ -68,7 +66,6 @@ contains
     end subroutine qsorti4
 
     subroutine qsorti8(arr, ind)
-        use arrlib
 
         integer*8, intent(in), dimension(:) :: arr
         integer*8, intent(inout), dimension(:), allocatable :: ind
