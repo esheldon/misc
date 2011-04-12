@@ -11,7 +11,6 @@ module healpix
 
     real*8, parameter, public :: RAD2DEG = 180.0_DP / PI
     real*8, parameter, public :: DEG2RAD = PI / 180.0_DP
-    !integer*8, parameter, private :: ns_max=8192 ! 2^13 : largest nside available
     integer*8, parameter, private :: ns_max=268435456 ! 2^28 : largest nside available
 
 contains
@@ -40,7 +39,6 @@ contains
         integer*8, intent(in) :: nside
         real*8, intent(in) :: ra, dec
 
-        !integer*8, intent(out) :: ipix
         integer*8, intent(out) :: ipix
 
         real*8 :: theta, phi
@@ -412,7 +410,7 @@ contains
            ! strict : include only pixels whose CENTER is in [phi_low, phi_hi]
            ip_low = ceiling (nr * phi_low / TWOPI - shift)
            ip_hi  = floor   (nr * phi_hi  / TWOPI - shift)
-        !        if ((ip_low - ip_hi == 1) .and. (dphi*nr < PI)) then ! EH, 2004-06-01
+
            diff = modulo(ip_low - ip_hi, nr) ! in {-nr+1, nr-1} or {0,nr-1} ???
            if (diff < 0) diff = diff + nr    ! in {0,nr-1}
            if ((diff == 1) .and. (dphi*nr < PI)) then
@@ -421,8 +419,8 @@ contains
               nir = 0
               return
            endif
-        !        ip_low = min(ip_low, nr-1) !  EH, 2004-05-28
-        !        ip_hi  = max(ip_hi , 0   )
+
+
            if (ip_low >= nr) ip_low = ip_low - nr
            if (ip_hi  <  0 ) ip_hi  = ip_hi  + nr
         endif
@@ -454,7 +452,7 @@ contains
         real*8, intent(in) :: ra, dec
         real*8, intent(out) :: theta, phi
         phi = ra*DEG2RAD
-        !theta = dec*DEG2RAD + HALFPI
+
         theta = -dec*DEG2RAD + HALFPI
     end subroutine radec_degrees_to_thetaphi_radians
 
