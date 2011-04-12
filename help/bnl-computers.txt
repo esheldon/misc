@@ -480,6 +480,8 @@ More from Michael Madore:
 
 kerberos:
 ----------------------------------
+NOTE: this only works on TUTTI
+
 first on my local machien:
 
 installed krb5 stuff.  I think it is at least these packages:
