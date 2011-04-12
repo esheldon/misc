@@ -1,9 +1,12 @@
 ! vim:set ft=fortran:
 module cosmolib
-    ! class to calculate distances. This uses gauss-legendre integration
+    ! class to calculate distances in a flat universe. 
+    ! This uses gauss-legendre integration
     ! for extremely fast ad accurate code code.
     !
     ! For integration, 5 points is essentially exact and very fast.
+    ! for more generic routines, see the cosmology class in esutil
+    ! or cosmology package in esheldon github
 
     implicit none
 
@@ -103,19 +106,20 @@ contains
     end function cdist
 
     real*8 function angdist_2z(zmin, zmax) result(angdist)
-        ! angular diameter distance
+        ! angular diameter distance for flat universe is simple in dc
         real*8, intent(in) :: zmin, zmax
         angdist = DH*ez_inverse_integral(zmin, zmax)/(1+zmax)
     end function angdist_2z
 
     real*8 function angdist_pre(dcmin, dcmax, zmax) result(angdist)
-        ! angular diameter distance
+        ! angular diameter distance for flat universe is simple in dc
         real*8, intent(in) :: dcmin, dcmax, zmax
         angdist = (dcmax-dcmin)/(1+zmax)
     end function angdist_pre
 
 
     real*8 function scinv_2z(zl, zs) result(scinv)
+        ! flat universe, simple in dc
         real*8, intent(in) :: zl,zs
         real*8 dcl, dcs
 
@@ -131,7 +135,7 @@ contains
     end function scinv_2z
 
     real*8 function scinv_pre(zl, dcl, dcs) result(scinv)
-        ! Here dcl and dcs are COMOVING
+        ! flat universe, simple in dc
         real*8, intent(in) :: zl,dcl,dcs
         if (dcs <= dcl) then 
             scinv=0.0

@@ -382,6 +382,7 @@ contains
             if (cosphi < -1.0) cosphi = -1.0
             phi = acos(cosphi)
 
+            ! this is sin(sra-lra), note sign
             sinradiff = sinsra*coslra - cossra*sinlra
 
             arg = sinldec*cosradiff - cosldec*sinsdec/cossdec
