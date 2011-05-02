@@ -7,7 +7,6 @@ module shearlib
     use cosmolib
     use healpix, only : HALFPI, DEG2RAD, query_disc
     use fileutil
-    use arrlib
 
     implicit none
 
@@ -383,6 +382,7 @@ contains
             if (cosphi < -1.0) cosphi = -1.0
             phi = acos(cosphi)
 
+            ! this is sin(sra-lra), note sign
             sinradiff = sinsra*coslra - cossra*sinlra
 
             arg = sinldec*cosradiff - cosldec*sinsdec/cossdec
