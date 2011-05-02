@@ -9,4 +9,5 @@ dir=$1
 
 #btlaunchmanycurses.bittornado --max_upload_rate 29 $dir --display_interval 3
 #btlaunchmanycurses.bittornado.nostatus --max_upload_rate 29 $dir --display_interval 3
-btlaunchmanycurses.bittornado.nostatus --max_upload_rate 60 $dir --display_interval 3
+#btlaunchmanycurses.bittornado.nostatus --max_upload_rate 60 $dir --display_interval 3
+btlaunchmanycurses.bittornado --max_upload_rate 60 $dir --display_interval 3
