@@ -16,9 +16,10 @@ void PofZWriteOne(FILE* fptr, int64_t id, struct WHist* wh);
 int main(int argc, char **argv) {
     if (argc < 9) {
         printf("Usage: \n");
-        printf("  calcpofz weightsfile photofile nnear nz ");
+        printf("  calcpofz%d weightsfile photofile nnear nz ", NDIM);
         printf(                            " zmin zmax pzfile zfile\n\n");
 
+        printf("    NDIM: %d\n", NDIM);
         printf("    weightsfile is the output from calcweights. \n");
         printf("    nnear should be about 100\n");
         printf("    nz is the number of z points in the p(z), e.g. 20 or 30\n");
@@ -36,6 +37,7 @@ int main(int argc, char **argv) {
     const char* zfile      = argv[8];
 
 
+    pflush("NDIM: %d\n", NDIM);
     pflush("number of nearest neighbors: %d\n",nnear);
     pflush("nz:   %d\n",nz);
     pflush("zmin: %lf\n",zmin);

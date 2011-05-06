@@ -13,8 +13,9 @@ int main(int argc, char **argv) {
 
     if (argc < 6) {
         printf("Usage: \n");
-        printf("   calcweights trainfile photfile n_near weightfile numfile\n\n");
+        printf("   calcweights%d trainfile photfile n_near weightfile numfile\n\n", NDIM);
 
+        printf("     NDIM: %d\n", NDIM);
         printf("     weightsfile and numfile are outputs\n");
         printf("     n_near=5 is typical first run, 100 second run\n");
         printf("     don't forget to remove weight=0 objects for second run\n");
@@ -28,6 +29,7 @@ int main(int argc, char **argv) {
     const char* weightsfile = argv[4];
     const char* numfile = argv[5];
 
+    pflush("NDIM: %d\n", NDIM);
     pflush("number of nearest neighbors: %d\n",n_near);
 
     struct TrainCatalog* tcat=TrainCatalogRead(trainfile);
