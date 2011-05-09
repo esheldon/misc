@@ -17,16 +17,10 @@
 
 
 struct particle {
-    
     double x[3];  // position
     double v[3];  // velocity
 };
 
-// not currently used
-struct particles {
-    int64_t size;
-    struct particle* data;
-};
 
 struct universe {
     int64_t nperside;
@@ -48,26 +42,6 @@ void print_universe(struct universe* u) {
     printf("nstep: %ld\n", u->nstep);
     printf("tstep: %lf\n", u->tstep);
     printf("xsoft: %lf\n", u->xsoft);
-}
-
-struct particles* particles_new(int64_t n) {
-    struct particles* particles;
-    particles = malloc(sizeof(struct particles));
-    if (particles == NULL) {
-        printf("Could not malloc struct particles");
-        exit(EXIT_FAILURE);
-    }
-
-    particles->size = n;
-    particles->data = malloc(n*sizeof(struct particle));
-    if (particles == NULL) {
-        printf("Could not malloc %ld struct particle", n);
-        exit(EXIT_FAILURE);
-    }
-
-
-    return particles;
-
 }
 
 void set_initial_conditions(struct universe* u) {
@@ -119,7 +93,7 @@ struct universe* universe_new(int64_t nstep, int64_t nperside, double xmax, doub
 
     u->particles = malloc(u->nparticles*sizeof(struct particle));
     if (u->particles == NULL) {
-        printf("Could not malloc %ld struct particle", u->nparticles);
+        printf("Could not malloc %ld particles", u->nparticles);
         exit(EXIT_FAILURE);
     }
 
@@ -161,7 +135,7 @@ double mag2(double x[3]) {
 
 void get_accel(struct universe* u, double x[3], double accel[3]) {
 
-    // brute force calculation of accel
+    // brute force calculation of acceleration
 
     double deltax[3];
     double r2, r2inv, r2invsqrt;
