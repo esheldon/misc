@@ -5,7 +5,7 @@
 #include "lcat.h"
 #include "scat.h"
 #include "rev.h"
-#include "output.h"
+//#include "output.h"
 #include "config.h"
 
 using std::vector;
@@ -18,7 +18,7 @@ struct sheardata {
     vector<struct source> scat;
     struct revhtm rev;
 
-    struct lensout output;
+    //struct lensout output;
 
     //htmInterface *mHTM;  // The htm interface
     //const SpatialIndex *mSpatialIndex;
