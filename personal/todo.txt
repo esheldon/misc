@@ -1,10 +1,23 @@
+Quick look Queue
+    get WL run going
+    TS run with new galex and ukidss data
+    referee paper
+    maybe seeing included in zphot weighting?
+    Get new catalog for Eli and Eduardo
+
+Sarah's lensing splits.
+
 zphot:
 
-    Match primus and see how well we recover it with
-    what we currently did.
+    Seeing plots
 
     Get some validation plots, good ones, 
     from carlos, or have him send me the data.
+
+DES:
+
+    Perform a new run with Mike's new improvements, and the new s/g stuff and
+    file formats from Bob.
 
 shears:
     regauss simulations:
@@ -89,13 +102,11 @@ shears:
 
 MaxBCG:
     
-    See if mem_match_id is in my catalogs, if so we can do matches.
-
-    Do overall total to estimate what kind of splits we can do.
+    Get new catalog for Eli and Eduardo
 
 BOSS 
 
-    Is QSO stuff from adam in main QSO paper?
+    Do final TS with galex+ukidss
 
     Target Selection Overview Paper
 
