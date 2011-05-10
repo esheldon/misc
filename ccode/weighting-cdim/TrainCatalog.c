@@ -44,7 +44,7 @@ void TrainCatalogFree(struct TrainCatalog* cat) {
 
 
 struct TrainCatalog* TrainCatalogRead(const char* filename) {
-    pflush("Reading TrainCatalog from file: '%s'\n", filename);
+    pflush("Reading TrainCatalog, NDIM=%d, from file: '%s'\n", NDIM, filename);
 
     pflush("    Counting lines\n");
     size_t nlines = count_lines(filename);
