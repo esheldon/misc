@@ -42,7 +42,7 @@ void PhotoCatalogFree(struct PhotoCatalog* cat) {
 
 
 struct PhotoCatalog* PhotoCatalogRead(const char* filename) {
-    pflush("Reading PhotoCatalog from file: '%s'\n", filename);
+    pflush("Reading PhotoCatalog, NDIM=%d, from file: '%s'\n", NDIM, filename);
 
     pflush("    Counting lines\n");
     size_t nlines = count_lines(filename);

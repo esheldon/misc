@@ -11,6 +11,7 @@
 
 struct KDTree* KDTreeCreate(const struct Points* pts) {
 
+    pflush("  KDTreeCreate, NDIM=%d\n", NDIM);
     assert(pts != NULL);
     assert(pts->size > 0);
 
