@@ -3,6 +3,13 @@
 
 function usage() {
     echo "Usage: mcurl [-d -v verbosity -s] url"
+    echo ""
+    echo "Download all the files in a directory to the cwd"
+    echo ""
+    echo "options:"
+    echo "  -d: dry run"
+    echo "  -v: set verbosity level, [0,2], default is 2, the most verbose"
+    echo "  -s: set verbosity level to 0"
     exit 45
 }
 verbosity="2"
