@@ -1,6 +1,6 @@
 Quick look Queue
     referee paper
-    figure out what's going on with WL
+    rerun wlse0010t
     get more feed back on TS run with new galex and ukidss data
     what's up with seeing included in zphot weighting?
     iterate with eli some more
