@@ -1,0 +1,20 @@
+Starting the server was easy.  Just under preferences start personal file
+sharing.
+
+Getting cgi+python set up took some research. These are in my bookmarks
+Mac/Apache.
+Main thing is adding a AddHandler .cgi line  to /etc/httpd/httpd.con
+and making sure that the  ExecCGI is in my /private/etc/httpd/users/esheldon.conf
+
+When inserting/updating sqlite database, must do connect with the
+isolation_level=None keyword.  This is not in the main documentation.
+
+The web server must be able to write to the directory containing the database
+and the file itself.  I put it under /Users/data/rccny, did a chown -R www on that
+directory, and then had the web-server run create_rccny_table.py to create the 
+db.
+
+
+Todo:
+  Generalize main page code to take a dbfile.
+  Add table meta containing name field and perhaps others.

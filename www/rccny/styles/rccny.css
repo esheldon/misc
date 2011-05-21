@@ -1,0 +1,73 @@
+body {
+     color: black;
+     /* font-family: sans-serif; */
+     background-color: white;
+}
+
+a:link {color: #0066ff}
+a:visited {color: #009999}
+/*a.noline {text-decoration:none} */
+a, a:link, a:visited 
+{
+    text-decoration:none;
+    color: #009999;
+    color: darkblue;
+}
+
+b {color:maroon}
+
+table.main 
+{
+    border-collapse: collapse;
+    //border-color: #ffffcc;
+    //border-width: 10pt;
+    //border-style: solid;
+}
+table.main td
+{
+    border-style: solid;
+    border-width: 1px;
+    padding: 3;
+    border-color: grey;
+    background-color: #ffffcc;
+    vertical-align: bottom;
+    /*
+    white-space: nowrap;
+    border-left: hidden;
+    border-right: hidden;
+    */
+}
+table.main th
+{
+    color: maroon;
+    text-align: left;
+}
+
+
+
+table.contact
+{
+    background-color: #ffffcc;
+    border-width: 10pt;
+    border-color: #ffffcc;
+    border-style: solid;
+    vertical-align: top;
+}
+table.contact td
+{
+    vertical-align: top;
+}
+
+table.contact_print
+{
+    background-color: white;
+    border-width: 10pt;
+    border-color: white;
+    border-style: solid;
+}
+
+
+#noborder {display:inline}
+
+
+
