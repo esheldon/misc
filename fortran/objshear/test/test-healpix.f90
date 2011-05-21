@@ -4,10 +4,10 @@
 program main
     use healpix
 
-    integer*8 nside, n_pix, ipix, ira, idec
+    integer*8 nside, n_pix, ipix, i, ira, idec, ringnum
     real*8 area
     real*8 ra(10), dec(11)
-    real*8 ra1, dec1
+    real*8 ra1, dec1, z(4)
     real*8 vector(3)
     
     nside = 4096
@@ -24,6 +24,11 @@ program main
     print '("convert ",F15.8, F15.8," to vector (",F15.8, F15.8, F15.8,")")',&
         ra1, dec1, vector(1), vector(2), vector(3)
 
+    z=(/-0.75, -0.2, 0.2, 0.75/)
+    do i=1,4
+        ringnum = ring_num(nside, z(i))
+        print '("ring num at z=",F15.8,": ",i0)',z(i),ringnum
+    enddo
 
     ra = (/ 0.,   40.,   80.,  120.,  160.,  200.,  240.,  280.,  320.,  360./)
     dec = (/-85., -65., -45., -25., -5., 0., 5., 25., 45., 65., 85./)
