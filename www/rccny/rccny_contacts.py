@@ -9,11 +9,10 @@ import rccny_util as ru
 
 import urllib
 
-environ = os.environ
-qs = environ['QUERY_STRING']
-
 print "Content-type: text/html\n\n"
 print
+
+qs = os.environ['QUERY_STRING']
 
 # Get inputs
 fs = cgi.FieldStorage()
