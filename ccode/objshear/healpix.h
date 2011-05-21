@@ -3,47 +3,63 @@
 
 #include <stdint.h>
 #include "defs.h"
+#include "pixlist.h"
 
 #define NS_MAX 268435456 // 2^28 : largest nside available
+
+struct healpix {
+    int64 nside;
+    int64 npix;
+    int64 ncap;
+    double area;
+};
+
 
 /* number of pixels in the map for the given nside */
 int64 hpix_npix(int64 nside);
 
-/* area in radians^2 */
-double hpix_pixarea(int64 nside);
+/* area of a pixel in radians^2 */
+double hpix_area(int64 nside);
+
+/* allocate a new healpix structure */
+struct healpix* hpix_new(int64 nside);
+void hpix_delete(struct healpix* hpix);
+
 
 /*
    renders the pixel number ipix (RING scheme) for a pixel which contains
    a point on a sphere at coordinates theta and phi, given the map
    resolution parameter nside
 */
-int64 hpix_eq2pix(int64 nside, double ra, double dec);
-
+int64 hpix_eq2pix(const struct healpix* hpix, double ra, double dec);
 
 /*
-   renders the vector (x,y,z) corresponding to angles
+ 
+  fill in the list of pixels in RING scheme. pixels are *appended* to plist so
+  be sure to run pixlist_reset beforehand if necessary
 
-   ra gets converted to phi:
-       (longitude measured eastward, in radians [0,2*pi]
-   dec gets converted to theta:
-       (co-latitude measured from North pole, in [0,Pi] radians)
+*/
+void hpix_in_ring(
+        const struct healpix* hpix, 
+        int64 iz, 
+        double phi0, 
+        double dphi, 
+        struct pixlist* plist);
 
+/*
+   returns the ring number in {1, 4*nside-1} from the z coordinate
+   returns the ring closest to the z provided
+*/
+int64 hpix_ring_num(const struct healpix* hpix, double z);
+
+/*
+   renders the vector (x,y,z) corresponding to input ra,dec
    North pole is (x,y,z)=(0,0,1)
 */
 
 void hpix_eq2vec(double ra, double dec, double vector[3]);
 
-/*
-    !=======================================================================
-    ! ring = ring_num(nside, z)
-    !     returns the ring number in {1, 4*nside-1}
-    !     from the z coordinate
-    ! returns the ring closest to the z provided
-    !
-    !=======================================================================
-*/
 
-int64 hpix_ring_num(int64 nside, double z);
 
 void hpix_radec_degrees_to_thetaphi_radians(double ra, double dec, double* theta, double* phi);
 

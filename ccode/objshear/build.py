@@ -20,9 +20,10 @@ CC='gcc'
 CFLAGS=['-std=c99','-O2']
 LINKFLAGS=['-lm']
 
-hpix_sources=['healpix']
+hpix_sources=['healpix','pixlist']
 
-programs = [{'name':'test-healpix','sources':hpix_sources+['test-healpix']}]
+programs = [{'name':'test-healpix','sources':hpix_sources+['test-healpix']},
+            {'name':'test-pixlist','sources':hpix_sources+['test-pixlist']}]
 
 install_targets = [(prog['name'],'bin') for prog in programs]
 install_targets += [('objshear.table','ups')]

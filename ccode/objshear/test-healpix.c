@@ -6,12 +6,11 @@
 int main(int argc, char** argv) {
     int64 nside=4096;
 
-    int64 npix = hpix_npix(nside);
-    double area = hpix_pixarea(nside);
+    struct healpix* hpix = hpix_new(nside);
 
     printf("nside: %ld\n", nside);
-    printf("  npix: %ld\n", npix);
-    printf("  area: %le\n", area*R2D*R2D);
+    printf("  npix: %ld\n", hpix->npix);
+    printf("  area: %le\n", hpix->area*R2D*R2D);
 
     double ra1=175.0;
     double dec1=27.2;
@@ -22,7 +21,7 @@ int main(int argc, char** argv) {
 
     double z[4]={-0.75, -0.2, 0.2, 0.75};
     for (int i=0; i<4; i++) {
-        int64 ringnum = hpix_ring_num(nside, z[i]);
+        int64 ringnum = hpix_ring_num(hpix, z[i]);
         printf("ring num at z=%15.8lf: %ld\n", z[i], ringnum);
     }
 
@@ -31,8 +30,14 @@ int main(int argc, char** argv) {
     printf("testing eq2pix\n");
     for (int ira=0; ira<10; ira++) {
         for (int idec=0; idec<11; idec++) {
-            int64 ipix = hpix_eq2pix(nside, ra[ira], dec[idec]);
+            int64 ipix = hpix_eq2pix(hpix, ra[ira], dec[idec]);
             printf("%15.8lf %15.8lf %ld\n", ra[ira], dec[idec], ipix);
         }
     }
+
+    hpix_delete(hpix);
+
+    int64 npface = nside*nside;
+    printf("ncap from c++: %ld\n", (npface-nside)<<1);
+    printf("ncap guess from mine: %ld\n", 2*nside*(nside-1) );
 }
