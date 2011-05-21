@@ -16,7 +16,7 @@ program main
 
     call getarg(1,filename)
 
-    call cosmo_init(100.0, 0.3, 5)
+    call cosmo_init(100.0_8, 0.3_8, 5_8)
 
     call read_lens_cat(filename, lenses)
 

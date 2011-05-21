@@ -115,6 +115,9 @@ if 'test' in COMMAND_LINE_TARGETS:
                                 'arrlib.f90',
                                 'errlib.f90',
                                 'sortlib.f90'])
+    test_healpix = env.Program('#test/test-healpix',
+                               ['#test/test-healpix.f90',
+                                'healpix.f90'])
 
 if 'countpairs' in COMMAND_LINE_TARGETS:
     objshear = env.Program('countpairs',
