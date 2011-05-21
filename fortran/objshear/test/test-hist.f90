@@ -5,19 +5,19 @@ program main
     use histogram
     use sortlib
 
-    integer*4 i, j, k, n_in_bin
-    integer*4, allocatable, dimension(:) :: sort_ind
+    integer*8 i, j, k, n_in_bin
+    integer*8, allocatable, dimension(:) :: sort_ind
 
-    integer*4, allocatable, dimension(:) :: dat
-    integer*4, allocatable, dimension(:) :: h
-    integer*4, allocatable, dimension(:) :: rev
+    integer*8, allocatable, dimension(:) :: dat
+    integer*8, allocatable, dimension(:) :: h
+    integer*8, allocatable, dimension(:) :: rev
 
-    integer*4 :: binsize = 1
+    integer*8 :: binsize = 1
 
     character*256  fname
 
-    integer*4 num
-    integer*4 :: lun=75
+    integer*8 num
+    integer*8 :: lun=75
 
     if (iargc() /= 1) then
         print *,"Usage: test-hist filename"
@@ -38,9 +38,9 @@ program main
         read(lun,*)dat(i)
     end do
 
-    call qsorti4(dat, sort_ind)
+    call qsorti8(dat, sort_ind)
 
-    call histi4(dat, sort_ind, binsize, h, rev)
+    call histi8(dat, sort_ind, binsize, h, rev)
 
     do i=1,size(h)
         write (*,'("h(",i0,") = ",i0)'), i, h(i)

@@ -4,7 +4,7 @@ program main
     use srclib
     use cosmolib
 
-    type(source),dimension(:), allocatable :: sources
+    type(source_cat) :: scat
 
     character*256 filename
 
@@ -16,19 +16,19 @@ program main
         stop 45
     end if
 
-    call cosmo_init(100.0, 0.3, 5)
+    call cosmo_init(100.0_8, 0.3_8, 5_8)
 
     call getarg(1,filename)
 
-    call read_source_cat(filename, sources)
+    call read_source_cat(filename, scat)
 
     write (*,'(a)')"Before filling in hpix"
-    call print_source_firstlast(sources)
+    call print_source_firstlast(scat)
 
-    call add_source_hpixid(nside, nest, sources)
-    call add_source_dc(sources)
+    call add_source_hpixid(nside, scat)
+    call add_source_dc(scat)
 
     write (*,'(a)')"After filling in hpix and dc"
-    call print_source_firstlast(sources)
+    call print_source_firstlast(scat)
 
 end program

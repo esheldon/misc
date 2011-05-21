@@ -71,7 +71,7 @@ contains
         print '(a15,$)',"dc"
         print '(a10)',"zindex"
 
-        call print_lens_row(lenses, 1)
+        call print_lens_row(lenses, 1_8)
         call print_lens_row(lenses, size(lenses, kind=8))
     end subroutine print_lens_firstlast
 

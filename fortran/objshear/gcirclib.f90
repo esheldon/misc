@@ -55,22 +55,34 @@ contains
     ! lam2,eta2 was the sources
     subroutine gcirc_survey(lam1, eta1, lam2, eta2, dis,  theta)
         real*8 lam1, eta1, lam2, eta2, dis, theta
-        real*8 tlam1, cosmal1, sinlam1
-        real*8 tlam2, cosmal2, sinlam2
+        real*8 tlam1, coslam1, sinlam1
+        real*8 tlam2, coslam2, sinlam2
         real*8 etadiff, cosetadiff, sinetadiff, cosdis
 
         tlam1 = lam1*D2R
         coslam1 = cos(tlam1)
-        sinlam1 = sign(tlam1)*sqrt(1.-coslam1**2)
+        !sinlam1 = sign(tlam1)*sqrt(1.-coslam1**2)
+        sinlam1 = sqrt(1.-coslam1**2)
+        if (tlam1 < 0.) then
+            sinlam1 = -sinlam1
+        endif
 
         tlam2 = lam2*D2R
         coslam2 = cos(tlam2)
-        sinlam2 = sign(tlam2)*sqrt(1.-coslam2**2)
+        !sinlam2 = sign(tlam2)*sqrt(1.-coslam2**2)
+        sinlam2 = sqrt(1.-coslam2**2)
+        if (tlam2 < 0.) then
+            sinlam2 = -sinlam2
+        endif
 
 
         etadiff = (eta2-eta1)*D2R
         cosetadiff = cos(etadiff)
-        sinetadiff = sign(etadiff)*sqrt(1.0-cosetadiff*cosetadiff);
+        !sinetadiff = sign(etadiff)*sqrt(1.0-cosetadiff*cosetadiff);
+        sinetadiff = sqrt(1.0-cosetadiff*cosetadiff);
+        if (etadiff < 0.) then
+            sinetadiff = -sinetadiff
+        endif
 
         cosdis = sinlam1*sinlam2 + coslam1*coslam2*cosetadiff
 
