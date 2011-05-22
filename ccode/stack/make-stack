@@ -4,10 +4,9 @@
 
 Description
 
-    Generate stack.h and stack.c for the input type list.  The type list
-    should be comma separated, e.g. 
+    Generate stack.h and stack.c for the input type list, e.g.
 
-        float,double,int64
+        make-stack float double int64
 
     Available types:
         float
@@ -25,15 +24,23 @@ Description
 
 import sys
 
-typemap={'float'  : {'ctype':'float','shortname':'f'},
-         'double' : {'ctype':'double','shortname':'d'},
-         'int16'  : {'ctype':'int16_t','shortname':'i16'},
-         'uint16' : {'ctype':'uint16_t','shortname':'u16'},
-         'int32'  : {'ctype':'int32_t','shortname':'i32'},
-         'uint32' : {'ctype':'uint32_t','shortname':'u32'},
-         'int64'  : {'ctype':'int64_t','shortname':'i64'},
-         'uint64' : {'ctype':'uint64_t','shortname':'u64'},
-         'char'   : {'ctype':'char','shortname':'c'} }
+# ctype is the actual C variable type name
+# shortname is for the struct name and functions, e.g. 
+#   struct i64stack, i64stack_new
+# defval is the value to return from an empty stack
+typemap={}
+#typemap['float']  = {'ctype':'float',    'shortname':'f',   'defval':'7f800000'}
+#typemap['double'] = {'ctype':'double',   'shortname':'d',   'defval':'7ff0000000000000'}
+typemap['float']  = {'ctype':'float',    'shortname':'f',   'defval':'FLT_MAX', 'format':'%f'}
+typemap['double'] = {'ctype':'double',   'shortname':'d',   'defval':'DBL_MAX', 'format':'%lf'}
+typemap['int16']  = {'ctype':'int16_t',  'shortname':'i16', 'defval':'INT16_MAX', 'format':'%d'}
+typemap['uint16'] = {'ctype':'uint16_t', 'shortname':'u16', 'defval':'UINT16_MAX', 'format':'%d'}
+typemap['int32']  = {'ctype':'int32_t',  'shortname':'i32', 'defval':'INT32_MAX', 'format':'%d'}
+typemap['uint32'] = {'ctype':'uint32_t', 'shortname':'u32', 'defval':'UINT32_MAX', 'format':'%d'}
+typemap['int64']  = {'ctype':'int64_t',  'shortname':'i64', 'defval':'INT64_MAX', 'format':'%ld'}
+typemap['uint64'] = {'ctype':'uint64_t', 'shortname':'u64', 'defval':'UINT64_MAX', 'format':'%ld'}
+typemap['char']   = {'ctype':'char',     'shortname':'c',   'defval':"'\\0\'", 'format':'%c'}
+typemap['uchar']  = {'ctype':'uchar',    'shortname':'uc',  'defval':"'\\0\'", 'format':'%c'}
 
 hformat='''
 struct %(shortname)sstack {
@@ -70,6 +77,131 @@ void %(shortname)sstack_push(struct %(shortname)sstack* plist, %(type)s pixnum);
 %(type)s %(shortname)sstack_pop(struct %(shortname)sstack* plist);
 '''
 
+fformat='''
+struct %(shortname)sstack* %(shortname)sstack_new(size_t num) {
+    struct %(shortname)sstack* plist = malloc(sizeof(struct %(shortname)sstack));
+    if (plist == NULL) {
+        printf("Could not allocate struct %(shortname)sstack\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    plist->size = 0;
+    plist->allocated_size = num;
+    plist->realloc_mult = 1.5;
+
+    plist->data = calloc(num, sizeof(%(type)s));
+    if (plist->data == NULL) {
+        printf("Could not allocate data in pixlist\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return plist;
+}
+
+void %(shortname)sstack_realloc(struct %(shortname)sstack* plist, size_t newsize) {
+    if (newsize != plist->allocated_size) {
+        %(type)s* newdata = realloc(plist->data, newsize*sizeof(%(type)s));
+        if (newdata == NULL) {
+            printf("failed to reallocate\\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (newsize > plist->allocated_size) {
+            // make sure to initialize the new memory regions
+            memset(&newdata[plist->size], 0, (newsize-plist->allocated_size)*sizeof(%(type)s));
+        } else {
+            // in this case, we must adjust the viewed size also
+            plist->size = newsize;
+        }
+
+        plist->data = newdata;
+        plist->allocated_size = newsize;
+    }
+
+}
+void %(shortname)sstack_resize(struct %(shortname)sstack* plist, size_t newsize) {
+   if (newsize > plist->allocated_size) {
+       %(shortname)sstack_realloc(plist, newsize);
+   }
+
+   plist->size = newsize;
+}
+
+void %(shortname)sstack_clear(struct %(shortname)sstack* plist) {
+    plist->size=0;
+    plist->allocated_size=0;
+    free(plist->data);
+    plist->data=NULL;
+}
+
+void %(shortname)sstack_delete(struct %(shortname)sstack* plist) {
+    if (plist != NULL) {
+        %(shortname)sstack_clear(plist);
+        free(plist);
+        plist=NULL;
+    }
+}
+
+void %(shortname)sstack_push(struct %(shortname)sstack* plist, %(type)s pixnum) {
+    // see if we have already filled the available data vector
+    // if so, reallocate to "mult" times existing storage
+    if (plist->size == plist->allocated_size) {
+
+        size_t newsize;
+        if (plist->allocated_size == 0) {
+            newsize=100;
+        } else {
+            newsize = (%(type)s)(plist->allocated_size*plist->realloc_mult);
+            newsize++;
+        }
+
+        %(shortname)sstack_realloc(plist, newsize);
+
+    }
+
+    plist->size++;
+    plist->data[plist->size-1] = pixnum;
+}
+
+%(type)s %(shortname)sstack_pop(struct %(shortname)sstack* plist) {
+    if (plist->size == 0) {
+        return %(defval)s;
+    }
+
+    %(type)s val=plist->data[plist->size-1];
+    plist->size--;
+    return val;
+        
+}
+'''
+
+tformat='''// This header was auto-generated by make-stack
+#include <stdio.h>
+#include <stdlib.h>
+#include "stack.h"
+
+int main(int argc, char** argv) {
+    struct %(shortname)sstack* plist = %(shortname)sstack_new(0);
+
+    for (size_t i=0;i<200; i++) {
+        printf("appending value: %(format)s\\n", (%(type)s)i);
+        %(shortname)sstack_push(plist, i);
+    }
+
+    printf("size: %%ld\\n", plist->size);
+    printf("allocated size: %%ld\\n", plist->allocated_size);
+
+    while (plist->size > 0) {
+        printf("pop: %(format)s\\n", %(shortname)sstack_pop(plist));
+    }
+
+    printf("size: %%ld\\n", plist->size);
+    printf("allocated size: %%ld\\n", plist->allocated_size);
+
+    printf("popping the now empty list: \\n    %(format)s\\n", %(shortname)sstack_pop(plist));
+}
+'''
+
 def generate_h(types):
     fobj=open('stack.h','w')
     head="""// This header was auto-generated by make-stack
@@ -90,16 +222,56 @@ def generate_h(types):
     fobj.write('\n#endif  // header guard\n')
     fobj.close()
 
+def generate_c(types):
+    fobj=open('stack.c','w')
+    head="""// This file was auto-generated by make-stack
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <float.h>
+#include "stack.h"
+
+"""
+    fobj.write(head)
+
+    for type in types:
+        if type not in typemap:
+            raise ValueError("type not supported: %s" % type)
+        text = fformat % {'type':typemap[type]['ctype'],
+                          'shortname':typemap[type]['shortname'], 
+                          'defval':typemap[type]['defval']}
+        fobj.write(text)
+
+    fobj.close()
+
+def generate_tests(types):
+
+    for type in types:
+        if type not in typemap:
+            raise ValueError("type not supported: %s" % type)
+        sname=typemap[type]['shortname']
+        fname = 'test-%sstack.c' % sname
+        fobj=open(fname,'w')
+        text = tformat % {'shortname':sname,
+                          'format':typemap[type]['format'],
+                          'type':typemap[type]['ctype']}
+        fobj.write(text)
+        fobj.close()
+
+
 
 def main():
     if len(sys.argv) < 2:
         sys.stdout.write(__doc__)
         sys.exit(45)
 
-    types = sys.argv[1].split(',')
+    types = sys.argv[1:]
 
     generate_h(types)
-    #generate_c(types)
+    generate_c(types)
+    generate_tests(types)
 
 if __name__=="__main__":
     main()
