@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 '''
-    make-stack typelist
+    ./configure type1 type2 ...
 
 Description
 
     Generate stack.h and stack.c for the input type list, e.g.
 
-        make-stack float double int64
+        ./configure float double int64
 
     Available types:
         float
