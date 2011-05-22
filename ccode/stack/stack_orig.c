@@ -77,26 +77,25 @@ void i64stack_push(struct pixlist* plist, int64_t pixnum) {
         if (plist->allocated_size == 0) {
             newsize=100;
         } else {
-            newsize = (int64_t)ceil(plist->allocated_size*plist->realloc_mult);
+            newsize = (int64_t)(plist->allocated_size*plist->realloc_mult);
+            newsize += 1;
         }
-
-        printf("reallocating pixlist to %ld\n", newsize);
 
         i64stack_realloc(plist, newsize);
 
     }
 
-    plist->size++;
+    plist->size += 1;
     plist->data[plist->size-1] = pixnum;
 }
 
 int64_t i64stack_pop(struct pixlist* plist) {
     if (plist->size == 0) {
-        return int64_t_MIN;
+        return INT64_MAX;
     }
 
-    int64_t val=plist->data[plist->size-1];
-    plist->size--;
+    int64_t val = plist->data[plist->size-1];
+    plist->size -= 1;
     return val;
         
 }
