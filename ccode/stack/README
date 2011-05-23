@@ -1,0 +1,100 @@
+stack
+
+Description
+-----------
+
+A simple array based stack.  The stack supports push, pop, resizing and
+reallocation.  The stack has the concept of size and allocated size, the former
+begin the viewable size of the stack and the allocated size being the actual
+size of the underlying array, which typically has a significant buffer beyond
+the viewable size.  These types are supported:
+
+        typename   shortname
+        float      f
+        double     d
+        int16      i16
+        uint16     u16
+        int32      i32
+        uint32     u32
+        int64      i64
+        uint64     u64
+        char       c
+        uchar      uc
+
+The short names are used in the names of the stack structures and their
+associated methods, e.g. i64stack, dstack, for structs and i32stack_push(),
+dstack_pop() etc for methods.
+
+Usage examples:
+
+    #include "stack.h"
+    // get a new int64 stack with initial allocated size "initsize"
+    i64stack stack* = i64stack_new(initsize);
+
+    // push some values.
+    for (size_t i=0; i<10; i++) {
+        i64stack_push(stack, (int64_t) i);
+    }
+
+    // the size is kept in the ->size field
+    for (size_t i=0; i<stack->size; i++) {
+        printf("stack val[%ld]: %ld\n", i, stack->data[i]);
+    }
+
+    // pop the values
+    for (size_t i=0; i<stack->size; i++) {
+        printf("popped value: %ld\n", i64stack_pop(stack);
+    }
+
+    // clean up
+    i64stack_delete(stack);
+
+When the size exceeds the allocates size during a push, reallocation occurs.
+Currently the reallocation during a push is done by multiplying the current
+size by a multiplier.  This multiplier is configurable with
+
+    stack->realloc_mult = mult_val;
+
+with 1.5 the default, in other words increase the stack size by 50%.  The style
+of the reallocation is controlled through 
+
+    stack->push_realloc_style
+
+But currently only STACK_PUSH_REALLOC_MULT is supported.
+
+If you want to perform your own reallocation, you can do so:
+
+    dstack_realloc(stack, newsize);
+
+To resize the *viewed* area, use:
+
+    i32stack_resize(stack, newsize);
+
+for which reallocation is only performed if newsize is greater than the
+allocated size.
+
+To clear the stack, erasing all data and deallocating the underlying vector:
+
+    fstack_clear(stack);
+
+To delete the stack entirely, including the memory of the stack structure:
+
+    i16stack_delete(stack);
+    
+When popping, the allocated size is not decreased.  If you want to free
+some memory use the realloc method.
+
+Generating the Code
+-------------------
+
+In order to avoid duplicating code, the code is auto-generated using the
+configure script.  To generate stack code for int64 and double, 
+
+    ./configure int64 double
+
+This generates the files
+
+    stack.h
+    stack.c
+
+which you can copy into your own source tree.
