@@ -5,13 +5,17 @@ Description
 
 A simple array based stack.  The stack supports push, pop, resizing and
 reallocation.  The stack has the concept of size and allocated size, the former
-begin the viewable size of the stack and the allocated size being the actual
+being the viewable size of the stack and the allocated size being the actual
 size of the underlying array, which typically has a significant buffer beyond
-the viewable size.  These types are supported:
+the viewable size.  This improves efficiency.  
+
+These types are supported:
 
         typename   shortname
         float      f
         double     d
+        int8       i8
+        uint8      u8
         int16      i16
         uint16     u16
         int32      i32
@@ -49,14 +53,14 @@ Usage examples:
     // clean up
     i64stack_delete(stack);
 
-When the size exceeds the allocates size during a push, reallocation occurs.
+When the size exceeds the allocated size during a push, reallocation occurs.
 Currently the reallocation during a push is done by multiplying the current
-size by a multiplier.  This multiplier is configurable with
+allocated size by a multiplier.  This multiplier is configurable with
 
     stack->realloc_mult = mult_val;
 
-with 1.5 the default, in other words increase the stack size by 50%.  The style
-of the reallocation is controlled through 
+with 1.5 the default, in other words increase the stack size by 50%.  The extra
+buffer memory is zeroed.  The style of the reallocation is controlled through 
 
     stack->push_realloc_style
 
@@ -66,7 +70,8 @@ If you want to perform your own reallocation, you can do so:
 
     dstack_realloc(stack, newsize);
 
-To resize the *viewed* area, use:
+If the memory is increased, the new memory is zeroed.  To resize the
+*viewed* area, use:
 
     i32stack_resize(stack, newsize);
 

@@ -21,6 +21,8 @@ sources = ['stack']
 
 types=['f',
        'd',
+       'i8',
+       'u8',
        'i16',
        'u16',
        'i32',
