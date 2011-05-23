@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "healpix.h"
 #include "defs.h"
-#include "pixlist.h"
+#include "stack.h"
 
 
 
@@ -50,7 +50,7 @@ void hpix_in_ring(
         int64 iz, 
         double phi0, 
         double dphi, 
-        struct pixlist* plist) {
+        struct i64stack* plist) {
 
     int64 nr, ir, ipix1;
     double shift=0.5;
@@ -79,7 +79,7 @@ void hpix_in_ring(
 
     if (dphi > (M_PI-1e-7)) {
         for (int64 i=ipix1; i<=ipix2; ++i) {
-            pixlist_push(plist, i);
+            i64stack_push(plist, i);
         }
     } else {
 
@@ -94,7 +94,7 @@ void hpix_in_ring(
             if (pixnum>ipix2) {
                 pixnum -= nr;
             }
-            pixlist_push(plist, pixnum);
+            i64stack_push(plist, pixnum);
         }
     }
 

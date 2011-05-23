@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "defs.h"
-#include "pixlist.h"
+#include "stack.h"
 
 #define NS_MAX 268435456 // 2^28 : largest nside available
 
@@ -36,7 +36,7 @@ int64 hpix_eq2pix(const struct healpix* hpix, double ra, double dec);
 /*
  
   fill in the list of pixels in RING scheme. pixels are *appended* to plist so
-  be sure to run pixlist_reset beforehand if necessary
+  be sure to run i64stack_resize(plist, 0) or _clear or some such if necessary
 
 */
 void hpix_in_ring(
@@ -44,7 +44,7 @@ void hpix_in_ring(
         int64 iz, 
         double phi0, 
         double dphi, 
-        struct pixlist* plist);
+        struct i64stack* plist);
 
 /*
    returns the ring number in {1, 4*nside-1} from the z coordinate
