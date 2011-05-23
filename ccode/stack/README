@@ -29,11 +29,12 @@ The short names are used in the names of the stack structures and their
 associated methods, e.g. i64stack, dstack, for structs and i32stack_push(),
 dstack_pop() etc for methods.
 
-Usage examples:
+Usage examples for an int64 stack; for other types, just replace "i64"
+with the right short name:
 
     #include "stack.h"
     // get a new int64 stack with initial allocated size "initsize"
-    i64stack stack* = i64stack_new(initsize);
+    struct i64stack* stack = i64stack_new(initsize);
 
     // push some values.
     for (size_t i=0; i<10; i++) {
@@ -78,16 +79,20 @@ If the memory is increased, the new memory is zeroed.  To resize the
 for which reallocation is only performed if newsize is greater than the
 allocated size.
 
-To clear the stack, erasing all data and deallocating the underlying vector:
+To clear the stack, deallocating the underlying vector:
 
     fstack_clear(stack);
 
-To delete the stack entirely, including the memory of the stack structure:
+The ->size field is also zero after this operation. To delete the stack
+entirely, including the memory of the stack structure:
 
     i16stack_delete(stack);
-    
-When popping, the allocated size is not decreased.  If you want to free
-some memory use the realloc method.
+
+the stack pointer is set to NULL.
+
+When popping, the allocated size is not decreased.  If you want to free some
+memory use the realloc method. e.g. to reduce memory usage to the current size
+you could do i32stack_realloc(stack, stack->size);
 
 Generating the Code
 -------------------
