@@ -93,7 +93,8 @@ Generating the Code
 -------------------
 
 In order to avoid duplicating code, the code is auto-generated using the
-configure script.  To generate stack code for int64 and double, 
+configure script.  To generate stack code for int64 and double, run the python
+program configure 
 
     ./configure int64 double
 
@@ -102,4 +103,11 @@ This generates the files
     stack.h
     stack.c
 
-which you can copy into your own source tree.
+which you can copy into your own source tree.  Test programs are also generated
+with names test-{type}.c.  To build these, run the python fabricate script
+
+    ./build
+
+And to execute use
+
+    ./test-{type}
