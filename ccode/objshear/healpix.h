@@ -30,8 +30,37 @@ void hpix_delete(struct healpix* hpix);
    renders the pixel number ipix (RING scheme) for a pixel which contains
    a point on a sphere at coordinates theta and phi, given the map
    resolution parameter nside
-*/
+ */
 int64 hpix_eq2pix(const struct healpix* hpix, double ra, double dec);
+
+/* fill listpix with list of all pixels with centers in the disc 
+
+   Note unlike disc_contains this function is inclusive, including all pixels
+   that interesect the disc.
+
+   ra,dec - degrees
+   radius - radians
+ */
+void hpix_disc_intersect(
+        const struct healpix* hpix,
+        double ra, double dec, double radius, 
+        struct i64stack* listpix);
+/*
+ Fill listpix with all pixels whose centers are contained within the disc
+
+   ra,dec - degrees
+   radius - radians
+
+ */
+
+int64 i64max(int64 v1, int64 v2);
+int64 i64min(int64 v1, int64 v2);
+
+double dot_product3(double v1[3], double v2[3]);
+void hpix_disc_contains(
+        const struct healpix* hpix,
+        double ra, double dec, double radius, 
+        struct i64stack* listpix);
 
 /*
  

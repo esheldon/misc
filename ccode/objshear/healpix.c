@@ -44,6 +44,129 @@ void hpix_delete(struct healpix* hpix) {
     free(hpix);
 }
 
+void hpix_disc_intersect(
+        const struct healpix* hpix,
+        double ra, double dec, double radius, 
+        struct i64stack* listpix) {
+
+    // this is from the f90 code
+    // this number is acos(2/3)
+    double fudge = 0.84106867056793033/hpix->nside; // 1.071* half pixel size
+
+    // this is from the c++ code
+    //double fudge = 1.362*M_PI/(4*hpix->nside);
+
+    radius += fudge;
+    hpix_disc_contains(hpix, ra, dec, radius, listpix);
+}
+
+double dot_product3(double v1[3], double v2[3]) {
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+}
+void hpix_disc_contains(
+        const struct healpix* hpix,
+        double ra, double dec, double radius, 
+        struct i64stack* listpix) {
+
+    double vector0[3];
+    int64 nside=hpix->nside;
+    double cosang = cos(radius);
+
+    // this does not alter the storage
+    i64stack_resize(listpix, 0);
+
+    hpix_eq2vec(ra, dec, vector0);
+
+    double dth1 = 1. / (3.0*nside*nside);
+    double dth2 = 2. / (3.0*nside);
+
+    double norm_vect0 =  sqrt(dot_product3(vector0,vector0));
+    double x0 = vector0[0] / norm_vect0;
+    double y0 = vector0[1] / norm_vect0;
+    double z0 = vector0[2] / norm_vect0;
+
+    double phi0=0.0;
+    if ((x0 != 0.) || (y0 != 0.)) {
+        // in (-Pi, Pi]
+        phi0 = atan2(y0, x0);
+    }
+    double cosphi0 = cos(phi0);
+    double a = x0*x0 + y0*y0;
+
+    //     --- coordinate z of highest and lowest points in the disc ---
+    double rlat0  = asin(z0);    // latitude in RAD of the center
+    double rlat1  = rlat0 + radius;
+    double rlat2  = rlat0 - radius;
+    double zmax;
+    if (rlat1 >=  M_PI_2) {
+        zmax =  1.0;
+    } else {
+        zmax = sin(rlat1);
+    }
+    int64 irmin = hpix_ring_num(hpix, zmax);
+    irmin = i64max(1, irmin-1); // start from a higher point, to be safe
+
+    double zmin;
+    if (rlat2 <= -M_PI_2) {
+        zmin = -1.;
+    } else {
+        zmin = sin(rlat2);
+    }
+    int64 irmax = hpix_ring_num(hpix, zmin);
+    irmax = i64min(4*nside-1, irmax + 1); // go down to a lower point
+
+    double z, tmp=0;
+    for (int64 iz=irmin; iz<= irmax; iz++) {
+
+        double z;
+        if (iz <= nside-1) { // north polar cap
+              z = 1.  - iz*iz*dth1;
+        } else if (iz <= 3*nside) { // tropical band + equat.
+            z = (2*nside-iz) * dth2;
+        } else {
+            tmp = 4*nside-iz;
+            z = - 1. + tmp*tmp*dth1;
+        }
+        double b = cosang - z*z0;
+        double c = 1. - z*z;
+        double x = (cosang-z*z0)/sqrt((1-z0)*(1+z0));
+
+        double dphi;
+        if ((x0==0.) && (y0==0.)) {
+            dphi=M_PI;
+            if (b > 0.) {
+                goto SKIP2; // out of the disc, 2008-03-30
+            }
+            goto SKIP1;
+        } 
+
+        double cosdphi = b / sqrt(a*c);
+        if (fabs(cosdphi) <= 1.) {
+              dphi = acos(cosdphi); // in [0,Pi]
+        } else {
+            if (cosphi0 < cosdphi) {
+                goto SKIP2; // out of the disc
+            }
+            dphi = M_PI; // all the pixels at this elevation are in the disc
+        }
+SKIP1:
+        hpix_in_ring(hpix, iz, phi0, dphi, listpix);
+
+SKIP2:
+        // we have to put something here
+        continue;
+
+    }
+
+
+}
+
+int64 i64max(int64 v1, int64 v2) {
+    return v1 > v2 ? v1 : v2;
+}
+int64 i64min(int64 v1, int64 v2) {
+    return v1 < v2 ? v1 : v2;
+}
 
 void hpix_in_ring(
         const struct healpix* hpix, 

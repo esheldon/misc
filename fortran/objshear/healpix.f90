@@ -153,6 +153,7 @@ contains
         real*8 :: dth1, dth2
         real*8 :: phi0, cosphi0, cosdphi, dphi
         real*8 :: rlat0, rlat1, rlat2, zmin, zmax, z
+        real*8 x
         integer*8 :: status
         character(len=*), parameter :: code = "QUERY_DISC"
         logical(LGT) :: do_inclusive
@@ -160,6 +161,7 @@ contains
         !=======================================================================
 
         call eq2vec(ra, dec, vector0)
+        !print '("v: ",F12.6," ",F12.6," ",F12.6)',vector0(1),vector0(2),vector0(3)
 
         list_size = size(listpix)
         !     ---------- check inputs ----------------
@@ -226,6 +228,9 @@ contains
         irmax = ring_num(nside, zmin)
         irmax = MIN(4*nside-1, irmax + 1) ! go down to a lower point
 
+        !print '("z0: ",F12.6," zmin: ",F12.6," zmax: ",F12.6," irmin: ",i0," irmax: ",i0)',&
+        !    z0, zmin,zmax,irmin,irmax
+
         ilist = -1
 
         !     ------------- loop on ring number ---------------------
@@ -242,6 +247,8 @@ contains
            !        --------- phi range in the disc for each z ---------
            b = cosang - z*z0
            c = 1.0_dp - z*z
+           x = (cosang-z*z0)/sqrt((1-z0)*(1+z0))
+           !print '("    a: ",F15.8," c: ",F15.8)',a,c
            if ((x0==0.0_dp).and.(y0==0.0_dp)) then
               dphi=PI
               if (b > 0.0_dp) goto 1000 ! out of the disc, 2008-03-30
