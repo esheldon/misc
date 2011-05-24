@@ -1,4 +1,3 @@
-from __future__ import print_function
 from fabricate import *
 import sys, os
 import optparse
@@ -60,7 +59,7 @@ def install():
             os.makedirs(subdir)
 
         dest=os.path.join(subdir, os.path.basename(name))
-        print("install:",dest)
+        sys.stdout.write("install: %s\n" % dest)
         shutil.copy(name, dest)
 
 # send options so it won't crash on us
