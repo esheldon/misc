@@ -17,10 +17,6 @@ int main(int argc, char** argv) {
 
     double ra1=175.0;
     double dec1=27.2;
-    double vector[3];
-    hpix_eq2vec(ra1, dec1, vector);
-    printf("convert %15.8lf %15.8lf to vector (%15.8lf %15.8lf %15.8lf)\n", 
-            ra1, dec1, vector[0], vector[1], vector[2]);
 
     double z[4]={-0.75, -0.2, 0.2, 0.75};
     for (int i=0; i<4; i++) {
