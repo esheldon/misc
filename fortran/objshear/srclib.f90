@@ -68,7 +68,7 @@ contains
             print '(a,$)',"      reading zl: "
             read (lun)scat%zlinterp
             do i=1,nz 
-                print '(F5.3," ",$)',scat%zlinterp(i)
+                print '(F6.3," ",$)',scat%zlinterp(i)
             end do
             print *
 
