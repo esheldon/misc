@@ -82,11 +82,11 @@ void hpix_in_ring(
 int64 hpix_ring_num(const struct healpix* hpix, double z);
 
 /*
-   renders the vector (x,y,z) corresponding to input ra,dec
+   renders the x,y,z corresponding to input ra,dec
    North pole is (x,y,z)=(0,0,1)
 */
 
-void hpix_eq2vec(double ra, double dec, double vector[3]);
+void hpix_eq2xyz(double ra, double dec, double* x, double* y, double* z);
 
 
 

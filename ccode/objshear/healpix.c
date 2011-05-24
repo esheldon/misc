@@ -32,7 +32,6 @@ struct healpix* hpix_new(int64 nside) {
         exit(EXIT_FAILURE);
     }
 
-
     hpix->nside = nside;
     hpix->npix = hpix_npix(nside);
     hpix->area = hpix_area(nside);
@@ -75,15 +74,11 @@ void hpix_disc_contains(
     // this does not alter the storage
     i64stack_resize(listpix, 0);
 
-    hpix_eq2vec(ra, dec, vector0);
+    double x0, y0, z0;
+    hpix_eq2xyz(ra, dec, &x0, &y0, &z0);
 
     double dth1 = 1. / (3.0*nside*nside);
     double dth2 = 2. / (3.0*nside);
-
-    double norm_vect0 =  sqrt(dot_product3(vector0,vector0));
-    double x0 = vector0[0] / norm_vect0;
-    double y0 = vector0[1] / norm_vect0;
-    double z0 = vector0[2] / norm_vect0;
 
     double phi0=0.0;
     if ((x0 != 0.) || (y0 != 0.)) {
@@ -303,20 +298,18 @@ int64 hpix_eq2pix(const struct healpix* hpix, double ra, double dec) {
 }
 
 
-
-void hpix_eq2vec(double ra, double dec, double vector[3]) {
+void hpix_eq2xyz(double ra, double dec, double* x, double* y, double* z) {
 
     double theta=0, phi=0;
 
     hpix_radec_degrees_to_thetaphi_radians(ra, dec, &theta, &phi);
 
     double sintheta = sin(theta);
-    vector[0] = sintheta * cos(phi);
-    vector[1] = sintheta * sin(phi);
-    vector[2] = cos(theta);
+    *x = sintheta * cos(phi);
+    *y = sintheta * sin(phi);
+    *z = cos(theta);
 
 }
-
 
 void hpix_radec_degrees_to_thetaphi_radians(double ra, double dec, double* theta, double* phi) {
 
