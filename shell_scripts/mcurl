@@ -2,30 +2,34 @@
 
 
 function usage() {
-    echo "Usage: mcurl [-d -v verbosity -s] url"
+    echo "Usage: mcurl [-d -u user:password -v verbosity -s] url"
     echo ""
     echo "Download all the files in a directory to the cwd"
     echo ""
     echo "options:"
     echo "  -d: dry run"
+    echo "  -u: send the username and optionally password as user or user:pass"
     echo "  -v: set verbosity level, [0,2], default is 2, the most verbose"
     echo "  -s: set verbosity level to 0"
-    exit 45
 }
 verbosity="2"
 
 
 dryrun="n"
+userpass=""
 options=""
-while getopts "dsv:" Option; do
+while getopts "du:sv:" Option; do
     case $Option in
         d) dryrun="y" 
+            ;;
+        u) userpass=$OPTARG
             ;;
         v) verbosity=$OPTARG
             ;;
         s) verbosity="0"
             ;;
         [?]) usage
+             exit
             ;;  
     esac
 done
@@ -33,8 +37,12 @@ shift $(($OPTIND - 1))
 
 if [[ $# -lt 1 ]]; then
     usage
+    exit 45
 fi
 
+if [[ $userpass != "" ]]; then
+    options="$options -u $userpass"
+fi
 if [[ $verbosity != "2" ]]; then
     options="$options -s"
 fi
