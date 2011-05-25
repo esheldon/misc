@@ -9,6 +9,10 @@
      coslat = cos(lat);
      sinlat = sqrt(1.-coslat*coslat);
      if (lat < 0.) sinlat *= -1;
+   
+   also, since the same sources are often used many times,
+   you can save a lot by pre-computing the sin(lat) and
+   other things.
   
    to match faster code in shearlib, lon2,lat2 should be
    the sources because of lon2-lon1 in londiff: changes sign of theta
