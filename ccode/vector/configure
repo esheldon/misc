@@ -1,0 +1,216 @@
+#!/usr/bin/env python
+'''
+    ./configure type1 type2 ...
+
+Description
+
+    Generate vector.h and vector.c for the input type list, e.g.
+
+        ./configure float32 int64
+
+    Available types:
+        float32
+        float64
+        int8
+        uint8
+        int16
+        uint16
+        int32
+        uint32
+        int64
+        uint64
+        char
+        uchar
+
+    See the README for more details.
+
+    A test program is also generated for each type with the name test-{type}vector.c
+    To build the test program, run
+
+        ./build
+
+    And to run use
+
+        ./test-{type}vector
+
+'''
+
+import os
+import sys
+
+# ctype is the actual C variable type name
+# shortname is for the struct name and functions, e.g. 
+#   struct i64vector, i64vector_new
+typemap={}
+typemap['float32'] = {'ctype':'float32','shortname':'f32',   'format':'%f'}
+typemap['float64'] = {'ctype':'float64', 'shortname':'f64',   'format':'%lf'}
+typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',  'format':'%d'}
+typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',  'format':'%d'}
+typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16', 'format':'%d'}
+typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16', 'format':'%d'}
+typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32', 'format':'%d'}
+typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32', 'format':'%d'}
+typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64', 'format':'%ld'}
+typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64', 'format':'%ld'}
+typemap['char']    = {'ctype':'char',     'shortname':'char',   'format':'%c'}
+typemap['uchar']   = {'ctype':'unsigned char', 'shortname':'uchar',  'format':'%c'}
+
+hformat='''
+struct %(shortname)svector {
+    size_t size;
+    %(type)s* data;
+};
+
+struct %(shortname)svector* %(shortname)svector_new(size_t num);
+
+// clears all memory in ->data and sets pointer to NULL
+void %(shortname)svector_delete(struct %(shortname)svector* listpix);
+'''
+
+cformat='''
+struct %(shortname)svector* %(shortname)svector_new(size_t num) {
+    struct %(shortname)svector* vector = malloc(sizeof(struct %(shortname)svector));
+    if (vector == NULL) {
+        printf("Could not allocate struct %(shortname)svector\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    vector->size = num;
+
+    vector->data = calloc(num, sizeof(%(type)s));
+    if (vector->data == NULL) {
+        printf("Could not allocate data in pixlist\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return vector;
+}
+
+void %(shortname)svector_delete(struct %(shortname)svector* vector) {
+    if (vector != NULL) {
+        free(vector->data);
+        free(vector);
+    }
+}
+
+'''
+
+tformat='''// This file was auto-generated
+#include <stdio.h>
+#include <stdlib.h>
+#include "vector.h"
+
+int main(int argc, char** argv) {
+    struct %(shortname)svector* vector = %(shortname)svector_new(125);
+
+    printf("size: %%ld\\n", vector->size);
+    printf("adding data\n");
+    for (size_t i=0;i<vector->size; i++) {
+        vector->data[i] = %(type)si;
+    }
+
+    for (size_t i=0; i<vector->size; i++) {
+        printf("vector[%%ld]: %(format)s\\n", i, vector->data[i]);
+    }
+
+    %(shortname)svector_delete(vector);
+
+}
+'''
+
+def generate_h(types):
+    fobj=open('vector.h','w')
+    
+
+    head="""// This header was auto-generated
+#ifndef _VECTOR_H
+#define _VECTOR_H
+#include <stdint.h>
+"""
+    if 'float32' in types:
+        head+="""
+#ifndef float32
+#define float32 float
+#endif
+"""
+    if 'float64' in types:
+        head+="""
+#ifndef float64
+#define float64 double
+#endif
+"""
+
+    fobj.write(head)
+
+    for type in types:
+        if type not in typemap:
+            raise ValueError("type not supported: %s" % type)
+        text = hformat % {'type':typemap[type]['ctype'],
+                          'shortname':typemap[type]['shortname']}
+        fobj.write(text)
+
+    fobj.write('\n#endif  // header guard\n')
+    fobj.close()
+
+def generate_c(types):
+    fobj=open('vector.c','w')
+    head="""// This file was auto-generated
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <float.h>
+#include "vector.h"
+
+"""
+    fobj.write(head)
+
+    for type in types:
+        if type not in typemap:
+            raise ValueError("type not supported: %s" % type)
+        text = cformat % {'type':typemap[type]['ctype'],
+                          'shortname':typemap[type]['shortname']}
+        fobj.write(text)
+
+    fobj.close()
+
+def generate_tests(types):
+    '''
+    Files associated with tests not in the type list are removed.
+    '''
+
+    for type in typemap:
+        sname=typemap[type]['shortname']
+
+        front = 'test-%svector' % sname
+        
+        if type not in types:
+            for ext in ['.c','.o','']:
+                tname = front+ext
+                if os.path.exists(tname):
+                    os.remove(tname)
+        else:
+            cname = front+'.c'
+            fobj=open(cname,'w')
+            text = tformat % {'shortname':sname,
+                              'format':typemap[type]['format'],
+                              'type':typemap[type]['ctype']}
+            fobj.write(text)
+            fobj.close()
+
+
+
+def main():
+    if len(sys.argv) < 2:
+        sys.stdout.write(__doc__)
+        sys.exit(45)
+
+    types = sys.argv[1:]
+
+    generate_h(types)
+    generate_c(types)
+    generate_tests(types)
+
+if __name__=="__main__":
+    main()

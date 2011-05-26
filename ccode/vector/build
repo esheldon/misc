@@ -19,7 +19,7 @@ CC='gcc'
 CFLAGS=['-std=c99','-O2']
 LINKFLAGS=[]
 
-sources = ['stack']
+sources = ['vector']
 
 types=['f32',
        'f64',
@@ -35,7 +35,7 @@ types=['f32',
        'u']
 
 def testname(type):
-    return 'test-%sstack' % type
+    return 'test-%svector' % type
 
 # look for test programs to build
 programs=[]
