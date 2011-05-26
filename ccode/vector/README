@@ -52,11 +52,10 @@ with the right short name:
 Generating the Code
 -------------------
 
-In order to avoid duplicating code, the code is auto-generated using the
-configure script.  To generate vector code for int64 and float64, run the
-python program configure 
+In order to avoid duplicating code, the code is auto-generated using a script.
+To generate vector code for int64 and float64, run the python program make-types
 
-    ./configure int64 float64
+    ./make-types int64 float64
 
 This generates the files
 
