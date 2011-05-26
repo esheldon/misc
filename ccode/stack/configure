@@ -44,13 +44,13 @@ typemap={}
 typemap['float32'] = {'ctype':'float32',  'shortname':'f32', 'defval':'FLT_MAX',    'format':'%f'}
 typemap['float64'] = {'ctype':'float64',  'shortname':'f64', 'defval':'DBL_MAX',    'format':'%lf'}
 typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',  'defval':'INT8_MAX',   'format':'%d'}
-typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',  'defval':'UINT8_MAX',  'format':'%d'}
+typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',  'defval':'UINT8_MAX',  'format':'%u'}
 typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16', 'defval':'INT16_MAX',  'format':'%d'}
-typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16', 'defval':'UINT16_MAX', 'format':'%d'}
+typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16', 'defval':'UINT16_MAX', 'format':'%u'}
 typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32', 'defval':'INT32_MAX',  'format':'%d'}
-typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32', 'defval':'UINT32_MAX', 'format':'%d'}
+typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32', 'defval':'UINT32_MAX', 'format':'%u'}
 typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64', 'defval':'INT64_MAX',  'format':'%ld'}
-typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64', 'defval':'UINT64_MAX', 'format':'%ld'}
+typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64', 'defval':'UINT64_MAX', 'format':'%lu'}
 typemap['char']    = {'ctype':'char',     'shortname':'char',   'defval':"'\\0\'",     'format':'%c'}
 typemap['uchar']   = {'ctype':'unsigned char', 'shortname':'uchar',  'defval':"'\\0\'",'format':'%c'}
 
