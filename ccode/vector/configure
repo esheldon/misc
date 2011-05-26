@@ -42,17 +42,17 @@ import sys
 # shortname is for the struct name and functions, e.g. 
 #   struct i64vector, i64vector_new
 typemap={}
-typemap['float32'] = {'ctype':'float32','shortname':'f32',   'format':'%f'}
-typemap['float64'] = {'ctype':'float64', 'shortname':'f64',   'format':'%lf'}
-typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',  'format':'%d'}
-typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',  'format':'%d'}
-typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16', 'format':'%d'}
-typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16', 'format':'%d'}
-typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32', 'format':'%d'}
-typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32', 'format':'%d'}
-typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64', 'format':'%ld'}
-typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64', 'format':'%ld'}
-typemap['char']    = {'ctype':'char',     'shortname':'char',   'format':'%c'}
+typemap['float32'] = {'ctype':'float32',  'shortname':'f32',  'format':'%f'}
+typemap['float64'] = {'ctype':'float64',  'shortname':'f64',  'format':'%lf'}
+typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',   'format':'%d'}
+typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',   'format':'%d'}
+typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16',  'format':'%d'}
+typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16',  'format':'%d'}
+typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32',  'format':'%d'}
+typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32',  'format':'%d'}
+typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64',  'format':'%ld'}
+typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64',  'format':'%ld'}
+typemap['char']    = {'ctype':'char',     'shortname':'char', 'format':'%c'}
 typemap['uchar']   = {'ctype':'unsigned char', 'shortname':'uchar',  'format':'%c'}
 
 hformat='''
@@ -64,11 +64,17 @@ struct %(shortname)svector {
 struct %(shortname)svector* %(shortname)svector_new(size_t num);
 
 // clears all memory in ->data and sets pointer to NULL
-void %(shortname)svector_delete(struct %(shortname)svector* listpix);
+void %(shortname)svector_delete(struct %(shortname)svector* vector);
 '''
 
 cformat='''
 struct %(shortname)svector* %(shortname)svector_new(size_t num) {
+
+    if (num <= 0) {
+        printf("vectors must be created with size > 0\\n");
+        exit(EXIT_FAILURE);
+    }
+
     struct %(shortname)svector* vector = malloc(sizeof(struct %(shortname)svector));
     if (vector == NULL) {
         printf("Could not allocate struct %(shortname)svector\\n");
@@ -79,7 +85,7 @@ struct %(shortname)svector* %(shortname)svector_new(size_t num) {
 
     vector->data = calloc(num, sizeof(%(type)s));
     if (vector->data == NULL) {
-        printf("Could not allocate data in pixlist\\n");
+        printf("Could not allocate %%ld %(shortname) in vector\\n", num);
         exit(EXIT_FAILURE);
     }
 
@@ -101,12 +107,12 @@ tformat='''// This file was auto-generated
 #include "vector.h"
 
 int main(int argc, char** argv) {
-    struct %(shortname)svector* vector = %(shortname)svector_new(125);
+    struct %(shortname)svector* vector = %(shortname)svector_new(25);
 
     printf("size: %%ld\\n", vector->size);
-    printf("adding data\n");
+    printf("adding data\\n");
     for (size_t i=0;i<vector->size; i++) {
-        vector->data[i] = %(type)si;
+        vector->data[i] = (%(type)s)i;
     }
 
     for (size_t i=0; i<vector->size; i++) {
