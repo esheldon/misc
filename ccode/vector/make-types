@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
     struct %(shortname)svector* vector = %(shortname)svector_new(25);
 
     printf("size: %%ld\\n", vector->size);
-    printf("adding data\\n");
+    printf("setting data\\n");
     for (size_t i=0;i<vector->size; i++) {
         vector->data[i] = (%(type)s)i;
     }
