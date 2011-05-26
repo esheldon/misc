@@ -71,3 +71,7 @@ script
 And to execute use
 
     ./test-{type}vector
+
+To clean up the build
+
+    ./build-tests clean

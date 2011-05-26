@@ -121,3 +121,7 @@ with names test-{type}type.c.  To build these, run the python fabricate script
 And to execute use
 
     ./test-{type}
+
+To clean up the build
+
+    ./build-tests clean
