@@ -84,7 +84,7 @@ void %(shortname)sstack_realloc(struct %(shortname)sstack* stack, size_t newsize
 void %(shortname)sstack_clear(struct %(shortname)sstack* stack);
 
 // clears all memory and sets pointer to NULL
-void %(shortname)sstack_delete(struct %(shortname)sstack* listpix);
+void %(shortname)sstack_delete(struct %(shortname)sstack* stack);
 
 // if reallocation is needed, size is increased by 50 percent
 // unless size is zero, when it 100 are allocated
