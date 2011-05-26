@@ -19,8 +19,6 @@ Description
         uint32
         int64
         uint64
-        char
-        uchar
 
     See the README for more details.
 
@@ -45,13 +43,13 @@ typemap={}
 typemap['float32'] = {'ctype':'float32',  'shortname':'f32',  'format':'%f'}
 typemap['float64'] = {'ctype':'float64',  'shortname':'f64',  'format':'%lf'}
 typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',   'format':'%d'}
-typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',   'format':'%d'}
+typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',   'format':'%u'}
 typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16',  'format':'%d'}
-typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16',  'format':'%d'}
+typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16',  'format':'%u'}
 typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32',  'format':'%d'}
-typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32',  'format':'%d'}
+typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32',  'format':'%u'}
 typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64',  'format':'%ld'}
-typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64',  'format':'%ld'}
+typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64',  'format':'%lu'}
 typemap['char']    = {'ctype':'char',     'shortname':'char', 'format':'%c'}
 typemap['uchar']   = {'ctype':'unsigned char', 'shortname':'uchar',  'format':'%c'}
 

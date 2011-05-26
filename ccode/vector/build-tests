@@ -31,8 +31,8 @@ types=['f32',
        'u32',
        'i64',
        'u64',
-       'c',
-       'u']
+       'char',
+       'uchar']
 
 def testname(type):
     return 'test-%svector' % type
