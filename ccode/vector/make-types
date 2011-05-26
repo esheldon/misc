@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 '''
-    ./configure type1 type2 ...
+    ./make-types type1 type2 ...
 
 Description
 
     Generate vector.h and vector.c for the input type list, e.g.
 
-        ./configure float32 int64
+        ./make-types float32 int64
 
     Available types:
         float32
@@ -25,9 +25,9 @@ Description
     See the README for more details.
 
     A test program is also generated for each type with the name test-{type}vector.c
-    To build the test program, run
+    To build the test programs, run
 
-        ./build
+        ./build-tests
 
     And to run use
 
@@ -85,7 +85,7 @@ struct %(shortname)svector* %(shortname)svector_new(size_t num) {
 
     vector->data = calloc(num, sizeof(%(type)s));
     if (vector->data == NULL) {
-        printf("Could not allocate %%ld %(shortname) in vector\\n", num);
+        printf("Could not allocate %%ld %(type)s in vector\\n", num);
         exit(EXIT_FAILURE);
     }
 

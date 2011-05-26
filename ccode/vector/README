@@ -63,9 +63,10 @@ This generates the files
     vector.c
 
 which you can copy into your own source tree.  Test programs are also generated
-with names test-{type}type.c.  To build these, run the python fabricate script
+with names test-{type}type.c.  To build the tests, run the python fabricate
+script
 
-    ./build
+    ./build-tests
 
 And to execute use
 
