@@ -1,74 +1,88 @@
-setup local -r ~/local
+f=/astro/u/esheldon/local/products/eups/bin/setups.sh
+if [[ -e $f ]]; then
+    source $f
 
-setup mercurial
-setup pv
-setup parallel
+    # this will get numpy and python
+    setup scipy
 
-setup vim
+    setup ipython
+    setup local -r ~/local
+    setup espy -r ~/python
+    setup shell_scripts -r ~/shell_scripts
+    setup perllib -r ~/perllib
 
-setup tmux
+    setup esutil -r ~/exports/esutil-local
+    setup recfile -r ~/exports/recfile-local
 
-setup swig
+    # columns, sdsspy are under mercurial
+    setup mercurial
+    setup columns -r ~/exports/columns-local
+    setup sdsspy -r ~/exports/sdsspy-local
+    setup numpydb -r ~esheldon/exports/numpydb-local
 
-setup scipy
-setup ipython
-setup matplotlib
-#setup pyfitspatch
-setup pyfits
+    # biggles requires plotutils
+    setup biggles
 
-setup scons
+    # for DES wl
+    setup scons
 
-setup cosmology -r ~/exports/cosmology-local
+    return
 
-# this will setupRequired the current idlutils, so we will call this first
-# and then setup up the trunk
-setup photoop -r ~/exports/photoop-trunk
-setup idlutils -r ~/exports/idlutils-trunk
-setup esidl -r ~/idl.lib/
-setup idlgoddard
-setup sdssidl -r ~/svn/sdssidl
+    setup pv
+    setup parallel
 
+    setup vim
 
-setup recfile -r ~/exports/recfile-local
+    setup tmux
 
-# clean this because in gdl_setup.sh we are concatenating
-# GDL_PATH and IDL_PATH
-#export GDL_PATH=""
-#setup gdl
-#setup gdladd -r ~/gdladd
+    setup swig
 
-# will set up cfitsio/ccfits/tmv
-setup wl -r ~/exports/wl-local
-setup tmv -r ~/exports/tmv-work
-
-# for cropping eps files
-setup epstool
+    setup matplotlib
+    #setup pyfitspatch
+    setup pyfits
 
 
-setup libtool
-setup gflags
-setup stomp -r ~/exports/stomp-work
+    setup cosmology -r ~/exports/cosmology-local
 
-setup sdsspy -r ~/exports/sdsspy-local
-setup espy -r ~/python
-setup admom -r ~/exports/admom-local
-setup fimage -r ~/exports/fimage-local
+    # this will setupRequired the current idlutils, so we will call this first
+    # and then setup up the trunk
+    setup photoop -r ~/exports/photoop-trunk
+    setup idlutils -r ~/exports/idlutils-trunk
+    setup esidl -r ~/idl.lib/
+    setup idlgoddard
+    setup sdssidl -r ~/svn/sdssidl
 
-setup shell_scripts -r ~/shell_scripts
-setup perllib -r ~/perllib
 
-setup columns -r ~/exports/columns-local
-setup numpydb -r ~esheldon/exports/numpydb-local
-setup esutil -r ~/exports/esutil-local
 
-if [ "$hname" == "tutti" ]; then
-    setup pgnumpy -r ~esheldon/exports/pgnumpy-tutti
-else
-    setup pgnumpy -r ~esheldon/exports/pgnumpy-local
+    # clean this because in gdl_setup.sh we are concatenating
+    # GDL_PATH and IDL_PATH
+    #export GDL_PATH=""
+    #setup gdl
+    #setup gdladd -r ~/gdladd
+
+    # will set up cfitsio/ccfits/tmv
+    setup wl -r ~/exports/wl-local
+    setup tmv -r ~/exports/tmv-work
+
+    # for cropping eps files
+    setup epstool
+
+
+    setup libtool
+    setup gflags
+    setup stomp -r ~/exports/stomp-work
+
+    setup admom -r ~/exports/admom-local
+    setup fimage -r ~/exports/fimage-local
+
+
+    if [ "$hname" == "tutti" ]; then
+        setup pgnumpy -r ~esheldon/exports/pgnumpy-tutti
+    else
+        setup pgnumpy -r ~esheldon/exports/pgnumpy-local
+    fi
+
+    setup openssh
+
+
 fi
-
-setup openssh
-
-#setup gnuplotpy
-setup biggles
-
