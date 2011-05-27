@@ -10,12 +10,6 @@ GSSAPIAuthentication yes
 # might best done by ssh to the machine with -f to go to the background, 
 # although then one must grep through ps to kill it
 
-host howdy.physics.nyu.edu
-    Hostname howdy.physics.nyu.edu
-    Port 4426
-    ForwardAgent no
-    ForwardX11 no 
-
 #
 # gateway: rssh at BNL
 #
@@ -26,22 +20,8 @@ host howdy.physics.nyu.edu
 Host rssh.rhic.bnl.gov
 
 	# bach
-	LocalForward localhost:2224 bach00.astro.bnl.gov:22
-	# tutti
+	LocalForward localhost:2224 astro0031.rcf.bnl.gov:22
 	LocalForward localhost:2225 tutti.astro.bnl.gov:22
-	# lsst
-	LocalForward localhost:2226 lsst19.lst.bnl.gov:22
-	# rplay doesn't allow port forwarding
-	#LocalForward localhost:2227 rplay39.rcf.gov:22
-
-
-Host astro.physics.nyu.edu
-	# snell
-	LocalForward localhost:2300 snell.cosmo.fas.nyu.edu:22
-
-	# early
-	LocalForward localhost:2301 early.cosmo.fas.nyu.edu:22
-
 
 # Set up aliases to point us to the ports and machines listed above
 # don't use their actual names, just in case we are on a machine local
@@ -49,28 +29,9 @@ Host astro.physics.nyu.edu
 Host tbach
 	HostName localhost
 	Port 2224
-
 Host ttutti
 	HostName localhost
 	Port 2225
-
-Host tlsst
-	HostName localhost
-	Port 2226
-
-#Host trplay doesn't allow port forwarding
-#	HostName localhost
-#	Port 2227
-
-
-Host tsnell
-	HostName localhost
-	Port 2300
-
-Host tearly
-	HostName localhost
-	Port 2301
-	
 
 # Created by /usr/bin/cluster-env (1.2)
 Host *
