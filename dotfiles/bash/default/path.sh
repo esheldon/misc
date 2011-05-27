@@ -36,12 +36,12 @@ if [ -e ~/local ]; then
 	prepend_path PATH ${localdir}/bin
     prepend_path C_INCLUDE_PATH $localdir/include
 	prepend_path LD_LIBRARY_PATH ${localdir}/lib
-	#prepend_path MANPATH ${localdir}/share/man
+	prepend_path LIBRARY_PATH ${localdir}/lib
 
 fi
 
 #PATH=${PATH}:~/python
-append_path PATH ~/python
+#append_path PATH ~/python
 append_path PATH ~/shell_scripts
 append_path PATH ~/shell_scripts/sdss
 append_path PATH ~/perllib

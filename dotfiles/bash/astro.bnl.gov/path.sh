@@ -1,4 +1,6 @@
 # get dataman path stuff
-source ~dataman/.bashrc
+if [[ -e ~/dataman/.bashrc ]]; then
+    source ~dataman/.bashrc
+fi
 
 
