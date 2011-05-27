@@ -11,6 +11,10 @@ if [[ -e $f ]]; then
     setup shell_scripts -r ~/shell_scripts
     setup perllib -r ~/perllib
 
+    setup cosmology -r ~/exports/cosmology-local
+    setup admom -r ~/exports/admom-local
+    setup fimage -r ~/exports/fimage-local
+
     setup esutil -r ~/exports/esutil-local
     setup recfile -r ~/exports/recfile-local
 
@@ -20,13 +24,23 @@ if [[ -e $f ]]; then
     setup sdsspy -r ~/exports/sdsspy-local
     setup numpydb -r ~esheldon/exports/numpydb-local
 
+
     # biggles requires plotutils
     setup biggles
 
     # for DES wl
     setup scons
 
+    # will set up cfitsio/ccfits/tmv
+    setup wl -r ~/exports/wl-local
+    setup tmv -r ~/exports/tmv-work
+
+
+
     return
+
+
+
 
     setup pv
     setup parallel
@@ -42,7 +56,6 @@ if [[ -e $f ]]; then
     setup pyfits
 
 
-    setup cosmology -r ~/exports/cosmology-local
 
     # this will setupRequired the current idlutils, so we will call this first
     # and then setup up the trunk
@@ -60,10 +73,6 @@ if [[ -e $f ]]; then
     #setup gdl
     #setup gdladd -r ~/gdladd
 
-    # will set up cfitsio/ccfits/tmv
-    setup wl -r ~/exports/wl-local
-    setup tmv -r ~/exports/tmv-work
-
     # for cropping eps files
     setup epstool
 
@@ -72,8 +81,6 @@ if [[ -e $f ]]; then
     setup gflags
     setup stomp -r ~/exports/stomp-work
 
-    setup admom -r ~/exports/admom-local
-    setup fimage -r ~/exports/fimage-local
 
 
     if [ "$hname" == "tutti" ]; then
