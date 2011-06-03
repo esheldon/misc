@@ -1,22 +1,25 @@
-source /Users/esheldon/local/products/eups/bin/setups.sh
+f=/Users/esheldon/local/products/eups/bin/setups.sh
+if [[ -e "$f" ]]; then
+    source "$f"
 
-#setup numpy
-#setup ipython
-#setup pyfitspatch
+    #setup numpy
+    #setup ipython
+    #setup pyfitspatch
 
-#setup wl -r ~/exports/wl-work
+    #setup wl -r ~/exports/wl-work
 
-setup numpy
-setup scipypatch
-setup esutil -r ~/exports/esutil-work
+    setup numpy
+    setup scipypatch
+    setup esutil -r ~/exports/esutil-work
 
-setup espy -r ~/python
+    setup espy -r ~/python
 
-setup biggles
+    setup biggles
 
-setup ipython
+    setup ipython
 
-setup gflags
-setup stomp -r ~/exports/stomp-local
+    setup gflags
+    setup stomp -r ~/exports/stomp-local
 
-setup pgnumpy -r ~/exports/pgnumpy-local
+    setup pgnumpy -r ~/exports/pgnumpy-local
+fi
