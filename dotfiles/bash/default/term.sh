@@ -28,10 +28,7 @@ function setp
 
     # time warner gives an annoying hostname, so just map all Darwins to fangorn
     if [[ $sysname == "Darwin" ]]; then
-        hm="fangorn"
-        local TITLEBAR='\[\033]0;$hm\007\]'
-        TITLEBAR="${TITLEBAR}"
-        PS1="${TITLEBAR}[\u@$hm \W] "
+        PS1="[esheldon@fangorn \W] "
     else
         local TITLEBAR='\[\033]0;\h\007\]'
         TITLEBAR="${TITLEBAR}"
@@ -50,7 +47,12 @@ case $TERM in
 	    SCREEN_PROCESS='\[\033k\033\\\]'
         export TERM=screen-256color ;;
     xterm*)
-        export TERM=xterm-256color ;;
+        if [[ $sysname == "Darwin" ]]; then
+            export TERM=xterm-color
+        else
+            export TERM=xterm-256color
+        fi
+        ;;
     *) ;;
 esac
 
