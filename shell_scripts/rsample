@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [[ $# -lt 2 ]]; then
+    echo "usage: rsample frac filename1 filename2 filename3 .."
+    exit 45
+fi
+
+frac=$1
+
+shift
+
+awkstring1='BEGIN {srand()} !/^$/ { if (rand() <= '
+awkstring2="$frac"
+awkstring3=') print $0}'
+awkstring="$awkstring1 $awkstring2 $awkstring3"
+
+for file; do
+    awk "$awkstring" "$file"
+done
+
+
