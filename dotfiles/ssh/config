@@ -20,7 +20,7 @@ GSSAPIAuthentication yes
 Host rssh.rhic.bnl.gov
 
 	# bach
-	LocalForward localhost:2224 astro0031.rcf.bnl.gov:22
+	LocalForward localhost:2224 astro0034.rcf.bnl.gov:22
 	LocalForward localhost:2225 tutti.astro.bnl.gov:22
 
 # Set up aliases to point us to the ports and machines listed above
