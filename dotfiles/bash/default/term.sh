@@ -30,9 +30,13 @@ function setp
     if [[ $sysname == "Darwin" ]]; then
         PS1="[esheldon@fangorn \W] "
     else
-        local TITLEBAR='\[\033]0;\h\007\]'
-        TITLEBAR="${TITLEBAR}"
-        PS1="${TITLEBAR}[\u@\h \W] "
+        if [[ $hname == "astro0034" ]]; then
+            PS1="[\u@astro \W] "
+        else
+            local TITLEBAR='\[\033]0;\h\007\]'
+            TITLEBAR="${TITLEBAR}"
+            PS1="${TITLEBAR}[\u@\h \W] "
+        fi
     fi
 
 
