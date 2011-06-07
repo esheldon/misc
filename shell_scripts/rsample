@@ -1,21 +1,28 @@
 #!/bin/bash
 
-if [[ $# -lt 2 ]]; then
-    echo "usage: rsample frac filename1 filename2 filename3 .."
+if [[ $# -lt 1 ]]; then
+    echo "usage: rsample fraction
+
+Choose a random sample of lines from the input.  The argument is the
+approximate fraction of lines to emit.  So to get approximately 100 lines from
+a file containing 1000 lines, use 0.1.  Input is read from stdin and
+output is written to stdout. Some examples extracting a random ten percent
+of lines from the input:
+
+    cat file1 file2 file3 | rsample 0.1
+    rsample 0.1 < file
+
+caveats:  Uses srand() to seed the random number generator,
+    which only gives a unique seed once per second or so on linux " 1>&2
     exit 45
 fi
 
 frac=$1
-
-shift
 
 awkstring1='BEGIN {srand()} !/^$/ { if (rand() <= '
 awkstring2="$frac"
 awkstring3=') print $0}'
 awkstring="$awkstring1 $awkstring2 $awkstring3"
 
-for file; do
-    awk "$awkstring" "$file"
-done
-
+awk "$awkstring" < /dev/stdin
 
