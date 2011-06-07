@@ -1,4 +1,4 @@
-f=/astro/u/esheldon/local/products/eups/bin/setups.sh
+f=~esheldon/local/products/eups/bin/setups.sh
 if [[ -e $f ]]; then
     source $f
 
@@ -35,14 +35,13 @@ if [[ -e $f ]]; then
     setup wl -r ~/exports/wl-local
     setup tmv -r ~/exports/tmv-work
 
-
+    setup pv
 
     return
 
 
 
 
-    setup pv
     setup parallel
 
     setup vim
