@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# usage: setup-bach start|stop|restart
+# usage: setup-astro start|stop|restart
 #
 # start: Set up the connection.  If the connection exists the request is 
 #        ignored.
@@ -76,7 +76,7 @@ function disconnect
 }
 
 if [ $# -lt 1 ]; then
-	echo "usage: setup-bach start|stop|restart"
+	echo "usage: setup-astro start|stop|restart"
 	exit 45
 fi
 
