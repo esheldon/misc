@@ -120,14 +120,14 @@ else
 fi
 
 # can we use epstopdf?
-if [[ $(which epstopdf) == "" ]]; then
+if [[ $(which epstopdf 2> /dev/null) == "" ]]; then
     have_epstopdf="N"
 else
     have_epstopdf="Y"
 fi
 
 # can we use pdfcrop?
-if [[ "$(which pdfcrop)" == "" ]]; then
+if [[ "$(which pdfcrop 2> /dev/null)" == "" ]]; then
     have_pdfcrop="N"
 else
     have_pdfcrop="Y"

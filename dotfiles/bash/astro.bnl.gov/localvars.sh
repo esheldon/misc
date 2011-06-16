@@ -1,5 +1,10 @@
 # sets up a ton of stuff
 
+f=~astrodat/setup/setup.sh
+if [[ -e $f ]]; then
+    source "$f"
+fi
+
 export MAXBCG_CATDIR=/mount/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
 export MAXBCG_INPUT=/mount/tutti1/esheldon/maxbcg-input
 
