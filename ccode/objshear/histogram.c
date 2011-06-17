@@ -1,0 +1,63 @@
+#include <stdint.h>
+#include "histogram.h"
+#include "Vector.h"
+
+
+// special simplified binsize=1, min=min(data), integer histogrammer
+// These simplifications are significant
+void i64hist1(struct i64vector* vec,
+              struct szvector* sort_index,
+              struct i64vector* h,   // output.  Should not be allocated on entry
+              struct i64vector* rev) { // output
+
+
+    int64_t* vdata = vec->data;
+    size_t* si = sort_index->data;
+
+    int64_t binmin = vdata[si[0]];
+    int64_t binmax = vdata[si[sort_index->size-1]];
+
+    size_t nbin = (binmax-binmin) + 1;
+    size_t nrev = vec->size + nbin + 1;
+
+    i64vector_resize(h, nbin);
+    i64vector_resize(rev, nrev);
+
+    // use int64, size_t is unsigned
+    int64_t binnum_old = -1;
+
+    for (size_t i=0; i<vec->size; i++) {
+        size_t data_index = si[i];
+
+        size_t offset = i + nbin + 1;
+        rev->data[offset] = data_index;
+
+        int64_t binnum = vdata[data_index]-binmin;
+
+        // update the reverse indices
+        //
+        // remember, we are working on sorted data, so we
+        // can just check the binnum to tell where we are
+        if (binnum > binnum_old) {
+            int64_t tbin = binnum_old + 1;
+            while (tbin <= binnum) {
+                rev->data[tbin] = offset;
+                tbin++;
+            }
+        }
+
+        // Update the histogram
+        h->data[binnum] += 1;
+        binnum_old = binnum;
+
+    }
+
+    // make sure the last bin is properly dealt with
+    int64_t tbin = binnum_old + 1;
+    while (tbin <= nbin) {
+        rev->data[tbin] = rev->size;
+        tbin++;
+    }
+
+}
+

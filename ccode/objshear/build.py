@@ -22,7 +22,8 @@ LINKFLAGS=['-lm']
 hpix_sources=['healpix','stack']
 
 programs = [{'name':'test-healpix','sources':hpix_sources+['test-healpix']},
-            {'name':'test-i64stack','sources':['stack','test-i64stack']}]
+            {'name':'test-i64stack','sources':['stack','test-i64stack']},
+            {'name':'test-hist','sources':['histogram','Vector','test-hist']}]
 
 install_targets = [(prog['name'],'bin') for prog in programs]
 install_targets += [('objshear.table','ups')]

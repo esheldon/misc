@@ -19,7 +19,7 @@ CC='gcc'
 CFLAGS=['-std=c99','-O2']
 LINKFLAGS=[]
 
-sources = ['vector']
+sources = ['Vector']
 
 types=['f32',
        'f64',
