@@ -1,17 +1,16 @@
 Quick look Queue
-    referee paper
-    rerun wlse0010t
-    get more feed back on TS run with new galex and ukidss data
-    what's up with seeing included in zphot weighting?
-    iterate with eli some more
+    give joerg plots and description
+        Thurs 11-12 portsmouth
 
+    updated billing addresses:
+        chase
+        others?
+    see zphot
 zphot:
+    estimate stellar contamination?
 
-
-zphot:
-
-    Get some validation plots, good ones, 
-    from carlos, or have him send me the data.
+    Get some validation plots, good ones, from carlos, or have him send me the
+    data.
 
 DES:
 
