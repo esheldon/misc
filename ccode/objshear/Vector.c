@@ -39,6 +39,7 @@ void szvector_delete(struct szvector* vector) {
     if (vector != NULL) {
         free(vector->data);
         free(vector);
+        vector=NULL;
     }
 }
 
@@ -99,6 +100,7 @@ void i64vector_delete(struct i64vector* vector) {
     if (vector != NULL) {
         free(vector->data);
         free(vector);
+        vector=NULL;
     }
 }
 
@@ -159,6 +161,7 @@ void f64vector_delete(struct f64vector* vector) {
     if (vector != NULL) {
         free(vector->data);
         free(vector);
+        vector=NULL;
     }
 }
 

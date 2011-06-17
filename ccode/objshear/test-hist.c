@@ -16,13 +16,13 @@ int main(int argc, char** argv) {
     }
 
 
-    struct i64vector* vec = i64vector_new(0);
-    struct szvector* sort_index = szvector_new(0);
+    struct i64vector* vec = i64vector_new(ndata);
+    struct szvector* sort_index = szvector_new(ndata);
 
-    vec->data = data;
-    vec->size = ndata;
-    sort_index->data = si;
-    sort_index->size = ndata;
+    for (size_t i=0; i<ndata; i++) {
+        vec->data[i] = data[i];
+        sort_index->data[i] = si[i];
+    }
 
     struct i64vector* h = i64vector_new(0);
     struct i64vector* rev= i64vector_new(0);
@@ -36,4 +36,8 @@ int main(int argc, char** argv) {
         printf("  rev[%ld]: %ld\n", i, rev->data[i]);
     }
 
+    i64vector_delete(vec);
+    i64vector_delete(h);
+    i64vector_delete(rev);
+    szvector_delete(sort_index);
 }
