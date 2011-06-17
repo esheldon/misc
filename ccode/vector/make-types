@@ -71,11 +71,6 @@ void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsi
 cformat='''
 struct %(shortname)svector* %(shortname)svector_new(size_t num) {
 
-    if (num < 0) {
-        printf("vectors must be created with size >= 0\\n");
-        exit(EXIT_FAILURE);
-    }
-
     struct %(shortname)svector* vector = malloc(sizeof(struct %(shortname)svector));
     if (vector == NULL) {
         printf("Could not allocate struct %(shortname)svector\\n");
@@ -110,6 +105,7 @@ void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsi
         printf("Attempt to resize unallocated %(type)s vector\\n");
         exit(EXIT_FAILURE);
     }
+
     size_t oldsize=vector->size;
     size_t elsize = sizeof(%(type)s);
 

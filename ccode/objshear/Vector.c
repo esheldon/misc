@@ -10,11 +10,6 @@
 
 struct szvector* szvector_new(size_t num) {
 
-    if (num < 0) {
-        printf("vectors must be created with size >= 0\n");
-        exit(EXIT_FAILURE);
-    }
-
     struct szvector* vector = malloc(sizeof(struct szvector));
     if (vector == NULL) {
         printf("Could not allocate struct szvector\n");
@@ -49,6 +44,7 @@ void szvector_resize(struct szvector* vector, size_t newsize) {
         printf("Attempt to resize unallocated size_t vector\n");
         exit(EXIT_FAILURE);
     }
+
     size_t oldsize=vector->size;
     size_t elsize = sizeof(size_t);
 
@@ -70,11 +66,6 @@ void szvector_resize(struct szvector* vector, size_t newsize) {
 
 
 struct i64vector* i64vector_new(size_t num) {
-
-    if (num < 0) {
-        printf("vectors must be created with size >= 0\n");
-        exit(EXIT_FAILURE);
-    }
 
     struct i64vector* vector = malloc(sizeof(struct i64vector));
     if (vector == NULL) {
@@ -110,6 +101,7 @@ void i64vector_resize(struct i64vector* vector, size_t newsize) {
         printf("Attempt to resize unallocated int64_t vector\n");
         exit(EXIT_FAILURE);
     }
+
     size_t oldsize=vector->size;
     size_t elsize = sizeof(int64_t);
 
@@ -131,11 +123,6 @@ void i64vector_resize(struct i64vector* vector, size_t newsize) {
 
 
 struct f64vector* f64vector_new(size_t num) {
-
-    if (num < 0) {
-        printf("vectors must be created with size >= 0\n");
-        exit(EXIT_FAILURE);
-    }
 
     struct f64vector* vector = malloc(sizeof(struct f64vector));
     if (vector == NULL) {
@@ -171,6 +158,7 @@ void f64vector_resize(struct f64vector* vector, size_t newsize) {
         printf("Attempt to resize unallocated float64 vector\n");
         exit(EXIT_FAILURE);
     }
+
     size_t oldsize=vector->size;
     size_t elsize = sizeof(float64);
 
