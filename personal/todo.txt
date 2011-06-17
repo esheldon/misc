@@ -14,8 +14,7 @@ zphot:
 
 DES:
 
-    Perform a new run with Mike's new improvements, and the new s/g stuff and
-    file formats from Bob.
+    Why is Bob's code just checking that CLASS_STAR is in [0,1]?
 
 shears:
 
@@ -34,18 +33,9 @@ MaxBCG:
 
 BOSS 
 
-    Do final TS with galex+ukidss
-
     Target Selection Overview Paper
 
         Describe chunks
 
         References to tiling stuff and brief description
-
-    documentation 10/12
-        - check the skyserver sample queries
-            - fix XXX in answers to practice. Need full db for that.
-            - Check the orderby example when the full data are loaded,
-                as it looks for pal 5 and needs runs not in test db
-
 
