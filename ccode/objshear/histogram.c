@@ -5,10 +5,10 @@
 
 // special simplified binsize=1, min=min(data), integer histogrammer
 // These simplifications are significant
-void i64hist1(struct i64vector* vec,
-              struct szvector* sort_index,
-              struct i64vector* h,   // output.  Should not be allocated on entry
-              struct i64vector* rev) { // output
+void i64hist1(const struct i64vector* vec,
+              const struct szvector* sort_index,
+              struct i64vector* h,
+              struct i64vector* rev) {
 
 
     int64_t* vdata = vec->data;
