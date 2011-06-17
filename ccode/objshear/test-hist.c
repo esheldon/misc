@@ -15,7 +15,6 @@ int main(int argc, char** argv) {
         printf("  vec[%ld]: %ld  si[%ld]: %ld\n", i, data[i], i, si[i]);
     }
 
-
     struct i64vector* vec = i64vector_new(ndata);
     struct szvector* sort_index = szvector_new(ndata);
 
