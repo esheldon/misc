@@ -10,17 +10,13 @@ int main(int argc, char** argv) {
     size_t si[] = {2, 8, 0, 6, 10, 3, 4, 11, 1, 12, 5, 14, 7, 9, 13};
 
     size_t ndata = sizeof(data)/sizeof(int64);
+
+    struct i64vector* vec = i64vector_fromarray(data, ndata);
+    struct szvector* sort_index = szvector_fromarray(si, ndata);
+
     printf("ndata: %ld\n", ndata);
     for (size_t i=0; i< ndata; i++) {
         printf("  vec[%ld]: %ld  si[%ld]: %ld\n", i, data[i], i, si[i]);
-    }
-
-    struct i64vector* vec = i64vector_new(ndata);
-    struct szvector* sort_index = szvector_new(ndata);
-
-    for (size_t i=0; i<ndata; i++) {
-        vec->data[i] = data[i];
-        sort_index->data[i] = si[i];
     }
 
     struct i64vector* h = i64vector_new(0);

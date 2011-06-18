@@ -15,11 +15,12 @@ struct szvector {
 };
 
 struct szvector* szvector_new(size_t num);
+struct szvector* szvector_fromarray(size_t* arr, size_t size);
+void szvector_resize(struct szvector* vector, size_t newsize);
 
 // clears all memory in ->data and sets pointer to NULL
 void szvector_delete(struct szvector* vector);
 
-void szvector_resize(struct szvector* vector, size_t newsize);
 
 struct i64vector {
     size_t size;
@@ -27,11 +28,12 @@ struct i64vector {
 };
 
 struct i64vector* i64vector_new(size_t num);
+struct i64vector* i64vector_fromarray(int64_t* arr, size_t size);
+void i64vector_resize(struct i64vector* vector, size_t newsize);
 
 // clears all memory in ->data and sets pointer to NULL
 void i64vector_delete(struct i64vector* vector);
 
-void i64vector_resize(struct i64vector* vector, size_t newsize);
 
 struct f64vector {
     size_t size;
@@ -39,10 +41,11 @@ struct f64vector {
 };
 
 struct f64vector* f64vector_new(size_t num);
+struct f64vector* f64vector_fromarray(float64* arr, size_t size);
+void f64vector_resize(struct f64vector* vector, size_t newsize);
 
 // clears all memory in ->data and sets pointer to NULL
 void f64vector_delete(struct f64vector* vector);
 
-void f64vector_resize(struct f64vector* vector, size_t newsize);
 
 #endif  // header guard

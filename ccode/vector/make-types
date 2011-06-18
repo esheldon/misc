@@ -61,11 +61,12 @@ struct %(shortname)svector {
 };
 
 struct %(shortname)svector* %(shortname)svector_new(size_t num);
+struct %(shortname)svector* %(shortname)svector_fromarray(%(type)s* arr, size_t size);
+void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsize);
 
 // clears all memory in ->data and sets pointer to NULL
 void %(shortname)svector_delete(struct %(shortname)svector* vector);
 
-void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsize);
 '''
 
 cformat='''
@@ -91,14 +92,15 @@ struct %(shortname)svector* %(shortname)svector_new(size_t num) {
     return vector;
 }
 
-void %(shortname)svector_delete(struct %(shortname)svector* vector) {
-    if (vector != NULL) {
-        free(vector->data);
-        free(vector);
-        vector=NULL;
-    }
-}
+struct %(shortname)svector* %(shortname)svector_fromarray(%(type)s* arr, size_t size) {
 
+    struct %(shortname)svector* vector = %(shortname)svector_new(size);
+
+    if (size > 0) {
+        memcpy(vector->data, arr, size*sizeof(%(type)s));
+    }
+    return vector;
+}
 
 void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsize) {
     if (vector==NULL) {
@@ -124,6 +126,16 @@ void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsi
     vector->data = newdata;
     vector->size = newsize;
 }
+
+void %(shortname)svector_delete(struct %(shortname)svector* vector) {
+    if (vector != NULL) {
+        free(vector->data);
+        free(vector);
+        vector=NULL;
+    }
+}
+
+
 
 '''
 
@@ -154,6 +166,16 @@ int main(int argc, char** argv) {
 
     %(shortname)svector_delete(vector);
 
+    printf("Creating from array\\n");
+    %(type)s arr[]={1,2,3};
+    size_t size=sizeof(arr)/sizeof(%(type)s);
+    struct %(shortname)svector* vfromarr=%(shortname)svector_fromarray(arr,size);
+    for (size_t i=0; i<vector->size; i++) {
+        printf("fromarray vector[%%ld]: %(format)s\\n", i, vfromarr->data[i]);
+    }
+
+    %(shortname)svector_delete(vector);
+    %(shortname)svector_delete(vfromarr);
 }
 '''
 
