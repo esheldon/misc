@@ -1,5 +1,6 @@
 #include <stdlib.h>
-#include <stding.h>
+#include <stdio.h>
+#include <stdint.h>
 #include "source.h"
 
 #ifdef SOURCE_POFZ
@@ -59,11 +60,32 @@ struct scat* scat_new(size_t n_source) {
     return scat;
 }
 
+struct scat* scat_read(const char* filename) {
+    FILE* fptr=fopen(filename,"r");
+    if (fptr==NULL) {
+        printf("Could not open file: %s\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    int64 sigmacrit_style;
+    fread (&sigmacrit_style, sizeof(int64), 1, fptr);
+#ifdef SOURCE_POFZ
+    if (sigmacrit_style != 2) {
+        printf("Got sigmacrit_style = %ld but code is compiled for p(z), sigmacrit_style=2.\n");
+        exit(EXIT_FAILURE);
+    }
+#else
+    if (sigmacrit_style != 1) {
+        printf("Got sigmacrit_style = %ld but code is compiled for true z, sigmacrit_style=1.\n");
+        exit(EXIT_FAILURE);
+    }
+#endif
+}
 
 // use like this:
 //   scat = scat_delete(scat);
 // This ensures that the scat pointer is set to NULL
-void scat_delete(struct scat* scat) {
+struct scat* scat_delete(struct scat* scat) {
 
     if (scat != NULL) {
 

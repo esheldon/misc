@@ -56,7 +56,7 @@ struct scat* scat_new(size_t n_source);
 
 struct scat* scat_read(const char* filename);
 
-void scat_delete(struct scat* scat);
+struct scat* scat_delete(struct scat* scat);
 
 
 /*
