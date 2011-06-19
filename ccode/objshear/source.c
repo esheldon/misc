@@ -60,3 +60,25 @@ struct scat* scat_new(size_t n_source) {
 }
 
 
+// use like this:
+//   scat = scat_delete(scat);
+// This ensures that the scat pointer is set to NULL
+void scat_delete(struct scat* scat) {
+
+    if (scat != NULL) {
+
+#ifdef SOURCE_POFZ
+        f64vector_delete(scat->zlens);
+
+        struct source* src = scat->data[0];
+        for (size_t i=0; i<scat->size; i++) {
+            free(src->scinv);
+            src++;
+        }
+#endif
+
+        free(scat->data);
+        free(scat)
+    }
+    return NULL;
+}
