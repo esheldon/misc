@@ -2,6 +2,10 @@ f=~astrodat/setup/setup-eups.sh
 if [[ -e $f ]]; then
     source $f
 
+    # this is pure python or data
+    setup desfiles -r ~/oh/desfiles
+    setup espy -r ~/python
+
     if [[ $hname == "tutti" ]]; then
         # this will get python and numpy
         echo "doing setups for tutti"
@@ -14,8 +18,6 @@ if [[ -e $f ]]; then
 
         setup esutil -r ~/exports-tutti/esutil-local
 
-        # this is pure python
-        setup espy -r ~/python
 
         setup ccfits
         setup wl -r ~/exports-tutti/wl-local
@@ -25,8 +27,6 @@ if [[ -e $f ]]; then
         setup mercurial
         # this is pure python, use astro exports
         setup columns -r ~/exports/columns-local
-
-        setup desfiles -r ~/oh/desfiles
 
         setup pv
 
