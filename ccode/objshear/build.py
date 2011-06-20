@@ -7,17 +7,22 @@ import glob
 
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
-optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix)]
+optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix),
+         optparse.Option('--with-truez',default=False)]
 parser.add_options(optlist)
 
 options,args = parser.parse_args()
 prefix=os.path.expanduser( options.prefix )
+with_truez=options.with_truez
 
 CC='gcc'
 
 
 CFLAGS=['-std=c99','-O2']
 LINKFLAGS=['-lm']
+
+if with_truez:
+    CFLAGS += ['-DWITH_TRUEZ']
 
 hpix_sources=['healpix','stack']
 
@@ -26,7 +31,7 @@ hpix_sources=['healpix','stack']
 #            {'name':'test-hist','sources':['histogram','Vector','test-hist']}]
 programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-healpix']},
             {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
-            {'name':'test/test-source','sources':['source','test/test-source']},
+            {'name':'test/test-source','sources':['source','Vector','test/test-source']},
             {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
 
 
