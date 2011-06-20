@@ -57,6 +57,9 @@ struct scat* scat_new(size_t n_source);
 
 struct scat* scat_read(const char* filename);
 
+void scat_print_one(struct scat* scat, size_t el);
+void scat_print_firstlast(struct scat* scat);
+
 struct scat* scat_delete(struct scat* scat);
 
 #endif
