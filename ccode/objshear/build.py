@@ -21,9 +21,14 @@ LINKFLAGS=['-lm']
 
 hpix_sources=['healpix','stack']
 
-programs = [{'name':'test-healpix','sources':hpix_sources+['test-healpix']},
-            {'name':'test-i64stack','sources':['stack','test-i64stack']},
-            {'name':'test-hist','sources':['histogram','Vector','test-hist']}]
+#programs = [{'name':'test-healpix','sources':hpix_sources+['test-healpix']},
+#            {'name':'test-i64stack','sources':['stack','test-i64stack']},
+#            {'name':'test-hist','sources':['histogram','Vector','test-hist']}]
+programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-healpix']},
+            {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
+            {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
+
+
 
 install_targets = [(prog['name'],'bin') for prog in programs]
 install_targets += [('objshear.table','ups')]
@@ -36,7 +41,7 @@ def build():
 def compile():
     for prog in programs:
         for source in prog['sources']:
-            run(CC, '-c', CFLAGS, source+'.c')
+            run(CC, '-c', '-o',source+'.o', CFLAGS, source+'.c')
 
 def link():
     for prog in programs:
