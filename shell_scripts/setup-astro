@@ -56,21 +56,24 @@ function connect
 function disconnect
 {
 	check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
-	if [ "$check" != "" ]; then
+    while [[ $check != "" ]]; do
+	    #if [ "$check" != "" ]; then
 		id=$(echo $check | awk '{print $2}')
 		echo "disconnecting from $gateway (jobid $id)"
 		kill $id
-	fi
+	    check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
+    done
+	#fi
 
 	# repeat in case corus is set up
-	if [ "$iscorus" == "yes" ]; then
-		check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
-		if [ "$check" != "" ]; then
-			id=$(echo $check | awk '{print $2}')
-			kill $id
-		fi
-        setproxy
-	fi
+	#if [ "$iscorus" == "yes" ]; then
+	#	check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
+	#	if [ "$check" != "" ]; then
+	#		id=$(echo $check | awk '{print $2}')
+	#		kill $id
+	#	fi
+    #    setproxy
+	#fi
 
 
 }
