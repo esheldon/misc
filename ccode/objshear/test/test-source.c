@@ -13,4 +13,6 @@ int main(int argc, char** argv) {
     struct scat* scat = scat_read(fname);
 
     scat_print_firstlast(scat);
+
+    scat=scat_delete(scat);
 }

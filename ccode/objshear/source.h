@@ -16,6 +16,9 @@
 */
 struct source {
 
+    double ra;
+    double dec;
+    // for speed later
     double sinra;
     double sindec;
     double cosra;
@@ -26,7 +29,7 @@ struct source {
 
     int64 hpixid;
 
-#ifdef SOURCE_POFZ
+#ifndef WITH_TRUEZ
     struct f64vector* scinv; // note this is same size as zlens kept in 
                              // catalog structure.
     struct f64vector* zlens; // For convenience; this should just point 
@@ -42,17 +45,17 @@ struct source {
 struct scat {
     size_t size;
     struct source* data;
-#ifdef SOURCE_POFZ
+#ifndef WITH_TRUEZ
     struct f64vector* zlens; // for scinv(zlens).  Memory is shared in 
                              // source data
 #endif
 };
 
 
-#ifdef SOURCE_POFZ
-struct scat* scat_new(size_t n_source, size_t n_zlens);
-#else
+#ifdef WITH_TRUEZ
 struct scat* scat_new(size_t n_source);
+#else
+struct scat* scat_new(size_t n_source, size_t n_zlens);
 #endif
 
 struct scat* scat_read(const char* filename);
