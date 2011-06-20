@@ -71,12 +71,12 @@ struct scat* scat_read(const char* filename) {
     fread (&sigmacrit_style, sizeof(int64), 1, fptr);
 #ifdef SOURCE_POFZ
     if (sigmacrit_style != 2) {
-        printf("Got sigmacrit_style = %ld but code is compiled for p(z), sigmacrit_style=2.\n");
+        printf("Got sigmacrit_style = %ld but code is compiled for p(z), sigmacrit_style=2.\n", sigmacrit_style);
         exit(EXIT_FAILURE);
     }
 #else
     if (sigmacrit_style != 1) {
-        printf("Got sigmacrit_style = %ld but code is compiled for true z, sigmacrit_style=1.\n");
+        printf("Got sigmacrit_style = %ld but code is compiled for true z, sigmacrit_style=1.\n", sigmacrit_style);
         exit(EXIT_FAILURE);
     }
 #endif
