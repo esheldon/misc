@@ -27,7 +27,7 @@ struct scat* scat_new(size_t n_source) {
 
     scat->size = n_source;
 
-    scat->data = malloc(n_source, sizeof(struct source));
+    scat->data = malloc(n_source*sizeof(struct source));
     if (scat->data == NULL) {
         printf("Could not allocate %ld sources in scat\n", n_source);
         exit(EXIT_FAILURE);
@@ -69,6 +69,7 @@ struct scat* scat_read(const char* filename) {
 
     int64 sigmacrit_style;
     fread (&sigmacrit_style, sizeof(int64), 1, fptr);
+
 #ifdef SOURCE_POFZ
     if (sigmacrit_style != 2) {
         printf("Got sigmacrit_style = %ld but code is compiled for p(z), sigmacrit_style=2.\n");
@@ -80,6 +81,10 @@ struct scat* scat_read(const char* filename) {
         exit(EXIT_FAILURE);
     }
 #endif
+
+    struct scat* scat = scat_new(10);
+
+    return scat;
 }
 
 // use like this:
@@ -100,7 +105,7 @@ struct scat* scat_delete(struct scat* scat) {
 #endif
 
         free(scat->data);
-        free(scat)
+        free(scat);
     }
     return NULL;
 }

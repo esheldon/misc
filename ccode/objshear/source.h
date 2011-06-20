@@ -2,6 +2,7 @@
 #define _SOURCE_HEADER
 
 #include "Vector.h"
+#include "defs.h"
 
 /* 
   We can work in two modes:
@@ -18,7 +19,7 @@ struct source {
     double sinra;
     double sindec;
     double cosra;
-    double sinra;
+    double cosdec;
     double g1;
     double g2;
     double err;
@@ -40,7 +41,7 @@ struct source {
 
 struct scat {
     size_t size;
-    struct* source data;
+    struct source* data;
 #ifdef SOURCE_POFZ
     struct f64vector* zlens; // for scinv(zlens).  Memory is shared in 
                              // source data
@@ -57,17 +58,5 @@ struct scat* scat_new(size_t n_source);
 struct scat* scat_read(const char* filename);
 
 struct scat* scat_delete(struct scat* scat);
-
-
-/*
-struct sourcevec* svec = scat->sources;
-
-for (i=0; i<svec->size; i++) {
-    struct source* src = &svec->data[i];
-    double sra = src->sinra;
-
-    double scinv = f64interp(src->zlens, src->scinv, zl);
-}
-*/
 
 #endif
