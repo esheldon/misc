@@ -32,6 +32,7 @@ hpix_sources=['healpix','stack']
 programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-healpix']},
             {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
             {'name':'test/test-source','sources':['source','Vector','test/test-source']},
+            {'name':'test/test-lens','sources':['lens','test/test-lens']},
             {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
 
 
