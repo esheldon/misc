@@ -18,11 +18,7 @@ struct source {
 
     double ra;
     double dec;
-    // for speed later
-    double sinra;
-    double sindec;
-    double cosra;
-    double cosdec;
+
     double g1;
     double g2;
     double err;
@@ -37,9 +33,14 @@ struct source {
                              // allocate or free!
 #else
     double z;
-    double dc;
+    double dc; // for speed
 #endif
 
+    // calculate these for speed
+    double sinra; 
+    double cosra;
+    double sindec;
+    double cosdec;
 };
 
 struct scat {

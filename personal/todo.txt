@@ -14,7 +14,7 @@ zphot:
 
 DES:
 
-    Why is Bob's code just checking that CLASS_STAR is in [0,1]?
+    Bob didn't actually implement new s/g!
 
 shears:
 
