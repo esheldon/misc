@@ -7,6 +7,11 @@ Quick look Queue
         others?
     see zphot
 zphot:
+
+    Make data model in product.
+    Make files with objId, thing_id, rmag, colors, p(z).
+    Copy files to riemann in boss tree (ask Ben where?)
+
     estimate stellar contamination?
 
     Get some validation plots, good ones, from carlos, or have him send me the
