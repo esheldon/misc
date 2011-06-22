@@ -18,6 +18,7 @@ with_truez=options.with_truez
 CC='gcc'
 
 
+#CFLAGS=['-std=c99','-O2','-lm']
 CFLAGS=['-std=c99','-O2']
 LINKFLAGS=['-lm']
 
@@ -33,6 +34,7 @@ programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-healp
             {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
             {'name':'test/test-source','sources':['source','Vector','test/test-source']},
             {'name':'test/test-lens','sources':['lens','test/test-lens']},
+            {'name':'test/test-cosmo','sources':['cosmo','test/test-cosmo']},
             {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
 
 
