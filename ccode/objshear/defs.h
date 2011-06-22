@@ -4,7 +4,9 @@
 #include <math.h>
 #include <stdint.h>
 
-// only define these if not in math.h
+// these are no longer in math.h for the c99 standard, so 
+// define these if not already defined
+
 #ifndef M_PI
 # define M_E		2.7182818284590452354	/* e */
 # define M_LOG2E	1.4426950408889634074	/* log_2 e */
