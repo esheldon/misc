@@ -22,6 +22,7 @@ These types are supported:
         uint64     u64
         char       char
         uchar      uchar
+        size       sz
 
 The short names are used in the names of the stack structures and their
 associated methods, e.g. i64stack, f64stack, for structs and i32stack_push(),

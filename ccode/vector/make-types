@@ -9,18 +9,25 @@ Description
         ./make-types float32 int64
 
     Available types:
-        float32
-        float64
-        int8
-        uint8
-        int16
-        uint16
-        int32
-        uint32
-        int64
-        uint64
+        typename   shortname
+        float32    f32
+        float64    f64
+        int8       i8
+        uint8      u8
+        int16      i16
+        uint16     u16
+        int32      i32
+        uint32     u32
+        int64      i64
+        uint64     u64
+        char       char
+        uchar      uchar
+        size       sz
 
-    See the README for more details.
+
+
+    Use the typename when calling this script. The shortnames are used in
+    function names and structure defs.  See the README for more details.
 
     A test program is also generated for each type with the name test-{type}vector.c
     To build the test programs, run
@@ -62,6 +69,7 @@ struct %(shortname)svector {
 
 struct %(shortname)svector* %(shortname)svector_new(size_t num);
 struct %(shortname)svector* %(shortname)svector_fromarray(%(type)s* arr, size_t size);
+struct %(shortname)svector* %(shortname)svector_range(size_t num);
 void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsize);
 
 // clears all memory in ->data and sets pointer to NULL
@@ -99,6 +107,15 @@ struct %(shortname)svector* %(shortname)svector_fromarray(%(type)s* arr, size_t 
     if (size > 0) {
         memcpy(vector->data, arr, size*sizeof(%(type)s));
     }
+    return vector;
+}
+
+struct %(shortname)svector* %(shortname)svector_range(size_t size) {
+    struct %(shortname)svector* vector = %(shortname)svector_new(size);
+    for (size_t i=0; i<vector->size; i++) {
+        vector->data[i] = i;
+    }
+
     return vector;
 }
 

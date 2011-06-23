@@ -16,6 +16,7 @@ struct szvector {
 
 struct szvector* szvector_new(size_t num);
 struct szvector* szvector_fromarray(size_t* arr, size_t size);
+struct szvector* szvector_range(size_t num);
 void szvector_resize(struct szvector* vector, size_t newsize);
 
 // clears all memory in ->data and sets pointer to NULL
@@ -29,6 +30,7 @@ struct i64vector {
 
 struct i64vector* i64vector_new(size_t num);
 struct i64vector* i64vector_fromarray(int64_t* arr, size_t size);
+struct i64vector* i64vector_range(size_t num);
 void i64vector_resize(struct i64vector* vector, size_t newsize);
 
 // clears all memory in ->data and sets pointer to NULL
@@ -42,6 +44,7 @@ struct f64vector {
 
 struct f64vector* f64vector_new(size_t num);
 struct f64vector* f64vector_fromarray(float64* arr, size_t size);
+struct f64vector* f64vector_range(size_t num);
 void f64vector_resize(struct f64vector* vector, size_t newsize);
 
 // clears all memory in ->data and sets pointer to NULL
