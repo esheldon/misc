@@ -1,5 +1,6 @@
 #include <math.h>
 #include "gcirc.h"
+#include "defs.h"
 
 /* lon lat in degrees.
    dis and theta will be in radians

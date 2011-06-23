@@ -40,6 +40,15 @@ struct szvector* szvector_fromarray(size_t* arr, size_t size) {
     return vector;
 }
 
+struct szvector* szvector_range(size_t size) {
+    struct szvector* vector = szvector_new(size);
+    for (size_t i=0; i<vector->size; i++) {
+        vector->data[i] = i;
+    }
+
+    return vector;
+}
+
 void szvector_resize(struct szvector* vector, size_t newsize) {
     if (vector==NULL) {
         printf("Attempt to resize unallocated size_t vector\n");
@@ -108,6 +117,15 @@ struct i64vector* i64vector_fromarray(int64_t* arr, size_t size) {
     return vector;
 }
 
+struct i64vector* i64vector_range(size_t size) {
+    struct i64vector* vector = i64vector_new(size);
+    for (size_t i=0; i<vector->size; i++) {
+        vector->data[i] = i;
+    }
+
+    return vector;
+}
+
 void i64vector_resize(struct i64vector* vector, size_t newsize) {
     if (vector==NULL) {
         printf("Attempt to resize unallocated int64_t vector\n");
@@ -173,6 +191,15 @@ struct f64vector* f64vector_fromarray(float64* arr, size_t size) {
     if (size > 0) {
         memcpy(vector->data, arr, size*sizeof(float64));
     }
+    return vector;
+}
+
+struct f64vector* f64vector_range(size_t size) {
+    struct f64vector* vector = f64vector_new(size);
+    for (size_t i=0; i<vector->size; i++) {
+        vector->data[i] = i;
+    }
+
     return vector;
 }
 
