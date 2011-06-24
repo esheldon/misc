@@ -31,6 +31,7 @@ programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-healp
              'sources':['healpix','gcirc','stack','Vector','sort','histogram','test/test-healpix-brute']},
             {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
             {'name':'test/test-interp','sources':['interp','Vector','test/test-interp']},
+            {'name':'test/test-config','sources':['config','test/test-config']},
             {'name':'test/test-source','sources':['source','Vector','test/test-source']},
             {'name':'test/test-lens','sources':['lens','test/test-lens']},
             {'name':'test/test-cosmo','sources':['cosmo','test/test-cosmo']},

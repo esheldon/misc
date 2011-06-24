@@ -55,4 +55,3 @@ BOSS
 
 objshear
     config file lib
-    interpolation lib
