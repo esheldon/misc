@@ -52,3 +52,7 @@ BOSS
 
         References to tiling stuff and brief description
 
+
+objshear
+    config file lib
+    interpolation lib

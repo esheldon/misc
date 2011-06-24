@@ -18,7 +18,6 @@ with_truez=options.with_truez
 CC='gcc'
 
 
-#CFLAGS=['-std=c99','-O2','-lm']
 CFLAGS=['-std=c99','-O2']
 LINKFLAGS=['-lm']
 
@@ -27,13 +26,11 @@ if with_truez:
 
 hpix_sources=['healpix','stack']
 
-#programs = [{'name':'test-healpix','sources':hpix_sources+['test-healpix']},
-#            {'name':'test-i64stack','sources':['stack','test-i64stack']},
-#            {'name':'test-hist','sources':['histogram','Vector','test-hist']}]
 programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-healpix']},
             {'name':'test/test-healpix-brute',
              'sources':['healpix','gcirc','stack','Vector','sort','histogram','test/test-healpix-brute']},
             {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
+            {'name':'test/test-interp','sources':['interp','Vector','test/test-interp']},
             {'name':'test/test-source','sources':['source','Vector','test/test-source']},
             {'name':'test/test-lens','sources':['lens','test/test-lens']},
             {'name':'test/test-cosmo','sources':['cosmo','test/test-cosmo']},
