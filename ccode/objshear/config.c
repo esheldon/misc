@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include "config.h"
 
 struct config* read_config(const char* filename) {
@@ -15,8 +16,24 @@ struct config* read_config(const char* filename) {
     int ret;
     char key[255];
     ret=fscanf(fptr, "%s %s", key, c->lens_file);
+    ret=fscanf(fptr, "%s %s", key, c->source_file);
+    ret=fscanf(fptr, "%s %s", key, c->output_file);
+    ret=fscanf(fptr, "%s %lf", key, &c->H0);
+    ret=fscanf(fptr, "%s %lf", key, &c->omega_m);
+    ret=fscanf(fptr, "%s %ld", key, &c->npts);
+    ret=fscanf(fptr, "%s %ld", key, &c->nside);
+    ret=fscanf(fptr, "%s %ld", key, &c->sigmacrit_style);
+    ret=fscanf(fptr, "%s %ld", key, &c->nbin);
+    ret=fscanf(fptr, "%s %lf", key, &c->rmin);
+    ret=fscanf(fptr, "%s %lf", key, &c->rmax);
+
+    c->log_rmin = log10(c->rmin);
+    c->log_rmax = log10(c->rmax);
+    c->log_binsize = (c->log_rmax - c->log_rmin)/c->nbin;
 
     fclose(fptr);
+
+    return c;
 }
 
 void print_config(struct config* c) {

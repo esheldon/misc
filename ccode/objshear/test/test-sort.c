@@ -14,11 +14,12 @@ int main(int argc, char** argv) {
         printf("  v[%ld]: %ld\n", i, v->data[i]);
     }
 
-    struct i64vector* s = i64sortind(v);
+    struct szvector* s = i64sortind(v);
 
     for (size_t i=0; i<v->size; i++) {
         printf("  v[s[%ld]]: %ld\n", i, v->data[s->data[i]]);
     }
 
+    szvector_delete(s);
 
 }
