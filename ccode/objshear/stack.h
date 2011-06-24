@@ -1,8 +1,8 @@
 // This header was auto-generated
 #ifndef _STACK_H
 #define _STACK_H
-
 #include <stdint.h>
+
 #define STACK_PUSH_REALLOC_MULT 1
 #define STACK_PUSH_REALLOC_MULTVAL 1.5
 #define STACK_PUSH_INITSIZE 50
@@ -36,7 +36,8 @@ void i64stack_realloc(struct i64stack* stack, size_t newsize);
 void i64stack_clear(struct i64stack* stack);
 
 // clears all memory and sets pointer to NULL
-void i64stack_delete(struct i64stack* listpix);
+// usage: stack=i64tack_delete(stack);
+struct i64stack* i64stack_delete(struct i64stack* stack);
 
 // if reallocation is needed, size is increased by 50 percent
 // unless size is zero, when it 100 are allocated

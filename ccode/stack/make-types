@@ -84,7 +84,8 @@ void %(shortname)sstack_realloc(struct %(shortname)sstack* stack, size_t newsize
 void %(shortname)sstack_clear(struct %(shortname)sstack* stack);
 
 // clears all memory and sets pointer to NULL
-void %(shortname)sstack_delete(struct %(shortname)sstack* stack);
+// usage: stack=%(shortname)stack_delete(stack);
+struct %(shortname)sstack* %(shortname)sstack_delete(struct %(shortname)sstack* stack);
 
 // if reallocation is needed, size is increased by 50 percent
 // unless size is zero, when it 100 are allocated
@@ -165,11 +166,12 @@ void %(shortname)sstack_clear(struct %(shortname)sstack* stack) {
     stack->data=NULL;
 }
 
-void %(shortname)sstack_delete(struct %(shortname)sstack* stack) {
+struct %(shortname)sstack* %(shortname)sstack_delete(struct %(shortname)sstack* stack) {
     if (stack != NULL) {
         %(shortname)sstack_clear(stack);
         free(stack);
     }
+    return NULL;
 }
 
 void %(shortname)sstack_push(struct %(shortname)sstack* stack, %(type)s val) {

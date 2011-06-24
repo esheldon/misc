@@ -78,12 +78,12 @@ void i64stack_clear(struct i64stack* stack) {
     stack->data=NULL;
 }
 
-void i64stack_delete(struct i64stack* stack) {
+struct i64stack* i64stack_delete(struct i64stack* stack) {
     if (stack != NULL) {
         i64stack_clear(stack);
         free(stack);
-        stack=NULL;
     }
+    return NULL;
 }
 
 void i64stack_push(struct i64stack* stack, int64_t val) {
