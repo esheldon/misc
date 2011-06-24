@@ -46,6 +46,9 @@ struct source {
 struct scat {
     size_t size;
     struct source* data;
+
+    struct szvector* rev; // reverse indices for healpix ids
+
 #ifndef WITH_TRUEZ
     struct f64vector* zlens; // for scinv(zlens).  Memory is shared in 
                              // source data
