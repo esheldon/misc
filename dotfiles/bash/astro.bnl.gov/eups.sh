@@ -23,6 +23,8 @@ if [[ -e $f ]]; then
         setup wl -r ~/exports-tutti/wl-local
         setup tmv -r ~/exports-tutti/tmv-work
 
+        setup sdsspy -r ~/exports-tutti/sdsspy-local
+
         # columns, sdsspy are under mercurial
         setup mercurial
         # this is pure python, use astro exports
@@ -68,6 +70,9 @@ if [[ -e $f ]]; then
         setup tmv -r ~/exports/tmv-work
 
         setup pv
+
+        # note you still import scikits.learn
+        setup scikits_learn -r ~/exports/scikits_learn
 
         return
 
