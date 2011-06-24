@@ -1,0 +1,11 @@
+lens_file       /home/users/esheldon/lensing/lcat/desmocks-2.13-f8/lcat-desmocks-2.13-f8-090.bin
+source_file     /home/users/esheldon/lensing/scat/desmocks-2.13o-f8/scat-desmocks-2.13o-f8.bin
+output_file     /home/users/esheldon/lensing/lensout/05/lensout-05-090.bin
+H0              100.0
+omega_m         0.25
+npts            5
+nside           4096
+sigmacrit_style 1
+nbin            21
+rmin            0.02
+rmax            36.567

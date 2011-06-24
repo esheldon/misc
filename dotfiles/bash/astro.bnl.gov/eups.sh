@@ -31,6 +31,7 @@ if [[ -e $f ]]; then
         setup columns -r ~/exports/columns-local
 
         setup pv
+        setup parallel
 
         setup scons
     else
@@ -70,6 +71,7 @@ if [[ -e $f ]]; then
         setup tmv -r ~/exports/tmv-work
 
         setup pv
+        setup parallel
 
         # note you still import scikits.learn
         setup scikits_learn -r ~/exports/scikits_learn
