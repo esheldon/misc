@@ -8,7 +8,8 @@ import glob
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
 optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix),
-         optparse.Option('--with-truez',default=False)]
+         optparse.Option('--with-truez',default=False),
+         optparse.Option('--test',action="store_true",default=False)]
 parser.add_options(optlist)
 
 options,args = parser.parse_args()
@@ -26,19 +27,25 @@ if with_truez:
 
 hpix_sources=['healpix','stack']
 
-programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-healpix']},
-            {'name':'test/test-healpix-brute',
-             'sources':['healpix','gcirc','stack','Vector','sort','histogram','test/test-healpix-brute']},
-            {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
-            {'name':'test/test-interp','sources':['interp','Vector','test/test-interp']},
-            {'name':'test/test-config','sources':['config','test/test-config']},
-            {'name':'test/test-source','sources':['source','Vector','test/test-source']},
-            {'name':'test/test-lens','sources':['lens','test/test-lens']},
-            {'name':'test/test-cosmo','sources':['cosmo','test/test-cosmo']},
-            {'name':'test/test-sort','sources':['sort','Vector','test/test-sort']},
-            {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
+test_programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-healpix']},
+                 {'name':'test/test-healpix-brute',
+                  'sources':['healpix','gcirc','stack','Vector','sort','histogram','test/test-healpix-brute']},
+                 {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
+                 {'name':'test/test-interp','sources':['interp','Vector','test/test-interp']},
+                 {'name':'test/test-config','sources':['config','test/test-config']},
+                 {'name':'test/test-source','sources':['source','Vector','test/test-source']},
+                 {'name':'test/test-lens','sources':['lens','test/test-lens']},
+                 {'name':'test/test-cosmo','sources':['cosmo','test/test-cosmo']},
+                 {'name':'test/test-sort','sources':['sort','Vector','test/test-sort']},
+                 {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
 
+programs = [{'name':'objshear',
+             'sources':['config','lens','source','cosmo',
+                        'healpix','gcirc','stack','Vector','sort','histogram',
+                        'objshear']}]
 
+if options.test:
+    programs += test_programs
 
 install_targets = [(prog['name'],'bin') for prog in programs]
 install_targets += [('objshear.table','ups')]
