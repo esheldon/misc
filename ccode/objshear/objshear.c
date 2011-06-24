@@ -1,9 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "config.h"
-#include "lens.h"
-#include "source.h"
-
+#include "shear.h"
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -13,11 +10,10 @@ int main(int argc, char** argv) {
 
     const char* config_file=argv[1];
 
-    struct config* config=read_config(config_file);
-    print_config(config);
+    struct shear* shear = shear_init(config_file);
 
-    struct lcat* lcat = lcat_read(config->lens_file);
-    lcat_print_firstlast(lcat);
-    struct scat* scat = scat_read(config->source_file);
-    scat_print_firstlast(scat);
+    //calc_shear(shear);
+
+    shear_delete(shear);
+
 }

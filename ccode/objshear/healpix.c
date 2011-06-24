@@ -39,8 +39,11 @@ struct healpix* hpix_new(int64 nside) {
 
     return hpix;
 }
-void hpix_delete(struct healpix* hpix) {
+
+// usage:  hpix=hpix_delete(hpix);
+struct healpix* hpix_delete(struct healpix* hpix) {
     free(hpix);
+    return NULL;
 }
 
 void hpix_disc_intersect(

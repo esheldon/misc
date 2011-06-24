@@ -27,7 +27,8 @@ struct config {
 
 };
 
-struct config* read_config(const char* filename);
-void print_config(struct config* config);
+struct config* config_read(const char* filename);
+struct config* config_delete(struct config* config);
+void config_print(struct config* config);
 
 #endif

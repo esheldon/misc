@@ -21,7 +21,8 @@ struct scat* scat_new(size_t n_source) {
         exit(EXIT_FAILURE);
     }
 
-    struct scat* scat = malloc(sizeof(struct scat));
+    //struct scat* scat = malloc(sizeof(struct scat));
+    struct scat* scat = calloc(1,sizeof(struct scat));
     if (scat == NULL) {
         printf("Could not allocate struct scat\n");
         exit(EXIT_FAILURE);
@@ -29,11 +30,14 @@ struct scat* scat_new(size_t n_source) {
 
     scat->size = n_source;
 
-    scat->data = malloc(n_source*sizeof(struct source));
+    //scat->data = malloc(n_source*sizeof(struct source));
+    scat->data = calloc(n_source,sizeof(struct source));
     if (scat->data == NULL) {
         printf("Could not allocate %ld sources in scat\n", n_source);
         exit(EXIT_FAILURE);
     }
+
+    scat->rev=NULL;
 
 #ifndef WITH_TRUEZ
 
@@ -163,6 +167,26 @@ struct scat* scat_read(const char* filename) {
 
     return scat;
 }
+
+void scat_add_hpixid(struct healpix* hpix, struct scat* scat) {
+    struct source* src = &scat->data[0];
+    for (size_t i=0; i<scat->size; i++) {
+        src->hpixid = hpix_eq2pix(hpix, src->ra, src->dec);
+        src++;
+    }
+}
+
+
+#ifdef WITH_TRUEZ
+void scat_add_dc(struct cosmo* cosmo, struct scat* scat) {
+    struct src* src = &scat->data[0];
+    for (size_t i=0; i<scat->size; i++) {
+        src->dc = Dc(cosmo, 0.0, src->z);
+        src++;
+    }
+}
+#endif
+
 
 void scat_print_one(struct scat* scat, size_t el) {
     struct source* src = &scat->data[el];

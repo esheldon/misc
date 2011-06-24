@@ -33,6 +33,7 @@ struct cosmo* cosmo_new(
         double omega_k);
 
 void cosmo_print(struct cosmo* c);
+struct cosmo* cosmo_delete(struct cosmo* c);
 
 double ez_inverse(struct cosmo* c, double z);
 double ez_inverse_integral(struct cosmo* c, double zmin, double zmax);

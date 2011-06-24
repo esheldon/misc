@@ -14,7 +14,6 @@ struct healpix {
     double area;
 };
 
-
 /* number of pixels in the map for the given nside */
 int64 hpix_npix(int64 nside);
 
@@ -23,7 +22,7 @@ double hpix_area(int64 nside);
 
 /* allocate a new healpix structure */
 struct healpix* hpix_new(int64 nside);
-void hpix_delete(struct healpix* hpix);
+struct healpix* hpix_delete(struct healpix* hpix);
 
 
 /*
