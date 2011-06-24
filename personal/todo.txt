@@ -12,6 +12,14 @@ zphot:
     Make files with objId, thing_id, rmag, colors, p(z).
     Copy files to riemann in boss tree (ask Ben where?)
 
+    Notes from data telecon: 
+
+        FITS by run or run-camcol
+        photoObj/photoz-weight
+        data model
+            two binary table extension
+        shortened description
+
     estimate stellar contamination?
 
     Get some validation plots, good ones, from carlos, or have him send me the
