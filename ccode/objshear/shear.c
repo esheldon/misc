@@ -52,6 +52,10 @@ struct shear* shear_init(const char* config_file) {
     printf("Creating lensum\n");
     shear->lensum=lensum_new(config->nbin);
 
+    // this is a growable stack for holding pixels
+    printf("Creating pixel stack\n");
+    shear->pixstack = i64stack_new(0);
+
     // finally read the data
     shear->lcat = lcat_read(config->lens_file);
 
@@ -82,6 +86,7 @@ struct shear* shear_delete(struct shear* shear) {
         shear->scat   = scat_delete(shear->scat);
         shear->hpix   = hpix_delete(shear->hpix);
         shear->cosmo  = cosmo_delete(shear->cosmo);
+        shear->pixstack = i64stack_delete(shear->pixstack);
         shear->lensum = lensum_delete(shear->lensum);
 
         fclose(shear->fptr);
@@ -91,3 +96,13 @@ struct shear* shear_delete(struct shear* shear) {
 }
 
 
+void shear_calc(struct shear* shear) {
+
+    for (size_t i=0; i<shear->lcat->size; i++) {
+        shear_proclens(shear, i);
+    }
+}
+
+void shear_proclens(struct shear* shear, size_t index) {
+    struct lens* lens = &shear->lcat->data[index];
+}
