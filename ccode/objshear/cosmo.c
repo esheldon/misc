@@ -50,6 +50,15 @@ void cosmo_print(struct cosmo* c) {
     printf("  omega_k: %lf\n", c->omega_k);
 }
 
+// usage:  cosmo=cosmo_delete(cosmo);
+struct cosmo* cosmo_delete(struct cosmo* c) {
+    free(c);
+    return NULL;
+}
+
+
+
+
 /* comoving distance in Mpc */
 double Dc(struct cosmo* c, double zmin, double zmax) {
     return c->DH*ez_inverse_integral(c, zmin, zmax);

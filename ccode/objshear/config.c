@@ -3,7 +3,7 @@
 #include <math.h>
 #include "config.h"
 
-struct config* read_config(const char* filename) {
+struct config* config_read(const char* filename) {
     printf("Reading config from %s\n", filename);
     FILE* fptr=fopen(filename,"r");
     if (fptr==NULL) {
@@ -36,7 +36,13 @@ struct config* read_config(const char* filename) {
     return c;
 }
 
-void print_config(struct config* c) {
+// usage:  config=config_delete(config);
+struct config* config_delete(struct config* config) {
+    free(config);
+    return NULL;
+}
+
+void config_print(struct config* c) {
     printf("  lens_file:    %s\n", c->lens_file);
     printf("  source_file:  %s\n", c->source_file);
     printf("  output_file:  %s\n", c->output_file);

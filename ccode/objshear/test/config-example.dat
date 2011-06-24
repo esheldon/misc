@@ -1,6 +1,6 @@
 lens_file          /astro/u/esheldon/lensing/lcat/02/lcat-02-044.bin
 source_file        /astro/u/esheldon/lensing/scat/03/scat-03.bin
-output_file        /astro/u/esheldon/lensing/lensout/03/lensout-03-044.bin
+output_file        ./test-shear-output.bin
 H0                 100.0
 omega_m            0.25
 npts               5

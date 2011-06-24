@@ -1,6 +1,7 @@
 #ifndef _LENS_HEADER
-#define _lens_HEADER
+#define _LENS_HEADER
 
+#include "cosmo.h"
 #include "defs.h"
 
 struct lens {
@@ -26,6 +27,7 @@ struct lcat {
 
 struct lcat* lcat_new(size_t n_lens);
 struct lcat* lcat_read(const char* filename);
+void lcat_add_dc(struct cosmo* cosmo, struct lcat* lcat);
 
 void lcat_print_one(struct lcat* lcat, size_t el);
 void lcat_print_firstlast(struct lcat* lcat);

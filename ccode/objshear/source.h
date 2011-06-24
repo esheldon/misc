@@ -3,6 +3,12 @@
 
 #include "Vector.h"
 #include "defs.h"
+#include "healpix.h"
+
+#ifdef WITH_TRUEZ
+#include "cosmo.h"
+#endif
+
 
 /* 
   We can work in two modes:
@@ -63,6 +69,15 @@ struct scat* scat_new(size_t n_source, size_t n_zlens);
 #endif
 
 struct scat* scat_read(const char* filename);
+
+void scat_add_hpixid(struct healpix* hpix, struct scat* scat);
+
+#ifdef WITH_TRUEZ
+void scat_add_dc(struct cosmo* cosmo, struct scat* scat);
+#endif
+
+
+
 
 void scat_print_one(struct scat* scat, size_t el);
 void scat_print_firstlast(struct scat* scat);

@@ -34,14 +34,15 @@ test_programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-
                  {'name':'test/test-interp','sources':['interp','Vector','test/test-interp']},
                  {'name':'test/test-config','sources':['config','test/test-config']},
                  {'name':'test/test-source','sources':['source','Vector','test/test-source']},
-                 {'name':'test/test-lens','sources':['lens','test/test-lens']},
+                 {'name':'test/test-lens','sources':['lens','cosmo','test/test-lens']},
                  {'name':'test/test-cosmo','sources':['cosmo','test/test-cosmo']},
                  {'name':'test/test-sort','sources':['sort','Vector','test/test-sort']},
                  {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
 
 programs = [{'name':'objshear',
-             'sources':['config','lens','source','cosmo',
+             'sources':['config','lens','lensum','source','cosmo',
                         'healpix','gcirc','stack','Vector','sort','histogram',
+                        'shear',
                         'objshear']}]
 
 if options.test:

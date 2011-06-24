@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "math.h"
 #include "lens.h"
+#include "cosmo.h"
 
 struct lcat* lcat_new(size_t n_lens) {
 
@@ -11,7 +12,8 @@ struct lcat* lcat_new(size_t n_lens) {
         exit(EXIT_FAILURE);
     }
 
-    struct lcat* lcat = malloc(sizeof(struct lcat));
+    //struct lcat* lcat = malloc(sizeof(struct lcat));
+    struct lcat* lcat = calloc(1,sizeof(struct lcat));
     if (lcat == NULL) {
         printf("Could not allocate struct lcat\n");
         exit(EXIT_FAILURE);
@@ -19,7 +21,8 @@ struct lcat* lcat_new(size_t n_lens) {
 
     lcat->size = n_lens;
 
-    lcat->data = malloc(n_lens*sizeof(struct lens));
+    //lcat->data = malloc(n_lens*sizeof(struct lens));
+    lcat->data = calloc(n_lens,sizeof(struct lens));
     if (lcat->data == NULL) {
         printf("Could not allocate %ld lenses in lcat\n", n_lens);
         exit(EXIT_FAILURE);
@@ -74,6 +77,13 @@ struct lcat* lcat_read(const char* filename) {
     return lcat;
 }
 
+void lcat_add_dc(struct cosmo* cosmo, struct lcat* lcat) {
+    struct lens* lens = &lcat->data[0];
+    for (size_t i=0; i<lcat->size; i++) {
+        lens->dc = Dc(cosmo, 0.0, lens->z);
+        lens++;
+    }
+}
 
 void lcat_print_one(struct lcat* lcat, size_t el) {
     struct lens* lens = &lcat->data[el];
