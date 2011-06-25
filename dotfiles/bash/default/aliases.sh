@@ -32,6 +32,7 @@ alias la='ls --color=auto -a'
 alias lla='ls --color=auto -lah'
 alias lb='ls --color=auto -B -I "*.pyc"'
 alias llb='ls -lh --color=auto -B -I "*.pyc"'
+alias llc='ls -lh --color=auto -B -I "*.pyc" -I "*.o"'
 
 alias mv='mv -i' 
 alias cp='cp -i' 
