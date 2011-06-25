@@ -19,7 +19,7 @@ with_truez=options.with_truez
 CC='gcc'
 
 
-CFLAGS=['-std=c99','-O2']
+CFLAGS=['-std=c99','-O2','-Wall','-Werror']
 LINKFLAGS=['-lm']
 
 if with_truez:
@@ -33,7 +33,8 @@ test_programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-
                  {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
                  {'name':'test/test-interp','sources':['interp','Vector','test/test-interp']},
                  {'name':'test/test-config','sources':['config','test/test-config']},
-                 {'name':'test/test-source','sources':['source','Vector','test/test-source']},
+                 {'name':'test/test-source',
+                  'sources':['source','sort','healpix','histogram','stack','Vector','test/test-source']},
                  {'name':'test/test-lens','sources':['lens','cosmo','test/test-lens']},
                  {'name':'test/test-cosmo','sources':['cosmo','test/test-cosmo']},
                  {'name':'test/test-sort','sources':['sort','Vector','test/test-sort']},

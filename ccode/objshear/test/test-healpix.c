@@ -16,9 +16,6 @@ int main(int argc, char** argv) {
     printf("  npix: %ld\n", hpix->npix);
     printf("  area: %le\n", hpix->area*R2D*R2D);
 
-    double ra1=175.0;
-    double dec1=27.2;
-
     double z[4]={-0.75, -0.2, 0.2, 0.75};
     for (int i=0; i<4; i++) {
         int64 ringnum = hpix_ring_num(hpix, z[i]);

@@ -72,7 +72,7 @@ void hpix_disc_contains(
         double ra, double dec, double radius, 
         struct i64stack* listpix) {
 
-    double vector0[3];
+    //double vector0[3];
     int64 nside=hpix->nside;
     double cosang = cos(radius);
 
@@ -115,7 +115,8 @@ void hpix_disc_contains(
     int64 irmax = hpix_ring_num(hpix, zmin);
     irmax = i64min(4*nside-1, irmax + 1); // go down to a lower point
 
-    double z, tmp=0;
+    //double z, tmp=0;
+    double tmp=0;
     for (int64 iz=irmin; iz<= irmax; iz++) {
 
         double z;
@@ -129,7 +130,7 @@ void hpix_disc_contains(
         }
         double b = cosang - z*z0;
         double c = 1. - z*z;
-        double x = (cosang-z*z0)/sqrt((1-z0)*(1+z0));
+        //double x = (cosang-z*z0)/sqrt((1-z0)*(1+z0));
 
         double dphi;
         if ((x0==0.) && (y0==0.)) {
