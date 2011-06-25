@@ -19,9 +19,12 @@ struct lensums* lensums_new(size_t nlens, size_t nbin) {
         exit(EXIT_FAILURE);
     }
 
+    lensums->size = nlens;
+
     struct lensum* lensum = &lensums->data[0];
 
     for (size_t i=0; i<nlens; i++) {
+        lensum->nbin = nbin;
         lensum->npair = calloc(nbin, sizeof(int64));
         lensum->wsum  = calloc(nbin, sizeof(double));
         lensum->dsum  = calloc(nbin, sizeof(double));
@@ -42,6 +45,30 @@ struct lensums* lensums_new(size_t nlens, size_t nbin) {
     }
     return lensums;
 
+}
+
+void lensums_print_one(struct lensums* lensums, size_t index) {
+    struct lensum* lensum = &lensums->data[index];
+
+    printf("element %ld of lensums:\n",index);
+    printf("  zindex: %ld\n", lensum->zindex);
+    printf("  weight: %lf\n", lensum->weight);
+    printf("  nbin:   %ld\n", lensum->nbin);
+    printf("  npair,wsum,dsum,osum,rsum\n");
+    for (size_t i=0; i<lensum->nbin; i++) {
+        printf("    %ld %lf %lf %lf %lf\n", 
+               lensum->npair[i],
+               lensum->wsum[i],
+               lensum->dsum[i],
+               lensum->osum[i],
+               lensum->rsum[i]);
+    }
+
+}
+
+void lensums_print_firstlast(struct lensums* lensums) {
+    lensums_print_one(lensums, 0);
+    lensums_print_one(lensums, lensums->size-1);
 }
 
 struct lensums* lensums_delete(struct lensums* lensums) {

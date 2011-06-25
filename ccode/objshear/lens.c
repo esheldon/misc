@@ -58,7 +58,7 @@ struct lcat* lcat_read(const char* filename) {
         rval=fread(&lens->dec, sizeof(double), 1, fptr);
         rval=fread(&lens->z, sizeof(double), 1, fptr);
         // remove these from file since we calculate!
-        rval=fread(&lens->dc, sizeof(double), 1, fptr);
+        rval=fread(&lens->da, sizeof(double), 1, fptr);
         rval=fread(&lens->zindex, sizeof(int64), 1, fptr);
 
         ra_rad = lens->ra*D2R;
@@ -77,10 +77,10 @@ struct lcat* lcat_read(const char* filename) {
     return lcat;
 }
 
-void lcat_add_dc(struct cosmo* cosmo, struct lcat* lcat) {
+void lcat_add_da(struct cosmo* cosmo, struct lcat* lcat) {
     struct lens* lens = &lcat->data[0];
     for (size_t i=0; i<lcat->size; i++) {
-        lens->dc = Dc(cosmo, 0.0, lens->z);
+        lens->da = Da(cosmo, 0.0, lens->z);
         lens++;
     }
 }
@@ -91,7 +91,7 @@ void lcat_print_one(struct lcat* lcat, size_t el) {
     printf("  ra: %lf\n", lens->ra);
     printf("  dec: %lf\n", lens->dec);
     printf("  z: %lf\n", lens->z);
-    printf("  dc: %lf\n", lens->dc);
+    printf("  da: %lf\n", lens->da);
 }
 void lcat_print_firstlast(struct lcat* lcat) {
     lcat_print_one(lcat, 0);

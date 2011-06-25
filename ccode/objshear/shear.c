@@ -3,6 +3,7 @@
 #include <math.h>
 #include <assert.h>
 
+#include "defs.h"
 #include "shear.h"
 #include "config.h"
 #include "cosmo.h"
@@ -10,6 +11,7 @@
 #include "lens.h"
 #include "lensum.h"
 #include "source.h"
+#include "interp.h"
 
 struct shear* shear_init(const char* config_file) {
 
@@ -62,9 +64,15 @@ struct shear* shear_init(const char* config_file) {
 
     // this holds the sums for each lens
     shear->lensums = lensums_new(shear->lcat->size, config->nbin);
+    for (size_t i=0; i<shear->lensums->size; i++) {
+        shear->lensums->data[i].zindex = shear->lcat->data[i].zindex;
+    }
+#ifndef NDEBUG
+    lensums_print_firstlast(shear->lensums);
+#endif
 
     printf("Adding Dc to lenses\n");
-    lcat_add_dc(shear->cosmo, shear->lcat);
+    lcat_add_da(shear->cosmo, shear->lcat);
     lcat_print_firstlast(shear->lcat);
 
 
@@ -107,12 +115,27 @@ void shear_calc(struct shear* shear) {
 
     int dotstep=500;
     printf("Each dot is %d\n", dotstep);
+
+    double minz = shear->scat->min_zlens;
+    double maxz = shear->scat->max_zlens;
+
     for (size_t i=0; i<shear->lcat->size; i++) {
-        shear_proclens(shear, i);
+
+        // only consider lenses in our interpolation region
+        double z = shear->lcat->data[i].z;
+        if (z >= minz && z <= maxz) {
+            shear_proclens(shear, i);
+        } 
+#ifndef NDEBUG
+        else {
+            printf("skipping lens %lu at z=%lf outside of redshift bounds\n",i,z);
+        }
+#endif
         if ( ((i+1) % dotstep) == 0) {
             printf(".");fflush(stdout);
         }
     }
+    lensums_print_firstlast(shear->lensums);
     printf("\nDone\n");
 }
 
@@ -122,7 +145,8 @@ void shear_proclens(struct shear* shear, size_t lindex) {
     struct scat* scat = shear->scat;
     struct szvector* rev = scat->rev;
 
-    double da = lens->dc/(1+lens->z);
+    double da = lens->da;
+
     double search_angle = shear->config->rmax/da;
     double cos_search_angle = cos(search_angle);
 
@@ -141,22 +165,28 @@ void shear_proclens(struct shear* shear, size_t lindex) {
             size_t nsrc = rev->data[ipix+1] - rev->data[ipix];
             if (nsrc > 0) {
                 for (size_t j=0; j<nsrc; j++) {
+
                     size_t sindex=rev->data[ rev->data[ipix]+j ];
                     assert(sindex < scat->size);
                     assert(scat->data[sindex].hpixid == pix);
                     shear_procpair(shear, lindex, sindex, cos_search_angle);
-                } // loop over sources
-            } // objects found
-        } // pix in range for sources
-    } // for loop
+
+                } // sources
+            } // objects found?
+        } // pix in range for sources?
+    }
 }
 
 void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search_angle) {
     struct lens* lens = &shear->lcat->data[li];
     struct source* src = &shear->scat->data[si];
+    struct config* config=shear->config;
+
+    struct lensum* lensum = &shear->lensums->data[li];
 
     double cosradiff, sinradiff, cosphi, theta;
     double phi, cos2theta, sin2theta, arg;
+    double scinv;
 
     cosradiff = src->cosra*lens->cosra + src->sinra*lens->sinra;
     cosphi = lens->sindec*src->sindec + lens->cosdec*lens->cosdec*cosradiff;
@@ -181,5 +211,37 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
             sin2theta *= -1;
         }
 
+        // note we already checked if lens z was in our interpolation range
+        scinv = f64interplin(src->zlens, src->scinv, lens->z);
+
+        if (scinv > 0) {
+            double r, logr;
+            int rbin;
+
+            r = phi*lens->da;
+            logr = log10(r);
+
+            rbin = (int)( (logr-config->log_rmin)/config->log_binsize );
+
+            if (rbin >= 0 && rbin <= config->nbin) {
+                double scinv2, gamma1, gamma2, weight, err2;
+
+                err2 = src->err*src->err;
+                scinv2 = scinv*scinv;
+
+                gamma1 = -(src->g1*cos2theta + src->g2*sin2theta);
+                gamma2 =  (src->g1*sin2theta - src->g2*cos2theta);
+                weight = scinv2/(GSN2 + err2);
+
+                lensum->weight += weight;
+                lensum->npair[rbin] += 1;
+
+                lensum->wsum[rbin] += weight;
+                lensum->dsum[rbin] += weight*gamma1/scinv;
+                lensum->osum[rbin] += weight*gamma2/scinv;
+
+                lensum->rsum[rbin] += r;
+            }
+        }
     }
 }

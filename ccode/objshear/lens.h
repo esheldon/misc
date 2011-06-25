@@ -11,8 +11,8 @@ struct lens {
     double z;
     int64 zindex;
 
-    // calculate these for speed later
-    double dc;
+    double da;
+
     double sinra;
     double cosra;
     double sindec;
@@ -27,7 +27,7 @@ struct lcat {
 
 struct lcat* lcat_new(size_t n_lens);
 struct lcat* lcat_read(const char* filename);
-void lcat_add_dc(struct cosmo* cosmo, struct lcat* lcat);
+void lcat_add_da(struct cosmo* cosmo, struct lcat* lcat);
 
 void lcat_print_one(struct lcat* lcat, size_t el);
 void lcat_print_firstlast(struct lcat* lcat);

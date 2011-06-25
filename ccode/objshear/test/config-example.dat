@@ -1,4 +1,4 @@
-lens_file          /astro/u/esheldon/lensing/lcat/02/lcat-02.bin
+lens_file          /astro/u/esheldon/lensing/lcat/02/lcat-02-020.bin
 source_file        /astro/u/esheldon/lensing/scat/03/scat-03.bin
 output_file        ./test-shear-output.bin
 H0                 100.0

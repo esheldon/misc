@@ -47,7 +47,7 @@ test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/
                  {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
 
 programs = [{'name':'objshear',
-             'sources':['config','lens','lensum','source','cosmo',
+             'sources':['config','lens','lensum','source','cosmo','interp',
                         'healpix','gcirc','stack','Vector','sort','histogram',
                         'shear',
                         'objshear']}]
