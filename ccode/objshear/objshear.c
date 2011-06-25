@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 
     struct shear* shear = shear_init(config_file);
 
-    shear_calc(shear);
+    shear_calc_bylens(shear);
     shear_delete(shear);
 
 }

@@ -45,6 +45,7 @@ struct shear* shear_init(const char* config_file) {
 
     printf("cosmo structure:\n");
     cosmo_print(shear->cosmo);
+
     printf("Initalizing healpix at nside: %ld\n", config->nside);
     shear->hpix = hpix_new(config->nside);
 
@@ -66,7 +67,10 @@ struct shear* shear_init(const char* config_file) {
 
     shear->scat = scat_read(config->source_file);
 
+    printf("Adding hpixid to sources\n");
     scat_add_hpixid(shear->hpix, shear->scat);
+    printf("Adding revind to scat\n");
+    scat_add_rev(shear->hpix, shear->scat);
 
 #ifdef WITH_TRUEZ
     scat_add_dc(shear->cosmo, shear->scat);
@@ -96,13 +100,29 @@ struct shear* shear_delete(struct shear* shear) {
 }
 
 
-void shear_calc(struct shear* shear) {
+void shear_calc_bylens(struct shear* shear) {
 
+    int dotstep=500;
+    printf("Each dot is %d\n", dotstep);
     for (size_t i=0; i<shear->lcat->size; i++) {
         shear_proclens(shear, i);
+        if ( ((i+1) % dotstep) == 0) {
+            printf(".");fflush(stdout);
+        }
     }
+    printf("\nDone\n");
 }
 
 void shear_proclens(struct shear* shear, size_t index) {
+
     struct lens* lens = &shear->lcat->data[index];
+
+    double da = lens->dc/(1+lens->z);
+    double search_angle = shear->config->rmax/da;
+
+    hpix_disc_intersect(
+            shear->hpix, 
+            lens->ra, lens->dec, 
+            search_angle, 
+            shear->pixstack);
 }

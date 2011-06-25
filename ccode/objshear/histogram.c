@@ -8,7 +8,7 @@
 void i64hist1(const struct i64vector* vec,
               const struct szvector* sort_index,
               struct i64vector* h,
-              struct i64vector* rev) {
+              struct szvector* rev) {
 
 
     int64_t* vdata = vec->data;
@@ -21,7 +21,7 @@ void i64hist1(const struct i64vector* vec,
     size_t nrev = vec->size + nbin + 1;
 
     i64vector_resize(h, nbin);
-    i64vector_resize(rev, nrev);
+    szvector_resize(rev, nrev);
 
     // use int64, size_t is unsigned
     int64_t binnum_old = -1;
