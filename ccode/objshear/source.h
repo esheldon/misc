@@ -53,6 +53,8 @@ struct scat {
     size_t size;
     struct source* data;
 
+    int64 minpix; // min hpix id
+    int64 maxpix; // max hpix id
     struct szvector* rev; // reverse indices for healpix ids
 
 #ifndef WITH_TRUEZ

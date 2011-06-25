@@ -21,7 +21,7 @@ struct shear {
     struct i64stack* pixstack;
 
     // this holds the info for a given lens
-    struct lensum* lensum;
+    struct lensums* lensums;
 
     // output file pointer
     FILE* fptr;
@@ -30,9 +30,10 @@ struct shear {
 struct shear* shear_init(const char* config_filename);
 struct shear* shear_delete(struct shear* shear);
 
-void shear_calc_bylens(struct shear* shear);
+void shear_calc(struct shear* shear);
 
-void shear_proclens(struct shear* shear, size_t index);
+void shear_proclens(struct shear* shear, size_t lindex);
+void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search_angle);
 
 #endif
 

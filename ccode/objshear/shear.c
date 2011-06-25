@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+#include <assert.h>
 
 #include "shear.h"
 #include "config.h"
@@ -49,9 +51,6 @@ struct shear* shear_init(const char* config_file) {
     printf("Initalizing healpix at nside: %ld\n", config->nside);
     shear->hpix = hpix_new(config->nside);
 
-    // this holds the sums for each lens
-    printf("Creating lensum\n");
-    shear->lensum=lensum_new(config->nbin);
 
     // this is a growable stack for holding pixels
     printf("Creating pixel stack\n");
@@ -59,6 +58,10 @@ struct shear* shear_init(const char* config_file) {
 
     // finally read the data
     shear->lcat = lcat_read(config->lens_file);
+
+
+    // this holds the sums for each lens
+    shear->lensums = lensums_new(shear->lcat->size, config->nbin);
 
     printf("Adding Dc to lenses\n");
     lcat_add_dc(shear->cosmo, shear->lcat);
@@ -91,7 +94,7 @@ struct shear* shear_delete(struct shear* shear) {
         shear->hpix   = hpix_delete(shear->hpix);
         shear->cosmo  = cosmo_delete(shear->cosmo);
         shear->pixstack = i64stack_delete(shear->pixstack);
-        shear->lensum = lensum_delete(shear->lensum);
+        shear->lensums = lensums_delete(shear->lensums);
 
         fclose(shear->fptr);
     }
@@ -100,7 +103,7 @@ struct shear* shear_delete(struct shear* shear) {
 }
 
 
-void shear_calc_bylens(struct shear* shear) {
+void shear_calc(struct shear* shear) {
 
     int dotstep=500;
     printf("Each dot is %d\n", dotstep);
@@ -113,16 +116,70 @@ void shear_calc_bylens(struct shear* shear) {
     printf("\nDone\n");
 }
 
-void shear_proclens(struct shear* shear, size_t index) {
+void shear_proclens(struct shear* shear, size_t lindex) {
 
-    struct lens* lens = &shear->lcat->data[index];
+    struct lens* lens = &shear->lcat->data[lindex];
+    struct scat* scat = shear->scat;
+    struct szvector* rev = scat->rev;
 
     double da = lens->dc/(1+lens->z);
     double search_angle = shear->config->rmax/da;
+    double cos_search_angle = cos(search_angle);
 
+    struct i64stack* pixstack = shear->pixstack;
     hpix_disc_intersect(
             shear->hpix, 
             lens->ra, lens->dec, 
             search_angle, 
-            shear->pixstack);
+            pixstack);
+
+    for (size_t i=0; i<pixstack->size; i++) {
+        int64 pix = pixstack->data[i];
+
+        if ( pix >= scat->minpix && pix <= scat->maxpix) {
+            int64 ipix=pix-scat->minpix;
+            size_t nsrc = rev->data[ipix+1] - rev->data[ipix];
+            if (nsrc > 0) {
+                for (size_t j=0; j<nsrc; j++) {
+                    size_t sindex=rev->data[ rev->data[ipix]+j ];
+                    assert(sindex < scat->size);
+                    assert(scat->data[sindex].hpixid == pix);
+                    shear_procpair(shear, lindex, sindex, cos_search_angle);
+                } // loop over sources
+            } // objects found
+        } // pix in range for sources
+    } // for loop
+}
+
+void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search_angle) {
+    struct lens* lens = &shear->lcat->data[li];
+    struct source* src = &shear->scat->data[si];
+
+    double cosradiff, sinradiff, cosphi, theta;
+    double phi, cos2theta, sin2theta, arg;
+
+    cosradiff = src->cosra*lens->cosra + src->sinra*lens->sinra;
+    cosphi = lens->sindec*src->sindec + lens->cosdec*lens->cosdec*cosradiff;
+
+    if (cosphi > cos_search_angle) {
+        if (cosphi > 1.0) {
+            cosphi = 1.0;
+        } else if (cosphi < -1.0) {
+            cosphi = -1.0;
+        }
+        phi = acos(cosphi);
+
+        // this is sin(sra-lra), note sign
+        sinradiff = src->sinra*lens->cosra - src->cosra*lens->sinra;
+
+        arg = lens->sindec*cosradiff - lens->cosdec*src->sindec/lens->cosdec;
+        theta = atan2(sinradiff, arg) - M_PI_2;
+        cos2theta = cos(2*theta);
+        // 20-30% faster
+        sin2theta = sqrt(1.-cos2theta*cos2theta);
+        if (theta < 0) {
+            sin2theta *= -1;
+        }
+
+    }
 }
