@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
 
     printf("  histogramming hpixid\n");
     struct i64vector* h=i64vector_new(0);
-    struct szvector* rev=i64vector_new(0);
+    struct szvector* rev=szvector_new(0);
     i64hist1(hpixid, sind, h, rev);
 
     struct i64stack* listpix =i64stack_new(4*hpix->nside);

@@ -9,9 +9,9 @@ int main(int argc, char** argv) {
     }
 
     const char* fname=argv[1];
-    struct config* c=read_config(fname);
+    struct config* c=config_read(fname);
 
-    print_config(c);
+    config_print(c);
 
     free(c);
 }

@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     }
 
     struct i64vector* h = i64vector_new(0);
-    struct szvector* rev= i64vector_new(0);
+    struct szvector* rev= szvector_new(0);
 
     i64hist1(vec, sort_index, h, rev);
 
@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
         printf("  h[%ld]: %ld\n", i, h->data[i]);
     }
     for (size_t i=0; i<rev->size; i++) {
-        printf("  rev[%ld]: %ud\n", i, rev->data[i]);
+        printf("  rev[%ld]: %lu\n", i, rev->data[i]);
     }
 
     i64vector_delete(vec);
