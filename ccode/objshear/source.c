@@ -171,9 +171,20 @@ struct scat* scat_read(const char* filename) {
 }
 
 void scat_add_hpixid(struct healpix* hpix, struct scat* scat) {
+
+    scat->minpix=INT64_MAX;
+    scat->maxpix=-1;
     struct source* src = &scat->data[0];
     for (size_t i=0; i<scat->size; i++) {
-        src->hpixid = hpix_eq2pix(hpix, src->ra, src->dec);
+        int64 id = hpix_eq2pix(hpix, src->ra, src->dec);
+        src->hpixid = id;
+
+        if (id > scat->maxpix) {
+            scat->maxpix=id;
+        }
+        if (id < scat->minpix) {
+            scat->minpix=id;
+        }
         src++;
     }
 }

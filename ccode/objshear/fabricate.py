@@ -688,7 +688,7 @@ class Builder(object):
 
     def __init__(self, runner=None, dirs=None, dirdepth=100, ignoreprefix='.',
                  ignore=None, hasher=md5_hasher, depsname='.deps',
-                 quiet=False, debug=False, inputs_only=False):
+                 quiet=False, fabdebug=False, inputs_only=False):
         """ Initialise a Builder with the given options.
 
         "runner" specifies how programs should be run.  It is either a
@@ -715,7 +715,7 @@ class Builder(object):
         "depsname" is the name of the JSON dependency file to load/save.
         "quiet" set to True tells the builder to not display the commands being
             executed (or other non-error output).
-        "debug" set to True makes the builder print debug output, such as why
+        "fabdebug" set to True makes the builder print debug output, such as why
             particular commands are being executed
         "inputs_only" set to True makes builder only re-build if input hashes
             have changed (ignores output hashes); use with tools that touch
@@ -740,7 +740,7 @@ class Builder(object):
         self.depsname = depsname
         self.hasher = hasher
         self.quiet = quiet
-        self.debug = debug
+        self.debug = fabdebug
         self.inputs_only = inputs_only
         self.checking = False
 
@@ -997,13 +997,15 @@ def parse_options(usage, extra_options=None):
     parser.disable_interspersed_args()
     parser.add_option('-t', '--time', action='store_true',
                       help='use file modification times instead of MD5 sums')
-    parser.add_option('-d', '--dir', action='append',
+    # ESS removed -d 
+    parser.add_option('--dir', action='append',
                       help='add DIR to list of relevant directories')
     parser.add_option('-c', '--clean', action='store_true',
                       help='autoclean build outputs before running')
     parser.add_option('-q', '--quiet', action='store_true',
                       help="don't echo commands, only print errors")
-    parser.add_option('-D', '--debug', action='store_true',
+    # ESS renamed debug to fabdebug
+    parser.add_option('-D', '--fabdebug', action='store_true',
                       help="show debug info (why commands are rebuilt)")
     parser.add_option('-k', '--keep', action='store_true',
                       help='keep temporary strace output files')
@@ -1013,7 +1015,7 @@ def parse_options(usage, extra_options=None):
             parser.add_option(option)
     options, args = parser.parse_args()
     default_builder.quiet = options.quiet
-    default_builder.debug = options.debug
+    default_builder.fabdebug = options.fabdebug
     if options.time:
         default_builder.hasher = mtime_hasher
     if options.dir:

@@ -7,27 +7,33 @@ import glob
 
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
-optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix),
-         optparse.Option('--with-truez',default=False),
-         optparse.Option('--test',action="store_true",default=False)]
+optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix,help="where to install"),
+         optparse.Option('--with-truez',default=False,help="use true z for sources"),
+         optparse.Option('--noopt',action="store_true",help="turn off compiler optimizations"),
+         optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)"),
+         optparse.Option('--test',action="store_true",help="compile tests")]
 parser.add_options(optlist)
 
 options,args = parser.parse_args()
 prefix=os.path.expanduser( options.prefix )
 with_truez=options.with_truez
+debug=options.debug
+noopt=options.noopt
 
 CC='gcc'
 
-
-CFLAGS=['-std=c99','-O2','-Wall','-Werror']
 LINKFLAGS=['-lm']
+
+CFLAGS=['-std=c99','-Wall','-Werror']
+if not noopt:
+    CFLAGS += ['-O2']
+if not debug:
+    CFLAGS += ['-DNDEBUG']
 
 if with_truez:
     CFLAGS += ['-DWITH_TRUEZ']
 
-hpix_sources=['healpix','stack']
-
-test_programs = [{'name':'test/test-healpix','sources':hpix_sources+['test/test-healpix']},
+test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/test-healpix']},
                  {'name':'test/test-healpix-brute',
                   'sources':['healpix','gcirc','stack','Vector','sort','histogram','test/test-healpix-brute']},
                  {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
