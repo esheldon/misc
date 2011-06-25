@@ -119,6 +119,8 @@ struct scat* scat_read(const char* filename) {
     struct scat* scat=scat_new(nsource, n_zlens);
     // scat->zlens is already allocated
     memcpy(scat->zlens->data, zlens->data, n_zlens*sizeof(double));
+    scat->min_zlens = zlens->data[0];
+    scat->max_zlens = zlens->data[zlens->size-1];
     f64vector_delete(zlens);
 #else
     struct scat* scat=scat_new(nsource);

@@ -32,4 +32,8 @@
 
 typedef int64_t int64;
 
+// move this to config file?
+// (shape noise/2)**2  to give noise on gamma
+#define GSN2 0.0256
+
 #endif
