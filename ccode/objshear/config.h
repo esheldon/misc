@@ -17,7 +17,7 @@ struct config {
     int64 sigmacrit_style;
 
     int64 nbin;
-    double rmin;
+    double rmin; // mpc/h
     double rmax;
 
     // we fill these in

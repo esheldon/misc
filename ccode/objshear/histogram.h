@@ -9,7 +9,7 @@
 void i64hist1(const struct i64vector* vec,
               const struct szvector* sort_index,
               struct i64vector* h,
-              struct i64vector* rev);
+              struct szvector* rev);
 
 
 

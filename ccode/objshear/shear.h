@@ -30,7 +30,7 @@ struct shear {
 struct shear* shear_init(const char* config_filename);
 struct shear* shear_delete(struct shear* shear);
 
-void shear_calc(struct shear* shear);
+void shear_calc_bylens(struct shear* shear);
 
 void shear_proclens(struct shear* shear, size_t index);
 

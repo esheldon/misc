@@ -39,6 +39,17 @@ struct szvector* szvector_fromarray(size_t* arr, size_t size) {
     }
     return vector;
 }
+struct szvector* szvector_copy(struct szvector* vec) {
+
+    struct szvector* newvec = szvector_new(vec->size);
+
+    if (vec->size > 0) {
+        memcpy(newvec->data, vec->data, vec->size*sizeof(size_t));
+    }
+    return newvec;
+}
+
+
 
 struct szvector* szvector_range(size_t size) {
     struct szvector* vector = szvector_new(size);
@@ -74,12 +85,12 @@ void szvector_resize(struct szvector* vector, size_t newsize) {
     vector->size = newsize;
 }
 
-void szvector_delete(struct szvector* vector) {
+struct szvector* szvector_delete(struct szvector* vector) {
     if (vector != NULL) {
         free(vector->data);
         free(vector);
-        vector=NULL;
     }
+    return NULL;
 }
 
 
@@ -116,6 +127,17 @@ struct i64vector* i64vector_fromarray(int64_t* arr, size_t size) {
     }
     return vector;
 }
+struct i64vector* i64vector_copy(struct i64vector* vec) {
+
+    struct i64vector* newvec = i64vector_new(vec->size);
+
+    if (vec->size > 0) {
+        memcpy(newvec->data, vec->data, vec->size*sizeof(int64_t));
+    }
+    return newvec;
+}
+
+
 
 struct i64vector* i64vector_range(size_t size) {
     struct i64vector* vector = i64vector_new(size);
@@ -151,12 +173,12 @@ void i64vector_resize(struct i64vector* vector, size_t newsize) {
     vector->size = newsize;
 }
 
-void i64vector_delete(struct i64vector* vector) {
+struct i64vector* i64vector_delete(struct i64vector* vector) {
     if (vector != NULL) {
         free(vector->data);
         free(vector);
-        vector=NULL;
     }
+    return NULL;
 }
 
 
@@ -193,6 +215,17 @@ struct f64vector* f64vector_fromarray(float64* arr, size_t size) {
     }
     return vector;
 }
+struct f64vector* f64vector_copy(struct f64vector* vec) {
+
+    struct f64vector* newvec = f64vector_new(vec->size);
+
+    if (vec->size > 0) {
+        memcpy(newvec->data, vec->data, vec->size*sizeof(float64));
+    }
+    return newvec;
+}
+
+
 
 struct f64vector* f64vector_range(size_t size) {
     struct f64vector* vector = f64vector_new(size);
@@ -228,12 +261,12 @@ void f64vector_resize(struct f64vector* vector, size_t newsize) {
     vector->size = newsize;
 }
 
-void f64vector_delete(struct f64vector* vector) {
+struct f64vector* f64vector_delete(struct f64vector* vector) {
     if (vector != NULL) {
         free(vector->data);
         free(vector);
-        vector=NULL;
     }
+    return NULL;
 }
 
 

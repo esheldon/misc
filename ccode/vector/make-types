@@ -69,11 +69,12 @@ struct %(shortname)svector {
 
 struct %(shortname)svector* %(shortname)svector_new(size_t num);
 struct %(shortname)svector* %(shortname)svector_fromarray(%(type)s* arr, size_t size);
+struct %(shortname)svector* %(shortname)svector_copy(struct %(shortname)svector* vec);
 struct %(shortname)svector* %(shortname)svector_range(size_t num);
 void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsize);
 
 // clears all memory in ->data and sets pointer to NULL
-void %(shortname)svector_delete(struct %(shortname)svector* vector);
+struct %(shortname)svector* %(shortname)svector_delete(struct %(shortname)svector* vector);
 
 '''
 
@@ -109,6 +110,17 @@ struct %(shortname)svector* %(shortname)svector_fromarray(%(type)s* arr, size_t 
     }
     return vector;
 }
+struct %(shortname)svector* %(shortname)svector_copy(struct %(shortname)svector* vec) {
+
+    struct %(shortname)svector* newvec = %(shortname)svector_new(vec->size);
+
+    if (vec->size > 0) {
+        memcpy(newvec->data, vec->data, vec->size*sizeof(%(type)s));
+    }
+    return newvec;
+}
+
+
 
 struct %(shortname)svector* %(shortname)svector_range(size_t size) {
     struct %(shortname)svector* vector = %(shortname)svector_new(size);
@@ -144,12 +156,12 @@ void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsi
     vector->size = newsize;
 }
 
-void %(shortname)svector_delete(struct %(shortname)svector* vector) {
+struct %(shortname)svector* %(shortname)svector_delete(struct %(shortname)svector* vector) {
     if (vector != NULL) {
         free(vector->data);
         free(vector);
-        vector=NULL;
     }
+    return NULL;
 }
 
 

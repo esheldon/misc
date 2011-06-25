@@ -4,6 +4,8 @@
 #include <string.h>
 #include "math.h"
 #include "source.h"
+#include "sort.h"
+#include "histogram.h"
 #include "Vector.h"
 
 #ifndef WITH_TRUEZ
@@ -37,7 +39,8 @@ struct scat* scat_new(size_t n_source) {
         exit(EXIT_FAILURE);
     }
 
-    scat->rev=NULL;
+    // allocate this but keep it zero size for now
+    scat->rev=szvector_new(0);
 
 #ifndef WITH_TRUEZ
 
@@ -164,7 +167,6 @@ struct scat* scat_read(const char* filename) {
         src++;
     }
 
-
     return scat;
 }
 
@@ -175,6 +177,33 @@ void scat_add_hpixid(struct healpix* hpix, struct scat* scat) {
         src++;
     }
 }
+void scat_add_rev(struct healpix* hpix, struct scat* scat) {
+    // need to make a copy of the hpixid in order to get the
+    // sorted indices
+
+    struct i64vector* hpixid = i64vector_new(scat->size);
+    for (size_t i=0; i<scat->size; i++) {
+        hpixid->data[i] = scat->data[i].hpixid;
+    }
+    // temporary sort index
+    struct szvector* sind = i64sortind(hpixid);
+
+    // temporary to hold histogram and sort index
+    struct i64vector* h = i64vector_new(0);
+
+    // this is what we'll keep
+    struct szvector* rev = szvector_new(0);
+
+    i64hist1(hpixid, sind, h, rev);
+
+    scat->rev = rev;
+
+    // delete temporaries
+    hpixid = i64vector_delete(hpixid);
+    h      = i64vector_delete(h);
+    sind   = szvector_delete(sind);
+}
+
 
 
 #ifdef WITH_TRUEZ
@@ -220,7 +249,7 @@ struct scat* scat_delete(struct scat* scat) {
     if (scat != NULL) {
 
 #ifndef WITH_TRUEZ
-        f64vector_delete(scat->zlens);
+        scat->zlens = f64vector_delete(scat->zlens);
 
         struct source* src = &scat->data[0];
         for (size_t i=0; i<scat->size; i++) {
@@ -230,6 +259,7 @@ struct scat* scat_delete(struct scat* scat) {
 #endif
 
         free(scat->data);
+        scat->rev = szvector_delete(scat->rev);
         free(scat);
     }
     return NULL;
