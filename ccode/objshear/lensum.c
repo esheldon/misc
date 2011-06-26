@@ -5,7 +5,7 @@
 
 struct lensums* lensums_new(size_t nlens, size_t nbin) {
     printf("Creating lensums:\n");
-    printf("  nlens: %lu  nbin: %lu\n", nlens, nbin);
+    printf("    nlens: %lu  nbin: %lu\n", nlens, nbin);
 
     struct lensums* lensums=calloc(1,sizeof(struct lensums));
     if (lensums == NULL) {
@@ -71,25 +71,39 @@ void lensums_write(struct lensums* lensums, FILE* fptr) {
     }
 }
 
+struct lensum* lensums_sum(struct lensums* lensums) {
+    struct lensum* tsum=lensum_new(lensums->data[0].nbin);
+
+    struct lensum* lensum = &lensums->data[0];
+
+    for (size_t i=0; i<lensums->size; i++) {
+        tsum->weight += lensum->weight;
+        tsum->totpairs += lensum->totpairs;
+        for (size_t j=0; j<lensum->nbin; j++) {
+            tsum->npair[j] += lensum->npair[j];
+            tsum->rsum[j] += lensum->rsum[j];
+            tsum->wsum[j] += lensum->wsum[j];
+            tsum->dsum[j] += lensum->dsum[j];
+            tsum->osum[j] += lensum->osum[j];
+        }
+        lensum++;
+    }
+    return tsum;
+}
+
+
+
+void lensums_print_sum(struct lensums* lensums) {
+    struct lensum* lensum = lensums_sum(lensums);
+    lensum_print(lensum);
+    lensum_delete(lensum);
+}
+
 // these write the stdout
 void lensums_print_one(struct lensums* lensums, size_t index) {
-    struct lensum* lensum = &lensums->data[index];
-
     printf("element %ld of lensums:\n",index);
-    printf("  zindex: %ld\n", lensum->zindex);
-    printf("  weight: %lf\n", lensum->weight);
-    printf("  nbin:   %ld\n", lensum->nbin);
-    printf("  npair   wsum     dsum     osum    rsum\n");
-
-    for (size_t i=0; i<lensum->nbin; i++) {
-        printf("    %ld %lf %lf %lf %lf\n", 
-               lensum->npair[i],
-               lensum->wsum[i],
-               lensum->dsum[i],
-               lensum->osum[i],
-               lensum->rsum[i]);
-    }
-
+    struct lensum* lensum = &lensums->data[index];
+    lensum_print(lensum);
 }
 
 void lensums_print_firstlast(struct lensums* lensums) {
@@ -121,6 +135,8 @@ struct lensum* lensum_new(size_t nbin) {
         exit(EXIT_FAILURE);
     }
 
+    lensum->nbin = nbin;
+
     lensum->npair = calloc(nbin, sizeof(int64));
     lensum->wsum  = calloc(nbin, sizeof(double));
     lensum->dsum  = calloc(nbin, sizeof(double));
@@ -139,6 +155,26 @@ struct lensum* lensum_new(size_t nbin) {
 
     return lensum;
 }
+
+// these write the stdout
+void lensum_print(struct lensum* lensum) {
+    printf("  zindex:   %ld\n", lensum->zindex);
+    printf("  weight:   %lf\n", lensum->weight);
+    printf("  totpairs: %ld\n", lensum->totpairs);
+    printf("  nbin:     %ld\n", lensum->nbin);
+    printf("  bin      npair            wsum            dsum            osum              rsum\n");
+
+    for (size_t i=0; i<lensum->nbin; i++) {
+        printf("  %3lu %10ld %15.6lf %15.6lf %15.6lf %17.6lf\n", 
+               i,
+               lensum->npair[i],
+               lensum->wsum[i],
+               lensum->dsum[i],
+               lensum->osum[i],
+               lensum->rsum[i]);
+    }
+}
+
 
 
 void lensum_clear(struct lensum* lensum) {

@@ -42,12 +42,12 @@ struct cosmo* cosmo_new(
 }
 
 void cosmo_print(struct cosmo* c) {
-    printf("  H0: %lf\n", c->H0);
-    printf("  DH: %lf\n", c->DH);
-    printf("  flat: %d\n", c->flat);
-    printf("  omega_m: %lf\n", c->omega_m);
-    printf("  omega_l: %lf\n", c->omega_l);
-    printf("  omega_k: %lf\n", c->omega_k);
+    printf("    H0: %lf\n", c->H0);
+    printf("    DH: %lf\n", c->DH);
+    printf("    flat: %d\n", c->flat);
+    printf("    omega_m: %lf\n", c->omega_m);
+    printf("    omega_l: %lf\n", c->omega_l);
+    printf("    omega_k: %lf\n", c->omega_k);
 }
 
 // usage:  cosmo=cosmo_delete(cosmo);

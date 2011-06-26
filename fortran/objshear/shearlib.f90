@@ -153,7 +153,6 @@ contains
         print '(a,i0,a)',"Processing ",nlens," lenses."
 
         do i=1,nlens
-        !do i=1,5
             print '(".",$)'
 
             lensums(i)%zindex = shdata%lenses(i)%zindex
@@ -222,9 +221,6 @@ contains
                         shdata%lenses(ilens)%dec, &
                         search_angle, listpix, npixfound,   &
                         inclusive)
-        !print '("zindex: ",i0," found npix: ", i0)', &
-        !    shdata%lenses(ilens)%zindex,npixfound
-        !call exit(45)
 
 !$OMP PARALLEL DO DEFAULT(SHARED) &
 !$OMP PRIVATE(j,pix,n_in_bin,k,isrc,phi,cos2theta,sin2theta,r,scinv) &
@@ -234,7 +230,6 @@ contains
             if (pix >= shdata%minid .and. pix <= shdata%maxid) then
                 pix = listpix(j) - shdata%minid + 1
                 n_in_bin = shdata%rev(pix+1) - shdata%rev(pix)
-                !print '("  Found nsrc: ",i0)',n_in_bin
                 do k=1,n_in_bin
                     isrc = shdata%rev( shdata%rev(pix) + k -1 )
 
@@ -254,17 +249,11 @@ contains
                         if (shdata%scat%sigmacrit_style == 1) then
                             scinv = sigmacritinv(zl,dlc, shdata%scat%dc(isrc))
                         else
-                            ! already checked zlens range
-                            !if ( (zl >= shdata%scat%zlmin) .and. (zl <= shdata%scat%zlmax) ) then
 
-                                    scinv = interpf8(shdata%scat%zlinterp, &
-                                                     shdata%scat%scinv(isrc,:), &
-                                                     zl)
-                            !else
-                            !    scinv=0
-                            !endif
+                            scinv = interpf8(shdata%scat%zlinterp, &
+                                             shdata%scat%scinv(isrc,:), &
+                                             zl)
                         endif
-                        !print '(" scinv: ",f8.6,"  id: ",i0)',scinv,isrc-1
                         if (scinv > 0) then
                             call calc_shear_sums_omp(shdata%pars, &
                                 shdata%scat%g1(isrc), &
@@ -314,17 +303,13 @@ contains
         search_angle = shdata%pars%rmax/dl
         cos_search_angle = cos(search_angle)
 
-        !print '(a)',"Before query disc"
         call query_disc(shdata%pars%nside,    &
                         shdata%lenses(ilens)%ra, &
                         shdata%lenses(ilens)%dec, &
                         search_angle, listpix, npixfound,   &
                         inclusive)
-        !print '(a)',"After query disc"
 
-        !if (npixfound > maxpix_used) maxpix_used = npixfound
         do j=1,npixfound
-        !do j=0,npixfound-1
             pix = listpix(j)
             if (pix >= shdata%minid .and. pix <= shdata%maxid) then
                 ! add one to make 1-offset
@@ -391,7 +376,6 @@ contains
             if (cosphi > 1.0) cosphi = 1.0
             if (cosphi < -1.0) cosphi = -1.0
             phi = acos(cosphi)
-            !print '("    phi: ",f8.6,$)',phi
 
             ! this is sin(sra-lra), note sign
             sinradiff = sinsra*coslra - cossra*sinlra
@@ -440,8 +424,6 @@ contains
 
             gamma1 = -(g1*cos2theta + g2*sin2theta)
             gamma2 =  (g1*sin2theta - g2*cos2theta)
-            !print '("    c2th: ",f9.6," s2th: ",f9.6," g1: ",f9.6," g2: ",f9.6," scinv: ",f9.6)',&
-            !    cos2theta,sin2theta,gamma1,gamma2,scinv
             w = scinv2/(GSN2 + err**2)
 
             weight = weight + w
