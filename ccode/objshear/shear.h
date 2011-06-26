@@ -23,7 +23,7 @@ struct shear {
     // this holds the info for a given lens
     struct lensums* lensums;
 
-    // output file pointer
+    // output file pointer. We open at the beginning to make sure we can!
     FILE* fptr;
 };
 

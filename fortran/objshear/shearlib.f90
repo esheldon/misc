@@ -139,6 +139,7 @@ contains
 
         type(lens_sum) lensum_tot
         integer*8 :: nlens, nbin
+        real*8 zlens
 
         allocate(listpix(MAXPIX)); listpix=0
 
@@ -152,14 +153,17 @@ contains
         print '(a,i0,a)',"Processing ",nlens," lenses."
 
         do i=1,nlens
+        !do i=1,5
             print '(".",$)'
 
             lensums(i)%zindex = shdata%lenses(i)%zindex
 
-            if (shdata % lenses(i) % z > minz) then
+            zlens=shdata % lenses(i) % z
+            if (zlens > minz &
+                    .and. zlens >= shdata%scat%zlmin &
+                    .and. zlens <= shdata%scat%zlmax) then
 
                 call process_lens_omp(shdata, i, lensums(i),listpix)
-
             endif
 
         end do
@@ -218,6 +222,9 @@ contains
                         shdata%lenses(ilens)%dec, &
                         search_angle, listpix, npixfound,   &
                         inclusive)
+        !print '("zindex: ",i0," found npix: ", i0)', &
+        !    shdata%lenses(ilens)%zindex,npixfound
+        !call exit(45)
 
 !$OMP PARALLEL DO DEFAULT(SHARED) &
 !$OMP PRIVATE(j,pix,n_in_bin,k,isrc,phi,cos2theta,sin2theta,r,scinv) &
@@ -227,6 +234,7 @@ contains
             if (pix >= shdata%minid .and. pix <= shdata%maxid) then
                 pix = listpix(j) - shdata%minid + 1
                 n_in_bin = shdata%rev(pix+1) - shdata%rev(pix)
+                !print '("  Found nsrc: ",i0)',n_in_bin
                 do k=1,n_in_bin
                     isrc = shdata%rev( shdata%rev(pix) + k -1 )
 
@@ -246,15 +254,17 @@ contains
                         if (shdata%scat%sigmacrit_style == 1) then
                             scinv = sigmacritinv(zl,dlc, shdata%scat%dc(isrc))
                         else
-                            if ( (zl >= shdata%scat%zlmin) .and. (zl <= shdata%scat%zlmax) ) then
+                            ! already checked zlens range
+                            !if ( (zl >= shdata%scat%zlmin) .and. (zl <= shdata%scat%zlmax) ) then
 
                                     scinv = interpf8(shdata%scat%zlinterp, &
                                                      shdata%scat%scinv(isrc,:), &
                                                      zl)
-                            else
-                                scinv=0
-                            endif
+                            !else
+                            !    scinv=0
+                            !endif
                         endif
+                        !print '(" scinv: ",f8.6,"  id: ",i0)',scinv,isrc-1
                         if (scinv > 0) then
                             call calc_shear_sums_omp(shdata%pars, &
                                 shdata%scat%g1(isrc), &
@@ -381,6 +391,7 @@ contains
             if (cosphi > 1.0) cosphi = 1.0
             if (cosphi < -1.0) cosphi = -1.0
             phi = acos(cosphi)
+            !print '("    phi: ",f8.6,$)',phi
 
             ! this is sin(sra-lra), note sign
             sinradiff = sinsra*coslra - cossra*sinlra
@@ -390,9 +401,6 @@ contains
 
             cos2theta = cos(2*theta)
             sin2theta = sin(2*theta)
-            ! we can replace with
-            ! sin2theta = sign(sqrt(1.0-cos2theta**2), theta)
-            ! will make code 30% faster
 
         else
             phi=-1
@@ -432,6 +440,8 @@ contains
 
             gamma1 = -(g1*cos2theta + g2*sin2theta)
             gamma2 =  (g1*sin2theta - g2*cos2theta)
+            !print '("    c2th: ",f9.6," s2th: ",f9.6," g1: ",f9.6," g2: ",f9.6," scinv: ",f9.6)',&
+            !    cos2theta,sin2theta,gamma1,gamma2,scinv
             w = scinv2/(GSN2 + err**2)
 
             weight = weight + w
