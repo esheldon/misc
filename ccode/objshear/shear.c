@@ -67,9 +67,6 @@ struct shear* shear_init(const char* config_file) {
     for (size_t i=0; i<shear->lensums->size; i++) {
         shear->lensums->data[i].zindex = shear->lcat->data[i].zindex;
     }
-#ifndef NDEBUG
-    lensums_print_firstlast(shear->lensums);
-#endif
 
     printf("Adding Dc to lenses\n");
     lcat_add_da(shear->cosmo, shear->lcat);
@@ -132,7 +129,13 @@ void shear_calc(struct shear* shear) {
         printf(".");fflush(stdout);
     }
     printf("\n");
+
+#ifndef NDEBUG
     lensums_print_firstlast(shear->lensums);
+#endif
+
+    printf("Total sums:\n");
+    lensums_print_sum(shear->lensums);
 
     printf("Writing out lensums to %s\n", shear->config->output_file);
     lensums_write(shear->lensums, shear->fptr);
@@ -202,6 +205,8 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
 
         arg = lens->sindec*cosradiff - lens->cosdec*src->sindec/src->cosdec;
         theta = atan2(sinradiff, arg) - M_PI_2;
+
+        // these two calls are a significant fraction of cpu usage
         cos2theta = cos(2*theta);
         sin2theta = sin(2*theta);
 
@@ -228,6 +233,7 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
                 weight = scinv2/(GSN2 + err2);
 
                 lensum->weight += weight;
+                lensum->totpairs += 1;
                 lensum->npair[rbin] += 1;
 
                 lensum->wsum[rbin] += weight;

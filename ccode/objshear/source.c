@@ -90,13 +90,16 @@ struct scat* scat_read(const char* filename) {
 
     int64 n_zlens;
     rval=fread(&n_zlens, sizeof(int64), 1, fptr);
-    printf("  Reading %ld zlens values: ", n_zlens);
+    printf("    Reading %ld zlens values:", n_zlens);
 
     // using a temporary variable since scat is not yet allocated
     struct f64vector* zlens = f64vector_new(n_zlens);
     rval=fread(&zlens->data[0], sizeof(double), n_zlens, fptr);
 
     for (int64 i=0; i<n_zlens; i++) {
+        if ( (i % 10) == 0) {
+            printf("\n    ");
+        }
         printf("%lf ", zlens->data[i]);
     }
     printf("\n");
@@ -113,7 +116,7 @@ struct scat* scat_read(const char* filename) {
     int64 nsource;
     rval=fread(&nsource, sizeof(int64), 1, fptr);
     printf("Reading %ld sources\n", nsource);
-    printf("  creating scat...");
+    printf("    creating scat...");
 
 #ifndef WITH_TRUEZ
     struct scat* scat=scat_new(nsource, n_zlens);
@@ -128,7 +131,7 @@ struct scat* scat_read(const char* filename) {
 
     printf("OK\n");
 
-    printf("  reading data\n");
+    printf("    reading data\n");
     struct source* src = &scat->data[0];
     double ra_rad,dec_rad;
     for (size_t i=0; i<scat->size; i++) {
@@ -156,7 +159,7 @@ struct scat* scat_read(const char* filename) {
 
 #endif
         if (i == 0 || i == (scat->size-1)) {
-            printf("  %ld: ra: %lf  dec: %lf\n", i, src->ra, src->dec);
+            printf("    %ld: ra: %lf  dec: %lf\n", i, src->ra, src->dec);
         }
 
         ra_rad = src->ra*D2R;
@@ -233,18 +236,18 @@ void scat_add_dc(struct cosmo* cosmo, struct scat* scat) {
 void scat_print_one(struct scat* scat, size_t el) {
     struct source* src = &scat->data[el];
     printf("element %ld of scat:\n", el);
-    printf("  ra: %lf  dec: %lf\n", R2D*asin(src->sinra), R2D*asin(src->sindec));
-    printf("  g1: %lf  g2: %lf\n", src->g1, src->g2);
-    printf("  err: %lf\n", src->err);
-    printf("  hpixid: %ld\n", src->hpixid);
+    printf("    ra: %lf  dec: %lf\n", R2D*asin(src->sinra), R2D*asin(src->sindec));
+    printf("    g1: %lf  g2: %lf\n", src->g1, src->g2);
+    printf("    err: %lf\n", src->err);
+    printf("    hpixid: %ld\n", src->hpixid);
 #ifdef WITH_TRUEZ
-    printf("  z: %lf\n", src->z);
-    printf("  dc: %lf\n", src->dc);
+    printf("    z: %lf\n", src->z);
+    printf("    dc: %lf\n", src->dc);
 #else
     size_t nzl = src->zlens->size;
-    printf("  zlens[0]: %lf  szinv[0]: %lf\n", 
+    printf("    zlens[0]: %lf  szinv[0]: %lf\n", 
            src->zlens->data[0], src->scinv->data[0]);
-    printf("  zlens[%ld]: %lf  szinv[%ld]: %lf\n", 
+    printf("    zlens[%ld]: %lf  szinv[%ld]: %lf\n", 
            nzl-1, src->zlens->data[nzl-1], nzl-1, src->scinv->data[nzl-1]);
 #endif
 }

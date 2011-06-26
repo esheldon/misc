@@ -9,8 +9,8 @@ import glob
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
 optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix),
-         optparse.Option('--f90',default='gfortran'),
-         optparse.Option('--openmp',default='gfortran')]
+         optparse.Option('--f90',default='ifort'),
+         optparse.Option('--openmp',action="store_true")]
 parser.add_options(optlist)
 
 options,args = parser.parse_args()

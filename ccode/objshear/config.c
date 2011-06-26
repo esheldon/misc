@@ -43,18 +43,18 @@ struct config* config_delete(struct config* config) {
 }
 
 void config_print(struct config* c) {
-    printf("  lens_file:    %s\n", c->lens_file);
-    printf("  source_file:  %s\n", c->source_file);
-    printf("  output_file:  %s\n", c->output_file);
-    printf("  H0:           %lf\n", c->H0);
-    printf("  omega_m:      %lf\n", c->omega_m);
-    printf("  npts:         %ld\n", c->npts);
-    printf("  nside:        %ld\n", c->nside);
-    printf("  scrit style:  %ld\n", c->sigmacrit_style);
-    printf("  nbin:         %ld\n", c->nbin);
-    printf("  rmin:         %lf\n", c->rmin);
-    printf("  rmax:         %lf\n", c->rmax);
-    printf("  log(rmin):    %lf\n", c->log_rmin);
-    printf("  log(rmax):    %lf\n", c->log_rmax);
-    printf("  log(binsize): %lf\n", c->log_binsize);
+    printf("    lens_file:    %s\n", c->lens_file);
+    printf("    source_file:  %s\n", c->source_file);
+    printf("    output_file:  %s\n", c->output_file);
+    printf("    H0:           %lf\n", c->H0);
+    printf("    omega_m:      %lf\n", c->omega_m);
+    printf("    npts:         %ld\n", c->npts);
+    printf("    nside:        %ld\n", c->nside);
+    printf("    scrit style:  %ld\n", c->sigmacrit_style);
+    printf("    nbin:         %ld\n", c->nbin);
+    printf("    rmin:         %lf\n", c->rmin);
+    printf("    rmax:         %lf\n", c->rmax);
+    printf("    log(rmin):    %lf\n", c->log_rmin);
+    printf("    log(rmax):    %lf\n", c->log_rmax);
+    printf("    log(binsize): %lf\n", c->log_binsize);
 }
