@@ -121,18 +121,9 @@ void shear_calc(struct shear* shear) {
         if (z >= minz && z <= maxz && z > MIN_ZLENS) {
             shear_proclens(shear, i);
         } 
-#ifndef NDEBUG
-        else {
-            printf("skipping lens %lu at z=%lf outside of redshift bounds\n",i,z);
-        }
-#endif
         printf(".");fflush(stdout);
     }
     printf("\n");
-
-#ifndef NDEBUG
-    lensums_print_firstlast(shear->lensums);
-#endif
 
     printf("Total sums:\n");
     lensums_print_sum(shear->lensums);
