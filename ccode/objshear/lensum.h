@@ -22,8 +22,14 @@ struct lensums {
 
 
 struct lensums* lensums_new(size_t nlens, size_t nbin);
+
+// this one we write all the data out in binary format
+void lensums_write(struct lensums* lensums, FILE* fptr);
+
+// these write the stdout
 void lensums_print_one(struct lensums* lensums, size_t index);
 void lensums_print_firstlast(struct lensums* lensums);
+
 struct lensums* lensums_delete(struct lensums* lensum);
 
 struct lensum* lensum_new(size_t nbin);

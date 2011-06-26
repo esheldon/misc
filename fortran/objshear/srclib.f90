@@ -77,6 +77,8 @@ contains
 
         else
             nz=0
+            scat%zlmin = 0_8
+            scat%zlmax = 9999_8
         endif
 
         read (lun) nsource

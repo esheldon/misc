@@ -96,15 +96,16 @@ struct shear* shear_init(const char* config_file) {
 struct shear* shear_delete(struct shear* shear) {
 
     if (shear != NULL) {
-        shear->config = config_delete(shear->config);
-        shear->lcat   = lcat_delete(shear->lcat);
-        shear->scat   = scat_delete(shear->scat);
-        shear->hpix   = hpix_delete(shear->hpix);
-        shear->cosmo  = cosmo_delete(shear->cosmo);
-        shear->pixstack = i64stack_delete(shear->pixstack);
-        shear->lensums = lensums_delete(shear->lensums);
-
         fclose(shear->fptr);
+
+        shear->config   = config_delete(shear->config);
+        shear->lcat     = lcat_delete(shear->lcat);
+        shear->scat     = scat_delete(shear->scat);
+        shear->hpix     = hpix_delete(shear->hpix);
+        shear->cosmo    = cosmo_delete(shear->cosmo);
+        shear->pixstack = i64stack_delete(shear->pixstack);
+        shear->lensums  = lensums_delete(shear->lensums);
+
     }
     free(shear);
     return NULL;
@@ -113,9 +114,6 @@ struct shear* shear_delete(struct shear* shear) {
 
 void shear_calc(struct shear* shear) {
 
-    int dotstep=500;
-    printf("Each dot is %d\n", dotstep);
-
     double minz = shear->scat->min_zlens;
     double maxz = shear->scat->max_zlens;
 
@@ -123,7 +121,7 @@ void shear_calc(struct shear* shear) {
 
         // only consider lenses in our interpolation region
         double z = shear->lcat->data[i].z;
-        if (z >= minz && z <= maxz) {
+        if (z >= minz && z <= maxz && z > MIN_ZLENS) {
             shear_proclens(shear, i);
         } 
 #ifndef NDEBUG
@@ -131,12 +129,14 @@ void shear_calc(struct shear* shear) {
             printf("skipping lens %lu at z=%lf outside of redshift bounds\n",i,z);
         }
 #endif
-        if ( ((i+1) % dotstep) == 0) {
-            printf(".");fflush(stdout);
-        }
+        printf(".");fflush(stdout);
     }
+    printf("\n");
     lensums_print_firstlast(shear->lensums);
-    printf("\nDone\n");
+
+    printf("Writing out lensums to %s\n", shear->config->output_file);
+    lensums_write(shear->lensums, shear->fptr);
+    printf("Done\n");
 }
 
 void shear_proclens(struct shear* shear, size_t lindex) {
@@ -163,16 +163,14 @@ void shear_proclens(struct shear* shear, size_t lindex) {
         if ( pix >= scat->minpix && pix <= scat->maxpix) {
             int64 ipix=pix-scat->minpix;
             size_t nsrc = rev->data[ipix+1] - rev->data[ipix];
-            if (nsrc > 0) {
-                for (size_t j=0; j<nsrc; j++) {
+            for (size_t j=0; j<nsrc; j++) {
 
-                    size_t sindex=rev->data[ rev->data[ipix]+j ];
-                    assert(sindex < scat->size);
-                    assert(scat->data[sindex].hpixid == pix);
-                    shear_procpair(shear, lindex, sindex, cos_search_angle);
+                size_t sindex=rev->data[ rev->data[ipix]+j ];
+                assert(sindex < scat->size);
+                assert(scat->data[sindex].hpixid == pix);
+                shear_procpair(shear, lindex, sindex, cos_search_angle);
 
-                } // sources
-            } // objects found?
+            } // sources
         } // pix in range for sources?
     }
 }
@@ -189,7 +187,7 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
     double scinv;
 
     cosradiff = src->cosra*lens->cosra + src->sinra*lens->sinra;
-    cosphi = lens->sindec*src->sindec + lens->cosdec*lens->cosdec*cosradiff;
+    cosphi = lens->sindec*src->sindec + lens->cosdec*src->cosdec*cosradiff;
 
     if (cosphi > cos_search_angle) {
         if (cosphi > 1.0) {
@@ -202,14 +200,10 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
         // this is sin(sra-lra), note sign
         sinradiff = src->sinra*lens->cosra - src->cosra*lens->sinra;
 
-        arg = lens->sindec*cosradiff - lens->cosdec*src->sindec/lens->cosdec;
+        arg = lens->sindec*cosradiff - lens->cosdec*src->sindec/src->cosdec;
         theta = atan2(sinradiff, arg) - M_PI_2;
         cos2theta = cos(2*theta);
-        // 20-30% faster
-        sin2theta = sqrt(1.-cos2theta*cos2theta);
-        if (theta < 0) {
-            sin2theta *= -1;
-        }
+        sin2theta = sin(2*theta);
 
         // note we already checked if lens z was in our interpolation range
         scinv = f64interplin(src->zlens, src->scinv, lens->z);
@@ -223,7 +217,7 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
 
             rbin = (int)( (logr-config->log_rmin)/config->log_binsize );
 
-            if (rbin >= 0 && rbin <= config->nbin) {
+            if (rbin >= 0 && rbin < config->nbin) {
                 double scinv2, gamma1, gamma2, weight, err2;
 
                 err2 = src->err*src->err;
