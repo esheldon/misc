@@ -90,19 +90,13 @@ struct scat* scat_read(const char* filename) {
 
     int64 n_zlens;
     rval=fread(&n_zlens, sizeof(int64), 1, fptr);
-    printf("    Reading %ld zlens values:", n_zlens);
+    printf("    Reading %ld zlens values: ", n_zlens);
 
     // using a temporary variable since scat is not yet allocated
     struct f64vector* zlens = f64vector_new(n_zlens);
     rval=fread(&zlens->data[0], sizeof(double), n_zlens, fptr);
 
-    for (int64 i=0; i<n_zlens; i++) {
-        if ( (i % 10) == 0) {
-            printf("\n    ");
-        }
-        printf("%lf ", zlens->data[i]);
-    }
-    printf("\n");
+    printf(" %lf %lf\n", zlens->data[0], zlens->data[n_zlens-1]);
 
 #else
     if (sigmacrit_style != 1) {
@@ -131,7 +125,7 @@ struct scat* scat_read(const char* filename) {
 
     printf("OK\n");
 
-    printf("    reading data\n");
+    printf("    reading data...");
     struct source* src = &scat->data[0];
     double ra_rad,dec_rad;
     for (size_t i=0; i<scat->size; i++) {
@@ -143,7 +137,7 @@ struct scat* scat_read(const char* filename) {
 
         // need to remove this from the file since we
         // always calculate it
-        rval=fread(&src->hpixid, sizeof(int64), 1, fptr);
+        //rval=fread(&src->hpixid, sizeof(int64), 1, fptr);
 
 #ifndef WITH_TRUEZ
 
@@ -155,12 +149,9 @@ struct scat* scat_read(const char* filename) {
         rval=fread(&src->z, sizeof(double), 1, fptr);
 
         // remove this from the file since we calculate it
-        rval=fread(&src->dc, sizeof(double), 1, fptr);
+        //rval=fread(&src->dc, sizeof(double), 1, fptr);
 
 #endif
-        if (i == 0 || i == (scat->size-1)) {
-            printf("    %ld: ra: %lf  dec: %lf\n", i, src->ra, src->dec);
-        }
 
         ra_rad = src->ra*D2R;
         dec_rad = src->dec*D2R;
@@ -171,6 +162,7 @@ struct scat* scat_read(const char* filename) {
 
         src++;
     }
+    printf("OK\n");
 
     return scat;
 }
