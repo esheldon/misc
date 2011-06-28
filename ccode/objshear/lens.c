@@ -57,8 +57,6 @@ struct lcat* lcat_read(const char* filename) {
         rval=fread(&lens->ra, sizeof(double), 1, fptr);
         rval=fread(&lens->dec, sizeof(double), 1, fptr);
         rval=fread(&lens->z, sizeof(double), 1, fptr);
-        // remove these from file since we calculate!
-        //rval=fread(&lens->da, sizeof(double), 1, fptr);
 
         ra_rad = lens->ra*D2R;
         dec_rad = lens->dec*D2R;
