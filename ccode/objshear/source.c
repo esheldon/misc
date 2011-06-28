@@ -135,10 +135,6 @@ struct scat* scat_read(const char* filename) {
         rval=fread(&src->g2, sizeof(double), 1, fptr);
         rval=fread(&src->err, sizeof(double), 1, fptr);
 
-        // need to remove this from the file since we
-        // always calculate it
-        //rval=fread(&src->hpixid, sizeof(int64), 1, fptr);
-
 #ifndef WITH_TRUEZ
 
         // read the full inverse critical density for
@@ -147,9 +143,6 @@ struct scat* scat_read(const char* filename) {
 
 #else
         rval=fread(&src->z, sizeof(double), 1, fptr);
-
-        // remove this from the file since we calculate it
-        //rval=fread(&src->dc, sizeof(double), 1, fptr);
 
 #endif
 
