@@ -162,10 +162,10 @@ void lensum_print(struct lensum* lensum) {
     printf("  weight:   %lf\n", lensum->weight);
     printf("  totpairs: %ld\n", lensum->totpairs);
     printf("  nbin:     %ld\n", lensum->nbin);
-    printf("  bin      npair            wsum            dsum            osum              rsum\n");
+    printf("  bin       npair            wsum            dsum            osum           rsum\n");
 
     for (size_t i=0; i<lensum->nbin; i++) {
-        printf("  %3lu %10ld %15.6lf %15.6lf %15.6lf %17.6lf\n", 
+        printf("  %3lu %11ld %15.6lf %15.6lf %15.6lf   %e\n", 
                i,
                lensum->npair[i],
                lensum->wsum[i],

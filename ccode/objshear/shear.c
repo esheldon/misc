@@ -70,7 +70,8 @@ struct shear* shear_init(const char* config_file) {
 
     printf("Adding Dc to lenses\n");
     lcat_add_da(shear->cosmo, shear->lcat);
-    lcat_print_firstlast(shear->lcat);
+    //lcat_print_firstlast(shear->lcat);
+    lcat_print_one(shear->lcat, shear->lcat->size-1);
 
 
     shear->scat = scat_read(config->source_file);
@@ -84,7 +85,8 @@ struct shear* shear_init(const char* config_file) {
     scat_add_dc(shear->cosmo, shear->scat);
 #endif
 
-    scat_print_firstlast(shear->scat);
+    //scat_print_firstlast(shear->scat);
+    scat_print_one(shear->scat, shear->scat->size-1);
 
     return shear;
 
@@ -114,21 +116,25 @@ void shear_calc(struct shear* shear) {
     double minz = shear->scat->min_zlens;
     double maxz = shear->scat->max_zlens;
 
+    int64 nperdot=500;
+    printf("printing one dot every %ld lenses\n", nperdot);
     for (size_t i=0; i<shear->lcat->size; i++) {
+        if ( (i % nperdot) == 0) {
+            printf(".");fflush(stdout);
+        }
 
         // only consider lenses in our interpolation region
         double z = shear->lcat->data[i].z;
         if (z >= minz && z <= maxz && z > MIN_ZLENS) {
             shear_proclens(shear, i);
         } 
-        printf(".");fflush(stdout);
     }
     printf("\n");
 
-    printf("Total sums:\n");
+    printf("Total sums:\n\n");
     lensums_print_sum(shear->lensums);
 
-    printf("Writing out lensums to %s\n", shear->config->output_file);
+    printf("\nWriting out lensums to %s\n", shear->config->output_file);
     lensums_write(shear->lensums, shear->fptr);
     printf("Done\n");
 }

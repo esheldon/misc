@@ -1,0 +1,1 @@
+envPrepend(PATH,${PRODUCT_DIR}/bin)

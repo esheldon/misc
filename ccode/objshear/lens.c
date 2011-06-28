@@ -53,12 +53,12 @@ struct lcat* lcat_read(const char* filename) {
     struct lens* lens = &lcat->data[0];
     double ra_rad,dec_rad;
     for (size_t i=0; i<nlens; i++) {
+        rval=fread(&lens->zindex, sizeof(int64), 1, fptr);
         rval=fread(&lens->ra, sizeof(double), 1, fptr);
         rval=fread(&lens->dec, sizeof(double), 1, fptr);
         rval=fread(&lens->z, sizeof(double), 1, fptr);
         // remove these from file since we calculate!
-        rval=fread(&lens->da, sizeof(double), 1, fptr);
-        rval=fread(&lens->zindex, sizeof(int64), 1, fptr);
+        //rval=fread(&lens->da, sizeof(double), 1, fptr);
 
         ra_rad = lens->ra*D2R;
         dec_rad = lens->dec*D2R;
@@ -71,6 +71,7 @@ struct lcat* lcat_read(const char* filename) {
         lens++;
 
     }
+    printf("OK\n");
 
     return lcat;
 }
