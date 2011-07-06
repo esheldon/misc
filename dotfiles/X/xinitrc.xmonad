@@ -15,8 +15,8 @@ if [ -x /usr/bin/gnome-settings-daemon ]; then
 fi
 
 
-if [ -x /usr/bin/gnome-screensaver ]; then
-	gnome-screensaver &
+if [ -x /usr/bin/xscreensaver ]; then
+	xscreensaver &
 fi
 
 hname=$(hostname)
