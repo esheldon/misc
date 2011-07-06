@@ -8,7 +8,7 @@ import glob
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
 optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix,help="where to install"),
-         optparse.Option('--with-truez',default=False,help="use true z for sources"),
+         optparse.Option('--with-truez',action="store_true",default=False,help="use true z for sources"),
          optparse.Option('--noopt',action="store_true",help="turn off compiler optimizations"),
          optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)"),
          optparse.Option('--test',action="store_true",help="compile tests")]

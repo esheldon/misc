@@ -69,7 +69,7 @@ struct shear* shear_init(const char* config_file) {
     }
 
     printf("Adding Dc to lenses\n");
-    lcat_add_da(shear->cosmo, shear->lcat);
+    lcat_add_da(shear->lcat, shear->cosmo);
     //lcat_print_firstlast(shear->lcat);
     lcat_print_one(shear->lcat, shear->lcat->size-1);
 
@@ -77,12 +77,12 @@ struct shear* shear_init(const char* config_file) {
     shear->scat = scat_read(config->source_file);
 
     printf("Adding hpixid to sources\n");
-    scat_add_hpixid(shear->hpix, shear->scat);
+    scat_add_hpixid(shear->scat, shear->hpix);
     printf("Adding revind to scat\n");
-    scat_add_rev(shear->hpix, shear->scat);
+    scat_add_rev(shear->scat, shear->hpix);
 
 #ifdef WITH_TRUEZ
-    scat_add_dc(shear->cosmo, shear->scat);
+    scat_add_dc(shear->scat, shear->cosmo);
 #endif
 
     //scat_print_firstlast(shear->scat);
@@ -110,7 +110,7 @@ struct shear* shear_delete(struct shear* shear) {
     return NULL;
 }
 
-
+#ifndef WITH_TRUEZ
 void shear_calc(struct shear* shear) {
 
     double minz = shear->scat->min_zlens;
@@ -130,13 +130,35 @@ void shear_calc(struct shear* shear) {
         } 
     }
     printf("\n");
+}
+#else
+void shear_calc(struct shear* shear) {
 
+    int64 nperdot=500;
+    printf("printing one dot every %ld lenses\n", nperdot);
+    for (size_t i=0; i<shear->lcat->size; i++) {
+        if ( (i % nperdot) == 0) {
+            printf(".");fflush(stdout);
+        }
+
+        // only consider lenses in our interpolation region
+        double z = shear->lcat->data[i].z;
+        if (z > MIN_ZLENS) {
+            shear_proclens(shear, i);
+        } 
+    }
+    printf("\n");
+}
+
+#endif
+
+void shear_print_sum(struct shear* shear) {
     printf("Total sums:\n\n");
     lensums_print_sum(shear->lensums);
-
-    printf("\nWriting out lensums to %s\n", shear->config->output_file);
+}
+void shear_write(struct shear* shear) {
+    printf("\nWriting lensums to %s\n", shear->config->output_file);
     lensums_write(shear->lensums, shear->fptr);
-    printf("Done\n");
 }
 
 void shear_proclens(struct shear* shear, size_t lindex) {
@@ -208,7 +230,12 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
         sin2theta = sin(2*theta);
 
         // note we already checked if lens z was in our interpolation range
+#ifndef WITH_TRUEZ
         scinv = f64interplin(src->zlens, src->scinv, lens->z);
+#else
+        double dcl = lens->da*(1.+lens->z);
+        scinv = scinv_pre(lens->z, dcl, src->dc);
+#endif
 
         if (scinv > 0) {
             double r, logr;

@@ -152,6 +152,19 @@ double scinv(struct cosmo* c, double zl, double zs) {
     return dls*dl/ds*FOUR_PI_G_OVER_C_SQUARED;
 }
 
+double scinv_pre(double zl, double dcl, double dcs) {
+    // flat universe, simple in dc
+    double scinv;
+    if (dcs <= dcl) {
+        scinv=0.0;
+        return scinv;
+    }
+
+    scinv = dcl/(1.+zl)*(dcs-dcl)/dcs * FOUR_PI_G_OVER_C_SQUARED;
+    return scinv;
+}
+
+
 
 
 double ez_inverse(struct cosmo* c, double z) {
