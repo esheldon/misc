@@ -6,6 +6,10 @@ Quick look Queue
         chase
         others?
     see zphot
+
+BigBOSS
+    - fill out SDSS footpring info for response to review
+        deadline is before august?  Ask Nick Mostek
 zphot:
 
     Make data model in product.
