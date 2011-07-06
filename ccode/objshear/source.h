@@ -74,11 +74,11 @@ struct scat* scat_new(size_t n_source, size_t n_zlens);
 
 struct scat* scat_read(const char* filename);
 
-void scat_add_hpixid(struct healpix* hpix, struct scat* scat);
-void scat_add_rev(struct healpix* hpix, struct scat* scat);
+void scat_add_hpixid(struct scat* scat, struct healpix* hpix);
+void scat_add_rev(struct scat* scat, struct healpix* hpix);
 
 #ifdef WITH_TRUEZ
-void scat_add_dc(struct cosmo* cosmo, struct scat* scat);
+void scat_add_dc(struct scat* scat, struct cosmo* cosmo);
 #endif
 
 

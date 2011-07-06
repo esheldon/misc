@@ -74,7 +74,7 @@ struct lcat* lcat_read(const char* filename) {
     return lcat;
 }
 
-void lcat_add_da(struct cosmo* cosmo, struct lcat* lcat) {
+void lcat_add_da(struct lcat* lcat, struct cosmo* cosmo) {
     struct lens* lens = &lcat->data[0];
     for (size_t i=0; i<lcat->size; i++) {
         lens->da = Da(cosmo, 0.0, lens->z);
