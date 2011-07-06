@@ -58,6 +58,7 @@ double V(struct cosmo* c, double zmin, double zmax);
 
 // inverse critical density for lensing
 double scinv(struct cosmo* c, double zl, double zs);
+double scinv_pre(double zl, double dcl, double dcs);
 
 // generate gauss-legendre abcissa and weights
 void gauleg(double x1, double x2, int npts, double* x, double* w);

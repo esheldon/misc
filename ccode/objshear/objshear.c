@@ -13,6 +13,13 @@ int main(int argc, char** argv) {
     struct shear* shear = shear_init(config_file);
 
     shear_calc(shear);
+
+    // print some summary info to the terminal
+    shear_print_sum(shear);
+
+    shear_write(shear);
+
     shear_delete(shear);
 
+    printf("Done\n");
 }

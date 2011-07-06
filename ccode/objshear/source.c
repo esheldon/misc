@@ -160,7 +160,7 @@ struct scat* scat_read(const char* filename) {
     return scat;
 }
 
-void scat_add_hpixid(struct healpix* hpix, struct scat* scat) {
+void scat_add_hpixid(struct scat* scat, struct healpix* hpix) {
 
     scat->minpix=INT64_MAX;
     scat->maxpix=-1;
@@ -178,7 +178,7 @@ void scat_add_hpixid(struct healpix* hpix, struct scat* scat) {
         src++;
     }
 }
-void scat_add_rev(struct healpix* hpix, struct scat* scat) {
+void scat_add_rev(struct scat* scat, struct healpix* hpix) {
     // need to make a copy of the hpixid in order to get the
     // sorted indices
 
@@ -208,8 +208,8 @@ void scat_add_rev(struct healpix* hpix, struct scat* scat) {
 
 
 #ifdef WITH_TRUEZ
-void scat_add_dc(struct cosmo* cosmo, struct scat* scat) {
-    struct src* src = &scat->data[0];
+void scat_add_dc(struct scat* scat, struct cosmo* cosmo) {
+    struct source* src = &scat->data[0];
     for (size_t i=0; i<scat->size; i++) {
         src->dc = Dc(cosmo, 0.0, src->z);
         src++;

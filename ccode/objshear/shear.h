@@ -32,6 +32,9 @@ struct shear* shear_delete(struct shear* shear);
 
 void shear_calc(struct shear* shear);
 
+void shear_print_sum(struct shear* shear);
+void shear_write(struct shear* shear);
+
 void shear_proclens(struct shear* shear, size_t lindex);
 void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search_angle);
 

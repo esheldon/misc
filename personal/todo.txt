@@ -58,4 +58,7 @@ BOSS
 
 
 objshear
-    config file lib
+    kathy romer, chris miller catalogs
+
+    .json config files good?  Can't put comments in per field...
+
