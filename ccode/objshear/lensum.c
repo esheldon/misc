@@ -47,8 +47,54 @@ struct lensums* lensums_new(size_t nlens, size_t nbin) {
 
 }
 
-// this one we write all the data out in binary format
+// this one we write all the data out in .rec binary format
+/* 
+SIZE =               206951
+{'_DTYPE': [('zindex', '<i8'),
+            ('weight', '<f8'),
+            ('npair', '<i8', 21),
+            ('rsum', '<f8', 21),
+            ('wsum', '<f8', 21),
+            ('dsum', '<f8', 21),
+            ('osum', '<f8', 21)],
+ '_VERSION': '1.0'}
+END
+*/
 void lensums_write(struct lensums* lensums, FILE* fptr) {
+    int64 nlens=lensums->size;
+    int64 nbin=lensums->data[0].nbin;
+
+    fprintf(fptr, "SIZE = %ld\n", nlens);
+    fprintf(fptr, "{'_DTYPE': [('zindex', 'i8'),\n");
+    fprintf(fptr, "            ('weight', 'f8'),\n");
+    fprintf(fptr, "            ('npair',  'i8', %ld),\n", nbin);
+    fprintf(fptr, "            ('rsum',   'f8', %ld),\n", nbin);
+    fprintf(fptr, "            ('wsum',   'f8', %ld),\n", nbin);
+    fprintf(fptr, "            ('dsum',   'f8', %ld),\n", nbin);
+    fprintf(fptr, "            ('osum',   'f8', %ld)],\n", nbin);
+    fprintf(fptr, " '_VERSION': '1.0'}\n");
+    fprintf(fptr, "END\n");
+    fprintf(fptr, "\n");
+
+
+    struct lensum* lensum = &lensums->data[0];
+    int res;
+    for (size_t i=0; i<nlens; i++) {
+        res=fwrite(&lensum->zindex, sizeof(int64), 1, fptr);
+        res=fwrite(&lensum->weight, sizeof(double), 1, fptr);
+
+        res=fwrite(lensum->npair, sizeof(int64), nbin, fptr);
+        res=fwrite(lensum->rsum, sizeof(double), nbin, fptr);
+        res=fwrite(lensum->wsum, sizeof(double), nbin, fptr);
+        res=fwrite(lensum->dsum, sizeof(double), nbin, fptr);
+        res=fwrite(lensum->osum, sizeof(double), nbin, fptr);
+        
+        lensum++;
+    }
+}
+
+// this one we write all the data out in binary format
+void lensums_write_old(struct lensums* lensums, FILE* fptr) {
     int64 nlens=lensums->size;
     int64 nbin=lensums->data[0].nbin;
 
