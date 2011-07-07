@@ -1,9 +1,6 @@
 Quick look Queue
-    give joerg plots and description
-        Thurs 11-12 portsmouth
-
     updated billing addresses:
-        chase
+        chase*
         others?
     see zphot
 
@@ -12,22 +9,9 @@ BigBOSS
         deadline is before august?  Ask Nick Mostek
 zphot:
 
-    Make data model in product.
-    Make files with objId, thing_id, rmag, colors, p(z).
-    Copy files to riemann in boss tree (ask Ben where?)
+    - data model: include link to arxiv paper when ready
 
-    Notes from data telecon: 
-
-        FITS by run or run-camcol
-        photoObj/photoz-weight
-        data model
-            two binary table extension
-        shortened description
-
-    estimate stellar contamination?
-
-    Get some validation plots, good ones, from carlos, or have him send me the
-    data.
+    - make sure files get linked to main website in usual place
 
 DES:
 
