@@ -196,9 +196,11 @@ if &t_Co > 255
 	endif
 
     if exists("g:zenburn_high_Contrast")
-        hi Normal ctermfg=188 ctermbg=234
+        "hi Normal ctermfg=188 ctermbg=234
+        hi Normal ctermfg=253 ctermbg=234
     else
-        hi Normal ctermfg=188 ctermbg=237
+        "hi Normal ctermfg=188 ctermbg=237
+        hi Normal ctermfg=253 ctermbg=237
         hi Cursor          ctermbg=109
         hi diffadd         ctermbg=237
         hi diffdelete      ctermbg=238
