@@ -1,0 +1,25 @@
+body {
+     color: black;
+     font-family: sans-serif;
+     background-color: white;
+     background-image: url("../images/blueback_crop.gif");
+     background-repeat: repeat-y;
+     background-position: left;
+}
+
+a:link {color: #0066ff}
+a:visited {color: #009999}
+
+h1 { color: maroon }
+h2 { color: maroon }
+h3 { color: maroon }
+h4 { color: maroon }
+
+a.noline {text-decoration:none}
+
+address {color: DarkBlue }
+
+div.modified {
+     text-align: right;
+     font-size: 0.7em; 
+}

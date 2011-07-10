@@ -1,0 +1,77 @@
+body {
+     color: black;
+     /* font-family: sans-serif; */
+     background-color: white;
+}
+
+a:link {color: #0066ff}
+a:visited {color: #009999}
+/*a.noline {text-decoration:none} */
+a, a:link, a:visited 
+{
+    text-decoration:none;
+    color: #009999;
+    color: darkblue;
+}
+
+b {color:maroon}
+
+table.main 
+{
+    border-collapse: collapse;
+    //border-color: #ffffcc;
+    //border-width: 10pt;
+    //border-style: solid;
+}
+
+td.main
+{
+    border-style: solid;
+    border-width: 1px;
+    padding: 3;
+    border-color: grey;
+    background-color: #ffffcc;
+    vertical-align: bottom;
+    border-left: hidden;
+    border-right: hidden;
+}
+th.main
+{
+    color: maroon;
+    text-align: left;
+}
+
+table.recipe
+{
+    background-color: #ffffcc;
+    border-width: 10pt;
+    border-color: #ffffcc;
+    border-style: solid;
+}
+
+table.recipe_print
+{
+    background-color: white;
+    border-width: 10pt;
+    border-color: white;
+    border-style: solid;
+}
+
+
+td.recipe
+{
+    //background-color: #ffffcc ;
+}
+
+
+td.underline
+{
+    border-collapse: collapse;
+    border: 1px solid;
+    border-right: hidden;
+    border-left: hidden;
+    border-top: hidden;
+
+}
+
+
