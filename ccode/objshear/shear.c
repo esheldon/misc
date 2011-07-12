@@ -110,20 +110,24 @@ struct shear* shear_delete(struct shear* shear) {
     return NULL;
 }
 
-#ifndef WITH_TRUEZ
+//#ifndef WITH_TRUEZ
 void shear_calc(struct shear* shear) {
 
+#ifndef WITH_TRUEZ
+    // interpolation region
     double minz = shear->scat->min_zlens;
     double maxz = shear->scat->max_zlens;
+#else
+    double minz=0;
+    double maxz=9999;
+#endif
 
-    int64 nperdot=500;
-    printf("printing one dot every %ld lenses\n", nperdot);
+    printf("printing one dot every %d lenses\n", LENSPERDOT);
     for (size_t i=0; i<shear->lcat->size; i++) {
-        if ( (i % nperdot) == 0) {
+        if ( (i % LENSPERDOT) == 0) {
             printf(".");fflush(stdout);
         }
 
-        // only consider lenses in our interpolation region
         double z = shear->lcat->data[i].z;
         if (z >= minz && z <= maxz && z > MIN_ZLENS) {
             shear_proclens(shear, i);
@@ -131,13 +135,13 @@ void shear_calc(struct shear* shear) {
     }
     printf("\n");
 }
+/*
 #else
 void shear_calc(struct shear* shear) {
 
-    int64 nperdot=500;
-    printf("printing one dot every %ld lenses\n", nperdot);
+    printf("printing one dot every %ld lenses\n", LENSPERDOT);
     for (size_t i=0; i<shear->lcat->size; i++) {
-        if ( (i % nperdot) == 0) {
+        if ( (i % LENSPERDOT) == 0) {
             printf(".");fflush(stdout);
         }
 
@@ -149,8 +153,9 @@ void shear_calc(struct shear* shear) {
     }
     printf("\n");
 }
+*/
 
-#endif
+//#endif
 
 void shear_print_sum(struct shear* shear) {
     printf("Total sums:\n\n");

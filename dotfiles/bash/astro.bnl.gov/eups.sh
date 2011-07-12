@@ -34,6 +34,8 @@ if [[ -e $f ]]; then
         setup parallel
 
         setup scons
+        setup pyyaml
+
     else
         # this will get numpy and python
         setup scipy
@@ -65,6 +67,7 @@ if [[ -e $f ]]; then
 
         # for DES wl
         setup scons
+        setup pyyaml
 
         # will set up cfitsio/ccfits/tmv
         setup wl -r ~/exports/wl-local
@@ -79,11 +82,6 @@ if [[ -e $f ]]; then
         return
 
 
-
-
-        setup parallel
-
-        setup vim
 
         setup tmux
 
