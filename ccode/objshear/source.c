@@ -135,6 +135,8 @@ struct scat* scat_read(const char* filename) {
         rval=fread(&src->g2, sizeof(double), 1, fptr);
         rval=fread(&src->err, sizeof(double), 1, fptr);
 
+        src->g1 = -src->g1;
+
 #ifndef WITH_TRUEZ
 
         // read the full inverse critical density for
@@ -152,6 +154,11 @@ struct scat* scat_read(const char* filename) {
         src->cosra = cos(ra_rad);
         src->sindec = sin(dec_rad);
         src->cosdec = cos(dec_rad);
+
+#ifdef SDSSMASK
+        // add sin(lam),cos(lam),sin(eta),cos(eta)
+        scat_add_lameta(src);
+#endif
 
         src++;
     }
