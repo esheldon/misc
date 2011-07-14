@@ -18,6 +18,9 @@ if [[ -e $f ]]; then
 
         setup esutil -r ~/exports-tutti/esutil-local
 
+        setup cosmology -r ~/exports-tutti/cosmology-local
+        setup admom -r ~/exports-tutti/admom-local
+        setup fimage -r ~/exports-tutti/fimage-local
 
         setup ccfits
         setup wl -r ~/exports-tutti/wl-local
@@ -61,6 +64,7 @@ if [[ -e $f ]]; then
         setup sdsspy -r ~/exports/sdsspy-local
         setup numpydb -r ~esheldon/exports/numpydb-local
 
+        setup stomp -r ~/exports/stomp-work
 
         # biggles requires plotutils
         setup biggles
@@ -115,7 +119,6 @@ if [[ -e $f ]]; then
 
         setup libtool
         setup gflags
-        setup stomp -r ~/exports/stomp-work
 
 
 

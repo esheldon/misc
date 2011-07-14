@@ -47,6 +47,13 @@ struct source {
     double cosra;
     double sindec;
     double cosdec;
+
+#ifdef SDSSMASK
+    double sinlam;
+    double coslam;
+    double sineta;
+    double coseta;
+#endif
 };
 
 struct scat {

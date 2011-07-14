@@ -38,6 +38,7 @@ test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/
                   'sources':['healpix','gcirc','stack','Vector','sort','histogram','test/test-healpix-brute']},
                  {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
                  {'name':'test/test-interp','sources':['interp','Vector','test/test-interp']},
+                 {'name':'test/test-sdss-survey','sources':['test/test-sdss-survey','sdss-survey']},
                  {'name':'test/test-config','sources':['config','test/test-config']},
                  {'name':'test/test-source',
                   'sources':['source','sort','healpix','histogram','stack','Vector','test/test-source']},
