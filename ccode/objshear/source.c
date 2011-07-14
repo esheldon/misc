@@ -8,6 +8,10 @@
 #include "histogram.h"
 #include "Vector.h"
 
+#ifdef SDSSMASK
+#include "sdss-survey.h"
+#endif
+
 #ifndef WITH_TRUEZ
 struct scat* scat_new(size_t n_source, size_t n_zlens) {
     if (n_zlens == 0) {
@@ -157,7 +161,9 @@ struct scat* scat_read(const char* filename) {
 
 #ifdef SDSSMASK
         // add sin(lam),cos(lam),sin(eta),cos(eta)
-        scat_add_lameta(src);
+        eq2sdss_sincos(src->ra,src->dec,
+                       &src->sinlam, &src->coslam,
+                       &src->sineta, &src->coseta);
 #endif
 
         src++;
@@ -166,6 +172,7 @@ struct scat* scat_read(const char* filename) {
 
     return scat;
 }
+
 
 void scat_add_hpixid(struct scat* scat, struct healpix* hpix) {
 
