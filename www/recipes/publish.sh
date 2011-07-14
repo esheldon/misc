@@ -15,6 +15,7 @@ echo Publishing to directory $dir
 rsync -av \
     --include "*.py" \
     --include "*.htm" \
+    --include "*.html" \
     --include "/styles" \
     --include "/styles/*" \
     --exclude ".*" \

@@ -1,0 +1,169 @@
+html,body 
+{
+    margin:0;
+    
+    color: black;
+    //     font-family: sans-serif;
+    backgroundckground-color: white-space;
+    //     background-image: url("../images/blueback_crop.gif");
+    //     background-repeat: repeat-y;
+    //	    background-position: left;
+}
+
+A:link {color: #0066ff}
+A:visited {color: #009999}
+
+h1 { color: maroon }
+h2 { color: maroon }
+h3 { color: maroon }
+h4 { color: maroon }
+
+a.noline {text-decoration:none}
+
+address {color: DarkBlue }
+
+/*-----------------------------------------------*/
+/* The main content, with absolute positioning   */
+/*-----------------------------------------------*/
+
+#content 
+{
+    position:absolute;
+    top:0em;
+    left:8em;
+}
+
+/*-----------------------------------------------*/
+/* A navigation bar will be on the left          */
+/*-----------------------------------------------*/
+
+#navigation 
+{
+    position:absolute;
+    left:0em;
+    top:0em;
+    //bottom:0em;
+    width:8em;
+    height:100%;
+    //padding:0.5em;
+    text-align:center;
+    background: Black; /* A tannish color */
+    
+    //border: 10px #898B60 solid;
+    
+}
+
+#navigation hr { display:none }
+#navigation h2 { color:#595B30 }
+#navigation a:link {color:white}
+#navigation a:visited {color:#ffe4c4} /* bisque */
+
+/*-----------------------------------------------*/
+/* rows and data classes                         */
+/*-----------------------------------------------*/
+
+.row 
+{
+  display:table-row;
+}
+
+.row div 
+{
+  display:table-cell;
+  border-spacing:2px;
+  height:33%; 
+
+ // background:#595B30;
+
+}
+
+/* td is a subclass I guess */
+
+.row div.td 
+{
+  text-align:left;
+  vertical-align:middle;
+  //width:25%;
+
+  /* these replace the effect of border-spacing and background in
+     the main thumbtable. Better, since "missing" images are filled
+     with the body background */
+  //border: 1px black solid;
+  border: 10px black solid;
+}
+
+.row div.tdnav
+{
+  text-align:center;
+  vertical-align:middle;
+  //width:25%;
+
+  /* these replace the effect of border-spacing and background in
+     the main thumbtable. Better, since "missing" images are filled
+     with the body background */
+  //border: 1px black solid;
+  border: 10px black solid;
+}
+
+
+
+//.row div.td img { border-color:#595B30 }
+
+/*-----------------------------------------------*/
+/* A class for the bottom "previous" and "next"  */
+/* index                                         */
+/*-----------------------------------------------*/
+
+.prevNext 
+{  
+  margin-left:auto;
+  margin-right:auto;
+  margin-top:0px;
+  margin-bottom:0px;
+  width:640px;
+  /*border: 2px black solid;*/
+  /*height:5em;*/
+}
+
+.prevNextRow 
+{  
+  display:table-row;
+}
+
+.prevNextRow div
+{ 
+  display:table-cell;
+}
+
+.prevNextRow div.prevtd
+{  
+  /*border: red 2px solid;*/
+  width:1%;
+  text-align:left;
+  font-style:italic;
+}
+.prevNextRow div.nexttd
+{  
+  /*border: red 2px solid;*/
+  width:1%;
+  text-align:right;
+  font-style:italic;
+}
+
+
+
+/*-----------------------------------------------*/
+/* A class for containing the images             */
+/*-----------------------------------------------*/
+
+.imagetable 
+{
+  display:table; 
+  border-collapse:separate;
+
+  margin:10px auto;
+  border-spacing:2px;
+}
+
+.imagetable img { border-color:#898B60 }
+
