@@ -70,19 +70,15 @@ void gcirc_survey(
   double tlam1 = lam1*D2R;
   //sinlam1 = sin(tlam1);
   double coslam1 = cos(tlam1);
-  double sinlam1 = sqrt(1.0-coslam1*coslam1);
-  if (tlam1 < 0) sinlam1 = -sinlam1;
+  double sinlam1 = sin(tlam1);
 
   double tlam2 = lam2*D2R;
-  //sinlam2 = sin(tlam2);
   double coslam2 = cos(tlam2);
-  double sinlam2 = sqrt(1.0-coslam2*coslam2);
-  if (tlam2 < 0) sinlam2 = -sinlam2;
+  double sinlam2 = sin(tlam2);
 
   double etadiff = (eta2-eta1)*D2R;
   double cosetadiff = cos(etadiff);
-  double sinetadiff = sqrt(1.0-cosetadiff*cosetadiff);
-  if (etadiff < 0) sinetadiff=-sinetadiff;
+  double sinetadiff = sin(etadiff);
 
   double cosdis = sinlam1*sinlam2 + coslam1*coslam2*cosetadiff;
 
@@ -91,17 +87,33 @@ void gcirc_survey(
 
   *dis = acos(cosdis);
 
-  *theta = atan2( sinetadiff, 
-  		 (sinlam1*cosetadiff - coslam1*sinlam2/coslam2) ) - M_PI_2;
+  *theta = atan2( sinetadiff, sinlam1*cosetadiff - coslam1*sinlam2/coslam2 );
 
+  *theta -= M_PI_2;
 }
 
+/*
+ * Get the quadrant of the second object relative to the first
+ */
+double posangle_survey(double sinlam1, double coslam1,
+                       double sineta1, double coseta1,
+                       double sinlam2, double coslam2,
+                       double sineta2, double coseta2) {
 
-// convert the theta returned from gcirc_survey into a quadrant
-// as used in stomp
-int gcirc_theta_quad(double theta) {
-    theta = (M_PI_2 - theta)*R2D;
+    double cosetadiff = coseta2*coseta1 + sineta2*sineta1;
+    double sinetadiff = sineta2*coseta1 - coseta2*sineta2;
 
+    double theta = atan2( sinetadiff, sinlam1*cosetadiff - coslam1*sinlam2/coslam2 );
+    theta -= M_PI_2;
+}
+
+/*
+ * NOTE: this converts theta to (p/2 - theta)*D2R from gcirc_survey as used in
+ * stomp
+ */
+
+int survey_quad(double theta) {
+    theta = (M_PI_2 - theta)*R2d;
     if (theta >= 0. && theta < 90.) {
         return 0;
     } else if (theta >= 90. && theta < 180.) {

@@ -13,6 +13,11 @@ void gcirc_survey(
         double lam2, double eta2,
         double* dis,  double* theta);
 
-int gcirc_theta_quad(double theta);
+double posangle_survey(double sinlam1, double coslam1,
+                       double sineta1, double coseta1,
+                       double sinlam2, double coslam2,
+                       double sineta2, double coseta2);
+
+int survey_quad(double theta);
 
 #endif
