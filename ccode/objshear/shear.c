@@ -263,14 +263,16 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
             rbin = (int)( (logr-config->log_rmin)/config->log_binsize );
 
             if (rbin >= 0 && rbin < config->nbin) {
-                double scinv2, gamma1, gamma2, weight, err2;
+                double scinv2, gamma1, gamma2, eweight, weight, err2;
 
                 err2 = src->err*src->err;
                 scinv2 = scinv*scinv;
 
+                eweight = 1./(GSN2 + err2);
+                weight = scinv2*eweight;
+
                 gamma1 = -(src->g1*cos2theta + src->g2*sin2theta);
                 gamma2 =  (src->g1*sin2theta - src->g2*cos2theta);
-                weight = scinv2/(GSN2 + err2);
 
                 lensum->weight += weight;
                 lensum->totpairs += 1;
@@ -281,6 +283,25 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
                 lensum->osum[rbin] += weight*gamma2/scinv;
 
                 lensum->rsum[rbin] += r;
+
+                // calculating Ssh, shear polarizability
+                // factors of two cancel in both of these
+                double f_e = err2*eweight;
+                double f_sn = GSN2*eweight;
+
+                // coefficients (p 596 Bern02) 
+                // there is a k1*e^2/2 in Bern02 because
+                // its the total ellipticity he is using
+
+                double k0 = f_e*GSN2*4;  // factor of (1/2)^2 does not cancel here, 4 converts to shapenoise
+                double k1 = f_sn*f_sn;
+
+                // Factors of two don't cancel, need 2*2 for gamma instead of shape
+                double F = 1. - k0 - k1*gamma1*gamma1*4;
+
+                // get correction ssh using l->sshsum/l->weight
+                lensum->sshsum   += weight*F;
+
             }
         }
     }

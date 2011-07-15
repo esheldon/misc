@@ -67,6 +67,7 @@ void lensums_write(struct lensums* lensums, FILE* fptr) {
     fprintf(fptr, "SIZE = %ld\n", nlens);
     fprintf(fptr, "{'_DTYPE': [('zindex', 'i8'),\n");
     fprintf(fptr, "            ('weight', 'f8'),\n");
+    fprintf(fptr, "            ('sshsum', 'f8'),\n");
     fprintf(fptr, "            ('npair',  'i8', %ld),\n", nbin);
     fprintf(fptr, "            ('rsum',   'f8', %ld),\n", nbin);
     fprintf(fptr, "            ('wsum',   'f8', %ld),\n", nbin);
@@ -82,6 +83,8 @@ void lensums_write(struct lensums* lensums, FILE* fptr) {
     for (size_t i=0; i<nlens; i++) {
         res=fwrite(&lensum->zindex, sizeof(int64), 1, fptr);
         res=fwrite(&lensum->weight, sizeof(double), 1, fptr);
+
+        res=fwrite(&lensum->sshsum, sizeof(double), 1, fptr);
 
         res=fwrite(lensum->npair, sizeof(int64), nbin, fptr);
         res=fwrite(lensum->rsum, sizeof(double), nbin, fptr);

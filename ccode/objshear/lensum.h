@@ -8,12 +8,16 @@ struct lensum {
     double weight;
     int64 totpairs;
 
+    // get average ssh from sshsum/weight
+    double sshsum;
+
     int64 nbin;
     int64* npair;
     double* rsum;
     double* wsum;
     double* dsum;
     double* osum;
+
 };
 
 struct lensums {
