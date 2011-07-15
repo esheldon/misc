@@ -1,4 +1,5 @@
 #include <math.h>
+#include "sdss-survey.h"
 #include "defs.h"
 
 double lon_bound(double lon, double minval, double maxval) {
@@ -164,7 +165,7 @@ int test_quad_sincos(int64 maskflags,
     int quadrant = survey_quad(theta);
 
     // this we can and with the bits
-    int quadbit = 1<<(quadrant+1);
+    int quadbit = 1 << (quadrant+1);
 
     // work with the first good adjacent pair we find.  Since not all are good,
     // this is as good a choice of check order as any.  Might figure out which
