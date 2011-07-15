@@ -95,16 +95,18 @@ void gcirc_survey(
 /*
  * Get the quadrant of the second object relative to the first
  */
-double posangle_survey(double sinlam1, double coslam1,
-                       double sineta1, double coseta1,
-                       double sinlam2, double coslam2,
-                       double sineta2, double coseta2) {
+double posangle_survey_sincos(double sinlam1, double coslam1,
+                              double sineta1, double coseta1,
+                              double sinlam2, double coslam2,
+                              double sineta2, double coseta2) {
 
     double cosetadiff = coseta2*coseta1 + sineta2*sineta1;
     double sinetadiff = sineta2*coseta1 - coseta2*sineta2;
 
     double theta = atan2( sinetadiff, sinlam1*cosetadiff - coslam1*sinlam2/coslam2 );
     theta -= M_PI_2;
+
+    return theta;
 }
 
 /*
@@ -113,7 +115,7 @@ double posangle_survey(double sinlam1, double coslam1,
  */
 
 int survey_quad(double theta) {
-    theta = (M_PI_2 - theta)*R2d;
+    theta = (M_PI_2 - theta)*R2D;
     if (theta >= 0. && theta < 90.) {
         return 0;
     } else if (theta >= 90. && theta < 180.) {
