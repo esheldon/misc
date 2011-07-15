@@ -69,6 +69,7 @@ int main(int argc, char** argv) {
             // this is the angle used for quadrant determination
             theta_deg = (M_PI_2 - theta)*R2D;
             printf("mismatch: %.15f %.15f %.15f %d\n", rra, rdec, theta_deg, rquad);
+            nbad++;
         }
 
         ntot++;
