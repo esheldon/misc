@@ -139,7 +139,7 @@ struct scat* scat_read(const char* filename) {
         rval=fread(&src->g2, sizeof(double), 1, fptr);
         rval=fread(&src->err, sizeof(double), 1, fptr);
 
-        src->g1 = -src->g1;
+        //src->g1 = -src->g1;
 
 #ifndef WITH_TRUEZ
 
@@ -234,16 +234,25 @@ void scat_add_dc(struct scat* scat, struct cosmo* cosmo) {
 
 void scat_print_one(struct scat* scat, size_t el) {
     struct source* src = &scat->data[el];
-    printf("element %ld of scat:\n", el);
-    printf("    ra: %lf  dec: %lf\n", R2D*asin(src->sinra), R2D*asin(src->sindec));
-    printf("    g1: %lf  g2: %lf\n", src->g1, src->g2);
-    printf("    err: %lf\n", src->err);
+    printf("element     %ld of scat:\n", el);
+    printf("    ra:     %lf  dec: %lf\n", R2D*asin(src->sinra), R2D*asin(src->sindec));
+    printf("    g1:     %lf  g2: %lf\n", src->g1, src->g2);
+    printf("    err:    %lf\n", src->err);
     printf("    hpixid: %ld\n", src->hpixid);
+
+#ifdef SDSSMASK
+    printf("    sinlam: %lf\n", src->sinlam);
+    printf("    coslam: %lf\n", src->coslam);
+    printf("    sineta: %lf\n", src->sineta);
+    printf("    coseta: %lf\n", src->coseta);
+#endif
+
 #ifdef WITH_TRUEZ
-    printf("    z: %lf\n", src->z);
-    printf("    dc: %lf\n", src->dc);
+    printf("    z:      %lf\n", src->z);
+    printf("    dc:     %lf\n", src->dc);
 #else
     size_t nzl = src->zlens->size;
+    printf("\n");
     printf("    zlens[0]: %lf  szinv[0]: %lf\n", 
            src->zlens->data[0], src->scinv->data[0]);
     printf("    zlens[%ld]: %lf  szinv[%ld]: %lf\n", 

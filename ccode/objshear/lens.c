@@ -70,8 +70,10 @@ struct lcat* lcat_read(const char* filename) {
         lens->sindec = sin(dec_rad);
         lens->cosdec = cos(dec_rad);
 
-#ifdef SDSSMASK
+        // maskflags must always exist, but it will currently be ignored unless
+        // you compile with -DSDSSMASK
         rval=fread(&lens->maskflags, sizeof(int64), 1, fptr);
+#ifdef SDSSMASK
         // add sin(lam),cos(lam),sin(eta),cos(eta)
         eq2sdss_sincos(lens->ra,lens->dec,
                        &lens->sinlam, &lens->coslam,
@@ -98,10 +100,17 @@ void lcat_add_da(struct lcat* lcat, struct cosmo* cosmo) {
 void lcat_print_one(struct lcat* lcat, size_t el) {
     struct lens* lens = &lcat->data[el];
     printf("element %ld of lcat:\n", el);
-    printf("    ra: %lf\n", lens->ra);
-    printf("    dec: %lf\n", lens->dec);
-    printf("    z: %lf\n", lens->z);
-    printf("    da: %lf\n", lens->da);
+    printf("    ra:        %lf\n", lens->ra);
+    printf("    dec:       %lf\n", lens->dec);
+    printf("    z:         %lf\n", lens->z);
+    printf("    da:        %lf\n", lens->da);
+    printf("    maskflags: %ld\n", lens->maskflags);
+#ifdef SDSSMASK
+    printf("    sinlam:    %lf\n", lens->sinlam);
+    printf("    coslam:    %lf\n", lens->coslam);
+    printf("    sineta:    %lf\n", lens->sineta);
+    printf("    coseta:    %lf\n", lens->coseta);
+#endif
 }
 void lcat_print_firstlast(struct lcat* lcat) {
     lcat_print_one(lcat, 0);
