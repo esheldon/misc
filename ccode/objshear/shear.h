@@ -39,7 +39,7 @@ void shear_proclens(struct shear* shear, size_t lindex);
 void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search_angle);
 
 #ifdef SDSSMASK
-int test_quad(struct lens* l, struct source* s);
+int shear_test_quad(struct lens* l, struct source* s);
 #endif
 
 #endif

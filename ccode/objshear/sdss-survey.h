@@ -20,4 +20,12 @@ double posangle_survey_sincos(double sinlam1, double coslam1,
                               double sineta2, double coseta2);
 int survey_quad(double theta);
 
+int test_quad_sincos(int64 maskflags,
+                     double sinlam1, double coslam1,
+                     double sineta1, double coseta1,
+                     double sinlam2, double coslam2,
+                     double sineta2, double coseta2);
+
+
+
 #endif
