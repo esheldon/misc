@@ -126,3 +126,78 @@ int survey_quad(double theta) {
         return 3;
     }
 }
+
+
+/*
+ * If all quadrants are not ok, we check pairs. But which pairs to check?  We
+ * always take the first one starting with 12.  Might choose another that would
+ * better reduce systematics.
+ */
+
+int test_quad_sincos(int64 maskflags,
+                     double sinlam1, double coslam1,
+                     double sineta1, double coseta1,
+                     double sinlam2, double coslam2,
+                     double sineta2, double coseta2) {
+
+	static const int OK=1, BAD=0;
+    // none of the quadrants are ok
+    int allcheck = maskflags & QUADALL_OK;
+    if (allcheck == 0) {
+        return BAD;
+    }
+    // all quadrants are OK
+    if ( allcheck == QUADALL_OK) {
+        return OK;
+    }
+
+    // first determine which quandrant the source is in
+
+    double theta = posangle_survey_sincos(sinlam1, coslam1,
+                                          sineta1, coseta1,
+                                          sinlam2, coslam2,
+                                          sineta2, coseta2);
+    // note quadrant is in [0,3] to be consistent with stomp
+    int quadrant = survey_quad(theta);
+
+    // this we can and with the bits
+    int quadbit = 1<<(quadrant+1);
+
+    // work with the first good adjacent pair we find.  Since not all are good,
+    // this is as good a choice of check order as any.  Might figure out which
+    // gives better systematics?
+    
+    if ((maskflags & QUAD12_OK) == QUAD12_OK) {
+        if ((quadbit & QUAD12_OK) != 0) {
+            return OK;
+        } else {
+            return BAD;
+        }
+    }
+    if ((maskflags & QUAD34_OK) == QUAD34_OK) {
+        if ((quadbit & QUAD34_OK) != 0) {
+            return OK;
+        } else {
+            return BAD;
+        }
+    }
+    if ((maskflags & QUAD23_OK) == QUAD23_OK) {
+        if ((quadbit & QUAD23_OK) != 0) {
+            return OK;
+        } else {
+            return BAD;
+        }
+    }
+    if ((maskflags & QUAD41_OK) == QUAD41_OK) {
+        if ((quadbit & QUAD41_OK) != 0) {
+            return OK;
+        } else {
+            return BAD;
+        }
+    }
+
+
+    // if we get here we didn't match a good pair of quadrants
+    return BAD;
+
+}

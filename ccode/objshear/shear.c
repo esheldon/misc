@@ -13,6 +13,10 @@
 #include "source.h"
 #include "interp.h"
 
+#ifdef SDSSMASK
+#include "sdss-survey.h"
+#endif
+
 struct shear* shear_init(const char* config_file) {
 
     struct shear* shear = calloc(1, sizeof(struct shear));
@@ -214,7 +218,8 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
     double scinv;
 
 #ifdef SDSSMASK
-    if (!test_quad(lens, src)) {
+    // make sure object is in a pair of unmasked adjacent quadrants
+    if (!shear_test_quad(lens, src)) {
         return;
     }
 #endif
@@ -286,13 +291,11 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
  * Make sure the source is in an acceptable quadrant for this lens
  */
 #ifdef SDSSMASK
-int test_quad(struct lens* l, struct source* s) {
-    if not (l->maskflags & INSIDE_MAP) {
-        return 0;
-    }
-    // first determine which quandrant the source is in
-
-
-    return 1;
+int shear_test_quad(struct lens* l, struct source* s) {
+    return test_quad_sincos(l->maskflags,
+                            l->sinlam, l->coslam,
+                            l->sineta, l->coseta,
+                            s->sinlam, s->coslam,
+                            s->sineta, s->coseta);
 }
 #endif
