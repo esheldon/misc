@@ -41,4 +41,14 @@ typedef int64_t int64;
 // min lens redshift to consider
 #define MIN_ZLENS 0.05
 
+#ifdef SDSSMASK
+#define INSIDE_MAP 1
+#define FIRST_QUADRANT_OK 2
+#define SECOND_QUADRANT_OK 4
+#define THIRD_QUADRANT_OK 8
+#define FOURTH_QUADRANT_OK 16
+#endif
+
+
+
 #endif

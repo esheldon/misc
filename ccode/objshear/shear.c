@@ -213,6 +213,11 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
     double phi, cos2theta, sin2theta, arg;
     double scinv;
 
+#ifdef SDSSMASK
+    if (!test_quad(lens, src)) {
+        return;
+    }
+#endif
     cosradiff = src->cosra*lens->cosra + src->sinra*lens->sinra;
     cosphi = lens->sindec*src->sindec + lens->cosdec*src->cosdec*cosradiff;
 
@@ -274,3 +279,20 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
         }
     }
 }
+
+
+
+/*
+ * Make sure the source is in an acceptable quadrant for this lens
+ */
+#ifdef SDSSMASK
+int test_quad(struct lens* l, struct source* s) {
+    if not (l->maskflags & INSIDE_MAP) {
+        return 0;
+    }
+    // first determine which quandrant the source is in
+
+
+    return 1;
+}
+#endif

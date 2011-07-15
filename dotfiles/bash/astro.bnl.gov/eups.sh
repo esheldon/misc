@@ -39,6 +39,7 @@ if [[ -e $f ]]; then
         setup scons
         setup pyyaml
 
+
     else
         # this will get numpy and python
         setup scipy
@@ -83,13 +84,15 @@ if [[ -e $f ]]; then
         # note you still import scikits.learn
         setup scikits_learn -r ~/exports/scikits_learn
 
+        # this will set up pcre
+        setup swig
+
         return
 
 
 
         setup tmux
 
-        setup swig
 
         setup matplotlib
         #setup pyfitspatch
