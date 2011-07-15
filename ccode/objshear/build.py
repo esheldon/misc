@@ -9,6 +9,7 @@ parser = optparse.OptionParser()
 # make an options list, also send to fabricate
 optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix,help="where to install"),
          optparse.Option('--with-truez',action="store_true",default=False,help="use true z for sources"),
+         optparse.Option('--sdssmask',action="store_true",default=False,help="check quadrants from sdss mask"),
          optparse.Option('--noopt',action="store_true",help="turn off compiler optimizations"),
          optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)"),
          optparse.Option('--test',action="store_true",help="compile tests")]
@@ -19,6 +20,7 @@ prefix=os.path.expanduser( options.prefix )
 with_truez=options.with_truez
 debug=options.debug
 noopt=options.noopt
+sdssmask=options.sdssmask
 
 CC='gcc'
 
@@ -33,12 +35,16 @@ if not debug:
 if with_truez:
     CFLAGS += ['-DWITH_TRUEZ']
 
+if sdssmask:
+    CFLAGS += ['-DSDSSMASK']
+
 test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/test-healpix']},
                  {'name':'test/test-healpix-brute',
                   'sources':['healpix','gcirc','stack','Vector','sort','histogram','test/test-healpix-brute']},
                  {'name':'test/test-i64stack','sources':['stack','test/test-i64stack']},
                  {'name':'test/test-interp','sources':['interp','Vector','test/test-interp']},
                  {'name':'test/test-sdss-survey','sources':['test/test-sdss-survey','sdss-survey']},
+                 {'name':'test/test-sdss-quad','sources':['test/test-sdss-quad','sdss-survey']},
                  {'name':'test/test-config','sources':['config','test/test-config']},
                  {'name':'test/test-source',
                   'sources':['source','sort','healpix','histogram','stack','Vector','test/test-source']},
@@ -47,11 +53,14 @@ test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/
                  {'name':'test/test-sort','sources':['sort','Vector','test/test-sort']},
                  {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
 
-programs = [{'name':'objshear',
-             'sources':['config','lens','lensum','source','cosmo','interp',
-                        'healpix','gcirc','stack','Vector','sort','histogram',
-                        'shear',
-                        'objshear']}]
+objshear_sources = ['config','lens','lensum','source','cosmo','interp',
+                    'healpix','gcirc','stack','Vector','sort','histogram',
+                    'shear',
+                    'objshear']
+if sdssmask:
+    objshear_sources += ['sdss-survey']
+
+programs = [{'name':'objshear', 'sources':objshear_sources}]
 
 if options.test:
     programs += test_programs
