@@ -223,6 +223,7 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
         return;
     }
 #endif
+
     cosradiff = src->cosra*lens->cosra + src->sinra*lens->sinra;
     cosphi = lens->sindec*src->sindec + lens->cosdec*src->cosdec*cosradiff;
 

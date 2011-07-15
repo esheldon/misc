@@ -129,9 +129,12 @@ int survey_quad(double theta) {
 
 
 /*
- * If all quadrants are not ok, we check pairs. But which pairs to check?  We
- * always take the first one starting with 12.  Might choose another that would
- * better reduce systematics.
+ * If all quadrants are not ok, we check pairs. But which pairs to check in
+ * what order?  
+ *
+ * I'm checking 12 then 23 then 34 then 41.  For the same lens, I'll always end
+ * up with the same unmasked pair that I'm checking, so that's consistent.  But
+ * I might want to choose another order that would better reduce systematics.
  */
 
 int test_quad_sincos(int64 maskflags,
