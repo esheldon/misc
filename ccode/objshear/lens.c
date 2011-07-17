@@ -5,6 +5,10 @@
 #include "lens.h"
 #include "cosmo.h"
 
+#ifdef SDSSMASK
+#include "sdss-survey.h"
+#endif
+
 struct lcat* lcat_new(size_t n_lens) {
 
     if (n_lens == 0) {
@@ -65,6 +69,15 @@ struct lcat* lcat_read(const char* filename) {
         lens->cosra = cos(ra_rad);
         lens->sindec = sin(dec_rad);
         lens->cosdec = cos(dec_rad);
+
+#ifdef SDSSMASK
+        rval=fread(&lens->maskflags, sizeof(int64), 1, fptr);
+        // add sin(lam),cos(lam),sin(eta),cos(eta)
+        eq2sdss_sincos(lens->ra,lens->dec,
+                       &lens->sinlam, &lens->coslam,
+                       &lens->sineta, &lens->coseta);
+#endif
+
 
         lens++;
 

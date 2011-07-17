@@ -13,6 +13,10 @@
 #include "source.h"
 #include "interp.h"
 
+#ifdef SDSSMASK
+#include "sdss-survey.h"
+#endif
+
 struct shear* shear_init(const char* config_file) {
 
     struct shear* shear = calloc(1, sizeof(struct shear));
@@ -110,20 +114,24 @@ struct shear* shear_delete(struct shear* shear) {
     return NULL;
 }
 
-#ifndef WITH_TRUEZ
+//#ifndef WITH_TRUEZ
 void shear_calc(struct shear* shear) {
 
+#ifndef WITH_TRUEZ
+    // interpolation region
     double minz = shear->scat->min_zlens;
     double maxz = shear->scat->max_zlens;
+#else
+    double minz=0;
+    double maxz=9999;
+#endif
 
-    int64 nperdot=500;
-    printf("printing one dot every %ld lenses\n", nperdot);
+    printf("printing one dot every %d lenses\n", LENSPERDOT);
     for (size_t i=0; i<shear->lcat->size; i++) {
-        if ( (i % nperdot) == 0) {
+        if ( (i % LENSPERDOT) == 0) {
             printf(".");fflush(stdout);
         }
 
-        // only consider lenses in our interpolation region
         double z = shear->lcat->data[i].z;
         if (z >= minz && z <= maxz && z > MIN_ZLENS) {
             shear_proclens(shear, i);
@@ -131,13 +139,13 @@ void shear_calc(struct shear* shear) {
     }
     printf("\n");
 }
+/*
 #else
 void shear_calc(struct shear* shear) {
 
-    int64 nperdot=500;
-    printf("printing one dot every %ld lenses\n", nperdot);
+    printf("printing one dot every %ld lenses\n", LENSPERDOT);
     for (size_t i=0; i<shear->lcat->size; i++) {
-        if ( (i % nperdot) == 0) {
+        if ( (i % LENSPERDOT) == 0) {
             printf(".");fflush(stdout);
         }
 
@@ -149,8 +157,9 @@ void shear_calc(struct shear* shear) {
     }
     printf("\n");
 }
+*/
 
-#endif
+//#endif
 
 void shear_print_sum(struct shear* shear) {
     printf("Total sums:\n\n");
@@ -207,6 +216,13 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
     double cosradiff, sinradiff, cosphi, theta;
     double phi, cos2theta, sin2theta, arg;
     double scinv;
+
+#ifdef SDSSMASK
+    // make sure object is in a pair of unmasked adjacent quadrants
+    if (!shear_test_quad(lens, src)) {
+        return;
+    }
+#endif
 
     cosradiff = src->cosra*lens->cosra + src->sinra*lens->sinra;
     cosphi = lens->sindec*src->sindec + lens->cosdec*src->cosdec*cosradiff;
@@ -269,3 +285,18 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
         }
     }
 }
+
+
+
+/*
+ * Make sure the source is in an acceptable quadrant for this lens
+ */
+#ifdef SDSSMASK
+int shear_test_quad(struct lens* l, struct source* s) {
+    return test_quad_sincos(l->maskflags,
+                            l->sinlam, l->coslam,
+                            l->sineta, l->coseta,
+                            s->sinlam, s->coslam,
+                            s->sineta, s->coseta);
+}
+#endif

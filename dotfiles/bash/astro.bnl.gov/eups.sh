@@ -18,6 +18,9 @@ if [[ -e $f ]]; then
 
         setup esutil -r ~/exports-tutti/esutil-local
 
+        setup cosmology -r ~/exports-tutti/cosmology-local
+        setup admom -r ~/exports-tutti/admom-local
+        setup fimage -r ~/exports-tutti/fimage-local
 
         setup ccfits
         setup wl -r ~/exports-tutti/wl-local
@@ -34,6 +37,9 @@ if [[ -e $f ]]; then
         setup parallel
 
         setup scons
+        setup pyyaml
+
+
     else
         # this will get numpy and python
         setup scipy
@@ -59,12 +65,14 @@ if [[ -e $f ]]; then
         setup sdsspy -r ~/exports/sdsspy-local
         setup numpydb -r ~esheldon/exports/numpydb-local
 
+        setup stomp -r ~/exports/stomp-work
 
         # biggles requires plotutils
         setup biggles
 
         # for DES wl
         setup scons
+        setup pyyaml
 
         # will set up cfitsio/ccfits/tmv
         setup wl -r ~/exports/wl-local
@@ -76,18 +84,15 @@ if [[ -e $f ]]; then
         # note you still import scikits.learn
         setup scikits_learn -r ~/exports/scikits_learn
 
+        # this will set up pcre
+        setup swig
+
         return
 
 
 
-
-        setup parallel
-
-        setup vim
-
         setup tmux
 
-        setup swig
 
         setup matplotlib
         #setup pyfitspatch
@@ -117,7 +122,6 @@ if [[ -e $f ]]; then
 
         setup libtool
         setup gflags
-        setup stomp -r ~/exports/stomp-work
 
 
 
