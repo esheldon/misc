@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+"""
+    %prog [options] quadrant
+
+Description:
+
+    Generate random ra,dec in the specified quadrant around the input center.
+    Quadrant should be in [0,3]
+
+    This program writes out the following
+
+        first line: 
+            cenra cendec quadrant
+        following lines:
+            randra randdec
+
+    Use this along with the test-sdss-quad function:
+
+        make-quad-input quadrant | test-sdss-quad
+
+    The test-sdss-quad will read these and generate what it thinks is the
+    quadrant.
+
+        ra dec quadrant
+
+    all the outputs should have the specified quadrant"""
+
+import sys
+import esutil as eu
+import stomp
+
+
+from optparse import OptionParser
+parser=OptionParser(__doc__)
+
+parser.add_option("-n","--nrand",default=20, 
+                  help="number of randoms, default %default")
+parser.add_option("-c","--center",default="20.,20.", 
+                  help="center ra,dec in degrees, comma separated.  default %default")
+parser.add_option("-r","--radius",default=0.1, 
+                  help="radius in degrees.  default %default")
+
+
+def main():
+    options, args = parser.parse_args(sys.argv[1:])
+    if len(args) < 1:
+        parser.print_help()
+        sys.exit(45)
+
+    cen = options.center.split(",")
+    if len(cen) != 2:
+        raise ValueError("center should be 'ra,dec'")
+    cenra = float(cen[0])
+    cendec = float(cen[1])
+
+    radius = float(options.radius)
+    nrand = long(options.nrand)
+
+    # convert to sdss survey coords
+    cenlam, ceneta = eu.coords.eq2sdss(cenra,cendec)
+
+    quadrant = long(args[0])
+
+    map = stomp.Map()
+
+
+    rlam, reta = map.GenerateRandomQuadrantPointsSurvey(cenlam[0],
+                                                        ceneta[0],
+                                                        radius,
+                                                        nrand,
+                                                        quadrant)
+
+    rra,rdec = eu.coords.sdss2eq(rlam,reta)
+
+    print("%.15f %.15f %d" % (cenra,cendec,quadrant))
+    for i in xrange(nrand):
+        print("%.15f %.15f" % (rra[i],rdec[i]))
+
+main()

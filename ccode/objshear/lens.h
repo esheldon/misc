@@ -17,6 +17,15 @@ struct lens {
     double cosra;
     double sindec;
     double cosdec;
+
+#ifdef SDSSMASK
+    int64 maskflags;
+    double sinlam;
+    double coslam;
+    double sineta;
+    double coseta;
+#endif
+
 };
 
 
