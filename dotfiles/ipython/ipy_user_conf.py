@@ -24,6 +24,9 @@ def main():
     # for quick timing of commands
     ip.ex("import time")
 
+    ip.ex("import os")
+    ip.ex("import sys")
+
     # import numerical python and 
     # the often used where function
     try:
