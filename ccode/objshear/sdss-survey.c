@@ -167,9 +167,14 @@ int test_quad_sincos(int64 maskflags,
     // this we can and with the bits
     int quadbit = 1 << (quadrant+1);
 
-    // work with the first good adjacent pair we find.  Since not all are good,
-    // this is as good a choice of check order as any.  Might figure out which
-    // gives better systematics?
+    // work with the first good adjacent pair we find.  We already checked the
+    // case where all quadrants are OK, so it is now arbitrary which one we
+    // check against first, but we should be consistent for a given lens.
+    // Might figure out which gives better systematics?
+    //
+    // It would *not* be right to try another pair if the first good one
+    // fails; we need to always check on for a given lens to make sure
+    // we only draw pairs from that one.
     
     if ((maskflags & QUAD12_OK) == QUAD12_OK) {
         if ((quadbit & QUAD12_OK) != 0) {

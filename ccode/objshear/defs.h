@@ -35,6 +35,7 @@ typedef int64_t int64;
 #define LENSPERDOT 1000
 
 // move this to config file?
+#define SHAPENOISE2 0.1024
 // (shape noise/2)**2  to give noise on gamma
 #define GSN2 0.0256
 
