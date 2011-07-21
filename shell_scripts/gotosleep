@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo /etc/acpi/sleep.sh force
