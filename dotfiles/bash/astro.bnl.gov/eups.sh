@@ -3,7 +3,7 @@ if [[ -e $f ]]; then
     source $f
 
     # this is pure python or data
-    setup desfiles -r ~/oh/desfiles
+    setup desfiles -r /astro/u/astrodat/products-special/desfiles
     setup espy -r ~/python
 
     if [[ $hname == "tutti" ]]; then

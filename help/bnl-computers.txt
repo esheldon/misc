@@ -516,8 +516,11 @@ to the /etc/krb5.conf:
               fsus04.fnal.gov = FNAL.GOV
 
 
-Then it worked but only for esheldon@FNAL.GOV. This seems to be a difference
-between realms (caps) and domains (lower) but not sure. 
+Then it worked but only for 
+    kinit esheldon@FNAL.GOV
+
+This seems to be a difference between realms (caps) and domains (lower) but not
+sure. 
 
 
 Then ran

@@ -3,8 +3,8 @@
 # I usually need.  
 #	converter [-soc -d dpi -t output_type] files
 #
-# For many conversions requires the convert program that comes with 
-# ImageMagick.
+# For many conversion, GraphicsMagic is used.  If you don't have GraphicsMagick
+# installed, ImageMagick convert program will be used.
 #
 # For conversion of eps to pdf you need epstopdf for best results.  If not
 # found it will use convert but this often fails when the bounding box
