@@ -39,7 +39,8 @@ function usage
 usage: 
     setup-astro [options] start|stop|restart
 
-    send -u <usename> to use an alternative username
+    By default, the caller's username is used for logging into the remote host.
+    send -u <username> to use an alternative username
 "
 }
 function connect
