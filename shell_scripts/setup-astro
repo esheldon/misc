@@ -1,11 +1,15 @@
 #!/bin/bash
 #
-# usage: setup-astro start|stop|restart
+# usage: setup-astro [options] start|stop|restart
 #
 # start: Set up the connection.  If the connection exists the request is 
 #        ignored.
 # stop:  Disconnect. If the connection does not exist the request is ignored.
 # restart: run "stop" then "start".
+#
+# by default the caller's username is used for connection.  To over-ride
+# this use the -u option
+#   setup-astro -u username start
 
 gateway=rssh
 domain=rhic.bnl.gov
@@ -22,7 +26,6 @@ check=$(echo $ip | grep 130\.199\.15)
 if [ "$check" == "$ip" ]; then
     iscorus="yes"
 fi
-echo "iscorus: $iscorus"
 
 alltunnels="no"
 if [[ "$iscorus" == "yes" ]]; then
@@ -30,22 +33,26 @@ if [[ "$iscorus" == "yes" ]]; then
 fi
 alltunnels="yes"
 
+function usage
+{
+    echo "
+usage: 
+    setup-astro [options] start|stop|restart
 
-# should we implement this?
-#ssh -N -p 22 -c 3des throwe@rssh.rhic.bnl.gov  -L 3128/192.168.1.130/3128
-#- -L 1389/ldap.bnl.gov/389 -L 1631/cups.phy.bnl.gov/631
-
+    send -u <usename> to use an alternative username
+"
+}
 function connect
 {
 	check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
 	if [ "$check" == "" ]; then
 		echo "Connecting to $gateway"
-		ssh -f -N "$fullhost"
+		ssh -f -N "${username}@$fullhost"
 	fi
 
     if [[ "$alltunnels" == "yes" ]]; then
 		echo "Setting up all tunnels"
-        ssh -f -N -p 22 -c 3des esheldon@rssh.rhic.bnl.gov  \
+        ssh -f -N -p 22 -c 3des "${username}@${fullhost}" \
 				-L 3128/192.168.1.130/3128 - \
 				-L 1389/ldap.bnl.gov/389 \
 				-L 1631/cups.phy.bnl.gov/631
@@ -63,23 +70,22 @@ function disconnect
 		kill $id
 	    check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
     done
-	#fi
-
-	# repeat in case corus is set up
-	#if [ "$iscorus" == "yes" ]; then
-	#	check=$(ps auxww | grep ".*ssh.*-N.*$gateway.*" | grep -v grep)
-	#	if [ "$check" != "" ]; then
-	#		id=$(echo $check | awk '{print $2}')
-	#		kill $id
-	#	fi
-    #    setproxy
-	#fi
-
 
 }
 
+username=$(whoami)
+while getopts "u:" Option
+  do
+  case $Option in
+      u) username=$OPTARG ;;
+      [?]) usage
+           exit 45 ;;  
+  esac
+done
+shift $(($OPTIND - 1))
+
 if [ $# -lt 1 ]; then
-	echo "usage: setup-astro start|stop|restart"
+    usage
 	exit 45
 fi
 
