@@ -100,62 +100,6 @@ struct shear* shear_init(const char* config_file) {
 
 }
 
-void shear_open_tempfile(struct shear* shear) {
-    printf("Opening temporary output file: %s\n", shear->config->temp_file);
-    shear->fptr = fopen(shear->config->temp_file, "w");
-    if (shear->fptr == NULL) {
-        printf("Could not open temp file\n");
-        exit(EXIT_FAILURE);
-    }
-}
-FILE* shear_close_tempfile(struct shear* shear) {
-    if (shear->fptr != NULL) {
-        fflush(shear->fptr);
-        fclose(shear->fptr);
-    }
-    return NULL;
-}
-void shear_cleanup_tempfile(struct shear* shear) {
-    if (0 != unlink(shear->config->temp_file)) {
-        printf("Failed to unlink file %s\n", shear->config->temp_file);
-        exit(EXIT_FAILURE);
-    }
-}
-
-void shear_copy_temp_to_output(struct shear* shear) {
-    printf("Copying from temp file \n    %s\nto output\n    %s\n", 
-           shear->config->temp_file, shear->config->output_file);
-
-    FILE* srcfile = fopen(shear->config->temp_file, "rb");
-    if (srcfile == NULL) {
-        printf("Could not open temp file\n");
-        exit(EXIT_FAILURE);
-    }
-
-    FILE* destfile = fopen(shear->config->output_file, "wb");
-    if (destfile == NULL) {
-        printf("Could not open outputfile\n");
-        exit(EXIT_FAILURE);
-    }
-
-    char buffer[512];
-    int bytes;
-
-    int ret=0;
-    while((bytes = fread(buffer, 1, sizeof(buffer), srcfile)) > 0) {
-        ret=fwrite(buffer, 1, bytes, destfile);
-        if (ret != bytes) {
-            printf("Expected to write %d bytes but wrote only %d\n", bytes, ret);
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    fclose(srcfile);
-    fclose(destfile);
-
-
-}
-
 void shear_calc(struct shear* shear) {
 
 #ifndef WITH_TRUEZ
@@ -364,6 +308,79 @@ int shear_test_quad(struct lens* l, struct source* s) {
                             s->sineta, s->coseta);
 }
 #endif
+
+
+
+
+void shear_open_tempfile(struct shear* shear) {
+    printf("Opening temporary output file: %s\n", shear->config->temp_file);
+    shear->fptr = fopen(shear->config->temp_file, "w");
+    if (shear->fptr == NULL) {
+        printf("Could not open temp file\n");
+        exit(EXIT_FAILURE);
+    }
+}
+FILE* shear_close_tempfile(struct shear* shear) {
+    if (shear->fptr != NULL) {
+        // remember, this also flushes
+        fclose(shear->fptr);
+    }
+    return NULL;
+}
+void shear_cleanup_tempfile(struct shear* shear) {
+    printf("Deleting temporary file: %s\n", shear->config->temp_file);
+    if (0 != unlink(shear->config->temp_file)) {
+        printf("Failed to unlink file %s\n", shear->config->temp_file);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void shear_copy_temp_to_output(struct shear* shear) {
+
+    /*
+     * we want this buffer to be a multiple of the page size because a page is
+     * the smallest unit of data for both memory allocation and transfer
+     * between memory and the hard drive
+     * 
+     * this is two pages on the intel (amd64) machines we have on the clulster
+     */
+
+    int page_size = sysconf(_SC_PAGESIZE);
+    char* buffer = calloc(2*page_size,sizeof(char));
+
+    printf("Copying from temp file \n    %s\nto output\n    %s\n", 
+           shear->config->temp_file, shear->config->output_file);
+
+    FILE* srcfile = fopen(shear->config->temp_file, "rb");
+    if (srcfile == NULL) {
+        printf("Could not open temp file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    FILE* destfile = fopen(shear->config->output_file, "wb");
+    if (destfile == NULL) {
+        printf("Could not open outputfile\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int bytes;
+
+    int ret=0;
+    while((bytes = fread(buffer, 1, sizeof(buffer), srcfile)) > 0) {
+        ret=fwrite(buffer, 1, bytes, destfile);
+        if (ret != bytes) {
+            printf("Expected to write %d bytes but wrote only %d\n", bytes, ret);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    fclose(srcfile);
+    fclose(destfile);
+    free(buffer);
+
+
+}
+
 
 
 
