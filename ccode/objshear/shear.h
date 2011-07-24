@@ -21,7 +21,12 @@ struct shear {
     struct i64stack* pixstack;
 
     // this holds the info for a given lens
+#ifdef NO_INCREMENTAL_WRITE
     struct lensums* lensums;
+#else
+    struct lensum* lensum;
+    struct lensum* lensum_tot;
+#endif
 
     // output file pointer. We open at the beginning to make sure we can!
     FILE* fptr;
@@ -30,10 +35,16 @@ struct shear {
 struct shear* shear_init(const char* config_filename);
 struct shear* shear_delete(struct shear* shear);
 
+// where we write results before copying to nfs file system
+void shear_open_tempfile(struct shear* shear);
+FILE* shear_close_tempfile(struct shear* shear);
+void shear_cleanup_tempfile(struct shear* shear);
+void shear_copy_temp_to_output(struct shear* shear);
+
 void shear_calc(struct shear* shear);
 
 void shear_print_sum(struct shear* shear);
-void shear_write(struct shear* shear);
+void shear_write_all(struct shear* shear);
 
 void shear_proclens(struct shear* shear, size_t lindex);
 void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search_angle);

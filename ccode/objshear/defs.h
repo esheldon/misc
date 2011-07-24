@@ -33,6 +33,8 @@
 typedef int64_t int64;
 
 #define LENSPERDOT 1000
+#define LENSPERCHUNK 100000
+//#define LENSPERCHUNK 3000
 
 // move this to config file?
 #define SHAPENOISE2 0.1024
