@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "defs.h"
 #include "shear.h"
@@ -31,16 +32,9 @@ struct shear* shear_init(const char* config_file) {
     printf("config structure:\n");
     config_print(config);
 
-
-    // open the output file right away to make sure
-    // we can
-    printf("Opening output file: %s\n", config->output_file);
-    shear->fptr = fopen(config->output_file, "w");
-    if (shear->fptr == NULL) {
-        printf("Could not open output file\n");
-        exit(EXIT_FAILURE);
-    }
-
+    // the temporary output file where we write everything locally, then copy
+    // to the nfs file system after
+    shear_open_tempfile(shear);
 
     // now initialize the structures we need
     printf("Initalizing cosmo in flat universe\n");
@@ -61,16 +55,12 @@ struct shear* shear_init(const char* config_file) {
     // this is a growable stack for holding pixels
     printf("Creating pixel stack\n");
     shear->pixstack = i64stack_new(0);
+    //shear->pixstack->realloc_multval = 1.1;
 
     // finally read the data
     shear->lcat = lcat_read(config->lens_file);
 
 
-    // this holds the sums for each lens
-    shear->lensums = lensums_new(shear->lcat->size, config->nbin);
-    for (size_t i=0; i<shear->lensums->size; i++) {
-        shear->lensums->data[i].zindex = shear->lcat->data[i].zindex;
-    }
 
     printf("Adding Dc to lenses\n");
     lcat_add_da(shear->lcat, shear->cosmo);
@@ -85,6 +75,7 @@ struct shear* shear_init(const char* config_file) {
     printf("Adding revind to scat\n");
     scat_add_rev(shear->scat, shear->hpix);
 
+
 #ifdef WITH_TRUEZ
     scat_add_dc(shear->scat, shear->cosmo);
 #endif
@@ -92,29 +83,79 @@ struct shear* shear_init(const char* config_file) {
     //scat_print_firstlast(shear->scat);
     scat_print_one(shear->scat, shear->scat->size-1);
 
+    //sleep(1000);
+
+
+#ifdef NO_INCREMENTAL_WRITE
+    // this holds the sums for each lens
+    shear->lensums = lensums_new(shear->lcat->size, config->nbin);
+    for (size_t i=0; i<shear->lensums->size; i++) {
+        shear->lensums->data[i].zindex = shear->lcat->data[i].zindex;
+    }
+#else
+    shear->lensum = lensum_new(config->nbin);
+    shear->lensum_tot = lensum_new(config->nbin);
+#endif
     return shear;
 
 }
 
-struct shear* shear_delete(struct shear* shear) {
-
-    if (shear != NULL) {
-        fclose(shear->fptr);
-
-        shear->config   = config_delete(shear->config);
-        shear->lcat     = lcat_delete(shear->lcat);
-        shear->scat     = scat_delete(shear->scat);
-        shear->hpix     = hpix_delete(shear->hpix);
-        shear->cosmo    = cosmo_delete(shear->cosmo);
-        shear->pixstack = i64stack_delete(shear->pixstack);
-        shear->lensums  = lensums_delete(shear->lensums);
-
+void shear_open_tempfile(struct shear* shear) {
+    printf("Opening temporary output file: %s\n", shear->config->temp_file);
+    shear->fptr = fopen(shear->config->temp_file, "w");
+    if (shear->fptr == NULL) {
+        printf("Could not open temp file\n");
+        exit(EXIT_FAILURE);
     }
-    free(shear);
+}
+FILE* shear_close_tempfile(struct shear* shear) {
+    if (shear->fptr != NULL) {
+        fflush(shear->fptr);
+        fclose(shear->fptr);
+    }
     return NULL;
 }
+void shear_cleanup_tempfile(struct shear* shear) {
+    if (0 != unlink(shear->config->temp_file)) {
+        printf("Failed to unlink file %s\n", shear->config->temp_file);
+        exit(EXIT_FAILURE);
+    }
+}
 
-//#ifndef WITH_TRUEZ
+void shear_copy_temp_to_output(struct shear* shear) {
+    printf("Copying from temp file \n    %s\nto output\n    %s\n", 
+           shear->config->temp_file, shear->config->output_file);
+
+    FILE* srcfile = fopen(shear->config->temp_file, "rb");
+    if (srcfile == NULL) {
+        printf("Could not open temp file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    FILE* destfile = fopen(shear->config->output_file, "wb");
+    if (destfile == NULL) {
+        printf("Could not open outputfile\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char buffer[512];
+    int bytes;
+
+    int ret=0;
+    while((bytes = fread(buffer, 1, sizeof(buffer), srcfile)) > 0) {
+        ret=fwrite(buffer, 1, bytes, destfile);
+        if (ret != bytes) {
+            printf("Expected to write %d bytes but wrote only %d\n", bytes, ret);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    fclose(srcfile);
+    fclose(destfile);
+
+
+}
+
 void shear_calc(struct shear* shear) {
 
 #ifndef WITH_TRUEZ
@@ -127,9 +168,22 @@ void shear_calc(struct shear* shear) {
 #endif
 
     printf("printing one dot every %d lenses\n", LENSPERDOT);
-    for (size_t i=0; i<shear->lcat->size; i++) {
+
+#ifndef NO_INCREMENTAL_WRITE
+    lensums_write_header(shear->lcat->size, 
+                         shear->lensum->nbin, 
+                         shear->fptr);
+#endif
+
+    size_t nlens = shear->lcat->size;
+    for (size_t i=0; i<nlens; i++) {
+        if ( ((i+1) % LENSPERCHUNK) == 0) {
+            printf("\n%ld/%ld  (%0.1f%%)\n", i+1, nlens, 100.*(float)(i+1)/nlens);
+            fflush(stdout);
+        }
         if ( (i % LENSPERDOT) == 0) {
-            printf(".");fflush(stdout);
+            printf(".");
+            fflush(stdout);
         }
 
         double z = shear->lcat->data[i].z;
@@ -139,36 +193,8 @@ void shear_calc(struct shear* shear) {
     }
     printf("\n");
 }
-/*
-#else
-void shear_calc(struct shear* shear) {
 
-    printf("printing one dot every %ld lenses\n", LENSPERDOT);
-    for (size_t i=0; i<shear->lcat->size; i++) {
-        if ( (i % LENSPERDOT) == 0) {
-            printf(".");fflush(stdout);
-        }
 
-        // only consider lenses in our interpolation region
-        double z = shear->lcat->data[i].z;
-        if (z > MIN_ZLENS) {
-            shear_proclens(shear, i);
-        } 
-    }
-    printf("\n");
-}
-*/
-
-//#endif
-
-void shear_print_sum(struct shear* shear) {
-    printf("Total sums:\n\n");
-    lensums_print_sum(shear->lensums);
-}
-void shear_write(struct shear* shear) {
-    printf("\nWriting lensums to %s\n", shear->config->output_file);
-    lensums_write(shear->lensums, shear->fptr);
-}
 
 void shear_proclens(struct shear* shear, size_t lindex) {
 
@@ -182,6 +208,11 @@ void shear_proclens(struct shear* shear, size_t lindex) {
     double cos_search_angle = cos(search_angle);
 
     struct i64stack* pixstack = shear->pixstack;
+
+#ifndef NO_INCREMENTAL_WRITE
+    lensum_clear(shear->lensum);
+#endif
+
     hpix_disc_intersect(
             shear->hpix, 
             lens->ra, lens->dec, 
@@ -204,6 +235,14 @@ void shear_proclens(struct shear* shear, size_t lindex) {
             } // sources
         } // pix in range for sources?
     }
+
+#ifndef NO_INCREMENTAL_WRITE
+    // write out this lens
+    lensum_write(shear->lensum, shear->fptr);
+    // keep accumulation of statistics
+    lensum_add(shear->lensum_tot, shear->lensum);
+#endif
+
 }
 
 void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search_angle) {
@@ -211,7 +250,11 @@ void shear_procpair(struct shear* shear, size_t li, size_t si, double cos_search
     struct source* src = &shear->scat->data[si];
     struct config* config=shear->config;
 
+#ifdef NO_INCREMENTAL_WRITE
     struct lensum* lensum = &shear->lensums->data[li];
+#else
+    struct lensum* lensum = shear->lensum;
+#endif
 
     double cosradiff, sinradiff, cosphi, theta;
     double phi, cos2theta, sin2theta, arg;
@@ -321,3 +364,54 @@ int shear_test_quad(struct lens* l, struct source* s) {
                             s->sineta, s->coseta);
 }
 #endif
+
+
+
+
+void shear_print_sum(struct shear* shear) {
+    printf("Total sums:\n\n");
+
+#ifdef NO_INCREMENTAL_WRITE
+    lensums_print_sum(shear->lensums);
+#else
+    lensum_print(shear->lensum_tot);
+#endif
+
+}
+
+// this is for when we haven't written the file line by line[:w
+void shear_write_all(struct shear* shear) {
+
+    printf("\nWriting lensums to %s\n", shear->config->output_file);
+
+#ifdef NO_INCREMENTAL_WRITE
+    lensums_write(shear->lensums, shear->fptr);
+#endif
+
+}
+
+
+struct shear* shear_delete(struct shear* shear) {
+
+    if (shear != NULL) {
+        shear->fptr = shear_close_tempfile(shear);
+
+        shear->config   = config_delete(shear->config);
+        shear->lcat     = lcat_delete(shear->lcat);
+        shear->scat     = scat_delete(shear->scat);
+        shear->hpix     = hpix_delete(shear->hpix);
+        shear->cosmo    = cosmo_delete(shear->cosmo);
+        shear->pixstack = i64stack_delete(shear->pixstack);
+#ifdef NO_INCREMENTAL_WRITE
+        shear->lensums  = lensums_delete(shear->lensums);
+#else
+        shear->lensum  = lensum_delete(shear->lensum);
+        shear->lensum_tot  = lensum_delete(shear->lensum_tot);
+#endif
+
+    }
+    free(shear);
+    return NULL;
+}
+
+

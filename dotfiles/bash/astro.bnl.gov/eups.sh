@@ -2,9 +2,12 @@ f=~astrodat/setup/setup-eups.sh
 if [[ -e $f ]]; then
     source $f
 
-    # this is pure python or data
+    # these are pure data or scripting languages
+    setup parallel
     setup desfiles -r /astro/u/astrodat/products-special/desfiles
     setup espy -r ~/python
+    setup shell_scripts -r ~/shell_scripts
+    setup perllib -r ~/perllib
 
     if [[ $hname == "tutti" ]]; then
         # this will get python and numpy
@@ -34,7 +37,6 @@ if [[ -e $f ]]; then
         setup columns -r ~/exports/columns-local
 
         setup pv
-        setup parallel
 
         setup scons
         setup pyyaml
@@ -47,10 +49,8 @@ if [[ -e $f ]]; then
         setup ipython
         setup local -r ~/local
 
-        # this is pure python
-        setup espy -r ~/python
-        setup shell_scripts -r ~/shell_scripts
-        setup perllib -r ~/perllib
+        setup pyfits
+
 
         setup cosmology -r ~/exports/cosmology-local
         setup admom -r ~/exports/admom-local
@@ -79,7 +79,6 @@ if [[ -e $f ]]; then
         setup tmv -r ~/exports/tmv-work
 
         setup pv
-        setup parallel
 
         # note you still import scikits.learn
         setup scikits_learn -r ~/exports/scikits_learn
