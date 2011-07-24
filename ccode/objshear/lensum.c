@@ -60,29 +60,39 @@ SIZE =               206951
  '_VERSION': '1.0'}
 END
 */
+
+void lensums_write_header(size_t nlens, size_t nbin, FILE* fptr) {
+    fprintf(fptr, "SIZE = %ld\n", nlens);
+    fprintf(fptr, "{'_DTYPE': [('zindex',   'i8'),\n");
+    fprintf(fptr, "            ('weight',   'f8'),\n");
+    fprintf(fptr, "            ('totpairs', 'i8'),\n");
+    fprintf(fptr, "            ('sshsum',   'f8'),\n");
+    fprintf(fptr, "            ('npair',    'i8', %ld),\n", nbin);
+    fprintf(fptr, "            ('rsum',     'f8', %ld),\n", nbin);
+    fprintf(fptr, "            ('wsum',     'f8', %ld),\n", nbin);
+    fprintf(fptr, "            ('dsum',     'f8', %ld),\n", nbin);
+    fprintf(fptr, "            ('osum',     'f8', %ld)],\n", nbin);
+    fprintf(fptr, " '_VERSION': '1.0'}\n");
+    fprintf(fptr, "END\n");
+    fprintf(fptr, "\n");
+}
+
+// this is for writing them all at once.  We actually usually
+// write them one at a time
 void lensums_write(struct lensums* lensums, FILE* fptr) {
     int64 nlens=lensums->size;
     int64 nbin=lensums->data[0].nbin;
 
-    fprintf(fptr, "SIZE = %ld\n", nlens);
-    fprintf(fptr, "{'_DTYPE': [('zindex', 'i8'),\n");
-    fprintf(fptr, "            ('weight', 'f8'),\n");
-    fprintf(fptr, "            ('sshsum', 'f8'),\n");
-    fprintf(fptr, "            ('npair',  'i8', %ld),\n", nbin);
-    fprintf(fptr, "            ('rsum',   'f8', %ld),\n", nbin);
-    fprintf(fptr, "            ('wsum',   'f8', %ld),\n", nbin);
-    fprintf(fptr, "            ('dsum',   'f8', %ld),\n", nbin);
-    fprintf(fptr, "            ('osum',   'f8', %ld)],\n", nbin);
-    fprintf(fptr, " '_VERSION': '1.0'}\n");
-    fprintf(fptr, "END\n");
-    fprintf(fptr, "\n");
-
+    lensums_write_header(nlens, nbin, fptr);
 
     struct lensum* lensum = &lensums->data[0];
-    int res;
     for (size_t i=0; i<nlens; i++) {
+        lensum_write(lensum, fptr);
+
+        /*
         res=fwrite(&lensum->zindex, sizeof(int64), 1, fptr);
         res=fwrite(&lensum->weight, sizeof(double), 1, fptr);
+        res=fwrite(&lensum->totpairs, sizeof(int64), 1, fptr);
 
         res=fwrite(&lensum->sshsum, sizeof(double), 1, fptr);
 
@@ -91,6 +101,7 @@ void lensums_write(struct lensums* lensums, FILE* fptr) {
         res=fwrite(lensum->wsum, sizeof(double), nbin, fptr);
         res=fwrite(lensum->dsum, sizeof(double), nbin, fptr);
         res=fwrite(lensum->osum, sizeof(double), nbin, fptr);
+        */
         
         lensum++;
     }
@@ -126,8 +137,9 @@ struct lensum* lensums_sum(struct lensums* lensums) {
     struct lensum* lensum = &lensums->data[0];
 
     for (size_t i=0; i<lensums->size; i++) {
-        tsum->weight += lensum->weight;
+        tsum->weight   += lensum->weight;
         tsum->totpairs += lensum->totpairs;
+        tsum->sshsum   += lensum->sshsum;
         for (size_t j=0; j<lensum->nbin; j++) {
             tsum->npair[j] += lensum->npair[j];
             tsum->rsum[j] += lensum->rsum[j];
@@ -205,10 +217,46 @@ struct lensum* lensum_new(size_t nbin) {
     return lensum;
 }
 
+
+// add the second lensum into the first
+void lensum_add(struct lensum* dest, struct lensum* src) {
+
+    dest->weight   += src->weight;
+    dest->totpairs += src->totpairs;
+    dest->sshsum   += src->sshsum;
+    for (size_t i=0; i<src->nbin; i++) {
+        dest->npair[i] += src->npair[i];
+        dest->rsum[i] += src->rsum[i];
+        dest->wsum[i] += src->wsum[i];
+        dest->dsum[i] += src->dsum[i];
+        dest->osum[i] += src->osum[i];
+    }
+
+}
+
+void lensum_write(struct lensum* lensum, FILE* fptr) {
+    int res;
+    int nbin = lensum->nbin;
+
+    res=fwrite(&lensum->zindex, sizeof(int64), 1, fptr);
+    res=fwrite(&lensum->weight, sizeof(double), 1, fptr);
+    res=fwrite(&lensum->totpairs, sizeof(int64), 1, fptr);
+
+    res=fwrite(&lensum->sshsum, sizeof(double), 1, fptr);
+
+    res=fwrite(lensum->npair, sizeof(int64), nbin, fptr);
+    res=fwrite(lensum->rsum, sizeof(double), nbin, fptr);
+    res=fwrite(lensum->wsum, sizeof(double), nbin, fptr);
+    res=fwrite(lensum->dsum, sizeof(double), nbin, fptr);
+    res=fwrite(lensum->osum, sizeof(double), nbin, fptr);
+}
+
 // these write the stdout
 void lensum_print(struct lensum* lensum) {
     printf("  zindex:   %ld\n", lensum->zindex);
     printf("  weight:   %lf\n", lensum->weight);
+    printf("  sshsum:   %lf\n", lensum->sshsum);
+    printf("  ssh:      %lf\n", lensum->sshsum/lensum->weight);
     printf("  totpairs: %ld\n", lensum->totpairs);
     printf("  nbin:     %ld\n", lensum->nbin);
     printf("  bin       npair            wsum            dsum            osum           rsum\n");
@@ -230,6 +278,8 @@ void lensum_clear(struct lensum* lensum) {
 
     lensum->zindex=-1;
     lensum->weight=0;
+    lensum->totpairs=0;
+    lensum->sshsum=0;
     for (size_t i=0; i<lensum->nbin; i++) {
         lensum->npair[i] = 0;
         lensum->wsum[i] = 0;
@@ -242,10 +292,10 @@ void lensum_clear(struct lensum* lensum) {
 struct lensum* lensum_delete(struct lensum* lensum) {
     if (lensum != NULL) {
         free(lensum->npair);
+        free(lensum->rsum);
         free(lensum->wsum);
         free(lensum->dsum);
         free(lensum->osum);
-        free(lensum->rsum);
     }
     free(lensum);
     return NULL;

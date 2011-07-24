@@ -235,7 +235,7 @@ void scat_add_dc(struct scat* scat, struct cosmo* cosmo) {
 void scat_print_one(struct scat* scat, size_t el) {
     struct source* src = &scat->data[el];
     printf("element     %ld of scat:\n", el);
-    printf("    ra:     %lf  dec: %lf\n", R2D*asin(src->sinra), R2D*asin(src->sindec));
+    printf("    ra:     %lf  dec: %lf\n", src->ra, src->dec);
     printf("    g1:     %lf  g2: %lf\n", src->g1, src->g2);
     printf("    err:    %lf\n", src->err);
     printf("    hpixid: %ld\n", src->hpixid);

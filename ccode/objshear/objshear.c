@@ -17,9 +17,17 @@ int main(int argc, char** argv) {
     // print some summary info to the terminal
     shear_print_sum(shear);
 
+#ifdef NO_INCREMENTAL_WRITE
     shear_write(shear);
+#endif
+
+    shear->fptr = shear_close_tempfile(shear);
+    shear_copy_temp_to_output(shear);
+    shear_cleanup_tempfile(shear);
 
     shear_delete(shear);
 
     printf("Done\n");
+
+    return 0;
 }

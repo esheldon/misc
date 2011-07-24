@@ -7,6 +7,7 @@ struct config {
     char lens_file[255];
     char source_file[255];
     char output_file[255];
+    char temp_file[255];
 
     double H0;
     double omega_m;
