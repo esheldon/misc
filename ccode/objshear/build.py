@@ -10,6 +10,7 @@ parser = optparse.OptionParser()
 optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix,help="where to install"),
          optparse.Option('--with-truez',action="store_true",default=False,help="use true z for sources"),
          optparse.Option('--sdssmask',action="store_true",default=False,help="check quadrants from sdss mask"),
+         optparse.Option('--no-cache-output',action="store_true",default=False,help="keep outputs in memory"),
          optparse.Option('--noopt',action="store_true",help="turn off compiler optimizations"),
          optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)"),
          optparse.Option('--test',action="store_true",help="compile tests")]
@@ -21,6 +22,7 @@ with_truez=options.with_truez
 debug=options.debug
 noopt=options.noopt
 sdssmask=options.sdssmask
+nocache=options.no_cache_output
 
 CC='gcc'
 
@@ -37,6 +39,9 @@ if with_truez:
 
 if sdssmask:
     CFLAGS += ['-DSDSSMASK']
+
+if nocache:
+    CFLAGS += ['-DNO_CACHE_OUTPUT']
 
 test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/test-healpix']},
                  {'name':'test/test-healpix-brute',
