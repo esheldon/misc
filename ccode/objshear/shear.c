@@ -34,7 +34,7 @@ struct shear* shear_init(const char* config_file) {
 
     // the temporary output file where we write everything locally, then copy
     // to the nfs file system after
-    shear_open_tempfile(shear);
+    shear_open_output(shear);
 
     // now initialize the structures we need
     printf("Initalizing cosmo in flat universe\n");
@@ -312,23 +312,27 @@ int shear_test_quad(struct lens* l, struct source* s) {
 
 
 
-void shear_open_tempfile(struct shear* shear) {
-    printf("Opening temporary output file: %s\n", shear->config->temp_file);
-    shear->fptr = fopen(shear->config->temp_file, "w");
+void shear_open_output(struct shear* shear) {
+    printf("Opening output file: %s\n", shear->config->output_file);
+    shear->fptr = fopen(shear->config->output_file, "w");
     if (shear->fptr == NULL) {
         printf("Could not open temp file\n");
         exit(EXIT_FAILURE);
     }
 }
-FILE* shear_close_tempfile(struct shear* shear) {
+FILE* shear_close_output(struct shear* shear) {
     if (shear->fptr != NULL) {
         // remember, this also flushes
-        fclose(shear->fptr);
+        if (0 != fclose(shear->fptr)) {
+            printf("Could not close temp file\n");
+            exit(EXIT_FAILURE);
+        }
     }
     return NULL;
 }
 void shear_cleanup_tempfile(struct shear* shear) {
     printf("Deleting temporary file: %s\n", shear->config->temp_file);
+    fflush(stdout);
     if (0 != unlink(shear->config->temp_file)) {
         printf("Failed to unlink file %s\n", shear->config->temp_file);
         exit(EXIT_FAILURE);
@@ -350,6 +354,7 @@ void shear_copy_temp_to_output(struct shear* shear) {
 
     printf("Copying from temp file \n    %s\nto output\n    %s\n", 
            shear->config->temp_file, shear->config->output_file);
+    fflush(stdout);
 
     FILE* srcfile = fopen(shear->config->temp_file, "rb");
     if (srcfile == NULL) {
@@ -411,7 +416,7 @@ void shear_write_all(struct shear* shear) {
 struct shear* shear_delete(struct shear* shear) {
 
     if (shear != NULL) {
-        shear->fptr = shear_close_tempfile(shear);
+        shear->fptr = shear_close_output(shear);
 
         shear->config   = config_delete(shear->config);
         shear->lcat     = lcat_delete(shear->lcat);

@@ -21,9 +21,6 @@ int main(int argc, char** argv) {
     shear_write(shear);
 #endif
 
-    shear->fptr = shear_close_tempfile(shear);
-    shear_copy_temp_to_output(shear);
-    shear_cleanup_tempfile(shear);
 
     shear_delete(shear);
 
