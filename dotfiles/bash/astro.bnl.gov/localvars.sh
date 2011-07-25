@@ -5,6 +5,16 @@ if [[ -e $f ]]; then
     source "$f"
 fi
 
+f=/opt/astro/SL53/bin/setup.astro.sh
+if [[ -e $f ]]; then
+    source "$f"
+fi
+
+f=/opt/astro/SL53/bin/setup.hadoop.sh
+if [[ -e $f ]]; then
+    source "$f"
+fi
+
 export MAXBCG_CATDIR=/mount/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
 export MAXBCG_INPUT=/mount/tutti1/esheldon/maxbcg-input
 
