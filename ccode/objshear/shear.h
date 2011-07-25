@@ -36,8 +36,8 @@ struct shear* shear_init(const char* config_filename);
 struct shear* shear_delete(struct shear* shear);
 
 // where we write results before copying to nfs file system
-void shear_open_tempfile(struct shear* shear);
-FILE* shear_close_tempfile(struct shear* shear);
+void shear_open_output(struct shear* shear);
+FILE* shear_close_output(struct shear* shear);
 void shear_cleanup_tempfile(struct shear* shear);
 void shear_copy_temp_to_output(struct shear* shear);
 
