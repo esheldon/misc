@@ -229,7 +229,7 @@ void set_geometry(struct mtail* mtst) {
 
     /* don't use the last line, helps with terminals that don't clear upon
      * quitting like within screen */
-    mtst->ymax -= 1;
+    //mtst->ymax -= 1;
 
     /* is right here because of our arithmetic for regions sizes */
 	if (mtst->ymax < (mtst->numfiles * 4)) {
