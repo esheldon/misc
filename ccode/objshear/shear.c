@@ -96,6 +96,7 @@ struct shear* shear_init(const char* config_file) {
     shear->lensum = lensum_new(config->nbin);
     shear->lensum_tot = lensum_new(config->nbin);
 #endif
+
     return shear;
 
 }
@@ -120,6 +121,7 @@ void shear_calc(struct shear* shear) {
 #endif
 
     size_t nlens = shear->lcat->size;
+    //nlens = 10000;
     for (size_t i=0; i<nlens; i++) {
         if ( ((i+1) % LENSPERCHUNK) == 0) {
             printf("\n%ld/%ld  (%0.1f%%)\n", i+1, nlens, 100.*(float)(i+1)/nlens);
@@ -130,10 +132,24 @@ void shear_calc(struct shear* shear) {
             fflush(stdout);
         }
 
+
+#ifndef NO_INCREMENTAL_WRITE
+        lensum_clear(shear->lensum);
+        shear->lensum->zindex = shear->lcat->data[i].zindex;
+#endif
+
         double z = shear->lcat->data[i].z;
         if (z >= minz && z <= maxz && z > MIN_ZLENS) {
             shear_proclens(shear, i);
         } 
+
+#ifndef NO_INCREMENTAL_WRITE
+        // always write out this lensum
+        lensum_write(shear->lensum, shear->fptr);
+        // keep accumulation of statistics
+        lensum_add(shear->lensum_tot, shear->lensum);
+#endif
+
     }
     printf("\n");
 }
@@ -153,9 +169,6 @@ void shear_proclens(struct shear* shear, size_t lindex) {
 
     struct i64stack* pixstack = shear->pixstack;
 
-#ifndef NO_INCREMENTAL_WRITE
-    lensum_clear(shear->lensum);
-#endif
 
     hpix_disc_intersect(
             shear->hpix, 
@@ -180,12 +193,6 @@ void shear_proclens(struct shear* shear, size_t lindex) {
         } // pix in range for sources?
     }
 
-#ifndef NO_INCREMENTAL_WRITE
-    // write out this lens
-    lensum_write(shear->lensum, shear->fptr);
-    // keep accumulation of statistics
-    lensum_add(shear->lensum_tot, shear->lensum);
-#endif
 
 }
 
