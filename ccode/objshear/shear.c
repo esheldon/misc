@@ -34,7 +34,7 @@ struct shear* shear_init(const char* config_file) {
 
     // the temporary output file where we write everything locally, then copy
     // to the nfs file system after
-    shear_open_tempfile(shear);
+    shear_open_output(shear);
 
     // now initialize the structures we need
     printf("Initalizing cosmo in flat universe\n");
@@ -96,63 +96,8 @@ struct shear* shear_init(const char* config_file) {
     shear->lensum = lensum_new(config->nbin);
     shear->lensum_tot = lensum_new(config->nbin);
 #endif
+
     return shear;
-
-}
-
-void shear_open_tempfile(struct shear* shear) {
-    printf("Opening temporary output file: %s\n", shear->config->temp_file);
-    shear->fptr = fopen(shear->config->temp_file, "w");
-    if (shear->fptr == NULL) {
-        printf("Could not open temp file\n");
-        exit(EXIT_FAILURE);
-    }
-}
-FILE* shear_close_tempfile(struct shear* shear) {
-    if (shear->fptr != NULL) {
-        fflush(shear->fptr);
-        fclose(shear->fptr);
-    }
-    return NULL;
-}
-void shear_cleanup_tempfile(struct shear* shear) {
-    if (0 != unlink(shear->config->temp_file)) {
-        printf("Failed to unlink file %s\n", shear->config->temp_file);
-        exit(EXIT_FAILURE);
-    }
-}
-
-void shear_copy_temp_to_output(struct shear* shear) {
-    printf("Copying from temp file \n    %s\nto output\n    %s\n", 
-           shear->config->temp_file, shear->config->output_file);
-
-    FILE* srcfile = fopen(shear->config->temp_file, "rb");
-    if (srcfile == NULL) {
-        printf("Could not open temp file\n");
-        exit(EXIT_FAILURE);
-    }
-
-    FILE* destfile = fopen(shear->config->output_file, "wb");
-    if (destfile == NULL) {
-        printf("Could not open outputfile\n");
-        exit(EXIT_FAILURE);
-    }
-
-    char buffer[512];
-    int bytes;
-
-    int ret=0;
-    while((bytes = fread(buffer, 1, sizeof(buffer), srcfile)) > 0) {
-        ret=fwrite(buffer, 1, bytes, destfile);
-        if (ret != bytes) {
-            printf("Expected to write %d bytes but wrote only %d\n", bytes, ret);
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    fclose(srcfile);
-    fclose(destfile);
-
 
 }
 
@@ -176,6 +121,7 @@ void shear_calc(struct shear* shear) {
 #endif
 
     size_t nlens = shear->lcat->size;
+    //nlens = 10000;
     for (size_t i=0; i<nlens; i++) {
         if ( ((i+1) % LENSPERCHUNK) == 0) {
             printf("\n%ld/%ld  (%0.1f%%)\n", i+1, nlens, 100.*(float)(i+1)/nlens);
@@ -186,10 +132,24 @@ void shear_calc(struct shear* shear) {
             fflush(stdout);
         }
 
+
+#ifndef NO_INCREMENTAL_WRITE
+        lensum_clear(shear->lensum);
+        shear->lensum->zindex = shear->lcat->data[i].zindex;
+#endif
+
         double z = shear->lcat->data[i].z;
         if (z >= minz && z <= maxz && z > MIN_ZLENS) {
             shear_proclens(shear, i);
         } 
+
+#ifndef NO_INCREMENTAL_WRITE
+        // always write out this lensum
+        lensum_write(shear->lensum, shear->fptr);
+        // keep accumulation of statistics
+        lensum_add(shear->lensum_tot, shear->lensum);
+#endif
+
     }
     printf("\n");
 }
@@ -209,9 +169,6 @@ void shear_proclens(struct shear* shear, size_t lindex) {
 
     struct i64stack* pixstack = shear->pixstack;
 
-#ifndef NO_INCREMENTAL_WRITE
-    lensum_clear(shear->lensum);
-#endif
 
     hpix_disc_intersect(
             shear->hpix, 
@@ -236,12 +193,6 @@ void shear_proclens(struct shear* shear, size_t lindex) {
         } // pix in range for sources?
     }
 
-#ifndef NO_INCREMENTAL_WRITE
-    // write out this lens
-    lensum_write(shear->lensum, shear->fptr);
-    // keep accumulation of statistics
-    lensum_add(shear->lensum_tot, shear->lensum);
-#endif
 
 }
 
@@ -368,6 +319,84 @@ int shear_test_quad(struct lens* l, struct source* s) {
 
 
 
+void shear_open_output(struct shear* shear) {
+    printf("Opening output file: %s\n", shear->config->output_file);
+    shear->fptr = fopen(shear->config->output_file, "w");
+    if (shear->fptr == NULL) {
+        printf("Could not open temp file\n");
+        exit(EXIT_FAILURE);
+    }
+}
+FILE* shear_close_output(struct shear* shear) {
+    if (shear->fptr != NULL) {
+        // remember, this also flushes
+        if (0 != fclose(shear->fptr)) {
+            printf("Could not close temp file\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    return NULL;
+}
+void shear_cleanup_tempfile(struct shear* shear) {
+    printf("Deleting temporary file: %s\n", shear->config->temp_file);
+    fflush(stdout);
+    if (0 != unlink(shear->config->temp_file)) {
+        printf("Failed to unlink file %s\n", shear->config->temp_file);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void shear_copy_temp_to_output(struct shear* shear) {
+
+    /*
+     * we want this buffer to be a multiple of the page size because a page is
+     * the smallest unit of data for both memory allocation and transfer
+     * between memory and the hard drive
+     * 
+     * this is two pages on the intel (amd64) machines we have on the clulster
+     */
+
+    int page_size = sysconf(_SC_PAGESIZE);
+    char* buffer = calloc(2*page_size,sizeof(char));
+
+    printf("Copying from temp file \n    %s\nto output\n    %s\n", 
+           shear->config->temp_file, shear->config->output_file);
+    fflush(stdout);
+
+    FILE* srcfile = fopen(shear->config->temp_file, "rb");
+    if (srcfile == NULL) {
+        printf("Could not open temp file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    FILE* destfile = fopen(shear->config->output_file, "wb");
+    if (destfile == NULL) {
+        printf("Could not open outputfile\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int bytes;
+
+    int ret=0;
+    while((bytes = fread(buffer, 1, sizeof(buffer), srcfile)) > 0) {
+        ret=fwrite(buffer, 1, bytes, destfile);
+        if (ret != bytes) {
+            printf("Expected to write %d bytes but wrote only %d\n", bytes, ret);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    fclose(srcfile);
+    fclose(destfile);
+    free(buffer);
+
+
+}
+
+
+
+
+
 void shear_print_sum(struct shear* shear) {
     printf("Total sums:\n\n");
 
@@ -394,7 +423,7 @@ void shear_write_all(struct shear* shear) {
 struct shear* shear_delete(struct shear* shear) {
 
     if (shear != NULL) {
-        shear->fptr = shear_close_tempfile(shear);
+        shear->fptr = shear_close_output(shear);
 
         shear->config   = config_delete(shear->config);
         shear->lcat     = lcat_delete(shear->lcat);

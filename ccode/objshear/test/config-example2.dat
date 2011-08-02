@@ -1,0 +1,11 @@
+lens_file          /astro/u/esheldon/lensing/lcat/02/lcat-02-020.bin
+source_file        /astro/u/esheldon/lensing/scat/03/scat-03.bin
+output_file        ./test-shear-output2.bin
+H0                 100.0
+omega_m            0.25
+npts               5
+nside              4096
+sigmacrit_style    2
+nbin               21
+rmin               0.02
+rmax               36.567
