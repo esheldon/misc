@@ -36,9 +36,9 @@ if [[ -e $f ]]; then
         # this is pure python, use astro exports
         setup columns -r ~/exports/columns-local
 
-        setup pv
+        #setup pv
 
-        setup scons
+        #setup scons
         setup pyyaml
 
 
@@ -71,14 +71,14 @@ if [[ -e $f ]]; then
         setup biggles
 
         # for DES wl
-        setup scons
+        #setup scons
         setup pyyaml
 
         # will set up cfitsio/ccfits/tmv
         setup wl -r ~/exports/wl-local
         setup tmv -r ~/exports/tmv-work
 
-        setup pv
+        #setup pv
 
         # note you still import scikits.learn
         setup scikits_learn -r ~/exports/scikits_learn
