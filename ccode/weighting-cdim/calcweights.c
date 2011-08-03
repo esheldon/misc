@@ -75,6 +75,12 @@ void calcweights(struct TrainCatalog* tcat, struct PhotoCatalog* pcat, int nnear
         pflush("Each dot is %d\n", step);
     }
     for (size_t i=0; i<ntrain; i++) {
+
+        if ( ((i+1) % 200000) == 0) {
+            printf("\n%ld/%ld  (%0.1f%%)\n", i+1, ntrain, 100.*(float)(i+1)/ntrain);
+            fflush(stdout);
+        }
+
         // will get distance to closest n_near neighbors in the train sample
         // the zeroth element will hold the farthest. also get the indices
 
