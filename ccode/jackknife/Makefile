@@ -4,14 +4,14 @@ LDFLAGS = -lm
 
 EXEC = jackknife
 
-PREFIX := /usr/local
+prefix := /usr/local
 
 default: $(EXEC)
 
 install: $(EXEC)
-	mkdir -p $(PREFIX)/bin
-	cp $(EXEC) $(PREFIX)/bin/
-	chmod a+x $(PREFIX)/bin/$(EXEC)
+	mkdir -p $(prefix)/bin
+	cp $(EXEC) $(prefix)/bin/
+	chmod a+x $(prefix)/bin/$(EXEC)
 
 clean: 
 	rm -f *.o $(EXEC)
