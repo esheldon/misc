@@ -52,6 +52,7 @@ if [[ -e $f ]]; then
         setup pyfits
 
 
+        setup weighting -r ~/exports/weighting-work
         setup cosmology -r ~/exports/cosmology-local
         setup admom -r ~/exports/admom-local
         setup fimage -r ~/exports/fimage-local
