@@ -1,0 +1,5 @@
+rm *.o *.so
+
+cc -c -O2 jackknife.c call_jackknife.c 
+
+ld -S -o call_jackknife.so -shared call_jackknife.o jackknife.o
