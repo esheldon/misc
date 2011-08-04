@@ -19,6 +19,19 @@ export -f prepend_path
 
 return
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 # don't want to re-read this for screen
 case $TERM in
 	screen*) return ;;
