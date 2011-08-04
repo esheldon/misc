@@ -128,7 +128,7 @@ FILE* open_file(const char* filename, const char* mode) {
     return fptr;
 }
 
-struct data* data_read(const char* filename) {
+struct data* data_read_old(const char* filename) {
     FILE* fptr = open_file(filename,"r");
 
     struct data* data=NULL;
@@ -161,16 +161,61 @@ struct data* data_read(const char* filename) {
     return data;
 }
 
+struct data* data_read(const char* filename) {
+
+    int64_t nsample, nvar;
+    int ret;
+
+    FILE* fptr = open_file(filename,"r");
+
+    ret=fread(&nsample, sizeof(int64_t), 1, fptr);
+    if (ret != 1) {
+        printf("could not read nsample\n");
+        exit(EXIT_FAILURE);
+    }
+    ret=fread(&nvar, sizeof(int64_t), 1, fptr);
+    if (ret != 1) {
+        printf("could not read nvar\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("nsample: %ld\n", nsample);
+    printf("nvar: %ld\n", nvar);
+
+    struct data* data = data_new(nsample, nvar);
+
+    int64_t nread = nsample*nvar;
+    ret=fread(data->varsums, sizeof(int64_t), nread, fptr);
+    if (ret != nread) {
+        printf("could not read %ld varsums\n", nread);
+        exit(EXIT_FAILURE);
+    }
+    ret=fread(data->wsums, sizeof(int64_t), nread, fptr);
+    if (ret != nread) {
+        printf("could not read %ld wsums\n", nread);
+        exit(EXIT_FAILURE);
+    }
+
+    fclose(fptr);
+    return data;
+}
+
+
+
 void data_print_one(struct data* data, int64_t index) {
 
     double* varsums = &data->varsums[index*data->nvar];
     double* wsums   = &data->wsums[index*data->nvar];
 
+    printf("index %ld\n", index);
+    printf("  varsums:  ");
     for (int64_t i=0; i<data->nvar; i++) {
-        printf("%lf ", varsums[i]);
+        printf("%+e ", varsums[i]);
     }
+    printf("\n");
+    printf("  wsums:    ");
     for (int64_t i=0; i<data->nvar; i++) {
-        printf("%lf ", wsums[i]);
+        printf("%+e ", wsums[i]);
     }
     printf("\n");
 
@@ -252,16 +297,20 @@ void data_print(struct data* data, const char* filename) {
     //const char* fmt="%e";
 
     int64_t nvar=data->nvar;
+    fprintf(fptr, "%ld\n", nvar);
+
     double* covar=data->covar;
     for (int64_t ix=0; ix<nvar; ix++) {
-        fprintf(fptr, "%.15e %.15e\n", data->mean[ix], sqrt(covar[ix*nvar + ix]));
+        //fprintf(fptr, "%+.15e %.15e\n", data->mean[ix], sqrt(covar[ix*nvar + ix]));
+        fprintf(fptr, "%+.15e %.15e\n", data->mean[ix], sqrt(covar[ix*nvar + ix]));
     }
 
     // now grab all the cross terms
     for (int64_t ix=0; ix<nvar; ix++) {
         for (int64_t iy=0; iy<nvar; iy++) {
 
-            fprintf(fptr, "%.15e", covar[ix*nvar + iy]);
+            fprintf(fptr, "%+.15e", covar[ix*nvar + iy]);
+            //fprintf(fptr, "%+e", covar[ix*nvar + iy]);
             if (iy == (nvar-1)) {
                 fprintf(fptr, "\n");
             } else {
@@ -281,7 +330,6 @@ int main(int argc, char** argv) {
 
     if (argc < 3) {
         printf("jackknife input_filename output_filename\n");
-        printf("  output goes to stdout\n");
         exit(EXIT_FAILURE);
     }
 
