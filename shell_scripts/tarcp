@@ -1,4 +1,19 @@
 #!/bin/bash
+#
+# tarcp indir outdir
+#
+# copy the input directory into the output directory.
+# the output directory is created if it does not exist.
+#
+# note if the outdir is a subdirectory you will get 
+# odd results!
 
-outdir=$1
+indir=$1
+outdir=$2
+if [[ ! -e $outdir ]]; then
+    echo "making output directory: $outdir"
+    mkdir -p "$outdir"
+fi
+
+cd "$indir"
 tar cf - . | (cd $outdir && tar xBvf -)
