@@ -1,3 +1,5 @@
+return
+
 f=/home/esheldon/local/products/eups/bin/setups.sh
 if [ -e "$f" ]; then
 	source $f

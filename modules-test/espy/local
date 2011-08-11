@@ -1,0 +1,25 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+##
+## espy modulefile
+##
+proc ModulesHelp { } {
+    global version
+
+    puts stderr "	My collection of python scripts, packages and modules."
+    puts stderr "
+	Version $version
+"
+}
+
+# for Tcl script use only
+set     version      local
+
+
+module-whatis	"my collection of python code"
+conflict espy
+
+eval set  [ array get env HOME ]
+prepend-path PATH $HOME/python/bin
+prepend-path PYTHONPATH $HOME/python
+

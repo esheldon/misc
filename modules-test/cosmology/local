@@ -1,0 +1,24 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+##
+## cosmology modulefile
+##
+proc ModulesHelp { } {
+    global version
+
+    puts stderr "	Put some comments about the python cosmology module here."
+    puts stderr "
+	Version $version
+"
+}
+
+# for Tcl script use only
+set     version      local
+
+
+module-whatis	"this is an install straight from a git repo"
+conflict cosmology
+
+eval set  [ array get env HOME ]
+prepend-path PYTHONPATH $HOME/exports/cosmology-local/lib/python2.6/site-packages/cosmology
+
