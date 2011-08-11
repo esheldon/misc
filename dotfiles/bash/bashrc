@@ -113,7 +113,7 @@ if [ -e /bin/arch ]; then
 fi
 export FLAVOR
 
-for f in ssh-agent perl python java cvs aliases ls_colors idl_setup gdl_setup pg_setup misc des_setup boss_setup oracle proxy term go d gems fortran fink git path localvars eups; do
+for f in ssh-agent perl python java cvs aliases ls_colors idl_setup gdl_setup pg_setup misc des_setup boss_setup oracle proxy term go d gems fortran fink git path localvars eups modules; do
 
     if [[ $f == "ssh-agent" && $riemann_test != "" ]]; then
         echo skipping keychain on riemann
