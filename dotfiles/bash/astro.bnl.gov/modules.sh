@@ -41,10 +41,10 @@ if [[ -e $f ]]; then
     # this is currently python only
     module load stomp
 
+    module load scikits_learn
+
     # todo local installs
     #
-    # skikits_learn
-    # 
     # tmv
     # wl
     # 
