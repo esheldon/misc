@@ -1,16 +1,15 @@
-
 f=~astrodat/setup/setup-eups.sh
 if [[ -e $f ]]; then
-    source $f
 
     # these are pure data or scripting languages
-    setup parallel
-    setup desfiles -r /astro/u/astrodat/products-special/desfiles
-    setup espy -r ~/python
-    setup shell_scripts -r ~/shell_scripts
-    setup perllib -r ~/perllib
+    #setup parallel
+    #setup desfiles -r /astro/u/astrodat/products-special/desfiles
+    #setup espy -r ~/python
+    #setup shell_scripts -r ~/shell_scripts
+    #setup perllib -r ~/perllib
 
     if [[ $hname == "tutti" ]]; then
+        source $f
         # this will get python and numpy
         echo "doing setups for tutti"
         setup python
@@ -35,7 +34,7 @@ if [[ -e $f ]]; then
         setup sdsspy -r ~/exports-tutti/sdsspy-local
 
         # columns, sdsspy are under mercurial
-        setup mercurial
+        #setup mercurial
         # this is pure python, use astro exports
         setup columns -r ~/exports/columns-local
 
@@ -47,6 +46,10 @@ if [[ -e $f ]]; then
 
     else
         # this will get numpy and python
+        return
+
+        source $f
+
         setup scipy
 
         setup ipython
@@ -63,7 +66,7 @@ if [[ -e $f ]]; then
         setup recfile -r ~/exports/recfile-local
 
         # columns, sdsspy are under mercurial
-        setup mercurial
+        #setup mercurial
         setup columns -r ~/exports/columns-local
         setup sdsspy -r ~/exports/sdsspy-local
         setup numpydb -r ~esheldon/exports/numpydb-local
@@ -88,6 +91,8 @@ if [[ -e $f ]]; then
 
         # this will set up pcre
         setup swig
+
+
 
         return
 
