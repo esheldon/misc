@@ -20,6 +20,8 @@ if [[ -e $f ]]; then
         setup ipython
 
         setup esutil -r ~/exports-tutti/esutil-local
+        setup recfile -r ~/exports-tutti/recfile-local
+        setup numpydb -r ~esheldon/exports-tutti/numpydb-local
 
         setup cosmology -r ~/exports-tutti/cosmology-local
         setup admom -r ~/exports-tutti/admom-local
