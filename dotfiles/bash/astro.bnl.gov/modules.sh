@@ -29,8 +29,6 @@ if [[ -e $f ]]; then
 
     module load cosmology
     module load admom
-    # need to move code into /fimage subdir because 2.7 has
-    # a built-in stat module
     module load fimage
 
     module load numpydb
@@ -49,11 +47,6 @@ if [[ -e $f ]]; then
     # prereq: ccfits, tmv, desfiles, esutil
     # also numpy if not using system
     module load wl/local
-
-    # todo module files, but don't need to load them here
-
-    # weighting
-    # objshear
 
 fi
 
