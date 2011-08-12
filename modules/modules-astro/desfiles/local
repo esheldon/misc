@@ -1,12 +1,12 @@
 #%Module########################################################################
 # vim: set filetype=tcl :
 ##
-## shell_scripts modulefile
+## espy modulefile
 ##
 proc ModulesHelp { } {
     global version
 
-    puts stderr "	My collection of shell scripts."
+    puts stderr "	DES configurations, file lists, etc."
     puts stderr "
 	Version $version
 "
@@ -15,9 +15,8 @@ proc ModulesHelp { } {
 # for Tcl script use only
 set     version      local
 
+module-whatis	"DES configurations, file lists, etc."
 
-module-whatis	"collection of shell scripts"
+conflict desfiles
 
-eval set  [ array get env HOME ]
-append-path PATH $HOME/shell_scripts
-
+setenv DESFILES_DIR /astro/u/astrodat/products-special/desfiles
