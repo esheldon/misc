@@ -43,11 +43,15 @@ if [[ -e $f ]]; then
 
     module load scikits_learn
 
-    # todo local installs
-    #
-    # tmv
-    # wl
-    # 
+    module load ccfits
+    module load tmv
+
+    # prereq: ccfits, tmv, desfiles, esutil
+    # also numpy if not using system
+    module load wl/local
+
+    # todo module files, but don't need to load them here
+
     # weighting
     # objshear
 
