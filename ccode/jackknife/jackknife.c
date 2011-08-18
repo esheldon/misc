@@ -14,6 +14,10 @@
  *    sum(weight*data)_1, ... sum(weight*data)_nvar  sum(weight)_1, ... sum(weight)_nvar
  *
  *  for lensing the var indices correspond to radii
+ *
+ * 
+ *  The output is first the mean,err for each var in columns.  This is followed
+ *  by the covariance matrix in rows
  */
 
 struct data {
@@ -282,7 +286,6 @@ void data_print(struct data* data, const char* filename) {
         for (int64_t iy=0; iy<nvar; iy++) {
 
             fprintf(fptr, "%+.15e", covar[ix*nvar + iy]);
-            //fprintf(fptr, "%+e", covar[ix*nvar + iy]);
             if (iy == (nvar-1)) {
                 fprintf(fptr, "\n");
             } else {
