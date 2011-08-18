@@ -250,10 +250,9 @@ void jackknife(struct data* data) {
         }
     }
 
+    // note jackknife normalization copared to normal variance
     double fnsample = (double)nsample;
     double norm = (fnsample-1.)/nsample;
-
-    // now grab all the cross terms
     for (int64_t ix=0; ix<nvar; ix++) {
         for (int64_t iy=0; iy<nvar; iy++) {
             covar[ix*nvar + iy] *= norm;
@@ -268,18 +267,17 @@ void jackknife(struct data* data) {
 
 void data_print(struct data* data, const char* filename) {
     FILE* fptr = open_file(filename,"w");
-    //const char* fmt="%e";
 
     int64_t nvar=data->nvar;
     fprintf(fptr, "%ld\n", nvar);
 
+    // first print mean, err in columns
     double* covar=data->covar;
     for (int64_t ix=0; ix<nvar; ix++) {
-        //fprintf(fptr, "%+.15e %.15e\n", data->mean[ix], sqrt(covar[ix*nvar + ix]));
         fprintf(fptr, "%+.15e %.15e\n", data->mean[ix], sqrt(covar[ix*nvar + ix]));
     }
 
-    // now grab all the cross terms
+    // now the full covariance matrix in rows
     for (int64_t ix=0; ix<nvar; ix++) {
         for (int64_t iy=0; iy<nvar; iy++) {
 
