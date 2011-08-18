@@ -28,9 +28,17 @@ shears:
 
     Match Frank's file
 
-MaxBCG:
+RedMapper
     
-    Get new catalog for Eli and Eduardo
+    - Make array plotters work with corrected profiles.
+    - Look at profiles/corrections with strict edge cut
+    - Look into new binning scheme on lambda.
+
+    - look at various local tests 
+        - PSF tests need to be devised
+        - <e> vs R
+        - <e> vs psf e
+        - <e> vs position, run, etc.
 
 BOSS 
 
