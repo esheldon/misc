@@ -128,39 +128,6 @@ FILE* open_file(const char* filename, const char* mode) {
     return fptr;
 }
 
-struct data* data_read_old(const char* filename) {
-    FILE* fptr = open_file(filename,"r");
-
-    struct data* data=NULL;
-    int nvar=0, nsample=0;
-    int64_t i=0, j=0;
-
-    get_data_info(fptr, &nvar, &nsample);
-    printf("nvar: %d\n", nvar);
-    printf("nsample: %d\n", nsample);
-
-    data = data_new(nsample, nvar);
-
-    rewind(fptr);
-
-    double* varsums = data->varsums;
-    double* wsums   = data->wsums;
-    for (i=0; i<data->nsample; i++) {
-        for (j=0; j<data->nvar; j++) {
-            fscanf(fptr, "%lf", varsums);
-            varsums++;
-        }
-        for (j=0; j<data->nvar; j++) {
-            fscanf(fptr, "%lf", wsums);
-            wsums++;
-        }
-
-    }
-
-    fclose(fptr);
-    return data;
-}
-
 struct data* data_read(const char* filename) {
 
     int64_t nsample, nvar;
@@ -246,7 +213,9 @@ void jackknife(struct data* data) {
 
     // now the overall mean
     for (int64_t j=0; j<nvar; j++) {
-        data->mean[j] = vsum_tot[j]/wsum_tot[j];
+        if (wsum_tot[j] > 0) {
+            data->mean[j] = vsum_tot[j]/wsum_tot[j];
+        }
     }
 
     // now jackknife the covariance
@@ -257,8 +226,13 @@ void jackknife(struct data* data) {
     for (int64_t i=0; i<nsample; i++) {
         // mean with this sample subtracted
         for (int64_t j=0; j<nvar; j++) {
-            jmean = (vsum_tot[j]-*varsums)/(wsum_tot[j]-*wsums);
-            jdiff[j] = jmean-data->mean[j];
+            double twsum = (wsum_tot[j]-*wsums);
+            if (twsum > 0) {
+                jmean = (vsum_tot[j]-*varsums)/twsum;
+                jdiff[j] = jmean-data->mean[j];
+            } else {
+                jdiff[j] = 9999;
+            }
             varsums++;
             wsums++;
         }
