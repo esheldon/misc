@@ -1,0 +1,16 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"local installs under ~/local"
+
+eval set  [ array get env HOME ]
+
+set localdir $HOME/local
+
+prepend-path PATH            $localdir/bin
+prepend-path LD_LIBRARY_PATH $localdir/lib
+prepend-path LIBRARY_PATH    $localdir/lib
+prepend-path C_INCLUDE_PATH  $localdir/include
+prepend-path CPATH           $localdir/include
+
+

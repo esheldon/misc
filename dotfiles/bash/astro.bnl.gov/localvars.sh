@@ -8,6 +8,9 @@ fi
 f=/opt/astro/SL53/bin/setup.astro.sh
 if [[ -e $f ]]; then
     source "$f"
+    export C_INCLUDE_PATH=`/opt/astro/SL53/bin/addpath -env C_INCLUDE_PATH - ${ROOTSYS}/include/root /opt/astro/SL53/include /usr/local/include`
+    export CPATH=`/opt/astro/SL53/bin/addpath -env CPATH - ${ROOTSYS}/include/root /opt/astro/SL53/include /usr/local/include`
+
 fi
 
 f=/opt/astro/SL53/bin/setup.hadoop.sh

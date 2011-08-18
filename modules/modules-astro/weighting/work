@@ -1,0 +1,15 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"weighting code for ProbWTS"
+conflict weighting
+
+eval set  [ array get env HOME ]
+
+set WEIGHTING_DIR $HOME/exports/weighting-work
+
+
+prepend-path PATH $WEIGHTING_DIR/bin
+
+
+setenv WEIGHTING_DIR $WEIGHTING_DIR 

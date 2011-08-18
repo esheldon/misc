@@ -1,0 +1,13 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"objshear lensing code"
+conflict objshear
+
+eval set  [ array get env HOME ]
+
+set OBJSHEAR_DIR $HOME/exports/objshear-sdssmask-work
+
+prepend-path PATH $OBJSHEAR_DIR/bin
+
+setenv OBJSHEAR_DIR $OBJSHEAR_DIR 
