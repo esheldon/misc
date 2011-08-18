@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"fimage install straight from git repo"
+conflict fimage
+
+eval set  [ array get env HOME ]
+
+set FIMAGE_DIR $HOME/exports/fimage-local
+
+prepend-path PYTHONPATH $FIMAGE_DIR/lib/python2.7/site-packages/
+
+setenv FIMAGE_DIR $FIMAGE_DIR
+

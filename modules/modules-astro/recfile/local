@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"recfile install straight from git repo"
+conflict recfile
+
+eval set  [ array get env HOME ]
+
+set RECFILE_DIR $HOME/exports/recfile-local
+
+prepend-path PYTHONPATH $RECFILE_DIR/lib/python2.7/site-packages/
+
+setenv RECFILE_DIR $RECFILE_DIR
+

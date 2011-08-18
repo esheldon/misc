@@ -12,13 +12,18 @@ proc ModulesHelp { } {
 "
 }
 
-
 # for Tcl script use only
-set     version      1.0
+set     version      local
 
 
-module-whatis	"this is supposed to be a specific version"
+module-whatis	"this is an install straight from a git repo"
 conflict cosmology
 
 eval set  [ array get env HOME ]
-prepend-path PYTHONPATH $HOME/exports/cosmology-1.0/lib/python2.6/site-packages/cosmology
+
+set COSMOLOGY_DIR $HOME/exports/cosmology-local
+
+prepend-path PYTHONPATH $COSMOLOGY_DIR/lib/python2.7/site-packages/
+
+setenv COSMOLOGY_DIR $COSMOLOGY_DIR
+

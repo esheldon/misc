@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"columns install straight from hg repo"
+conflict columns
+
+eval set  [ array get env HOME ]
+
+set COLUMNS_DIR $HOME/exports/columns-local
+
+prepend-path PYTHONPATH $COLUMNS_DIR/lib/python2.7/site-packages/
+
+setenv COLUMNS_DIR $COLUMNS_DIR
+
