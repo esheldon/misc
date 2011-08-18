@@ -1,0 +1,30 @@
+Obviously you've already gone a round with the ref, so you aren't interested in
+nit-picky stuff.  But one thing I noticed is certain wordings that aren't
+technically right, but are often used.  An example is in the abstract, "This
+paper also describes".  You, the author, are describing, but the paper is an
+inanimate object so it doesn't describe anything.  Another example is in the
+first paragraph of the intro, "the primary distance measure is the baryon
+acoustic oscillation (BAO) technique".  You can use techniques to measure
+things, but techniques aren't measures. It is the *feature* itself that is the
+measure.  
+
+Anyway, the paper is quite far along, I just wanted to point it out.
+
+abstract
+--------
+
+
+    The sentence "The completeness compared to all quasars identified in BOSS
+    data is 65%." I find a little confusing.  
+
+
+intro
+-----
+
+    P2
+
+        "...leading to potential incompleteness and inefficiency in target
+        selection".  It seems to me it is really just an efficiency issue.  You
+        can be very complete if you target everything, but your efficiency will
+        be crap.
+
