@@ -5,7 +5,7 @@
 #  bash mysetup.sh all   # gets everything
 #
 # Note you'll have to link the xsession by hand, since it will depend on
-# the machine.  e.g. ln -s .dotfiles/.dotfiles/X/xinitrc.xmonad .xsession
+# the machine.  e.g. ln -s ~/.dotfiles/.dotfiles/X/xinitrc.xmonad .xsession
 # same for the xmonad.hs and xmobarrc
 #
 
@@ -35,7 +35,7 @@ for type; do
         git clone git@github.com:esheldon/espy.git
         echo "  setting symlinks"
         cd ~
-        ln -vfs git/espy python
+        ln -vfs ~/git/espy python
 
     elif [[ $type == "esidl" ]]; then
         cd ~/git
@@ -49,7 +49,7 @@ for type; do
         git clone git@github.com:esheldon/esidl.git
         echo "  setting symlinks"
         cd ~
-        ln -vfs git/esidl idl.lib
+        ln -vfs ~/git/esidl idl.lib
     elif [[ $type == "misc" ]]; then
         echo "cloning misc (dotfiles, etc)"
         cd ~/git
@@ -63,13 +63,13 @@ for type; do
 
         echo "  setting symlinks"
         cd ~
-        ln -vfs git/misc/ccode
-        ln -vfs git/misc/perllib
-        ln -vfs git/misc/shell_scripts
-        ln -vfs git/misc/dotfiles .dotfiles
+        ln -vfs ~/git/misc/ccode
+        ln -vfs ~/git/misc/perllib
+        ln -vfs ~/git/misc/shell_scripts
+        ln -vfs ~/git/misc/dotfiles .dotfiles
 
-        ln -vfs .dotfiles/vim .vim
-        ln -vfs .dotfiles/vim/vimrc .vimrc
+        ln -vfs ~/.dotfiles/vim .vim
+        ln -vfs ~/.dotfiles/vim/vimrc .vimrc
 
         if [ -e .bashrc ]; then
             rm -f .bashrc
@@ -80,33 +80,33 @@ for type; do
         if [ -e .profile ]; then
             rm -f .profile
         fi
-        ln -vfs .dotfiles/bash/bashrc .bashrc
-        ln -vfs .dotfiles/bash/bash_profile .bash_profile
-        ln -vfs .dotfiles/inputrc .inputrc
-        ln -vfs .dotfiles/X/Xdefaults .Xdefaults
-        ln -vfs .dotfiles/conky/conkyrc.thin .conkyrc
-        ln -vfs .dotfiles/screen/screenrc .screenrc
-        ln -vfs .dotfiles/mrxvt/mrxvtrc .mrxvtrc
-        ln -vfs .dotfiles/Eterm .Eterm
-        ln -vfs .dotfiles/multitailrc .multitailrc
-        ln -vfs .dotfiles/xmonad .xmonad
+        ln -vfs ~/.dotfiles/bash/bashrc .bashrc
+        ln -vfs ~/.dotfiles/bash/bash_profile .bash_profile
+        ln -vfs ~/.dotfiles/inputrc .inputrc
+        ln -vfs ~/.dotfiles/X/Xdefaults .Xdefaults
+        ln -vfs ~/.dotfiles/conky/conkyrc.thin .conkyrc
+        ln -vfs ~/.dotfiles/screen/screenrc .screenrc
+        ln -vfs ~/.dotfiles/mrxvt/mrxvtrc .mrxvtrc
+        ln -vfs ~/.dotfiles/Eterm .Eterm
+        ln -vfs ~/.dotfiles/multitailrc .multitailrc
+        ln -vfs ~/.dotfiles/xmonad .xmonad
 
-        ln -vfs .dotfiles/hg/hgignore .hgignore
+        ln -vfs ~/.dotfiles/hg/hgignore .hgignore
 
-        ln -vfs .dotfiles/git/gitignore .gitignore
-        ln -vfs .dotfiles/git/gitconfig .gitconfig
+        ln -vfs ~/.dotfiles/git/gitignore .gitignore
+        ln -vfs ~/.dotfiles/git/gitconfig .gitconfig
 
         mkdir -p .config/fbpanel
-        ln -vfs .dotfiles/fbpanel/default .config/fbpanel/default
+        ln -vfs ~/.dotfiles/fbpanel/default .config/fbpanel/default
 
-        ln -vfs .dotfiles/fonts .fonts
-        ln -vfs .dotfiles/icons .icons
+        ln -vfs ~/.dotfiles/fonts .fonts
+        ln -vfs ~/.dotfiles/icons .icons
 
         if [ -e .fvwm ]; then
             newdir=".fvwm`date +"%Y%m%d%k%M%S"`"
             mv .fvwm $newdir
         fi
-        ln -vfs .dotfiles/fvwm .fvwm
+        ln -vfs ~/.dotfiles/fvwm .fvwm
 
         if [ ! -d .subversion ]; then
             mkdir .subversion
@@ -120,10 +120,10 @@ for type; do
 
         # the modmap won't work in the mac windows system
         if [ `uname` != 'Darwin' ]; then
-            ln -vfs .dotfiles/X/Xmodmap .Xmodmap
+            ln -vfs ~/.dotfiles/X/Xmodmap .Xmodmap
         else
-            ln -vfs .dotfiles/mrxvt/mrxvtrc.fangorn .mrxvtrc
-            ln -vfs .dotfiles/X/Xdefaults.fangorn .Xdefaults
+            ln -vfs ~/.dotfiles/mrxvt/mrxvtrc.fangorn .mrxvtrc
+            ln -vfs ~/.dotfiles/X/Xdefaults.fangorn .Xdefaults
         fi
 
         if [ ! -e .ssh ]; then

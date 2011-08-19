@@ -28,7 +28,13 @@ fi
 
 # fbpanel runs cpu and network monitor, and a tray for applets
 # use the gnome volume applet and store values using settings daemon
-fbexec=~/local/products/Linux64/fbpanel/6.1/bin/fbpanel
+a=`arch`
+if [[ $a == "x86_64" ]]; then
+    flavor=Linux64
+else
+    flavor=Linux
+fi
+fbexec=~/local/products/$flavor/fbpanel/6.1/bin/fbpanel
 if [[ -x $fbexec ]]; then
     $fbexec &
     sleep $sleeptime
