@@ -70,6 +70,8 @@ alias lmrxvt10='mrxvt -cf ~/.dotfiles/mrxvt/mrxvtrc-lightbg -xft -xftfn Monaco -
 
 alias ackp='ack --pager="less -R"'
 
+alias grep='grep --color=auto'
+
 function printpath
 {
 	echo -e $(echo $1 | sed 's/:/\\n/g')
