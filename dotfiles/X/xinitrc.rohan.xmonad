@@ -9,10 +9,10 @@ fi
 
 sleeptime=1
 
-if [ -x /usr/bin/gnome-settings-daemon ]; then
-	gnome-settings-daemon &
-	sleep $sleeptime
-fi
+#if [ -x /usr/bin/gnome-settings-daemon ]; then
+#	gnome-settings-daemon &
+#	sleep $sleeptime
+#fi
 
 
 if [ -x /usr/bin/xscreensaver ]; then
@@ -34,9 +34,11 @@ if [[ $a == "x86_64" ]]; then
 else
     flavor=Linux
 fi
-fbexec=~/local/products/$flavor/fbpanel/6.1/bin/fbpanel
+
+fbexec=/usr/bin/fbpanel
 if [[ ! -x $fbexec ]]; then
-    fbexec=/usr/bin/fbpanel
+    fbexec=~/local/bin/fbpanel
+    fbexec=~/local/products/$flavor/fbpanel/6.1/bin/fbpanel
 fi
 if [[ -x $fbexec ]]; then
     $fbexec &
