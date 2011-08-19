@@ -117,6 +117,7 @@ for type; do
         ln -vfs ~/.dotfiles/svn/servers.inside .subversion/servers.inside
         ln -vfs ~/.dotfiles/svn/servers.outside .subversion/servers.outside
 
+        ln -vfs ~/.dotfiles/proxy
 
         # the modmap won't work in the mac windows system
         if [ `uname` != 'Darwin' ]; then
