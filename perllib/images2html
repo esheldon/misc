@@ -280,52 +280,52 @@ sub createImageHTML {
     my $cssURL = $configHash{cssURL};
 
     if ( $configHash{cssAbsoluteURL} eq "no" ) {
-	$cssURL = "../../$cssURL";
+        $cssURL = "../../$cssURL";
     }
     # clicking will link to the next image
     my $nextImage;
     if ($imageNum == ($nImageList-1)) {
-	$nextImage = $imageList[0];
+        $nextImage = $imageList[0];
     } else {
-	$nextImage = $imageList[$imageNum+1];
+        $nextImage = $imageList[$imageNum+1];
     }
-	
+
     my $nextImageHTML = &htmlName($nextImage);    
 
     open HTML, "> $htmlDir/$imageHTML" or 
-	die "Cannot open $imageHTML: $!";
+    die "Cannot open $imageHTML: $!";
 
     print HTML "<html>\n";
     print HTML "<!-- Created by images2html Erin Sheldon -->\n";    
     print HTML "<head>\n";
     print HTML "<link rel=\"STYLESHEET\" type=\"text/css\" href=\"$cssURL\">\n";
     print HTML "</head>\n";
-    
+
     print HTML "<body>\n";
-    
+
     print HTML "<div id=\"content\">\n";
 
     print HTML "  <div class=\"imagetable\">\n";
     print HTML "    <em>$imageName</em><br>\n";
 
     if ($doReduce eq "yes") {
-	print HTML "    <a href=\"$nextImageHTML\"><img src=\"../reduced/$imageName\"></a>\n";
+        print HTML "    <a href=\"$nextImageHTML\"><img src=\"../reduced/$imageName\"></a>\n";
     } else {
-	print HTML "    <a href=\"$nextImageHTML\"><img src=\"../../$imageName\"></a>\n";
+        print HTML "    <a href=\"$nextImageHTML\"><img src=\"../../$imageName\"></a>\n";
     }
 
     if ( -e "$imageDir/$imageName.txt" ) {
-	# read from the description file
-	print HTML "    <br>\n";
+        # read from the description file
+        print HTML "    <br>\n";
 
-	open DESCRIPTION, "< $imageDir/$imageName.txt" or 
-	    die "Cannot open $imageDir/$imageName.txt: $!";
+        open DESCRIPTION, "< $imageDir/$imageName.txt" or 
+        die "Cannot open $imageDir/$imageName.txt: $!";
 
-	while (my $dline = <DESCRIPTION>) {
-	    chomp($dline);
-	    print HTML "    $dline<br>\n";
-	}
-	close(DESCRIPTION);
+        while (my $dline = <DESCRIPTION>) {
+            chomp($dline);
+            print HTML "    $dline<br>\n";
+        }
+        close(DESCRIPTION);
     }
 
     print HTML "  </div>\n";
@@ -339,7 +339,7 @@ sub createImageHTML {
 
     my @imageNavList = &imageNavList($imageName);
     foreach my $imlink (@imageNavList) {
-	print HTML "  $imlink\n";
+        print HTML "  $imlink\n";
     }
 
     print HTML "  <br>\n";
@@ -681,7 +681,7 @@ html,body
   margin:0;
 
   color:#595B30;      /* A kind of brown */
-  background:#F0E68C; /* khaki; */
+  background:#000000; /* khaki; */
 }
 
 a:link {color:#595B30; text-decoration:none}
@@ -709,7 +709,7 @@ a:hover {text-decoration:underline}
   height:100%;
   padding:0.5em;
 
-  background:#898B60; /* A tannish color */
+  background:#000000; /* A tannish color */
 }
 
 #navigation hr { display:none }
@@ -763,7 +763,7 @@ a:hover {text-decoration:underline}
   border-spacing:2px;
   height:33%; 
 
-  background:#595B30;
+  background:#000000;
 
 }
 
