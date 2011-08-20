@@ -61,6 +61,6 @@ fi
 
 xsetroot -solid black
 
-lxsession -s xmonad
+#lxsession -s xmonad
 
-#exec xmonad
+exec xmonad
