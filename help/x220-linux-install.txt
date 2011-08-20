@@ -1,0 +1,72 @@
+I first tried arch linux, but udev could not find my ethernet card.
+
+So, ubuntu it is.
+
+For ubuntu, can use usb-creator to make a bootable usb for installation.
+I tried Lubuntu
+
+The install fails if I try using the usb port on the back left.  It succeeds
+using the front left.
+
+
+After install, easiest way to get started us using the stuff on the eeebuntu
+3.0 labeled usb stick (relabel it!).  get the id_rsa* stuff off there and put
+it in ~/.ssh.  Then install 
+    ssh-askpass
+    keychain 
+    
+and you should be good to go.  There is a version of mysetup.sh on there. If it is out of date, just get it from the webfactional account.
+
+Note I could not get Xmodmap or Xdefaults to work under lxde. Need to look into
+it.
+
+
+XSession
+--------
+couldn't figure out how to get lxdm to recognize my xsession.
+
+going to try skipping right to a text login
+
+in grub 2.0 you edit kernel mode lines by editing
+    /etc/default/grub
+
+I removed 
+    GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+and replaced it with
+    GRUB_CMDLINE_LINUX_DEFAULT="text"
+
+Then ran
+    sudo update-grub
+
+That worked.
+
+
+
+Now, couple of problems:
+    the xmodmap load was not working
+        Had to change it to this
+
+            remove Lock = Caps_Lock
+            keysym Caps_Lock = Control_L
+            add Control = Control_L
+
+    fbpanel doesn't look right
+        no transparency or something. Don't
+        understand why it looks ok on my other
+        installs
+
+    nm-applet not working, some kind of permissions problem
+    trying this:
+
+        /etc/dbus-1/system.d/NetworkManager.conf
+
+        --- NetworkManager.conf.bak 2006-11-03 22:14:24.633888702 +0100
+        +++ NetworkManager.conf 2006-11-03 22:16:26.676372966 +0100
+        @@ -13,6 +13,7 @@
+        <allow send_interface="org.freedesktop.NetworkManager"/>
+        </policy>
+        <policy at_console="true">
+        + <allow own="org.freedesktop.NetworkManagerInfo"/>
+        <allow send_destination="org.freedesktop.NetworkManager"/>
+        <allow send_interface="org.freedesktop.NetworkManager"/>
+        </policy>
