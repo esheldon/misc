@@ -113,6 +113,7 @@ if [ -e /bin/arch ]; then
 fi
 export FLAVOR
 
+# path stuff first, so others can use the code?
 for f in ssh-agent perl python java cvs aliases ls_colors idl_setup gdl_setup pg_setup misc des_setup boss_setup oracle proxy term go d gems fortran fink git path localvars eups modules; do
 
     if [[ $f == "ssh-agent" && $riemann_test != "" ]]; then
@@ -124,12 +125,10 @@ for f in ssh-agent perl python java cvs aliases ls_colors idl_setup gdl_setup pg
 
 	# Load the default first if it exists, then the local
 	if [[ -e $default_file ]]; then
-        #echo "source $default_file"
 		source $default_file
 	fi
 	if [[ "$local_file" != "$default_file" ]]; then
 		if [[ -e $local_file ]]; then
-            #echo "source $local_file"
 			source $local_file
 		fi
 	fi
