@@ -23,20 +23,55 @@ it.
 
 XSession
 --------
-couldn't figure out how to get lxdm to recognize my xsession.
 
-going to try skipping right to a text login
+I put XSession.desktop file  under /usr/share/xsessions/
+
+NOTE: you DO need the display manager or else lots of things you won't have
+permission to run, like the nm-applet and some other device related things.
+
+problems
+
+    fbpanel didn't look right because I needed to use a
+    dark gtk theme, but setting it under lxde didn't progagate.
+
+
+    Tried gtk-theme-switch and installing a dark gtk theme and it works.
+    midnight osx seems good.
+
+
+LXSession
+---------
+
+Trying to use an lxsession to see if there are any benefits.
+
+        ~/.config/lxsession/xmonad/desktop.conf 
+
+And specify the window manager is xmonad there.  Then exec lxsession -s xmonad
+instead of xmonad in the ~/.xsession file.
+
+One nice thing is the ability to use lxsession-logout or (lxde-logout I
+suppose), which is a nice dialog that allows logging out, rebooting, shutting
+down, etc.  so that's a way to avoid going back to the display manager.
+
+But on the other hand I can't just get out with a key stroke, using alt-shift-q
+will leave the session running.
+
+Grub
+---------
+I don't like the not seeing the printed text.
 
 in grub 2.0 you edit kernel mode lines by editing
     /etc/default/grub
 
 I removed 
     GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
-and replaced it with
+
+Leave it blank to print all the info but still bring
+up a display manager.
+
+Replace with this to skip the display manager.
     GRUB_CMDLINE_LINUX_DEFAULT="text"
 
-Note if you leave it blank, it prints all the info still, but
-then brings up the display manager.
 
 Then ran
     sudo update-grub
@@ -45,31 +80,5 @@ That worked.
 
 
 
-Now, couple of problems:
-    the xmodmap load was not working
-        Had to change it to this
 
-            remove Lock = Caps_Lock
-            keysym Caps_Lock = Control_L
-            add Control = Control_L
 
-    fbpanel doesn't look right
-        no transparency or something. Don't
-        understand why it looks ok on my other
-        installs
-
-    nm-applet not working, some kind of permissions problem
-    trying this:
-
-        /etc/dbus-1/system.d/NetworkManager.conf
-
-        --- NetworkManager.conf.bak 2006-11-03 22:14:24.633888702 +0100
-        +++ NetworkManager.conf 2006-11-03 22:16:26.676372966 +0100
-        @@ -13,6 +13,7 @@
-        <allow send_interface="org.freedesktop.NetworkManager"/>
-        </policy>
-        <policy at_console="true">
-        + <allow own="org.freedesktop.NetworkManagerInfo"/>
-        <allow send_destination="org.freedesktop.NetworkManager"/>
-        <allow send_interface="org.freedesktop.NetworkManager"/>
-        </policy>
