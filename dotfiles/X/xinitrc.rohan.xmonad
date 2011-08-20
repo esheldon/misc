@@ -7,24 +7,20 @@ if [ -r ~/.Xmodmap ]; then
 	xmodmap ~/.Xmodmap
 fi
 
+# turn off the touch pad
+if [ -x /usr/bin/synclient ]; then
+    synclient TouchPadOff=1
+fi
+
+if [ -x /usr/bin/conky ]; then
+    conky &
+fi
+
 sleeptime=1
 
-#if [ -x /usr/bin/gnome-settings-daemon ]; then
-#	gnome-settings-daemon &
-#	sleep $sleeptime
+#if [ -x /usr/bin/xscreensaver ]; then
+#	xscreensaver &
 #fi
-
-
-if [ -x /usr/bin/xscreensaver ]; then
-	xscreensaver &
-fi
-
-hname=$(hostname)
-if [[ $hname == "theshire" ]]; then
-    if [ -x /usr/bin/gnome-power-manager ]; then
-        gnome-power-manager &
-    fi
-fi
 
 # fbpanel runs cpu and network monitor, and a tray for applets
 # use the gnome volume applet and store values using settings daemon
@@ -41,8 +37,6 @@ if [[ ! -x $fbexec ]]; then
     fbexec=~/local/products/$flavor/fbpanel/6.1/bin/fbpanel
 fi
 if [[ -x $fbexec ]]; then
-    $fbexec &
-    sleep $sleeptime
 
     if [ -x /usr/bin/nm-applet ]; then
         nm-applet --sm-disable &	
@@ -55,8 +49,18 @@ if [[ -x $fbexec ]]; then
     if [ -x /usr/bin/dropbox ]; then
         /usr/bin/dropbox start
     fi
+
+    if [ -x /usr/bin/gnome-power-manager ]; then
+        gnome-power-manager &
+    fi
+
+    sleep $sleeptime
+    $fbexec &
+
 fi
 
 xsetroot -solid black
 
-exec xmonad
+lxsession -s xmonad
+
+#exec xmonad
