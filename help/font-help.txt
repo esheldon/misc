@@ -1,4 +1,7 @@
-To get fixed font working in debian:
+Note, this no longer seems to work in ubuntu
+
+
+To get fixed and peep (bitmapped) font working in debian:
 
 Ensure xfonts-100dpi is installed
 dpkg-reconfigure fontconfig-config
