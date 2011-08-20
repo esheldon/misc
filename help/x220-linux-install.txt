@@ -3,7 +3,7 @@ I first tried arch linux, but udev could not find my ethernet card.
 So, ubuntu it is.
 
 For ubuntu, can use usb-creator to make a bootable usb for installation.
-I tried Lubuntu
+I tried Lubuntu 11
 
 The install fails if I try using the usb port on the back left.  It succeeds
 using the front left.
@@ -34,6 +34,9 @@ I removed
     GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
 and replaced it with
     GRUB_CMDLINE_LINUX_DEFAULT="text"
+
+Note if you leave it blank, it prints all the info still, but
+then brings up the display manager.
 
 Then ran
     sudo update-grub
