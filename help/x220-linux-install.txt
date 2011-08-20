@@ -32,15 +32,15 @@ pcman, and some other device related things.
 
 problems
 
+    Lots that were resolved by just using the damned XSession.
+
     fbpanel didn't look right because I needed to use a dark gtk theme, but
     setting it under the lxde session didn't progagate after reboot.
 
     Tried gtk-theme-switch and installing a dark gtk theme and it works.
-    clealooks-darkorange is my fav but faded entries are not visible at all,
-    making many menuse unusable.  faded entries in menues were not visible;
-    trying it anyway.
-    
-    midnight osx seems good.
+    clealooks-darkorange is my fav but I had to alter the INSENSITIVE
+    (widgets/buttons not pushable) to be a better color. this is not under
+    dotfiles/gtk-themes. 
 
 LXSession
 ---------
