@@ -9,7 +9,7 @@ The install fails if I try using the usb port on the back left.  It succeeds
 using the front left.
 
 
-After install, easiest way to get started us using the stuff on the eeebuntu
+After install, easiest way to get started is using the stuff on the eeebuntu
 3.0 labeled usb stick (relabel it!).  get the id_rsa* stuff off there and put
 it in ~/.ssh.  Then install 
     ssh-askpass
@@ -26,18 +26,17 @@ XSession
 
 I put XSession.desktop file  under /usr/share/xsessions/
 
-NOTE: you DO need the display manager or else lots of things you won't have
-permission to run, like the nm-applet and some other device related things.
+IMPORTANT NOTE: you DO need the display manager or else lots of things you
+won't have permission to run, like the nm-applet, mounting usb drives from
+pcman, and some other device related things.
 
 problems
 
-    fbpanel didn't look right because I needed to use a
-    dark gtk theme, but setting it under lxde didn't progagate.
-
+    fbpanel didn't look right because I needed to use a dark gtk theme, but
+    setting it under the lxde session didn't progagate after reboot.
 
     Tried gtk-theme-switch and installing a dark gtk theme and it works.
     midnight osx seems good.
-
 
 LXSession
 ---------
@@ -58,7 +57,7 @@ will leave the session running.
 
 Grub
 ---------
-I don't like the not seeing the printed text.
+I don't like not seeing the printed text.
 
 in grub 2.0 you edit kernel mode lines by editing
     /etc/default/grub
