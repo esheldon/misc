@@ -57,4 +57,5 @@ if [[ -x $fbexec ]]; then
 fi
 
 
+#exec ck-launch-session xmonad
 exec xmonad
