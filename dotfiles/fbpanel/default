@@ -29,7 +29,7 @@ Plugin {
 Plugin {
     type = menu
     config {
-        image = ~/local/products/Linux64/fbpanel/6.1/share/fbpanel/images/default.xpm
+        image = ~/.icons/icon_menu.jpg
         systemmenu {
         }
     }
