@@ -46,14 +46,18 @@ XSession
 
 I put XSession.desktop file  under /usr/share/xsessions/
 
-IMPORTANT NOTE: you DO need the display manager or else lots of things you
-won't have permission to run, like the nm-applet, mounting usb drives from
-pcman, and some other device related things. I'm sure I could figure this
-out but for now this isn't too intolerable.
+IMPORTANT NOTE: you DO seem to need the display manager or else lots of things
+you won't have permission to run, like the nm-applet, mounting usb drives from
+pcman, and some other device related things. I'm sure I could figure this out
+but for now this isn't too intolerable.
+
+This seems pam related: lxdm has permissions for this stuff.
 
 problems
 
-    Lots that were resolved by just using the damned XSession.
+    Lots that were resolved by just using the damned XSession, related
+    to what I said above that lxdm has permissions to do certain
+    things that I don't.
 
     fbpanel didn't look right because I needed to use a dark gtk theme, but
     setting it under the lxde session didn't progagate after reboot.
