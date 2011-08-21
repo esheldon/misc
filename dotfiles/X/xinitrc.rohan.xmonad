@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 if [ -r ~/.Xdefaults ]; then
 	xrdb -merge ~/.Xdefaults
 fi
@@ -12,24 +13,17 @@ if [ -x /usr/bin/synclient ]; then
     synclient TouchPadOff=1
 fi
 
-if [ -x /usr/bin/conky ]; then
-    conky &
-fi
+# this doesn't get killed on log off, we won't start it at login not that also
+# seems to be true of gnome-keyring
+#if [ -x /usr/bin/conky ]; then
+#    conky &
+#fi
 
 sleeptime=1
 
 #if [ -x /usr/bin/xscreensaver ]; then
 #	xscreensaver &
 #fi
-
-# fbpanel runs cpu and network monitor, and a tray for applets
-# use the gnome volume applet and store values using settings daemon
-a=`arch`
-if [[ $a == "x86_64" ]]; then
-    flavor=Linux64
-else
-    flavor=Linux
-fi
 
 fbexec=/usr/bin/fbpanel
 if [[ ! -x $fbexec ]]; then
@@ -40,14 +34,6 @@ if [[ -x $fbexec ]]; then
 
     if [ -x /usr/bin/nm-applet ]; then
         nm-applet --sm-disable &	
-    fi
-
-    if [ -x /usr/bin/gnome-volume-control-applet ]; then
-        gnome-volume-control-applet &
-    fi
-
-    if [ -x /usr/bin/dropbox ]; then
-        /usr/bin/dropbox start
     fi
 
     if [ -x /usr/bin/gnome-power-manager ]; then
@@ -65,4 +51,5 @@ xsetroot -solid black
 
 # speed up the keyboard
 xset r rate 300 30
+
 exec xmonad
