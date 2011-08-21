@@ -20,6 +20,26 @@ and you should be good to go.  There is a version of mysetup.sh on there. If it 
 Note I could not get Xmodmap or Xdefaults to work under lxde. Need to look into
 it.
 
+capslock
+--------
+
+I found this advice on making capslock control in the console. I used
+this to make capslock another ctrl
+
+Edit /etc/default/keyboard
+
+        XKBOPTIONS="ctrl:nocaps"
+
+then run
+
+        sudo dpkg-reconfigure -phigh console-setup
+    
+original article
+
+    http://www.noah.org/wiki/CapsLock_Remap_Howto
+
+NOTE: this wasn't supposed to help with X11 but it seems
+to; in lxde it is working
 
 XSession
 --------
