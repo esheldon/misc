@@ -27,7 +27,8 @@ Plugin {
 Plugin {
     type = menu
     config {
-        image = /usr/share/fbpanel/images/logo.png
+        #image = /usr/share/fbpanel/images/logo.png
+        image = ~/.icons/application-x-executable-256x256.png
         systemmenu {
         }
     }
