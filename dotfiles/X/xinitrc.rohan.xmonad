@@ -63,4 +63,6 @@ xsetroot -solid black
 
 #lxsession -s xmonad
 
+# speed up the keyboard
+xset r rate 300 30
 exec xmonad
