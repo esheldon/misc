@@ -1,0 +1,62 @@
+Global {
+    edge = top
+    allign = right
+    margin = 0
+    widthtype = percent
+    width = 15
+    height = 16
+    transparent = true
+    tintcolor = black
+    alpha = 255
+    setdocktype = true
+    setpartialstrut = true
+    autohide = false
+    heightWhenHidden = 2
+    setlayer = false
+    layer = above
+    roundcorners = false
+    roundcornersradius = 0
+    maxelemheight = 0
+}
+Plugin {
+    type = space
+    config {
+        size = 2
+    }
+}
+Plugin {
+    type = menu
+    config {
+        image = /usr/share/fbpanel/images/logo.png
+        systemmenu {
+        }
+    }
+}
+Plugin {
+    type = space
+    config {
+        size = 3
+    }
+}
+Plugin {
+    type = cpu
+}
+Plugin {
+    type = net
+    config {
+        interface = eth0
+        TxLimit = 200
+        RxLimit = 3000
+        TxColor = cyan
+        RxColor = red
+    }
+}
+Plugin {
+    type = space
+    config {
+        size = 3
+    }
+}
+Plugin {
+    type = tray
+}
