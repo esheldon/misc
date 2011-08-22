@@ -53,7 +53,7 @@ but for now this isn't too intolerable.
 
 This seems pam related: lxdm has permissions for this stuff.
 
-try workaround:
+try workaround but none works:
     I implemented the dbus hack, using group netdev instead
     of network, as I was already in it
     https://bbs.archlinux.org/viewtopic.php?id=63576
