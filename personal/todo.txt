@@ -1,42 +1,31 @@
 Quick look Queue
     updated billing addresses:
-        chase*
-        others?
-    see zphot
+        water
+        oil
 
 BigBOSS
     - fill out SDSS footpring info for response to review
         deadline is before august?  Ask Nick Mostek
-zphot:
-
-    - data model: include link to arxiv paper when ready
-
-    - make sure files get linked to main website in usual place
 
 DES:
 
-    Bob didn't actually implement new s/g!
 
-shears:
 
-    Test with old princeton file:
-        Note princeton file has r+i combined, which is a bit problematic,
-        but we should at least see no bias.
+objshear
+    kathy romer, chris miller catalogs
 
-        * Compare in pixel coordinates.
-        * Compare my equatorial rotations to those in the file.
-
-    Match Frank's file
-
-RedMapper
+    RedMapper
     
-    - Look into new binning scheme on lambda.
+        - Look into new binning scheme on lambda.
 
-    - look at various local tests 
-        - PSF tests need to be devised
-        - <e> vs R
-        - <e> vs psf e
-        - <e> vs position, run, etc.
+    shears:
+        - Match Frank's file
+        - look at various local tests 
+            - PSF tests need to be devised
+            - <e> vs R
+            - <e> vs psf e
+            - <e> vs position, run, etc.
+
 
 BOSS 
 
@@ -47,8 +36,4 @@ BOSS
         References to tiling stuff and brief description
 
 
-objshear
-    kathy romer, chris miller catalogs
-
-    .json config files good?  Can't put comments in per field...
 
