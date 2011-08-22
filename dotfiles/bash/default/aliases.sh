@@ -1,7 +1,7 @@
 # this is a way to have firefox use it's own gtk settings
 # this is nice because I need to use a dark theme for fbpanel
 # but dark themes never work right in firefox.
-alias myfirefix='GTK2_RC_FILES="/usr/share/themes/Clearlooks/gtk-2.0/gtkrc" firefox'
+alias myfirefox='GTK2_RC_FILES="/usr/share/themes/Clearlooks/gtk-2.0/gtkrc" firefox'
 
 # awk simplifies life
 alias mailtail="tail -n 100 -f ~/.getmail/gmail.log  | awk '{print \$1,\$2,\$4,\$10}'"
