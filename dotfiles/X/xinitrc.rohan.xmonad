@@ -43,6 +43,7 @@ if [[ ! -x $fbexec ]]; then
 fi
 if [[ -x $fbexec ]]; then
 
+
     if [ -x /usr/bin/nm-applet ]; then
         nm-applet --sm-disable &	
     fi
@@ -54,8 +55,10 @@ if [[ -x $fbexec ]]; then
     sleep $sleeptime
     $fbexec &
 
+    #/usr/bin/gnome-keyring-daemon --start --foreground --components=secrets &
+
 fi
 
 
-#exec ck-launch-session xmonad
+#exec ck-launch-session dbus-launch xmonad
 exec xmonad
