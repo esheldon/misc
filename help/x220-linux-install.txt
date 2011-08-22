@@ -53,6 +53,21 @@ but for now this isn't too intolerable.
 
 This seems pam related: lxdm has permissions for this stuff.
 
+try workaround:
+    I implemented the dbus hack, using group netdev instead
+    of network, as I was already in it
+    https://bbs.archlinux.org/viewtopic.php?id=63576
+
+    Make sure to launch xmonad with 
+        exec ck-launch-session xmonad
+
+    And put this at the bottom of /etc/pam.d/login
+
+        session optional pam_loginuid.so
+        session optional pam_ck_connector.so
+
+
+
 problems
 
     Lots that were resolved by just using the damned XSession, related
