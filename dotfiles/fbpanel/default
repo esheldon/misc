@@ -44,10 +44,22 @@ Plugin {
     }
 }
 
+#plugin {
+#    type = volume
+#}
 
 Plugin {
     type = cpu
 }
+
+Plugin {
+    type = space
+    config {
+        size = 3
+    }
+}
+
+
 
 # we get fast transfers in the local network, use 3000
 Plugin {
@@ -68,9 +80,6 @@ Plugin {
     }
 }
 
-#plugin {
-#    type = volume
-#}
 
 #Plugin {
 #    type = space
