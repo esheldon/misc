@@ -36,27 +36,22 @@ if [ -x /usr/bin/xscreensaver ]; then
 	xscreensaver &
 fi
 
-fbexec=/usr/bin/fbpanel
-if [[ ! -x $fbexec ]]; then
-    fbexec=~/local/bin/fbpanel
-    fbexec=~/local/products/$flavor/fbpanel/6.1/bin/fbpanel
+
+
+if [ -x /usr/bin/nm-applet ]; then
+    nm-applet --sm-disable &	
 fi
-if [[ -x $fbexec ]]; then
 
+if [ -x /usr/bin/gnome-power-manager ]; then
+    gnome-power-manager &
+fi
 
-    if [ -x /usr/bin/nm-applet ]; then
-        nm-applet --sm-disable &	
-    fi
+sleep $sleeptime
 
-    if [ -x /usr/bin/gnome-power-manager ]; then
-        gnome-power-manager &
-    fi
-
-    sleep $sleeptime
-    $fbexec &
-
-    #/usr/bin/gnome-keyring-daemon --start --foreground --components=secrets &
-
+if [[ -e ~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc ]]; then
+    GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc fbpanel &
+else
+    fbpanel &
 fi
 
 
