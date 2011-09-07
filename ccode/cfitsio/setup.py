@@ -5,8 +5,9 @@ import numpy
 
 data_files=[]
 
-ext=Extension("fitsio._fitsio", 
-              ["fitsio/fitsio_pywrap.c"])
+ext=Extension("fitsio._fitsio_wrap", 
+              ["fitsio/fitsio_pywrap.c"],
+              libraries=['cfitsio'])
 setup(name="fitsio", 
       packages=['fitsio'],
       version="1.0",
