@@ -82,7 +82,7 @@ PyFITSObject_repr(struct PyFITSObject* self) {
 }
 
 static PyObject *
-PyFITSObject_get_hdu_info(struct PyFITSObject* self) {
+PyFITSObject_get_hdu_types(struct PyFITSObject* self) {
     int hdunum;
     int hdutype;
     int status=0;
@@ -103,9 +103,112 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self) {
 }
 
 
+static PyObject *
+PyFITSObject_moveabs_hdu(struct PyFITSObject* self, PyObject* args) {
+    int hdunum=0, hdutype=0;
+    int status=0;
+
+    if (self->fits == NULL) {
+        Py_RETURN_NONE;
+    }
+
+    if (!PyArg_ParseTuple(args, (char*)"i", &hdunum)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number");
+        return NULL;
+    }
+
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        // this will give full report
+        fits_report_error(stderr, status);
+        // this for now is less
+        set_err_string_from_status(status);
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+// get info for the specified HDU
+static PyObject *
+PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
+    int hdunum=0, hdutype=0, ext=0;
+    int status=0;
+    PyObject* dict=NULL;
+
+    FITSfile* hdu=NULL;
+
+    if (self->fits == NULL) {
+        Py_RETURN_NONE;
+    }
+
+    if (!PyArg_ParseTuple(args, (char*)"i", &hdunum)) {
+        printf("failed to Parse init");
+        return NULL;
+    }
+
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        // this will give full report
+        fits_report_error(stderr, status);
+        // this for now is less
+        set_err_string_from_status(status);
+        return NULL;
+    }
+
+    hdu = self->fits->Fptr;
+
+    dict = PyDict_New();
+    ext=hdunum-1;
+    PyDict_SetItemString(dict, "hdunum", PyInt_FromLong((long)hdunum));
+    PyDict_SetItemString(dict, "extnum", PyInt_FromLong((long)ext));
+    PyDict_SetItemString(dict, "hdutype", PyInt_FromLong((long)hdutype));
+
+    PyDict_SetItemString(dict, "imgdim", PyInt_FromLong((long)hdu->imgdim));
+
+    {
+        int i;
+        PyObject* imgnaxis=PyList_New(0);
+        for (i=0; i<hdu->imgdim; i++) {
+            PyList_Append(imgnaxis, PyInt_FromLong( (long)hdu->imgnaxis[i]));
+        }
+        PyDict_SetItemString(dict, "imgnaxis", imgnaxis);
+    }
+
+    PyDict_SetItemString(dict, "numrows", PyLong_FromLongLong( (long long)hdu->numrows));
+    PyDict_SetItemString(dict, "tfield", PyInt_FromLong( (long)hdu->tfield));
+
+    {
+        int i;
+        PyObject* colinfo = PyList_New(0);
+        tcolumn* col;
+        for (i=0; i<hdu->tfield; i++) {
+            PyObject* d = PyDict_New();
+
+            col = &hdu->tableptr[i];
+
+            PyDict_SetItemString(d, "ttype", PyString_FromString(col->ttype));
+            PyDict_SetItemString(d, "tdatatype", PyInt_FromLong((long)col->tdatatype));
+
+            PyDict_SetItemString(d, "tbcol", PyLong_FromLongLong((long long)col->tbcol));
+            PyDict_SetItemString(d, "trepeat", PyLong_FromLongLong((long long)col->trepeat));
+
+            PyDict_SetItemString(d, "twidth", PyLong_FromLong((long)col->twidth));
+
+            PyDict_SetItemString(d, "tscale", PyFloat_FromDouble(col->tscale));
+            PyDict_SetItemString(d, "tzero", PyFloat_FromDouble(col->tzero));
+
+            PyList_Append(colinfo, d);
+        }
+        PyDict_SetItemString(dict, "colinfo", colinfo);
+    }
+    return dict;
+}
+
+
+
 
 static PyMethodDef PyFITSObject_methods[] = {
-    {"get_hdu_info",          (PyCFunction)PyFITSObject_get_hdu_info,          METH_VARARGS, "get_hdu_info\n\nGet a list of the hdu types for all hdus."},
+    {"get_hdu_types",          (PyCFunction)PyFITSObject_get_hdu_types,          METH_VARARGS, "get_hdu_types\n\nGet a list of the hdu types for all hdus."},
+    {"moveabs_hdu",          (PyCFunction)PyFITSObject_moveabs_hdu,          METH_VARARGS, "moveabs_hdu\n\nMove to the specified HDU."},
+    {"get_hdu_info",          (PyCFunction)PyFITSObject_get_hdu_info,          METH_VARARGS, "get_hdu_info\n\nReturn a dict with info about the specified HDU."},
     {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
