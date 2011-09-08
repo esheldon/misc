@@ -407,9 +407,10 @@ PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
 }
  
 
-// read the specified columns into the data array.  It is assumed the data
-// match the requested columns perfectly, and that the column list is
-// sorted
+// read the specified columns, and all rows, into the data array.  It is
+// assumed the data match the requested columns perfectly, and that the column
+// list is sorted
+
 static int read_rec_column_bytes(fitsfile* fits, npy_intp ncols, npy_int64* colnums, void* data, int* status) {
     FITSfile* hdu=NULL;
     tcolumn* colptr=NULL;
@@ -451,6 +452,7 @@ static int read_rec_column_bytes(fitsfile* fits, npy_intp ncols, npy_int64* coln
     return 0;
 }
 
+// read specified columns and rows
 static int read_rec_column_bytes_byrow(
         fitsfile* fits, 
         npy_intp ncols, npy_int64* colnums, 
@@ -569,9 +571,8 @@ recread_columns_cleanup:
 
 
 
-// read the specified columns into the data array.  It is assumed the data
-// match the requested columns perfectly, and that the column list is
-// sorted
+// Read the entire table into the input rec array.  It is assumed the data
+// match table perfectly.
 static int read_rec_bytes(fitsfile* fits, void* data, int* status) {
     FITSfile* hdu=NULL;
     LONGLONG file_pos=0;
@@ -582,13 +583,6 @@ static int read_rec_bytes(fitsfile* fits, void* data, int* status) {
 
     file_pos = hdu->datastart;
     nbytes = hdu->numrows*hdu->rowlength;
-
-    // we may need to do this first in order to establish the buffers, even
-    // though our read will not be buffered
-    //ffmbyt(fits, file_pos, REPORT_EOF, status);
-    //if (ffgbytoff(fits, nbytes, 1, 0, data, status)) {
-    //    return 1;
-    //}
 
     if (file_seek(hdu->filehandle, file_pos)) {
         *status = SEEK_ERROR;
@@ -604,12 +598,12 @@ static int read_rec_bytes(fitsfile* fits, void* data, int* status) {
         return 1;
     }
 
-    //ffmbyt(fits, file_pos, REPORT_EOF, status);
     return 0;
 }
 
 
 
+// read entire table at once
 static PyObject *
 PyFITSObject_read_as_rec(struct PyFITSObject* self, PyObject* args) {
     int hdunum;
