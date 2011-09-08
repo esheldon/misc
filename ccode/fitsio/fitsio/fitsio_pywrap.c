@@ -502,8 +502,7 @@ static int read_rec_column_bytes_byrow(
 }
 
 
-
-
+// python method for reading specified columns and rows
 static PyObject *
 PyFITSObject_read_columns_as_rec(struct PyFITSObject* self, PyObject* args) {
     int hdunum;
@@ -553,6 +552,9 @@ PyFITSObject_read_columns_as_rec(struct PyFITSObject* self, PyObject* args) {
         npy_intp nrows;
         npy_int64* rows=NULL;
         rows = get_int64_from_array(rowsobj, &nrows);
+        if (rows == NULL) {
+            return NULL;
+        }
         if (read_rec_column_bytes_byrow(self->fits, ncols, colnums, nrows, rows, data, &status)) {
             goto recread_columns_cleanup;
         }
@@ -567,6 +569,101 @@ recread_columns_cleanup:
     Py_RETURN_NONE;
 }
  
+// read specified rows, all columns
+static int read_rec_bytes_byrow(
+        fitsfile* fits, 
+        npy_intp nrows, npy_int64* rows,
+        void* data, int* status) {
+    FITSfile* hdu=NULL;
+    LONGLONG file_pos=0;
+
+    npy_intp irow=0;
+    npy_int64 row=0;
+
+    // use char for pointer arith.  It's actually ok to use void as char but
+    // this is just in case.
+    char* ptr;
+
+    // these should be LONGLONG bug aren't, cfitsio is so inconsistent!
+    long ngroups=1; // number to read, one for row-by-row reading
+    long offset=0; // gap between groups, not stride.  zero since we aren't using it
+
+    hdu = fits->Fptr;
+    ptr = (char*) data;
+
+    for (irow=0; irow<nrows; irow++) {
+        row = rows[irow];
+        file_pos = hdu->datastart + row*hdu->rowlength;
+
+        // can just do one status check, since status are inherited.
+        ffmbyt(fits, file_pos, REPORT_EOF, status);
+        if (ffgbytoff(fits, hdu->rowlength, ngroups, offset, (void*) ptr, status)) {
+            return 1;
+        }
+        ptr += hdu->rowlength;
+    }
+
+    return 0;
+}
+
+
+// python method to read all columns but subset of rows
+static PyObject *
+PyFITSObject_read_rows_as_rec(struct PyFITSObject* self, PyObject* args) {
+    int hdunum;
+    int hdutype;
+
+    FITSfile* hdu=NULL;
+    int status=0;
+    PyObject* array;
+    void* data;
+
+    PyObject* rowsobj=NULL;
+    npy_intp nrows=0;
+    npy_int64* rows=NULL;
+
+    if (!PyArg_ParseTuple(args, (char*)"iOO", &hdunum, &array, &rowsobj)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, array");
+        return NULL;
+    }
+
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
+        return NULL;
+    }
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        goto recread_byrow_cleanup;
+    }
+
+    hdu = self->fits->Fptr;
+    if (hdu->hdutype == IMAGE_HDU) {
+        PyErr_SetString(PyExc_RuntimeError, "Cannot read IMAGE_HDU into a recarray");
+        return NULL;
+    }
+
+    data = PyArray_DATA(array);
+
+    rows = get_int64_from_array(rowsobj, &nrows);
+    if (rows == NULL) {
+        return NULL;
+    }
+ 
+    if (read_rec_bytes_byrow(self->fits, nrows, rows, data, &status)) {
+        //fits_report_error(stderr, status);
+        goto recread_byrow_cleanup;
+    }
+
+recread_byrow_cleanup:
+
+    if (status != 0) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+ 
+
+
 
 
 
@@ -657,52 +754,11 @@ static PyMethodDef PyFITSObject_methods[] = {
     {"get_hdu_info",          (PyCFunction)PyFITSObject_get_hdu_info,          METH_VARARGS, "get_hdu_info\n\nReturn a dict with info about the specified HDU."},
     {"read_column",          (PyCFunction)PyFITSObject_read_column,          METH_VARARGS, "read_column\n\nRead the column into the input array.  No checking of array is done."},
     {"read_columns_as_rec",          (PyCFunction)PyFITSObject_read_columns_as_rec,          METH_VARARGS, "read_columns_as_rec\n\nRead the specified columns into the input rec array.  No checking of array is done."},
+    {"read_rows_as_rec",          (PyCFunction)PyFITSObject_read_rows_as_rec,          METH_VARARGS, "read_rows_as_rec\n\nRead the subset of rows into the input rec array.  No checking of array is done."},
     {"read_as_rec",          (PyCFunction)PyFITSObject_read_as_rec,          METH_VARARGS, "read_as_rec\n\nRead the entire data set into the input rec array.  No checking of array is done."},
     {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
-
-
-/*
-
-static PyMethodDef PyFITSObject_methods[] = {
-    {"DH",          (PyCFunction)PyFITSObject_DH,          METH_VARARGS, "DH\n\nGet the Hubble distance"},
-    {"flat",          (PyCFunction)PyFITSObject_flat,          METH_VARARGS, "flat\n\nReturn if universe if flat"},
-    {"omega_m",          (PyCFunction)PyFITSObject_omega_m,          METH_VARARGS, "omega_m\n\nGet omega matter"},
-    {"omega_l",          (PyCFunction)PyFITSObject_omega_l,          METH_VARARGS, "omega_m\n\nGet omega lambda"},
-    {"omega_k",          (PyCFunction)PyFITSObject_omega_k,          METH_VARARGS, "omega_m\n\nGet omega curvature"},
-    {"ez_inverse",          (PyCFunction)PyFITSObject_ez_inverse,          METH_VARARGS, "ez_inverse(z)\n\nGet 1/E(z)"},
-    {"ez_inverse_vec",          (PyCFunction)PyFITSObject_ez_inverse_vec,          METH_VARARGS, "ez_inverse_vec(z)\n\nGet 1/E(z) for z an array"},
-    {"ez_inverse_integral", (PyCFunction)PyFITSObject_ez_inverse_integral, METH_VARARGS, "ez_inverse_integral(zmin, zmax)\n\nGet integral of 1/E(z) from zmin to zmax"},
-    {"Dc",               (PyCFunction)PyFITSObject_Dc,               METH_VARARGS, "Dc(zmin,zmax)\n\nComoving distance between zmin and zmax"},
-    {"Dc_vec1",          (PyCFunction)PyFITSObject_Dc_vec1,          METH_VARARGS, "Dc_vec1(zmin,zmax)\n\nComoving distance between zmin(array) and zmax"},
-    {"Dc_vec2",          (PyCFunction)PyFITSObject_Dc_vec2,          METH_VARARGS, "Dc_vec2(zmin,zmax)\n\nComoving distance between zmin and zmax(array)"},
-    {"Dc_2vec",          (PyCFunction)PyFITSObject_Dc_2vec,          METH_VARARGS, "Dc_2vec(zmin,zmax)\n\nComoving distance between zmin and zmax both arrays"},
-    {"Dm",              (PyCFunction)PyFITSObject_Dm,              METH_VARARGS, "Dm(zmin,zmax)\n\nTransverse comoving distance between zmin and zmax"},
-    {"Dm_vec1",         (PyCFunction)PyFITSObject_Dm_vec1,         METH_VARARGS, "Dm_vec1(zmin,zmax)\n\nTransverse Comoving distance between zmin(array) and zmax"},
-    {"Dm_vec2",         (PyCFunction)PyFITSObject_Dm_vec2,         METH_VARARGS, "Dm_vec2(zmin,zmax)\n\nTransverse Comoving distance between zmin and zmax(array)"},
-    {"Dm_2vec",         (PyCFunction)PyFITSObject_Dm_2vec,         METH_VARARGS, "Dm_2vec(zmin,zmax)\n\nTransverse Comoving distance between zmin and zmax both arrays"},
-    {"Da",             (PyCFunction)PyFITSObject_Da,             METH_VARARGS, "Da(zmin,zmax)\n\nAngular diameter distance distance between zmin and zmax"},
-    {"Da_vec1",        (PyCFunction)PyFITSObject_Da_vec1,        METH_VARARGS, "Da_vec1(zmin,zmax)\n\nAngular diameter distance distance between zmin(array) and zmax"},
-    {"Da_vec2",        (PyCFunction)PyFITSObject_Da_vec2,        METH_VARARGS, "Da_vec2(zmin,zmax)\n\nAngular diameter distance distance between zmin and zmax(array)"},
-    {"Da_2vec",        (PyCFunction)PyFITSObject_Da_2vec,        METH_VARARGS, "Da_2vec(zmin,zmax)\n\nAngular diameter distance distance between zmin and zmax both arrays"},
-    {"Dl",             (PyCFunction)PyFITSObject_Dl,             METH_VARARGS, "Dl(zmin,zmax)\n\nLuminosity distance distance between zmin and zmax"},
-    {"Dl_vec1",        (PyCFunction)PyFITSObject_Dl_vec1,        METH_VARARGS, "Dl_vec1(zmin,zmax)\n\nLuminosity distance distance between zmin(array) and zmax"},
-    {"Dl_vec2",        (PyCFunction)PyFITSObject_Dl_vec2,        METH_VARARGS, "Dl_vec2(zmin,zmax)\n\nLuminosity distance distance between zmin and zmax(array)"},
-    {"Dl_2vec",        (PyCFunction)PyFITSObject_Dl_2vec,        METH_VARARGS, "Dl_2vec(zmin,zmax)\n\nLuminosity distance distance between zmin and zmax both arrays"},
-    {"dV",                  (PyCFunction)PyFITSObject_dV,                  METH_VARARGS, "dV(z)\n\nComoving volume element at redshift z"},
-    {"dV_vec",              (PyCFunction)PyFITSObject_dV_vec,              METH_VARARGS, "dV(z)\n\nComoving volume element at redshift z(array)"},
-    {"V",                   (PyCFunction)PyFITSObject_V,                   METH_VARARGS, "V(z)\n\nComoving volume between zmin and zmax"},
-    {"scinv",               (PyCFunction)PyFITSObject_scinv,               METH_VARARGS, "scinv(zl,zs)\n\nInverse critical density distance between zl and zs"},
-    {"scinv_vec1",          (PyCFunction)PyFITSObject_scinv_vec1,          METH_VARARGS, "scinv_vec1(zl,zs)\n\nInverse critical density distance between zl(array) and zs"},
-    {"scinv_vec2",          (PyCFunction)PyFITSObject_scinv_vec2,          METH_VARARGS, "scinv_vec2(zl,zs)\n\nInverse critical density distance between zl and zs(array)"},
-    {"scinv_2vec",          (PyCFunction)PyFITSObject_scinv_2vec,          METH_VARARGS, "scinv_2vec(zl,zs)\n\nInverse critical density distance between zl and zs both arrays"},
-
-    {NULL}
-};
-
-
-*/
 
 
 static PyTypeObject PyFITSType = {

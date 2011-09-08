@@ -9,12 +9,11 @@ Advantages:
     - Correctly writes 1 byte integers, both signed and unsigned.
 
     TODO:
-        generalize a read function:
-            - case of "read everything"
-            - row ranges a special case for speed?
-            - columns should also be optional!
-        implement bit, logical, and complex types
-        images
+        - writing
+        - strings
+        - row ranges
+        - implement bit, logical, and complex types
+        - images
 """
 import numpy
 import _fitsio_wrap
@@ -83,37 +82,88 @@ class FITSHDU:
         parameters
         ----------
         fits: FITS object
-            An instance of a FITS objects
-        ext:
+            An instance of a FITS object
+        ext: integer
             The extension number.
         """
         self._FITS = fits
         self.ext = ext
         self._update_info()
 
-    def _update_info(self):
-        # do this here first so we can catch the error
-        try:
-            self._FITS.moveabs_hdu(self.ext+1)
-        except IOError:
-            raise RuntimeError("no such hdu")
-
-        self.info = self._FITS.get_hdu_info(self.ext+1)
-        self.colnames = [i['ttype'] for i in self.info['colinfo']]
-        self.ncol = len(self.colnames)
 
     def read(self, columns=None, rows=None):
         """
-        Can support all types of read here eventually
+        read data from this HDU
+
+        By default, all data are read.  Send columns= and rows= to select
+        subsets of the data.  Data are read into a recarray; use read_column()
+        to get a single column as an ordinary array.
+
+        parameters
+        ----------
+        columns: optional
+            An optional set of columns to read.  Default is to
+            read all.  Can be string or number.
+        rows: optional
+            An optional list of rows to read.  Default is to read all.
         """
-        if columns is None and rows is None:
-            dtype = self.get_rec_dtype()
-            nrows = self.info['numrows']
-            array = numpy.zeros(nrows, dtype=dtype)
-            self._FITS.read_as_rec(self.ext+1, array)
-            return array
+        if columns is not None and rows is not None:
+            return self.read_columns(columns, rows)
+        elif columns is not None:
+            return self.read_columns(columns)
+        elif rows is not None:
+            return self.read_rows(rows)
         else:
-            raise ValueError("implement rest")
+            return self.read_all()
+
+    def read_column(self, col, rows=None):
+        """
+        Read the specified column
+
+        parameters
+        ----------
+        col: string/int,  required
+            The column name or number.
+        rows: optional
+            An optional set of row numbers to read.
+
+        """
+        if self.info['hdutype'] == _hdu_type_map['IMAGE_HDU']:
+            raise ValueError("Cannot yet read columns from an image HDU")
+
+        colnum = self._extract_colnum(col)
+        rows = self._extract_rows(rows)
+
+        npy_type, shape = self._get_simple_dtype_and_shape(colnum, rows=rows)
+
+        array = numpy.zeros(shape, dtype=npy_type)
+
+        self._FITS.read_column(self.ext+1,colnum+1, array, rows)
+        
+        self._rescale_array(array, 
+                            self.info['colinfo'][colnum]['tscale'], 
+                            self.info['colinfo'][colnum]['tzero'])
+        return array
+
+    def read_all(self):
+        # read entire thing
+        dtype = self.get_rec_dtype()
+        nrows = self.info['numrows']
+        array = numpy.zeros(nrows, dtype=dtype)
+        self._FITS.read_as_rec(self.ext+1, array)
+        return array
+
+    def read_rows(self, rows):
+        if rows is None:
+            # we actually want all rows!
+            return self.read_all()
+
+        rows = self._extract_rows(rows)
+        dtype = self.get_rec_dtype()
+        array = numpy.zeros(rows.size, dtype=dtype)
+        self._FITS.read_rows_as_rec(self.ext+1, array, rows)
+        return array
+
 
     def read_columns(self, columns, rows=None, slow=False):
         if self.info['hdutype'] == _hdu_type_map['IMAGE_HDU']:
@@ -158,27 +208,10 @@ class FITSHDU:
         return array
 
 
-    def read_column(self, col, rows=None):
-        if self.info['hdutype'] == _hdu_type_map['IMAGE_HDU']:
-            raise ValueError("Cannot yet read columns from an image HDU")
-
-        colnum = self._extract_colnum(col)
-        rows = self._extract_rows(rows)
-
-        npy_type, shape = self._get_simple_dtype_and_shape(colnum, rows=rows)
-
-        array = numpy.zeros(shape, dtype=npy_type)
-
-        self._FITS.read_column(self.ext+1,colnum+1, array, rows)
-        
-        self._rescale_array(array, 
-                            self.info['colinfo'][colnum]['tscale'], 
-                            self.info['colinfo'][colnum]['tzero'])
-        return array
 
     def _extract_rows(self, rows):
         if rows is not None:
-            rows = numpy.array(rows, dtype='i8')
+            rows = numpy.array(rows, ndmin=1, copy=False, dtype='i8')
             # returns unique, sorted
             rows = numpy.unique(rows)
 
@@ -236,7 +269,7 @@ class FITSHDU:
     def _get_numpy_dtype(self, colnum):
         try:
             ftype = self.info['colinfo'][colnum]['tdatatype']
-            npy_type = _typemap[ftype]
+            npy_type = _table_typemap[ftype]
         except KeyError:
             raise KeyError("unsupported fits data type: %d" % ftype)
 
@@ -272,6 +305,17 @@ class FITSHDU:
                 raise ValueError("column name '%s' not found" % col)
         return int(colnum)
 
+    def _update_info(self):
+        # do this here first so we can catch the error
+        try:
+            self._FITS.moveabs_hdu(self.ext+1)
+        except IOError:
+            raise RuntimeError("no such hdu")
+
+        self.info = self._FITS.get_hdu_info(self.ext+1)
+        self.colnames = [i['ttype'] for i in self.info['colinfo']]
+        self.ncol = len(self.colnames)
+
     def __repr__(self):
         spacing = ' '*2
         text = []
@@ -285,7 +329,8 @@ class FITSHDU:
             dimstr = [str(d) for d in self.info['imgnaxis']]
             dimstr = ",".join(dimstr)
 
-            text.append("%sdata type: %d" % (cspacing,self.info['img_equiv_type']))
+            dt = _img_typemap[self.info['img_equiv_type']]
+            text.append("%sdata type: %s" % (cspacing,dt))
             text.append("%sdims: [%s]" % (cspacing,dimstr))
 
         else:
@@ -307,7 +352,7 @@ class FITSHDU:
                     rep = 'array[%d]' % c['trepeat']
                 else:
                     rep=''
-                dt = _typemap[c['tdatatype']]
+                dt = _table_typemap[c['tdatatype']]
                 s = f % (c['ttype'],dt,rep)
                 text.append(s)
 
@@ -326,7 +371,7 @@ _hdu_type_map = {0:'IMAGE_HDU',
                  'BINARY_TBL':2}
 
 # no support yet for logical or complex
-_typemap = {11:'u1', 'u1':11,
+_table_typemap = {11:'u1', 'u1':11,
             12: 'i1', 'i1': 12,
             14: 'i1', 'i1': 14, # logical: correct?
             16: 'S', 'S': 16,
@@ -340,9 +385,18 @@ _typemap = {11:'u1', 'u1':11,
             81: 'i8', 'i8': 81,
             82: 'f8', 'f8': 82}
 
+_img_typemap = {8: 'u1', 'u1':8,
+                10: 'i1', 'i1': 10,
+                16: 'i2', 'i2': 16,
+                20: 'u2', 'u2': 20,
+                32: 'i4', 'i4': 32,
+                40: 'u4', 'u4': 40,
+                64: 'i8', 'i8': 64,
+                -32: 'f4', 'f4': -32,
+                -64: 'f8', 'f8': -64}
 
 
-_typemap_old = {11:'u1', 'u1':11,
+_table_typemap_old = {11:'u1', 'u1':11,
             12: 'i1', 'i1': 12,
             14: 'i1', 'i1': 14, # logical: correct?
             16: 'S', 'S': 16,
