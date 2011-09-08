@@ -596,6 +596,7 @@ static int read_rec_bytes(fitsfile* fits, void* data, int* status) {
         return 1;
     }
 
+    ffmbyt(fits, file_pos, REPORT_EOF, status);
     return 0;
 }
 
