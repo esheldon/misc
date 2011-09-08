@@ -8,6 +8,13 @@ Advantages:
     unsigned 8 byte yet.
     - Correctly writes 1 byte integers, both signed and unsigned.
 
+    TODO:
+        generalize a read function:
+            - case of "read everything"
+            - row ranges a special case for speed?
+            - columns should also be optional!
+        implement bit, logical, and complex types
+        images
 """
 import numpy
 import _fitsio_wrap
@@ -95,22 +102,79 @@ class FITSHDU:
         self.colnames = [i['ttype'] for i in self.info['colinfo']]
         self.ncol = len(self.colnames)
 
-    def read_column(self, col):
+    def read_columns(self, columns, rows=None, slow=False):
+        if self.info['hdutype'] == _hdu_type_map['IMAGE_HDU']:
+            raise ValueError("Cannot yet read columns from an image HDU")
+
+        # get the unique, sorted column numbers
+        colnums = []
+        for col in columns:
+            cnum = self._extract_colnum(col)
+            colnums.append(cnum)
+
+        colnums = numpy.array(colnums, dtype='i8')
+        # returns unique sorted
+        colnums = numpy.unique(colnums)
+
+        rows = self._extract_rows(rows)
+
+        # this is the full dtype for all columns
+        dtype = self.get_rec_dtype(colnums)
+
+        if rows is None:
+            nrows = self.info['numrows']
+        else:
+            nrows = rows.size
+        array = numpy.zeros(nrows, dtype=dtype)
+
+        if slow:
+            for i in xrange(colnums.size):
+                colnum = int(colnums[i])
+                name = array.dtype.names[i]
+                self._FITS.read_column(self.ext+1,colnum+1, array[name], rows)
+                self._rescale_array(array[name], 
+                                    self.info['colinfo'][colnum]['tscale'], 
+                                    self.info['colinfo'][colnum]['tzero'])
+        else:       
+            colnumsp = colnums[:].copy()
+            colnumsp[:] += 1
+            self._FITS.read_columns_as_rec(self.ext+1, colnumsp, array, rows)
+            
+            for colnum,name in enumerate(array.dtype.names):
+                self._rescale_array(array[name], 
+                                    self.info['colinfo'][colnum]['tscale'], 
+                                    self.info['colinfo'][colnum]['tzero'])
+        return array
+
+
+    def read_column(self, col, rows=None):
         if self.info['hdutype'] == _hdu_type_map['IMAGE_HDU']:
             raise ValueError("Cannot yet read columns from an image HDU")
 
         colnum = self._extract_colnum(col)
+        rows = self._extract_rows(rows)
 
-        npy_type, shape = self._extract_simple_dtype_and_shape(colnum)
+        npy_type, shape = self._get_simple_dtype_and_shape(colnum, rows=rows)
 
         array = numpy.zeros(shape, dtype=npy_type)
 
-        self._FITS.read_column(self.ext+1,colnum+1, array)
+        self._FITS.read_column(self.ext+1,colnum+1, array, rows)
         
         self._rescale_array(array, 
                             self.info['colinfo'][colnum]['tscale'], 
                             self.info['colinfo'][colnum]['tzero'])
         return array
+
+    def _extract_rows(self, rows):
+        if rows is not None:
+            rows = numpy.array(rows, dtype='i8')
+            # returns unique, sorted
+            rows = numpy.unique(rows)
+
+            maxrow = self.info['numrows']-1
+            if rows[0] < 0 or rows[-1] > maxrow:
+                raise ValueError("rows must be in [%d,%d]" % (0,maxrow))
+        return rows
 
     def _rescale_array(self, array, scale, zero):
         if scale != 1.0:
@@ -120,20 +184,54 @@ class FITSHDU:
             print 're-zeroing array'
             array += zero
 
-    def _extract_simple_dtype_and_shape(self, colnum):
+    def get_rec_dtype(self, colnums):
+        dtype = []
+        for colnum in colnums:
+            dt = self.get_rec_column_dtype(colnum) 
+            dtype.append(dt)
+        return dtype
+
+    def get_rec_column_dtype(self, colnum):
+        """
+        Need to incorporate TDIM information
+        """
+        npy_type = self._get_numpy_dtype(colnum)
+        name = self.info['colinfo'][colnum]['ttype']
+        repeat = self.info['colinfo'][colnum]['trepeat']
+        if repeat > 1:
+            return (name,npy_type,repeat)
+        else:
+            return (name,npy_type)
+
+    def _get_simple_dtype_and_shape(self, colnum, rows=None):
+        npy_type = self._get_numpy_dtype(colnum)
+
+        if rows is None:
+            nrows = self.info['numrows']
+        else:
+            nrows = rows.size
+
+        repeat = self.info['colinfo'][colnum]['trepeat']
+        if repeat > 1:
+            shape = (nrows, repeat)
+        else:
+            shape = nrows
+
+        return npy_type, shape
+
+    def _get_numpy_dtype(self, colnum):
         try:
             ftype = self.info['colinfo'][colnum]['tdatatype']
             npy_type = _typemap[ftype]
         except KeyError:
             raise KeyError("unsupported fits data type: %d" % ftype)
 
-        repeat = self.info['colinfo'][colnum]['trepeat']
-        if repeat > 1:
-            shape = (self.info['numrows'], repeat)
-        else:
-            shape = self.info['numrows']
-
-        return npy_type, shape
+        if npy_type not in ['u1','i1','S']:
+            npy_type = '>'+npy_type
+        elif npy_type == 'S':
+            width = self.info['colinfo'][colnum]['twidth']
+            npy_type = 'S%d' % width
+        return npy_type
 
     def _extract_colnum(self, col):
         if isinstance(col,(int,long)):
@@ -146,7 +244,7 @@ class FITSHDU:
                 colnum = self.colnames.index(col)
             except ValueError:
                 raise ValueError("column name '%s' not found" % col)
-        return colnum
+        return int(colnum)
 
     def __repr__(self):
         spacing = ' '*2
@@ -203,6 +301,22 @@ _hdu_type_map = {0:'IMAGE_HDU',
 
 # no support yet for logical or complex
 _typemap = {11:'u1', 'u1':11,
+            12: 'i1', 'i1': 12,
+            14: 'i1', 'i1': 14, # logical: correct?
+            16: 'S', 'S': 16,
+            20: 'u2', 'u2':20,
+            21: 'i2', 'i2':21,
+            30: 'u4', 'u4': 30,
+            31: 'i4', 'i4': 31,
+            40: 'u4', 'u4': 40, # these are "long" but on linux same as int...
+            41: 'i4', 'i4': 41, # need to be more careful here
+            42: 'f4', 'f4': 42,
+            81: 'i8', 'i8': 81,
+            82: 'f8', 'f8': 82}
+
+
+
+_typemap_old = {11:'u1', 'u1':11,
             12: 'i1', 'i1': 12,
             14: 'i1', 'i1': 14, # logical: correct?
             16: 'S', 'S': 16,

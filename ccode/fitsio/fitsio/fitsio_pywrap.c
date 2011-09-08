@@ -8,8 +8,6 @@ struct PyFITSObject {
     fitsfile* fits;
 };
 
-
-
 void set_ioerr_string_from_status(int status) {
     char status_str[FLEN_STATUS], errmsg[FLEN_ERRMSG];
 
@@ -18,11 +16,6 @@ void set_ioerr_string_from_status(int status) {
 
       sprintf(errmsg, "FITSIO status = %d: %s\n", status, status_str);
       PyErr_SetString(PyExc_IOError, errmsg);
-
-      /*
-      while ( fits_read_errmsg(errmsg) )  // get error stack messages
-      fprintf(stream, "%s\n", errmsg);
-      */
     }
     return;
 }
@@ -81,25 +74,26 @@ PyFITSObject_repr(struct PyFITSObject* self) {
     }
 }
 
-static PyObject *
-PyFITSObject_get_hdu_types(struct PyFITSObject* self) {
-    int hdunum;
-    int hdutype;
-    int status=0;
-    PyObject* list;
+npy_int64* get_int64_from_array(PyObject* arr, npy_intp* ncols) {
 
-    if (self->fits == NULL) {
-        Py_RETURN_NONE;
-    }
-    list = PyList_New(0);
-    for (hdunum=1; hdunum<1000; hdunum++) {
-        if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
-            break;
-        }
-        PyList_Append(list, PyInt_FromLong( (long)hdutype ));
+    npy_int64* colnums;
+
+	PyArray_Descr* descr;
+    if (!PyArray_Check(arr)) {
+        PyErr_SetString(PyExc_TypeError, "colnums must be an int64 array.");
+        return NULL;
     }
 
-    return list;
+    descr = PyArray_DESCR(arr);
+	if (descr->type_num != NPY_INT64) {
+        PyErr_SetString(PyExc_TypeError, "colnums must be an int64 array.");
+        return NULL;
+    }
+
+    colnums = PyArray_DATA(arr);
+    *ncols = PyArray_SIZE(arr);
+
+    return colnums;
 }
 
 
@@ -219,11 +213,10 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
 // scaling is performed here, that is done in python.  Byte swapping
 // *is* done here.
 
-static int read_column_bytes(fitsfile* fits, int colnum, void* data) {
+static int read_column_bytes(fitsfile* fits, int colnum, void* data, int* status) {
     FITSfile* hdu=NULL;
     tcolumn* colptr=NULL;
     LONGLONG file_pos=0, row=0;
-    int status=0;
 
     // these should be LONGLONG bug arent, arg cfitsio is so inconsistent!
     long gsize=0; // number of bytes in column
@@ -240,36 +233,27 @@ static int read_column_bytes(fitsfile* fits, int colnum, void* data) {
     file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
 
     // need to use internal file-move code because of bookkeeping
-    if (ffmbyt(fits, file_pos, REPORT_EOF, &status)) {
-        set_ioerr_string_from_status(status);
+    if (ffmbyt(fits, file_pos, REPORT_EOF, status)) {
         return 1;
     }
 
     // Here we use the function to read everything at once
-    if (ffgbytoff(fits, gsize, ngroups, offset, data, &status)) {
-        fits_report_error(stderr, status);
+    if (ffgbytoff(fits, gsize, ngroups, offset, data, status)) {
         return 1;
     }
-#if BYTESWAPPED
-    if (colptr->tdatatype != TSTRING) {
-        if (colptr->twidth == 2) {
-            ffswap2(data, hdu->numrows*colptr->trepeat);
-        } else if (colptr->twidth == 4) {
-            ffswap4(data, hdu->numrows*colptr->trepeat);
-        } else if (colptr->twidth == 8) {
-            ffswap8(data, hdu->numrows*colptr->trepeat);
-        }
-    }
-#endif
     return 0;
 }
 
-static int read_column_bytes_one(fitsfile* fits, int colnum, void* data) {
+// there is not huge overhead reading one by one
+// should convert this to the strided one
+static int read_column_bytes_strided(fitsfile* fits, int colnum, void* data, npy_intp stride, int* status) {
     FITSfile* hdu=NULL;
     tcolumn* colptr=NULL;
     LONGLONG file_pos=0, row=0;
-    int status=0;
-    void* ptr;
+
+    // use char for pointer arith.  It's actually ok to use void as char but
+    // this is just in case.
+    char* ptr;
 
     // these should be LONGLONG bug arent, arg cfitsio is so inconsistent!
     long gsize=0; // number of bytes in column
@@ -280,49 +264,79 @@ static int read_column_bytes_one(fitsfile* fits, int colnum, void* data) {
     colptr = hdu->tableptr + (colnum-1);
 
     gsize = colptr->twidth*colptr->trepeat;
-    //ngroups = hdu->numrows;
     ngroups = 1; // read one at a time
     offset = hdu->rowlength-gsize;
 
-    file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
-
-    ptr = data;
+    ptr = (char*) data;
     for (row=0; row<hdu->numrows; row++) {
         file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
-        ffmbyt(fits, file_pos, REPORT_EOF, &status);
-        if (ffgbytoff(fits, gsize, ngroups, offset, ptr, &status)) {
-            fits_report_error(stderr, status);
+        ffmbyt(fits, file_pos, REPORT_EOF, status);
+        if (ffgbytoff(fits, gsize, ngroups, offset, (void*) ptr, status)) {
             return 1;
         }
+        ptr += stride;
+    }
 
-        ptr += gsize;
-    }
-#if BYTESWAPPED
-    if (colptr->tdatatype != TSTRING) {
-        if (colptr->twidth == 2) {
-            ffswap2(data, hdu->numrows*colptr->trepeat);
-        } else if (colptr->twidth == 4) {
-            ffswap4(data, hdu->numrows*colptr->trepeat);
-        } else if (colptr->twidth == 8) {
-            ffswap8(data, hdu->numrows*colptr->trepeat);
+    return 0;
+}
+
+// read a subset of rows for the input column
+// the row array is assumed to be unique and sorted.
+static int read_column_bytes_byrow(
+        fitsfile* fits, 
+        int colnum, 
+        npy_intp nrows, 
+        npy_int64* rows, 
+        void* data, 
+        npy_intp stride, 
+        int* status) {
+
+    FITSfile* hdu=NULL;
+    tcolumn* colptr=NULL;
+    LONGLONG file_pos=0, irow=0;
+    npy_int64 row;
+
+    // use char for pointer arith.  It's actually ok to use void as char but
+    // this is just in case.
+    char* ptr;
+
+    // these should be LONGLONG bug arent, arg cfitsio is so inconsistent!
+    long gsize=0; // number of bytes in column
+    long ngroups=0; // number to read
+    long offset=0; // gap between groups, not stride
+
+    hdu = fits->Fptr;
+    colptr = hdu->tableptr + (colnum-1);
+
+    gsize = colptr->twidth*colptr->trepeat;
+    ngroups = 1; // read one at a time
+    offset = hdu->rowlength-gsize;
+
+    ptr = (char*) data;
+    for (irow=0; irow<nrows; irow++) {
+        row = rows[irow];
+        file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
+        ffmbyt(fits, file_pos, REPORT_EOF, status);
+        if (ffgbytoff(fits, gsize, ngroups, offset, (void*) ptr, status)) {
+            return 1;
         }
+        ptr += stride;
     }
-#endif
+
     return 0;
 }
 
 
 
+// read from a column into a contiguous array.  Don't yet
+// support subset of rows.
+//
 // no error checking on the input array is performed!!
 static PyObject *
 PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
     int hdunum;
     int hdutype;
     int colnum;
-    //int anynul;
-    //LONGLONG firstrow=1;
-    //LONGLONG firstelem=1;
-    int dtype;
 
     FITSfile* hdu=NULL;
     tcolumn* col;
@@ -330,8 +344,11 @@ PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
 
     PyObject* array;
     void* data;
+    npy_intp stride=0;
 
-    if (!PyArg_ParseTuple(args, (char*)"iiO", &hdunum, &colnum, &array)) {
+    PyObject* rowsobj;
+
+    if (!PyArg_ParseTuple(args, (char*)"iiOO", &hdunum, &colnum, &array, &rowsobj)) {
         PyErr_SetString(PyExc_RuntimeError, "failed to parse column number, array");
         return NULL;
     }
@@ -340,17 +357,12 @@ PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
         PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
         return NULL;
     }
-
     if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
-        // this will give full report
-        //fits_report_error(stderr, status);
-        // this for now is less
         set_ioerr_string_from_status(status);
         return NULL;
     }
 
     hdu = self->fits->Fptr;
-
     if (hdu->hdutype == IMAGE_HDU) {
         PyErr_SetString(PyExc_RuntimeError, "Cannot yet read columns from an IMAGE_HDU");
         return NULL;
@@ -363,16 +375,190 @@ PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
     col = hdu->tableptr + (colnum-1);
     data = PyArray_DATA(array);
     
-    dtype = col->tdatatype;
-    if (dtype == TLONG) {
-        dtype = TINT;
-    } else if (dtype == TULONG) {
-        dtype = TUINT;
+    if (rowsobj == Py_None) {
+        if (PyArray_ISCONTIGUOUS(array)) {
+            if (read_column_bytes(self->fits, colnum, data, &status)) {
+                set_ioerr_string_from_status(status);
+                return NULL;
+            }
+        } else {
+            stride = PyArray_STRIDE(array,0);
+            if (read_column_bytes_strided(self->fits, colnum, data, stride, &status)) {
+                set_ioerr_string_from_status(status);
+                return NULL;
+            }
+        }
+    } else {
+        npy_intp nrows=0;
+        npy_int64* rows=NULL;
+        rows = get_int64_from_array(rowsobj, &nrows);
+        if (rows == NULL) {
+            return NULL;
+        }
+        stride = PyArray_STRIDE(array,0);
+        if (read_column_bytes_byrow(self->fits, colnum, nrows, rows,
+                                    data, stride, &status)) {
+            set_ioerr_string_from_status(status);
+            return NULL;
+        }
+
     }
-    //if (fits_read_col(self->fits, dtype, colnum, 
-    //                  firstrow, firstelem, hdu->numrows, 0, data, &anynul, &status)) {
-    //if (read_column_bytes(self->fits, colnum, data)) {
-    if (read_column_bytes_one(self->fits, colnum, data)) {
+    Py_RETURN_NONE;
+}
+ 
+
+// read the specified columns into the data array.  It is assumed the data
+// match the requested columns perfectly, and that the column list is
+// sorted
+static int read_rec_bytes(fitsfile* fits, npy_intp ncols, npy_int64* colnums, void* data, int* status) {
+    FITSfile* hdu=NULL;
+    tcolumn* colptr=NULL;
+    LONGLONG file_pos=0, row=0;
+    npy_intp col=0;
+    npy_int64 colnum=0;
+
+    // use char for pointer arith.  It's actually ok to use void as char but
+    // this is just in case.
+    char* ptr;
+
+    // these should be LONGLONG bug aren't, cfitsio is so inconsistent!
+    long groupsize=0; // number of bytes in column
+    long ngroups=1; // number to read, one for row-by-row reading
+    long offset=0; // gap between groups, not stride.  zero since we aren't using it
+
+    hdu = fits->Fptr;
+    ptr = (char*) data;
+    for (row=0; row<hdu->numrows; row++) {
+
+        for (col=0; col < ncols; col++) {
+
+            colnum = colnums[col];
+            colptr = hdu->tableptr + (colnum-1);
+
+            groupsize = colptr->twidth*colptr->trepeat;
+
+            file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
+
+            // can just do one status check, since status are inherited.
+            ffmbyt(fits, file_pos, REPORT_EOF, status);
+            if (ffgbytoff(fits, groupsize, ngroups, offset, (void*) ptr, status)) {
+                return 1;
+            }
+            ptr += groupsize;
+        }
+    }
+
+    return 0;
+}
+
+static int read_rec_bytes_byrow(
+        fitsfile* fits, 
+        npy_intp ncols, npy_int64* colnums, 
+        npy_intp nrows, npy_int64* rows,
+        void* data, int* status) {
+    FITSfile* hdu=NULL;
+    tcolumn* colptr=NULL;
+    LONGLONG file_pos=0;
+    npy_intp col=0;
+    npy_int64 colnum=0;
+
+    npy_intp irow=0;
+    npy_int64 row=0;
+
+    // use char for pointer arith.  It's actually ok to use void as char but
+    // this is just in case.
+    char* ptr;
+
+    // these should be LONGLONG bug aren't, cfitsio is so inconsistent!
+    long groupsize=0; // number of bytes in column
+    long ngroups=1; // number to read, one for row-by-row reading
+    long offset=0; // gap between groups, not stride.  zero since we aren't using it
+
+    hdu = fits->Fptr;
+    ptr = (char*) data;
+    for (irow=0; irow<nrows; irow++) {
+        row = rows[irow];
+        for (col=0; col < ncols; col++) {
+
+            colnum = colnums[col];
+            colptr = hdu->tableptr + (colnum-1);
+
+            groupsize = colptr->twidth*colptr->trepeat;
+
+            file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
+
+            // can just do one status check, since status are inherited.
+            ffmbyt(fits, file_pos, REPORT_EOF, status);
+            if (ffgbytoff(fits, groupsize, ngroups, offset, (void*) ptr, status)) {
+                return 1;
+            }
+            ptr += groupsize;
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+static PyObject *
+PyFITSObject_read_columns_as_rec(struct PyFITSObject* self, PyObject* args) {
+    int hdunum;
+    int hdutype;
+    npy_intp ncols;
+    npy_int64* colnums=NULL;
+
+    FITSfile* hdu=NULL;
+    int status=0;
+
+    PyObject* columnsobj;
+    PyObject* array;
+    void* data;
+
+    PyObject* rowsobj;
+
+    if (!PyArg_ParseTuple(args, (char*)"iOOO", &hdunum, &columnsobj, &array, &rowsobj)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, column list, array, rows");
+        return NULL;
+    }
+
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
+        return NULL;
+    }
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        goto recread_cleanup;
+    }
+
+    hdu = self->fits->Fptr;
+    if (hdu->hdutype == IMAGE_HDU) {
+        PyErr_SetString(PyExc_RuntimeError, "Cannot read IMAGE_HDU into a recarray");
+        return NULL;
+    }
+    
+    colnums = get_int64_from_array(columnsobj, &ncols);
+    if (colnums == NULL) {
+        return NULL;
+    }
+
+    data = PyArray_DATA(array);
+    if (rowsobj == Py_None) {
+        if (read_rec_bytes(self->fits, ncols, colnums, data, &status)) {
+            goto recread_cleanup;
+        }
+    } else {
+        npy_intp nrows;
+        npy_int64* rows=NULL;
+        rows = get_int64_from_array(rowsobj, &nrows);
+        if (read_rec_bytes_byrow(self->fits, ncols, colnums, nrows, rows, data, &status)) {
+            goto recread_cleanup;
+        }
+    }
+
+recread_cleanup:
+
+    if (status != 0) {
         set_ioerr_string_from_status(status);
         return NULL;
     }
@@ -382,10 +568,10 @@ PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
 
 
 static PyMethodDef PyFITSObject_methods[] = {
-    {"get_hdu_types",          (PyCFunction)PyFITSObject_get_hdu_types,          METH_VARARGS, "get_hdu_types\n\nGet a list of the hdu types for all hdus."},
     {"moveabs_hdu",          (PyCFunction)PyFITSObject_moveabs_hdu,          METH_VARARGS, "moveabs_hdu\n\nMove to the specified HDU."},
     {"get_hdu_info",          (PyCFunction)PyFITSObject_get_hdu_info,          METH_VARARGS, "get_hdu_info\n\nReturn a dict with info about the specified HDU."},
     {"read_column",          (PyCFunction)PyFITSObject_read_column,          METH_VARARGS, "read_column\n\nRead the column into the input array.  No checking of array is done."},
+    {"read_columns_as_rec",          (PyCFunction)PyFITSObject_read_columns_as_rec,          METH_VARARGS, "read_columns_as_rec\n\nRead the specified columns into the input rec array.  No checking of array is done."},
     {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
