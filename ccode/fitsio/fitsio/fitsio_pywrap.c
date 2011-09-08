@@ -410,7 +410,7 @@ PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
 // read the specified columns into the data array.  It is assumed the data
 // match the requested columns perfectly, and that the column list is
 // sorted
-static int read_rec_bytes(fitsfile* fits, npy_intp ncols, npy_int64* colnums, void* data, int* status) {
+static int read_rec_column_bytes(fitsfile* fits, npy_intp ncols, npy_int64* colnums, void* data, int* status) {
     FITSfile* hdu=NULL;
     tcolumn* colptr=NULL;
     LONGLONG file_pos=0, row=0;
@@ -451,7 +451,7 @@ static int read_rec_bytes(fitsfile* fits, npy_intp ncols, npy_int64* colnums, vo
     return 0;
 }
 
-static int read_rec_bytes_byrow(
+static int read_rec_column_bytes_byrow(
         fitsfile* fits, 
         npy_intp ncols, npy_int64* colnums, 
         npy_intp nrows, npy_int64* rows,
@@ -528,7 +528,7 @@ PyFITSObject_read_columns_as_rec(struct PyFITSObject* self, PyObject* args) {
         return NULL;
     }
     if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
-        goto recread_cleanup;
+        goto recread_columns_cleanup;
     }
 
     hdu = self->fits->Fptr;
@@ -544,16 +544,97 @@ PyFITSObject_read_columns_as_rec(struct PyFITSObject* self, PyObject* args) {
 
     data = PyArray_DATA(array);
     if (rowsobj == Py_None) {
-        if (read_rec_bytes(self->fits, ncols, colnums, data, &status)) {
-            goto recread_cleanup;
+        if (read_rec_column_bytes(self->fits, ncols, colnums, data, &status)) {
+            goto recread_columns_cleanup;
         }
     } else {
         npy_intp nrows;
         npy_int64* rows=NULL;
         rows = get_int64_from_array(rowsobj, &nrows);
-        if (read_rec_bytes_byrow(self->fits, ncols, colnums, nrows, rows, data, &status)) {
-            goto recread_cleanup;
+        if (read_rec_column_bytes_byrow(self->fits, ncols, colnums, nrows, rows, data, &status)) {
+            goto recread_columns_cleanup;
         }
+    }
+
+recread_columns_cleanup:
+
+    if (status != 0) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+ 
+
+
+
+
+// read the specified columns into the data array.  It is assumed the data
+// match the requested columns perfectly, and that the column list is
+// sorted
+static int read_rec_bytes(fitsfile* fits, void* data, int* status) {
+    FITSfile* hdu=NULL;
+    LONGLONG file_pos=0;
+
+    long nbytes=0;
+
+    hdu = fits->Fptr;
+
+    file_pos = hdu->datastart;
+    nbytes = hdu->numrows*hdu->rowlength;
+
+    // we may need to do this first in order to establish the buffers, even
+    // though our read will not be buffered
+    ffmbyt(fits, file_pos, REPORT_EOF, status);
+
+    if (file_seek(hdu->filehandle, file_pos)) {
+        *status = SEEK_ERROR;
+        return 1;
+    }
+
+    if(ffread(hdu, nbytes, data, status)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+
+
+static PyObject *
+PyFITSObject_read_as_rec(struct PyFITSObject* self, PyObject* args) {
+    int hdunum;
+    int hdutype;
+
+    FITSfile* hdu=NULL;
+    int status=0;
+    PyObject* array;
+    void* data;
+
+    if (!PyArg_ParseTuple(args, (char*)"iO", &hdunum, &array)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, array");
+        return NULL;
+    }
+
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
+        return NULL;
+    }
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        goto recread_cleanup;
+    }
+
+    hdu = self->fits->Fptr;
+    if (hdu->hdutype == IMAGE_HDU) {
+        PyErr_SetString(PyExc_RuntimeError, "Cannot read IMAGE_HDU into a recarray");
+        return NULL;
+    }
+
+    data = PyArray_DATA(array);
+
+    if (read_rec_bytes(self->fits, data, &status)) {
+        //fits_report_error(stderr, status);
+        goto recread_cleanup;
     }
 
 recread_cleanup:
@@ -567,11 +648,13 @@ recread_cleanup:
  
 
 
+
 static PyMethodDef PyFITSObject_methods[] = {
     {"moveabs_hdu",          (PyCFunction)PyFITSObject_moveabs_hdu,          METH_VARARGS, "moveabs_hdu\n\nMove to the specified HDU."},
     {"get_hdu_info",          (PyCFunction)PyFITSObject_get_hdu_info,          METH_VARARGS, "get_hdu_info\n\nReturn a dict with info about the specified HDU."},
     {"read_column",          (PyCFunction)PyFITSObject_read_column,          METH_VARARGS, "read_column\n\nRead the column into the input array.  No checking of array is done."},
     {"read_columns_as_rec",          (PyCFunction)PyFITSObject_read_columns_as_rec,          METH_VARARGS, "read_columns_as_rec\n\nRead the specified columns into the input rec array.  No checking of array is done."},
+    {"read_as_rec",          (PyCFunction)PyFITSObject_read_as_rec,          METH_VARARGS, "read_as_rec\n\nRead the entire data set into the input rec array.  No checking of array is done."},
     {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
