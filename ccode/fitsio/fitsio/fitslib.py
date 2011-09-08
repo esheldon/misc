@@ -1,3 +1,14 @@
+"""
+Advantages:
+
+    - Can read arbitrary subsets of columns and rows without loading the whole
+    file.
+    - Uses TDIM information to return array columns in the correct shape
+    - Can write unsigned types.  Note the FITS standard does not support
+    unsigned 8 byte yet.
+    - Correctly writes 1 byte integers, both signed and unsigned.
+
+"""
 import numpy
 import _fitsio_wrap
 
@@ -88,6 +99,43 @@ class FITSHDU:
         if self.info['hdutype'] == _hdu_type_map['IMAGE_HDU']:
             raise ValueError("Cannot yet read columns from an image HDU")
 
+        colnum = self._extract_colnum(col)
+
+        npy_type, shape = self._extract_simple_dtype_and_shape(colnum)
+
+        array = numpy.zeros(shape, dtype=npy_type)
+
+        self._FITS.read_column(self.ext+1,colnum+1, array)
+        
+        self._rescale_array(array, 
+                            self.info['colinfo'][colnum]['tscale'], 
+                            self.info['colinfo'][colnum]['tzero'])
+        return array
+
+    def _rescale_array(self, array, scale, zero):
+        if scale != 1.0:
+            print 'rescaling array'
+            array *= scale
+        if zero != 0.0:
+            print 're-zeroing array'
+            array += zero
+
+    def _extract_simple_dtype_and_shape(self, colnum):
+        try:
+            ftype = self.info['colinfo'][colnum]['tdatatype']
+            npy_type = _typemap[ftype]
+        except KeyError:
+            raise KeyError("unsupported fits data type: %d" % ftype)
+
+        repeat = self.info['colinfo'][colnum]['trepeat']
+        if repeat > 1:
+            shape = (self.info['numrows'], repeat)
+        else:
+            shape = self.info['numrows']
+
+        return npy_type, shape
+
+    def _extract_colnum(self, col):
         if isinstance(col,(int,long)):
             colnum = col
 
@@ -98,16 +146,7 @@ class FITSHDU:
                 colnum = self.colnames.index(col)
             except ValueError:
                 raise ValueError("column name '%s' not found" % col)
-
-        try:
-            ftype = self.info['colinfo'][colnum]['tdatatype']
-            npy_type = _typemap[ftype]
-        except KeyError:
-            raise KeyError("unsupported fits data type: %d" % ftype)
-
-        array = numpy.zeros(self.info['numrows'], dtype=npy_type)
-        self._FITS.read_column(self.ext+1,colnum+1, array)
-        return array
+        return colnum
 
     def __repr__(self):
         spacing = ' '*2
@@ -129,7 +168,7 @@ class FITSHDU:
             text.append('%scolumn info:' % spacing)
 
             cspacing = ' '*4
-            nspace = 2
+            nspace = 4
             nname = 15
             ntype = 6
             format = cspacing + "%-" + str(nname) + "s %" + str(ntype) + "s  %s"
@@ -144,7 +183,8 @@ class FITSHDU:
                     rep = 'array[%d]' % c['trepeat']
                 else:
                     rep=''
-                s = f % (c['ttype'],c['tdatatype'],rep)
+                dt = _typemap[c['tdatatype']]
+                s = f % (c['ttype'],dt,rep)
                 text.append(s)
 
         text = '\n'.join(text)
@@ -164,6 +204,7 @@ _hdu_type_map = {0:'IMAGE_HDU',
 # no support yet for logical or complex
 _typemap = {11:'u1', 'u1':11,
             12: 'i1', 'i1': 12,
+            14: 'i1', 'i1': 14, # logical: correct?
             16: 'S', 'S': 16,
             20: 'u2', 'u2':20,
             21: 'i2', 'i2':21,

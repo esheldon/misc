@@ -212,15 +212,67 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
     return dict;
 }
 
+
+// read a single, entire column from the current HDU into an unstrided array.
+// Because of the internal fits buffering, and since we will read multiple at a
+// time, this should be more efficient.  No error checking is done. No 
+// scaling is performed here, that is done in python.  Byte swapping
+// *is* done here.
+
+static int read_column_bytes(fitsfile* fits, int colnum, void* data) {
+    FITSfile* hdu=NULL;
+    tcolumn* colptr=NULL;
+    LONGLONG file_pos=0, row=0;
+    int status=0;
+
+    // these should be LONGLONG bug arent, arg cfitsio is so inconsistent!
+    long gsize=0; // number of bytes in column
+    long ngroups=0; // number to read
+    long offset=0; // gap between groups, not stride
+
+    hdu = fits->Fptr;
+    colptr = hdu->tableptr + (colnum-1);
+
+    gsize = colptr->twidth*colptr->trepeat;
+    ngroups = hdu->numrows;
+    offset = hdu->rowlength-gsize;
+
+    file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
+
+    // need to use internal file-move code because of bookkeeping
+    if (ffmbyt(fits, file_pos, REPORT_EOF, &status)) {
+        set_ioerr_string_from_status(status);
+        return 1;
+    }
+
+    // Here we use the function to read everything at once
+    if (ffgbytoff(fits, gsize, ngroups, offset, data, &status)) {
+        fits_report_error(stderr, status);
+        return 1;
+    }
+#if BYTESWAPPED
+    if (colptr->tdatatype != TSTRING) {
+        if (colptr->twidth == 2) {
+            ffswap2(data, hdu->numrows*colptr->trepeat);
+        } else if (colptr->twidth == 4) {
+            ffswap4(data, hdu->numrows*colptr->trepeat);
+        } else if (colptr->twidth == 8) {
+            ffswap8(data, hdu->numrows*colptr->trepeat);
+        }
+    }
+#endif
+    return 0;
+}
+
 // no error checking on the input array is performed!!
 static PyObject *
 PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
     int hdunum;
     int hdutype;
     int colnum;
-    int anynul;
-    LONGLONG firstrow=1;
-    LONGLONG firstelem=1;
+    //int anynul;
+    //LONGLONG firstrow=1;
+    //LONGLONG firstelem=1;
     int dtype;
 
     FITSfile* hdu=NULL;
@@ -268,11 +320,9 @@ PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
     } else if (dtype == TULONG) {
         dtype = TUINT;
     }
-    if (fits_read_col(self->fits, dtype, colnum, 
-                      firstrow, firstelem, hdu->numrows, 0, data, &anynul, &status)) {
-        // this will give full report
-        //fits_report_error(stderr, status);
-        // this for now is less
+    //if (fits_read_col(self->fits, dtype, colnum, 
+    //                  firstrow, firstelem, hdu->numrows, 0, data, &anynul, &status)) {
+    if (read_column_bytes(self->fits, colnum, data)) {
         set_ioerr_string_from_status(status);
         return NULL;
     }
