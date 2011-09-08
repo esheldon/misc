@@ -102,21 +102,34 @@ class FITSHDU:
         self.colnames = [i['ttype'] for i in self.info['colinfo']]
         self.ncol = len(self.colnames)
 
+    def read(self, columns=None, rows=None):
+        """
+        Can support all types of read here eventually
+        """
+        if columns is None and rows is None:
+            dtype = self.get_rec_dtype()
+            nrows = self.info['numrows']
+            print dtype
+            print 'nrows:',nrows
+            array = numpy.zeros(nrows, dtype=dtype)
+            self._FITS.read_as_rec(self.ext+1, array)
+            return array
+        else:
+            raise ValueError("implement rest")
+
     def read_columns(self, columns, rows=None, slow=False):
         if self.info['hdutype'] == _hdu_type_map['IMAGE_HDU']:
             raise ValueError("Cannot yet read columns from an image HDU")
 
-        # get the unique, sorted column numbers
-        colnums = []
-        for col in columns:
-            cnum = self._extract_colnum(col)
-            colnums.append(cnum)
-
-        colnums = numpy.array(colnums, dtype='i8')
-        # returns unique sorted
-        colnums = numpy.unique(colnums)
-
+        # if columns is None, returns all.  Guaranteed to be unique and sorted
+        colnums = self._extract_colnums(columns)
+        # if rows is None still returns None, and is correctly interpreted
+        # by the reader to mean all
         rows = self._extract_rows(rows)
+
+        if colnums.size == self.ncol and rows is None:
+            # we are reading everything
+            return self.read()
 
         # this is the full dtype for all columns
         dtype = self.get_rec_dtype(colnums)
@@ -184,7 +197,10 @@ class FITSHDU:
             print 're-zeroing array'
             array += zero
 
-    def get_rec_dtype(self, colnums):
+    def get_rec_dtype(self, colnums=None):
+        if colnums is None:
+            colnums = self._extract_colnums()
+
         dtype = []
         for colnum in colnums:
             dt = self.get_rec_column_dtype(colnum) 
@@ -232,6 +248,18 @@ class FITSHDU:
             width = self.info['colinfo'][colnum]['twidth']
             npy_type = 'S%d' % width
         return npy_type
+
+    def _extract_colnums(self, columns=None):
+        if columns is None:
+            return numpy.arange(self.ncol, dtype='i8')
+        
+        colnums = numpy.zeros(len(columns), dtype='i8')
+        for i in xrange(colnums.size):
+            colnums[i] = self._extract_colnum(columns[i])
+
+        # returns unique sorted
+        colnums = numpy.unique(colnums)
+        return colnums
 
     def _extract_colnum(self, col):
         if isinstance(col,(int,long)):
