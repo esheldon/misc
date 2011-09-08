@@ -109,8 +109,8 @@ class FITSHDU:
         if columns is None and rows is None:
             dtype = self.get_rec_dtype()
             nrows = self.info['numrows']
-            print dtype
-            print 'nrows:',nrows
+            #print dtype
+            #print 'nrows:',nrows
             array = numpy.zeros(nrows, dtype=dtype)
             self._FITS.read_as_rec(self.ext+1, array)
             return array
