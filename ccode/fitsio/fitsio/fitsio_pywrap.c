@@ -264,6 +264,55 @@ static int read_column_bytes(fitsfile* fits, int colnum, void* data) {
     return 0;
 }
 
+static int read_column_bytes_one(fitsfile* fits, int colnum, void* data) {
+    FITSfile* hdu=NULL;
+    tcolumn* colptr=NULL;
+    LONGLONG file_pos=0, row=0;
+    int status=0;
+    void* ptr;
+
+    // these should be LONGLONG bug arent, arg cfitsio is so inconsistent!
+    long gsize=0; // number of bytes in column
+    long ngroups=0; // number to read
+    long offset=0; // gap between groups, not stride
+
+    hdu = fits->Fptr;
+    colptr = hdu->tableptr + (colnum-1);
+
+    gsize = colptr->twidth*colptr->trepeat;
+    //ngroups = hdu->numrows;
+    ngroups = 1; // read one at a time
+    offset = hdu->rowlength-gsize;
+
+    file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
+
+    ptr = data;
+    for (row=0; row<hdu->numrows; row++) {
+        file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
+        ffmbyt(fits, file_pos, REPORT_EOF, &status);
+        if (ffgbytoff(fits, gsize, ngroups, offset, ptr, &status)) {
+            fits_report_error(stderr, status);
+            return 1;
+        }
+
+        ptr += gsize;
+    }
+#if BYTESWAPPED
+    if (colptr->tdatatype != TSTRING) {
+        if (colptr->twidth == 2) {
+            ffswap2(data, hdu->numrows*colptr->trepeat);
+        } else if (colptr->twidth == 4) {
+            ffswap4(data, hdu->numrows*colptr->trepeat);
+        } else if (colptr->twidth == 8) {
+            ffswap8(data, hdu->numrows*colptr->trepeat);
+        }
+    }
+#endif
+    return 0;
+}
+
+
+
 // no error checking on the input array is performed!!
 static PyObject *
 PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
@@ -322,7 +371,8 @@ PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
     }
     //if (fits_read_col(self->fits, dtype, colnum, 
     //                  firstrow, firstelem, hdu->numrows, 0, data, &anynul, &status)) {
-    if (read_column_bytes(self->fits, colnum, data)) {
+    //if (read_column_bytes(self->fits, colnum, data)) {
+    if (read_column_bytes_one(self->fits, colnum, data)) {
         set_ioerr_string_from_status(status);
         return NULL;
     }
