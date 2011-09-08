@@ -585,23 +585,26 @@ static int read_rec_bytes(fitsfile* fits, void* data, int* status) {
 
     // we may need to do this first in order to establish the buffers, even
     // though our read will not be buffered
-    ffmbyt(fits, file_pos, REPORT_EOF, status);
-    if (ffgbytoff(fits, nbytes, 1, 0, data, status)) {
-        return 1;
-    }
+    //ffmbyt(fits, file_pos, REPORT_EOF, status);
+    //if (ffgbytoff(fits, nbytes, 1, 0, data, status)) {
+    //    return 1;
+    //}
 
-    /*
     if (file_seek(hdu->filehandle, file_pos)) {
         *status = SEEK_ERROR;
         return 1;
     }
 
-    if(ffread(hdu, nbytes, data, status)) {
+    if (ffread(hdu, nbytes, data, status)) {
+        return 1;
+    }
+    // we have to return so as not to confuse the buffer system
+    if (file_seek(hdu->filehandle, file_pos)) {
+        *status = SEEK_ERROR;
         return 1;
     }
 
-    ffmbyt(fits, file_pos, REPORT_EOF, status);
-    */
+    //ffmbyt(fits, file_pos, REPORT_EOF, status);
     return 0;
 }
 
