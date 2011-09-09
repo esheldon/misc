@@ -746,7 +746,88 @@ recread_cleanup:
     Py_RETURN_NONE;
 }
  
+// read an n-dimensional "image" into the input array.  Only minimal checking
+// of the input array is done.
+static PyObject *
+PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
+    int hdunum;
+    int hdutype;
+    int status=0;
+    PyObject* array=NULL;
+    void* data=NULL;
+    FITSfile* hdu=NULL;
 
+    int maxdim=10;
+    int output_datatype=0;
+    int datatype=0; // type info for axis
+    int naxis=0; // number of axes
+    int i=0;
+    LONGLONG naxes[]={0,0,0,0,0,0,0,0,0,0};  // size of each axis
+    LONGLONG firstpixels[]={1,1,1,1,1,1,1,1,1,1};
+    LONGLONG size=0;
+    npy_intp arrsize=0;
+
+    int anynul=0;
+
+    if (!PyArg_ParseTuple(args, (char*)"iiO", &hdunum, &output_datatype, &array)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, array");
+        return NULL;
+    }
+
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
+        return NULL;
+    }
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        return NULL;
+    }
+
+    hdu = self->fits->Fptr;
+    if (hdu->hdutype != IMAGE_HDU) {
+        PyErr_SetString(PyExc_RuntimeError, "HDU is not an IMAGE_HDU");
+        return NULL;
+    }
+
+    if (fits_get_img_paramll(self->fits, maxdim, &datatype, &naxis, naxes, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    // make sure dims match
+    size=0;
+    size = naxes[0];
+    for (i=1; i< naxis; i++) {
+        size *= naxes[i];
+    }
+    arrsize = PyArray_SIZE(array);
+    data = PyArray_DATA(array);
+
+    if (size != arrsize) {
+        char mess[255];
+        sprintf(mess,"Input array size is %ld but on disk array size is %lld", arrsize, size);
+        PyErr_SetString(PyExc_RuntimeError, mess);
+        return NULL;
+    }
+
+    // need to deal with incorrect types in cfitsio for long types
+    if (output_datatype == TLONG) {
+        if (sizeof(long) == sizeof(npy_int64) && sizeof(int) == sizeof(npy_int32)) {
+            // internally read_pix uses int for TINT, so assuming int is always 32
+            output_datatype = TINT;
+        } else {
+            PyErr_SetString(PyExc_TypeError, "don't know how to deal with TLONG on this system");
+            return NULL;
+        }
+    }
+    if (fits_read_pixll(self->fits, output_datatype, firstpixels, size,
+                        0, data, &anynul, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+
+    Py_RETURN_NONE;
+}
 
 
 static PyMethodDef PyFITSObject_methods[] = {
@@ -756,6 +837,7 @@ static PyMethodDef PyFITSObject_methods[] = {
     {"read_columns_as_rec",          (PyCFunction)PyFITSObject_read_columns_as_rec,          METH_VARARGS, "read_columns_as_rec\n\nRead the specified columns into the input rec array.  No checking of array is done."},
     {"read_rows_as_rec",          (PyCFunction)PyFITSObject_read_rows_as_rec,          METH_VARARGS, "read_rows_as_rec\n\nRead the subset of rows into the input rec array.  No checking of array is done."},
     {"read_as_rec",          (PyCFunction)PyFITSObject_read_as_rec,          METH_VARARGS, "read_as_rec\n\nRead the entire data set into the input rec array.  No checking of array is done."},
+    {"read_image",          (PyCFunction)PyFITSObject_read_image,          METH_VARARGS, "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
     {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
