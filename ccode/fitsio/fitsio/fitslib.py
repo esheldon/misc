@@ -116,6 +116,12 @@ class FITSHDU:
         else:
             return self.read_all()
 
+    def read_image(self):
+        dtype, output_typenum, shape = self._get_image_dtype_and_shape()
+        array = numpy.zeros(shape, dtype=dtype)
+        self._FITS.read_image(self.ext+1, output_typenum, array)
+        return array
+
     def read_column(self, col, rows=None):
         """
         Read the specified column
@@ -242,7 +248,7 @@ class FITSHDU:
         """
         Need to incorporate TDIM information
         """
-        npy_type = self._get_numpy_dtype(colnum)
+        npy_type = self._get_tbl_numpy_dtype(colnum)
         name = self.info['colinfo'][colnum]['ttype']
         repeat = self.info['colinfo'][colnum]['trepeat']
         if repeat > 1:
@@ -250,8 +256,21 @@ class FITSHDU:
         else:
             return (name,npy_type)
 
+    def _get_image_dtype_and_shape(self):
+
+        if self.info['hdutype'] != _hdu_type_map['IMAGE_HDU']:
+            raise ValueError("HDU is not an IMAGE_HDU")
+
+        npy_dtype = self._get_image_numpy_dtype()
+
+        # deal with fortran order
+        shape = self.info['imgnaxis']
+
+        output_typenum = int(_table_typemap[npy_dtype])
+        return npy_dtype, output_typenum, shape
+
     def _get_simple_dtype_and_shape(self, colnum, rows=None):
-        npy_type = self._get_numpy_dtype(colnum)
+        npy_type = self._get_tbl_numpy_dtype(colnum)
 
         if rows is None:
             nrows = self.info['numrows']
@@ -266,7 +285,16 @@ class FITSHDU:
 
         return npy_type, shape
 
-    def _get_numpy_dtype(self, colnum):
+    def _get_image_numpy_dtype(self):
+        try:
+            ftype = self.info['img_equiv_type']
+            npy_type = _image_typemap[ftype]
+        except KeyError:
+            raise KeyError("unsupported fits data type: %d" % ftype)
+
+        return npy_type
+
+    def _get_tbl_numpy_dtype(self, colnum):
         try:
             ftype = self.info['colinfo'][colnum]['tdatatype']
             npy_type = _table_typemap[ftype]
@@ -313,6 +341,8 @@ class FITSHDU:
             raise RuntimeError("no such hdu")
 
         self.info = self._FITS.get_hdu_info(self.ext+1)
+        # convert to c order
+        self.info['imgnaxis'] = list( reversed(self.info['imgnaxis']) )
         self.colnames = [i['ttype'] for i in self.info['colinfo']]
         self.ncol = len(self.colnames)
 
@@ -329,7 +359,7 @@ class FITSHDU:
             dimstr = [str(d) for d in self.info['imgnaxis']]
             dimstr = ",".join(dimstr)
 
-            dt = _img_typemap[self.info['img_equiv_type']]
+            dt = _image_typemap[self.info['img_equiv_type']]
             text.append("%sdata type: %s" % (cspacing,dt))
             text.append("%sdims: [%s]" % (cspacing,dimstr))
 
@@ -385,15 +415,18 @@ _table_typemap = {11:'u1', 'u1':11,
             81: 'i8', 'i8': 81,
             82: 'f8', 'f8': 82}
 
-_img_typemap = {8: 'u1', 'u1':8,
-                10: 'i1', 'i1': 10,
-                16: 'i2', 'i2': 16,
-                20: 'u2', 'u2': 20,
-                32: 'i4', 'i4': 32,
-                40: 'u4', 'u4': 40,
-                64: 'i8', 'i8': 64,
-                -32: 'f4', 'f4': -32,
-                -64: 'f8', 'f8': -64}
+# this converts the internal image type to a type we want
+# to read into in string form.  For reading, the pixel read
+# routines actually want the table typemap values.
+_image_typemap = {8: 'u1', 'u1':8,
+                  10: 'i1', 'i1': 10,
+                  16: 'i2', 'i2': 16,
+                  20: 'u2', 'u2': 20,
+                  32: 'i4', 'i4': 32,
+                  40: 'u4', 'u4': 40,
+                  64: 'i8', 'i8': 64,
+                  -32: 'f4', 'f4': -32,
+                  -64: 'f8', 'f8': -64}
 
 
 _table_typemap_old = {11:'u1', 'u1':11,
