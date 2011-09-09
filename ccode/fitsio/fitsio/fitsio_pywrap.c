@@ -157,11 +157,13 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
     PyDict_SetItemString(dict, "hdutype", PyInt_FromLong((long)hdutype));
 
     PyDict_SetItemString(dict, "imgdim", PyInt_FromLong((long)hdu->imgdim));
+    PyDict_SetItemString(dict, "zndim", PyInt_FromLong((long)hdu->zndim));
 
     {
         int i;
         int imgtype;  
         PyObject* imgnaxis=PyList_New(0);
+        PyObject* znaxis=PyList_New(0);
 
         fits_get_img_type(self->fits, &imgtype, &status);
         PyDict_SetItemString(dict, "img_type", PyInt_FromLong((long)imgtype));
@@ -172,6 +174,12 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
             PyList_Append(imgnaxis, PyInt_FromLong( (long)hdu->imgnaxis[i]));
         }
         PyDict_SetItemString(dict, "imgnaxis", imgnaxis);
+
+        for (i=0; i<hdu->zndim; i++) {
+            PyList_Append(znaxis, PyInt_FromLong( (long)hdu->znaxis[i]));
+        }
+        PyDict_SetItemString(dict, "znaxis", znaxis);
+
     }
 
     PyDict_SetItemString(dict, "numrows", PyLong_FromLongLong( (long long)hdu->numrows));
@@ -782,11 +790,13 @@ PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
         return NULL;
     }
 
+    /*
     hdu = self->fits->Fptr;
     if (hdu->hdutype != IMAGE_HDU) {
         PyErr_SetString(PyExc_RuntimeError, "HDU is not an IMAGE_HDU");
         return NULL;
     }
+    */
 
     if (fits_get_img_paramll(self->fits, maxdim, &datatype, &naxis, naxes, &status)) {
         set_ioerr_string_from_status(status);
