@@ -1,9 +1,10 @@
 """
 Features
 --------
-    - Read and write all image types.  Can read compressed images.
     - Read subsets of table rows and columns.
+    - Read and write all image types.  Can read compressed images.
     - Correctly interpret TDIM information for array columns.
+    - Read and write all image types.  Can read compressed images.
 
 
 Advantages
@@ -14,31 +15,81 @@ Advantages
     - Uses TDIM information to return array columns in the correct shape
     - Can write unsigned types.  Note the FITS standard does not support
       unsigned 8 byte yet.
-    - Correctly writes 1 byte integers, both signed and unsigned.
-    - Correctly write string columns.
+    - Correctly writes 1 byte integers table columns, both signed and unsigned.
+    - Correctly write string table columns.
     - Correctly read all types and shapes of string columns.
 
-    TODO:
-        - writing
-        - strings
-        - row ranges
-        - implement bit, logical, and complex types
+TODO
+----
+    - Use TDIM information
+    - writing
+    - writing extension names, reading by extension names
+    - strings (pyfits does it wrong, so hard to test without writing)
+    - row ranges
+    - implement bit, logical, and complex types
 """
+import os
 import numpy
 import _fitsio_wrap
 
 class FITS:
-    def __init__(self, filename, mode):
-        self.filename = filename
+    """
+    A class to read and write FITS images and tables.
+
+    This class uses the cfitsio library for almost all relevant work.
+
+    parameters
+    ----------
+    filename: string
+        The filename to open.  
+    mode: int/string
+        The mode, either a string or integer.
+        For reading only
+            'r' or 0
+        For reading and writing
+            'rw' or 1
+        You can also use fitsio.READONLY and fitsio.READWRITE.
+    create: boolean, optional
+        If True, then attemp to create the file before opening.
+    clobber:        
+        If create=True, then remove any existing file before
+        creation.
+    """
+    def __init__(self, filename, mode, create=False, clobber=False):
+        self.filename = extract_filename(filename)
+
         if mode not in _int_modemap:
-            raise ValueError("mode should be 'r','rw',0,1")
+            raise ValueError("mode should be one of 'r','rw',READONLY,READWRITE")
         self.charmode = _char_modemap[mode]
         self.intmode = _int_modemap[mode]
 
-        self._FITS =  _fitsio_wrap.FITS(filename, self.intmode)
+        self.create=create
+        self.int_create = 1 if create else 0
+
+        self.clobber=clobber
+
+        if create and clobber:
+            if os.path.exists(filename):
+                print 'Removing existing file'
+                os.remove(filename)
+
+        self._FITS =  _fitsio_wrap.FITS(filename, self.intmode, self.int_create)
 
     def close(self):
         self._FITS.close()
+
+    def write_image(self, img):
+        """
+        write a new image to the fits file.  File must be opened READWRITE
+
+        parameters
+        ----------
+        img: ndarray
+            An n-dimensional image.
+        """
+        print 'writing image type:',img.dtype.descr
+        self._FITS.write_image(img)
+        self.update_hdu_list()
 
     def update_hdu_list(self):
         self._hdu_list = []
@@ -104,18 +155,22 @@ class FITSHDU:
         """
         read data from this HDU
 
-        By default, all data are read.  Send columns= and rows= to select
-        subsets of the data.  Data are read into a recarray; use read_column()
-        to get a single column as an ordinary array.
+        By default, all data are read.  For tables, Send columns= and rows= to
+        select subsets of the data.  Table data are read into a recarray; use
+        read_column() to get a single column as an ordinary array.
 
         parameters
         ----------
         columns: optional
-            An optional set of columns to read.  Default is to
+            An optional set of columns to read from table HDUs.  Default is to
             read all.  Can be string or number.
         rows: optional
-            An optional list of rows to read.  Default is to read all.
+            An optional list of rows to read from table HDUS.  Default is to
+            read all.
         """
+        if self.info['hdutype'] == IMAGE_HDU:
+            return self.read_image()
+
         if columns is not None and rows is not None:
             return self.read_columns(columns, rows)
         elif columns is not None:
@@ -124,6 +179,21 @@ class FITSHDU:
             return self.read_rows(rows)
         else:
             return self.read_all()
+
+    def read_image_new(self):
+        """
+        Read the image.
+
+        If the HDU is an IMAGE_HDU, read the corresponding image.  Compression
+        and scaling are dealt with properly.
+
+        parameters
+        ----------
+        None
+        """
+        array = self._FITS.read_image(self.ext+1)
+        return array
+
 
     def read_image(self):
         """
@@ -136,9 +206,9 @@ class FITSHDU:
         ----------
         None
         """
-        dtype, output_typenum, shape = self._get_image_dtype_and_shape()
+        dtype, shape = self._get_image_dtype_and_shape()
         array = numpy.zeros(shape, dtype=dtype)
-        self._FITS.read_image(self.ext+1, output_typenum, array)
+        self._FITS.read_image(self.ext+1, array)
         return array
 
     def read_column(self, col, rows=None):
@@ -289,8 +359,7 @@ class FITSHDU:
         else:
             raise ValueError("no image present in HDU")
 
-        output_typenum = int(_table_typemap[npy_dtype])
-        return npy_dtype, output_typenum, shape
+        return npy_dtype, shape
 
     def _get_simple_dtype_and_shape(self, colnum, rows=None):
         npy_type = self._get_tbl_numpy_dtype(colnum)
@@ -311,7 +380,7 @@ class FITSHDU:
     def _get_image_numpy_dtype(self):
         try:
             ftype = self.info['img_equiv_type']
-            npy_type = _image_typemap[ftype]
+            npy_type = _image_bitpix2npy[ftype]
         except KeyError:
             raise KeyError("unsupported fits data type: %d" % ftype)
 
@@ -320,7 +389,7 @@ class FITSHDU:
     def _get_tbl_numpy_dtype(self, colnum):
         try:
             ftype = self.info['colinfo'][colnum]['tdatatype']
-            npy_type = _table_typemap[ftype]
+            npy_type = _table_fits2npy[ftype]
         except KeyError:
             raise KeyError("unsupported fits data type: %d" % ftype)
 
@@ -382,7 +451,7 @@ class FITSHDU:
             dimstr = [str(d) for d in self.info['imgnaxis']]
             dimstr = ",".join(dimstr)
 
-            dt = _image_typemap[self.info['img_equiv_type']]
+            dt = _image_bitpix2npy[self.info['img_equiv_type']]
             text.append("%sdata type: %s" % (cspacing,dt))
             text.append("%sdims: [%s]" % (cspacing,dimstr))
 
@@ -405,7 +474,7 @@ class FITSHDU:
                     rep = 'array[%d]' % c['trepeat']
                 else:
                     rep=''
-                dt = _table_typemap[c['tdatatype']]
+                dt = _table_fits2npy[c['tdatatype']]
                 s = f % (c['ttype'],dt,rep)
                 text.append(s)
 
@@ -413,61 +482,95 @@ class FITSHDU:
         return text
 
 
+def extract_filename(filename):
+    if filename[0] == "!":
+        filename=filename[1:]
+    filename = os.path.expandvars(filename)
+    filename = os.path.expanduser(filename)
+    return filename
+
+
+
+
+READONLY=0
+READWRITE=1
+IMAGE_HDU=0
+ASCII_TBL=1
+BINARY_TBL=2
+
 _modeprint_map = {'r':'READONLY','rw':'READWRITE', 0:'READONLY',1:'READWRITE'}
-_char_modemap = {'r':'r','rw':'rw', 0:'r',1:'rw'}
-_int_modemap = {'r':0,'rw':1, 0:0,1:1}
-_hdu_type_map = {0:'IMAGE_HDU',
-                 1:'ASCII_TBL',
-                 2:'BINARY_TBL',
-                 'IMAGE_HDU':0,
-                 'ASCII_TBL':1,
-                 'BINARY_TBL':2}
+_char_modemap = {'r':'r','rw':'rw', 
+                 READONLY:'r',READWRITE:'rw'}
+_int_modemap = {'r':READONLY,'rw':READWRITE, READONLY:READONLY, READWRITE:READWRITE}
+_hdu_type_map = {IMAGE_HDU:'IMAGE_HDU',
+                 ASCII_TBL:'ASCII_TBL',
+                 BINARY_TBL:'BINARY_TBL',
+                 'IMAGE_HDU':IMAGE_HDU,
+                 'ASCII_TBL':ASCII_TBL,
+                 'BINARY_TBL':BINARY_TBL}
 
 # no support yet for logical or complex
-_table_typemap = {11:'u1', 'u1':11,
-            12: 'i1', 'i1': 12,
-            14: 'i1', 'i1': 14, # logical: correct?
-            16: 'S', 'S': 16,
-            20: 'u2', 'u2':20,
-            21: 'i2', 'i2':21,
-            30: 'u4', 'u4': 30,
-            31: 'i4', 'i4': 31,
-            40: 'u4', 'u4': 40, # these are "long" but on linux same as int...
-            41: 'i4', 'i4': 41, # need to be more careful here
-            42: 'f4', 'f4': 42,
-            81: 'i8', 'i8': 81,
-            82: 'f8', 'f8': 82}
-
-# this converts the internal image type to a type we want
-# to read into in string form.  For reading, the pixel read
-# routines actually want the table typemap values.
-_image_typemap = {8: 'u1', 'u1':8,
-                  10: 'i1', 'i1': 10,
-                  16: 'i2', 'i2': 16,
-                  20: 'u2', 'u2': 20,
-                  32: 'i4', 'i4': 32,
-                  40: 'u4', 'u4': 40,
-                  64: 'i8', 'i8': 64,
-                  -32: 'f4', 'f4': -32,
-                  -64: 'f8', 'f8': -64}
+_table_fits2npy = {11:'u1',
+                   12: 'i1',
+                   14: 'i1', # logical. Note pyfits uses this for i1, cfitsio casts to char*
+                   16: 'S',
+                   20: 'u2',
+                   21: 'i2',
+                   30: 'u4',
+                   31: 'i4',
+                   40: 'u4',
+                   41: 'i4',
+                   42: 'f4',
+                   81: 'i8',
+                   82: 'f8'}
 
 
-_table_typemap_old = {11:'u1', 'u1':11,
-            12: 'i1', 'i1': 12,
-            14: 'i1', 'i1': 14, # logical: correct?
-            16: 'S', 'S': 16,
-            20: 'u2', 'u2':20,
-            21: 'i2', 'i2':21,
-            30: 'u4', 'u4': 30,
-            31: 'i4', 'i4': 31,
-            40: 'u4', 'u4': 40, # these are "long" but on linux same as int...
-            41: 'i4', 'i4': 41, # need to be more careful here
-            42: 'f4', 'f4': 42,
-            81: 'i8', 'i8': 81,
-            82: 'f8', 'f8': 82}
+# remember, you should be using the equivalent image type for this
+_image_bitpix2npy = {8: 'u1',
+                     10: 'i1',
+                     16: 'i2',
+                     20: 'u2',
+                     32: 'i4',
+                     40: 'u4',
+                     64: 'i8',
+                     -32: 'f4',
+                     -64: 'f8'}
 
+def test_create():
+    fname='test-write.fits'
+    mode='rw'
 
+    fits1 = FITS(fname,mode,create=True,clobber=True)
+    try:
+        fits2 = FITS(fname,mode,create=True)
+    except IOError:
+        print 'Caught expected exception on existing file'
 
+    if os.path.exists(fname):
+        os.remove(fname)
 
+def test_write_image(dtype):
+    fname='test-write.fits'
+    mode='rw'
 
-            
+    nx = 5
+    ny = 3
+
+    img = numpy.arange(nx*ny, dtype=dtype).reshape(nx,ny)
+    print 'writing image:'
+    print img
+    fits = FITS(fname,mode,create=True,clobber=True)
+
+    fits.write_image(img)
+
+    print fits
+    print fits[0]
+
+    imgread = fits[0].read()
+    print 'read image:'
+    print imgread
+
+    maxdiff = numpy.abs( (img-imgread) ).max()
+    print 'maxdiff:',maxdiff
+    if maxdiff > 0:
+        raise ValueError("Found differences")
