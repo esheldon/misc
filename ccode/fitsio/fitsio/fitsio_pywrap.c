@@ -1,3 +1,4 @@
+#include <string.h>
 #include <Python.h>
 #include <fitsio.h>
 #include <fitsio2.h>
@@ -79,6 +80,17 @@ PyFITSObject_repr(struct PyFITSObject* self) {
     }
 }
 
+
+// this will need to be updated for array string columns.
+long get_groupsize(tcolumn* colptr) {
+    long gsize=0;
+    if (colptr->tdatatype == TSTRING) {
+        gsize = colptr->twidth;
+    } else {
+        gsize = colptr->twidth*colptr->trepeat;
+    }
+    return gsize;
+}
 npy_int64* get_int64_from_array(PyObject* arr, npy_intp* ncols) {
 
     npy_int64* colnums;
@@ -408,6 +420,172 @@ PyFITSObject_write_image(struct PyFITSObject* self, PyObject* args) {
 
     Py_RETURN_NONE;
 }
+
+struct stringlist {
+    size_t size;
+    char** data;
+};
+struct stringlist* stringlist_new(void) {
+    struct stringlist* slist=NULL;
+
+    slist = malloc(sizeof(struct stringlist));
+    slist->size = 0;
+    slist->data=NULL;
+    return slist;
+}
+// push a copy of the string onto the string list
+void stringlist_push(struct stringlist* slist, const char* str) {
+    size_t slen=0;
+    size_t i=0;
+
+    slist->data = realloc(slist->data, slist->size+1);
+    slist->size += 1;
+
+    i = slist->size-1;
+    slen = strlen(str);
+
+    slist->data[i] = malloc(sizeof(char)*(slen+1));
+    strcpy(slist->data[i], str);
+}
+struct stringlist* stringlist_delete(struct stringlist* slist) {
+    if (slist != NULL) {
+        size_t i=0;
+        for (i=0; i < slist->size; i++) {
+            free(slist->data[i]);
+        }
+        free(slist->data);
+        free(slist);
+    }
+    return NULL;
+}
+struct stringlist* stringlist_from_listobj(PyObject* listObj) {
+    size_t size=0, i=0;
+    struct stringlist* slist;
+
+    slist = stringlist_new();
+    size = PyList_Size(listObj);
+
+    for (i=0; i<size; i++) {
+        PyObject* tmp = PyList_GetItem(listObj, i);
+        const char* tmpstr;
+        if (!PyString_Check(tmp)) {
+            PyErr_SetString(PyExc_ValueError, "Expected a string in list.");
+            stringlist_delete(slist);
+            return NULL;
+        }
+        tmpstr = (const char*) PyString_AsString(tmp);
+        stringlist_push(slist, tmpstr);
+
+    }
+
+    return slist;
+}
+
+void stringlist_print(struct stringlist* slist) {
+    size_t i=0;
+    if (slist == NULL) {
+        return;
+    }
+    for (i=0; i<slist->size; i++) {
+        printf("  slist[%ld]: %s\n", i, slist->data[i]);
+    }
+}
+
+
+// create a new table structure.  No physical rows are added yet.
+static PyObject *
+PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* kwds) {
+    int status=0;
+    int table_type=BINARY_TBL;
+
+    //static char *kwlist[] = {"ttyp","tform","tunit", "tdim", "extname", NULL};
+    static char *kwlist[] = {"tunit", "tdim", "extname", NULL};
+    // these are all strings
+    PyObject* ttypObj=NULL;
+    PyObject* tformObj=NULL;
+    PyObject* tunitObj=NULL;    // optional
+    PyObject* tdimObj=NULL;     // optional
+    PyObject* extnameObj=NULL;  // optional
+
+    struct stringlist* ttyp=NULL;
+    struct stringlist* tform=NULL;
+    // these must be freed
+    /*
+    char **ttyp=NULL;
+    char **tform=NULL;
+    char **tunit=NULL;
+    char **tdim=NULL;
+    char* extname=NULL;
+
+    int nfields=0;
+    */
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOO", kwlist,
+                          &ttypObj, &tformObj, &tunitObj, &tdimObj, &extnameObj)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to parse array input");
+        return NULL;
+    }
+
+    printf("number in ttypObj: %ld\n", PyList_Size(ttypObj));
+    printf("number in tformObj: %ld\n", PyList_Size(tformObj));
+    ttyp = stringlist_from_listobj(ttypObj);
+    stringlist_print(ttyp);
+    tform = stringlist_from_listobj(tformObj);
+    stringlist_print(tform);
+
+create_table_cleanup:
+    ttyp = stringlist_delete(ttyp);
+    tform = stringlist_delete(tform);
+    /*
+    free(tunit);
+    free(tdim);
+    free(extname);
+    */
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+PyFITSObject_test_write_new_table(struct PyFITSObject* self, PyObject* args) {
+
+    int status=0;
+    int table_type=BINARY_TBL;
+
+    char *ttype[] = { "Planet", "Diameter", "Density" };
+    char *tform[] = { "8a",     "1J",       "1E"    };
+    char *tunit[] = { "\0",      "km",       "g/cm"    };
+
+    /* define the name diameter, and density of each planet */
+    char *planet[] = {"Mercury", "Venus", "Earth", "Mars","Jupiter","Saturn"};
+    int diameter[] = {4880,     12112,   12742,   6800,  143000,   121000};
+    float density[]  = { 5.1,      5.3,     5.52,   3.94,   1.33,     0.69};
+
+    long nrows    = 6;       /* table will have 6 rows    */
+    int tfields   = 3;       /* table will have 3 columns */
+    char* extname=NULL;           /* extension name */
+
+    LONGLONG firstrow  = 1;  /* first row in table to write   */
+    LONGLONG firstelem = 1;  /* first element in row  (ignored in ASCII tables) */
+
+    /* append a new empty binary table onto the FITS file */
+    // try with zero rows first
+    if ( fits_create_tbl(self->fits, table_type, 0, tfields, ttype, tform,
+                         tunit, extname, &status) ) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    fits_write_col(self->fits, TSTRING, 1, firstrow, firstelem, nrows, planet,
+                   &status);
+    fits_write_col(self->fits, TINT, 2, firstrow, firstelem, nrows, diameter,
+                   &status);
+    fits_write_col(self->fits, TFLOAT, 3, firstrow, firstelem, nrows, density,
+                   &status);
+
+    Py_RETURN_NONE;
+
+}
+
  
 // read a single, entire column from the current HDU into an unstrided array.
 // Because of the internal fits buffering, and since we will read multiple at a
@@ -428,7 +606,8 @@ static int read_column_bytes(fitsfile* fits, int colnum, void* data, int* status
     hdu = fits->Fptr;
     colptr = hdu->tableptr + (colnum-1);
 
-    gsize = colptr->twidth*colptr->trepeat;
+    // need to deal with array string columns
+    gsize = get_groupsize(colptr);
     ngroups = hdu->numrows;
     offset = hdu->rowlength-gsize;
 
@@ -465,7 +644,7 @@ static int read_column_bytes_strided(fitsfile* fits, int colnum, void* data, npy
     hdu = fits->Fptr;
     colptr = hdu->tableptr + (colnum-1);
 
-    gsize = colptr->twidth*colptr->trepeat;
+    gsize = get_groupsize(colptr);
     ngroups = 1; // read one at a time
     offset = hdu->rowlength-gsize;
 
@@ -510,7 +689,9 @@ static int read_column_bytes_byrow(
     hdu = fits->Fptr;
     colptr = hdu->tableptr + (colnum-1);
 
-    gsize = colptr->twidth*colptr->trepeat;
+    // need to deal with array string columns
+    gsize = get_groupsize(colptr);
+
     ngroups = 1; // read one at a time
     offset = hdu->rowlength-gsize;
 
@@ -638,7 +819,7 @@ static int read_rec_column_bytes(fitsfile* fits, npy_intp ncols, npy_int64* coln
             colnum = colnums[col];
             colptr = hdu->tableptr + (colnum-1);
 
-            groupsize = colptr->twidth*colptr->trepeat;
+            groupsize = get_groupsize(colptr);
 
             file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
 
@@ -687,7 +868,7 @@ static int read_rec_column_bytes_byrow(
             colnum = colnums[col];
             colptr = hdu->tableptr + (colnum-1);
 
-            groupsize = colptr->twidth*colptr->trepeat;
+            groupsize = get_groupsize(colptr);
 
             file_pos = hdu->datastart + row*hdu->rowlength + colptr->tbcol;
 
@@ -1138,6 +1319,8 @@ static PyMethodDef PyFITSObject_methods[] = {
     {"read_as_rec",          (PyCFunction)PyFITSObject_read_as_rec,          METH_VARARGS, "read_as_rec\n\nRead the entire data set into the input rec array.  No checking of array is done."},
     {"write_image",          (PyCFunction)PyFITSObject_write_image,          METH_VARARGS, "write_image\n\nWrite the input image to a new extension."},
     {"read_image",          (PyCFunction)PyFITSObject_read_image,          METH_VARARGS, "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
+    {"test_write_new_table",          (PyCFunction)PyFITSObject_test_write_new_table,          METH_VARARGS, "test_write_new_table\n\nWrite the input image to a new extension."},
+    {"create_table",          (PyCFunction)PyFITSObject_create_table,          METH_VARARGS, "create_table\n\nCreate a new table with the input parameters."},
     {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
