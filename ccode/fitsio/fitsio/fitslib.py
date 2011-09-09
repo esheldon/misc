@@ -119,7 +119,6 @@ class FITSHDU:
     def read_image(self):
         dtype, output_typenum, shape = self._get_image_dtype_and_shape()
         array = numpy.zeros(shape, dtype=dtype)
-        print array
         self._FITS.read_image(self.ext+1, output_typenum, array)
         return array
 
@@ -264,8 +263,12 @@ class FITSHDU:
 
         npy_dtype = self._get_image_numpy_dtype()
 
-        # deal with fortran order
-        shape = self.info['imgnaxis']
+        if self.info['imgdim'] != 0:
+            shape = self.info['imgnaxis']
+        elif self.info['zndim'] != 0:
+            shape = self.info['znaxis']
+        else:
+            raise ValueError("no image present in HDU")
 
         output_typenum = int(_table_typemap[npy_dtype])
         return npy_dtype, output_typenum, shape
