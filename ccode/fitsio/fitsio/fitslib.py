@@ -1,5 +1,13 @@
 """
-Advantages:
+Features
+--------
+    - Read and write all image types.  Can read compressed images.
+    - Read subsets of table rows and columns.
+    - Correctly interpret TDIM information for array columns.
+
+
+Advantages
+----------
 
     - Can read arbitrary subsets of columns and rows without loading the whole
     file.
@@ -13,7 +21,6 @@ Advantages:
         - strings
         - row ranges
         - implement bit, logical, and complex types
-        - images
 """
 import numpy
 import _fitsio_wrap
@@ -117,6 +124,16 @@ class FITSHDU:
             return self.read_all()
 
     def read_image(self):
+        """
+        Read the image.
+
+        If the HDU is an IMAGE_HDU, read the corresponding image.  Compression
+        and scaling are dealt with properly.
+
+        parameters
+        ----------
+        None
+        """
         dtype, output_typenum, shape = self._get_image_dtype_and_shape()
         array = numpy.zeros(shape, dtype=dtype)
         self._FITS.read_image(self.ext+1, output_typenum, array)
