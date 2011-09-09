@@ -45,16 +45,21 @@ PyFITSObject_init(struct PyFITSObject* self, PyObject *args, PyObject *kwds)
     char* filename;
     int mode;
     int status=0;
+    int create=0;
 
-    if (!PyArg_ParseTuple(args, (char*)"si", &filename, &mode)) {
-        printf("failed to Parse init");
+    if (!PyArg_ParseTuple(args, (char*)"sii", &filename, &mode, &create)) {
+        printf("failed to Parse init args filename,mode,create");
         return -1;
     }
 
-    if (fits_open_file(&self->fits, filename, mode, &status) != 0) {
-        // this will give full report
-        //fits_report_error(stderr, status);
-        // this for now is less
+    if (create) {
+        if (fits_create_file(&self->fits, filename, &status)) {
+            //fits_report_error(stderr,status);
+            set_ioerr_string_from_status(status);
+            return -1;
+        }
+    }
+    if (fits_open_file(&self->fits, filename, mode, &status)) {
         set_ioerr_string_from_status(status);
         return -1;
     }
@@ -77,15 +82,15 @@ PyFITSObject_repr(struct PyFITSObject* self) {
 npy_int64* get_int64_from_array(PyObject* arr, npy_intp* ncols) {
 
     npy_int64* colnums;
+    int npy_type=0;
 
-	PyArray_Descr* descr;
     if (!PyArray_Check(arr)) {
         PyErr_SetString(PyExc_TypeError, "colnums must be an int64 array.");
         return NULL;
     }
 
-    descr = PyArray_DESCR(arr);
-	if (descr->type_num != NPY_INT64) {
+    npy_type = PyArray_TYPE(arr);
+	if (npy_type != NPY_INT64) {
         PyErr_SetString(PyExc_TypeError, "colnums must be an int64 array.");
         return NULL;
     }
@@ -214,7 +219,196 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
     return dict;
 }
 
+// this converts bitpix to a corresponding numpy dtype
+// of the right type
+static int 
+fits_to_npy_image_type(int bitpix) {
 
+    char mess[255];
+    switch (bitpix) {
+        case BYTE_IMG:
+            return NPY_UINT8;
+        case SBYTE_IMG:
+            return NPY_INT8;
+
+        case USHORT_IMG:
+            return NPY_UINT16;
+        case SHORT_IMG:
+            return NPY_INT16;
+
+        case ULONG_IMG:
+            return NPY_UINT32;
+        case LONG_IMG:
+            return NPY_INT32;
+
+        case LONGLONG_IMG:
+            return NPY_INT64;
+
+        case FLOAT_IMG:
+            return NPY_FLOAT32;
+        case DOUBLE_IMG:
+            return NPY_FLOAT64;
+
+        default:
+            sprintf(mess,"Unsupported fits image type (bitpix) %d", bitpix);
+            PyErr_SetString(PyExc_TypeError, mess);
+            return -9999;
+    }
+
+    return 0;
+}
+
+
+
+static int 
+npy_to_fits_image_types(int npy_dtype, int *fits_img_type, int *fits_datatype) {
+
+    char mess[255];
+    switch (npy_dtype) {
+        case NPY_UINT8:
+            *fits_img_type = BYTE_IMG;
+            *fits_datatype = TBYTE;
+            break;
+        case NPY_INT8:
+            *fits_img_type = SBYTE_IMG;
+            *fits_datatype = TSBYTE;
+            break;
+        case NPY_UINT16:
+            *fits_img_type = USHORT_IMG;
+            *fits_datatype = TUSHORT;
+            break;
+        case NPY_INT16:
+            *fits_img_type = SHORT_IMG;
+            *fits_datatype = TSHORT;
+            break;
+
+        case NPY_UINT32:
+            *fits_img_type = ULONG_IMG;
+            if (sizeof(unsigned int) == sizeof(npy_uint32)) {
+                *fits_datatype = TUINT;
+            } else if (sizeof(unsigned long) == sizeof(npy_uint32)) {
+                *fits_datatype = TULONG;
+            } else {
+                PyErr_SetString(PyExc_TypeError, "could not determine 4 byte unsigned integer type");
+                *fits_datatype = -9999;
+                return 1;
+            }
+            break;
+
+        case NPY_INT32:
+            *fits_img_type = LONG_IMG;
+            if (sizeof(int) == sizeof(npy_int32)) {
+                *fits_datatype = TINT;
+            } else if (sizeof(long) == sizeof(npy_int32)) {
+                *fits_datatype = TLONG;
+            } else {
+                PyErr_SetString(PyExc_TypeError, "could not determine 4 byte integer type");
+                *fits_datatype = -9999;
+                return 1;
+            }
+            break;
+
+        case NPY_INT64:
+            *fits_img_type = LONGLONG_IMG;
+            if (sizeof(int) == sizeof(npy_int64)) {
+                *fits_datatype = TINT;
+            } else if (sizeof(long) == sizeof(npy_int64)) {
+                *fits_datatype = TLONG;
+            } else if (sizeof(long long) == sizeof(npy_int64)) {
+                *fits_datatype = TLONGLONG;
+            } else {
+                PyErr_SetString(PyExc_TypeError, "could not determine 8 byte integer type");
+                *fits_datatype = -9999;
+                return 1;
+            }
+            break;
+
+
+        case NPY_FLOAT32:
+            *fits_img_type = FLOAT_IMG;
+            *fits_datatype = TFLOAT;
+            break;
+        case NPY_FLOAT64:
+            *fits_img_type = DOUBLE_IMG;
+            *fits_datatype = TDOUBLE;
+            break;
+
+        case NPY_UINT64:
+            PyErr_SetString(PyExc_TypeError, "Unsigned 8 byte integer images are not supported by the FITS standard");
+            *fits_datatype = -9999;
+            return 1;
+            break;
+
+        default:
+            sprintf(mess,"Unsupported numpy image datatype %d", npy_dtype);
+            PyErr_SetString(PyExc_TypeError, mess);
+            *fits_datatype = -9999;
+            return 1;
+            break;
+    }
+
+    return 0;
+}
+
+int get_ndim(PyObject* obj) {
+    PyArrayObject* arr;
+    arr = (PyArrayObject*) obj;
+    return arr->nd;
+}
+static PyObject *
+PyFITSObject_write_image(struct PyFITSObject* self, PyObject* args) {
+    // allow 10 dimensions
+    int ndims=0;
+    long dims[] = {0,0,0,0,0,0,0,0,0,0};
+    LONGLONG nelements=1; // should be cumprod of dims
+    //long firstpixels[]={1,1,1,1,1,1,1,1,1,1};
+    LONGLONG firstpixel=1;
+    int image_datatype=0; // fits type for image, AKA bitpix
+    int datatype=0; // type for the data we entered
+
+    PyObject* array;
+    void* data=NULL;
+    int npy_dtype=0;
+    int i=0;
+    int status=0;
+
+    if (!PyArg_ParseTuple(args, (char*)"O", &array)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to parse array input");
+        return NULL;
+    }
+
+    if (!PyArray_Check(array)) {
+        PyErr_SetString(PyExc_TypeError, "input must be an array.");
+        return NULL;
+    }
+
+    npy_dtype = PyArray_TYPE(array);
+    if (npy_to_fits_image_types(npy_dtype, &image_datatype, &datatype)) {
+        return NULL;
+    }
+
+    ndims = get_ndim(array);
+    // order must be reversed for FITS
+    for (i=0; i<ndims; i++) {
+        //dims[i] = PyArray_DIM(array, i);
+        dims[ndims-i-1] = PyArray_DIM(array, i);
+        nelements *= dims[ndims-i-1];
+    }
+
+    if (fits_create_img(self->fits, image_datatype, ndims, dims, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    data = PyArray_DATA(array);
+    if (fits_write_img(self->fits, datatype, firstpixel, nelements, data, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+ 
 // read a single, entire column from the current HDU into an unstrided array.
 // Because of the internal fits buffering, and since we will read multiple at a
 // time, this should be more efficient.  No error checking is done. No 
@@ -757,27 +951,29 @@ recread_cleanup:
 // read an n-dimensional "image" into the input array.  Only minimal checking
 // of the input array is done.
 static PyObject *
-PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
+PyFITSObject_read_image_new(struct PyFITSObject* self, PyObject* args) {
     int hdunum;
     int hdutype;
     int status=0;
     PyObject* array=NULL;
     void* data=NULL;
-    FITSfile* hdu=NULL;
+    //FITSfile* hdu=NULL;
 
     int maxdim=10;
     int output_datatype=0;
     int datatype=0; // type info for axis
-    int naxis=0; // number of axes
+    int ndims=0; // number of axes
     int i=0;
-    LONGLONG naxes[]={0,0,0,0,0,0,0,0,0,0};  // size of each axis
+    LONGLONG dims[]={0,0,0,0,0,0,0,0,0,0};  // size of each axis
+    npy_intp npy_dims[]={0,0,0,0,0,0,0,0,0,0};
     LONGLONG firstpixels[]={1,1,1,1,1,1,1,1,1,1};
     LONGLONG size=0;
     npy_intp arrsize=0;
+    int fortran=0;
 
     int anynul=0;
 
-    if (!PyArg_ParseTuple(args, (char*)"iiO", &hdunum, &output_datatype, &array)) {
+    if (!PyArg_ParseTuple(args, (char*)"i", &hdunum)) {
         PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, array");
         return NULL;
     }
@@ -791,23 +987,33 @@ PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
     }
 
     /*
-    hdu = self->fits->Fptr;
-    if (hdu->hdutype != IMAGE_HDU) {
-        PyErr_SetString(PyExc_RuntimeError, "HDU is not an IMAGE_HDU");
+    if (npy_to_fits_image_types(int npy_dtype, int *fits_img_type, int *fits_datatype)) {
         return NULL;
     }
     */
 
-    if (fits_get_img_paramll(self->fits, maxdim, &datatype, &naxis, naxes, &status)) {
+    if (fits_get_img_paramll(self->fits, maxdim, &datatype, &ndims, dims, &status)) {
         set_ioerr_string_from_status(status);
         return NULL;
     }
 
+    for (i=0; i<ndims; i++) {
+        npy_dims[ndims-i-1] = dims[i];
+    }
+
+
+    array = PyArray_ZEROS(ndims, npy_dims, NPY_INT32, fortran);
+    if (array==NULL) {
+        PyErr_SetString(PyExc_MemoryError, "failed to create output array");
+    }
+    return array;
+
+
     // make sure dims match
     size=0;
-    size = naxes[0];
-    for (i=1; i< naxis; i++) {
-        size *= naxes[i];
+    size = dims[0];
+    for (i=1; i< ndims; i++) {
+        size *= dims[i];
     }
     arrsize = PyArray_SIZE(array);
     data = PyArray_DATA(array);
@@ -839,6 +1045,89 @@ PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
+// read an n-dimensional "image" into the input array.  Only minimal checking
+// of the input array is done.
+static PyObject *
+PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
+    int hdunum;
+    int hdutype;
+    int status=0;
+    PyObject* array=NULL;
+    void* data=NULL;
+    int npy_dtype=0;
+    int dummy=0, fits_read_dtype=0;
+    //FITSfile* hdu=NULL;
+
+    int maxdim=10;
+    int datatype=0; // type info for axis
+    int naxis=0; // number of axes
+    int i=0;
+    LONGLONG naxes[]={0,0,0,0,0,0,0,0,0,0};  // size of each axis
+    LONGLONG firstpixels[]={1,1,1,1,1,1,1,1,1,1};
+    LONGLONG size=0;
+    npy_intp arrsize=0;
+
+    int anynul=0;
+
+    if (!PyArg_ParseTuple(args, (char*)"iO", &hdunum, &array)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, array");
+        return NULL;
+    }
+
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
+        return NULL;
+    }
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        return NULL;
+    }
+
+    if (fits_get_img_paramll(self->fits, maxdim, &datatype, &naxis, naxes, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    // make sure dims match
+    size=0;
+    size = naxes[0];
+    for (i=1; i< naxis; i++) {
+        size *= naxes[i];
+    }
+    arrsize = PyArray_SIZE(array);
+    data = PyArray_DATA(array);
+
+    if (size != arrsize) {
+        char mess[255];
+        sprintf(mess,"Input array size is %ld but on disk array size is %lld", arrsize, size);
+        PyErr_SetString(PyExc_RuntimeError, mess);
+        return NULL;
+    }
+
+    npy_dtype = PyArray_TYPE(array);
+    npy_to_fits_image_types(npy_dtype, &dummy, &fits_read_dtype);
+
+    // need to deal with incorrect types in cfitsio for long types
+    /*
+    if (fits_read_dtype == TLONG) {
+        if (sizeof(long) == sizeof(npy_int64) && sizeof(int) == sizeof(npy_int32)) {
+            // internally read_pix uses int for TINT, so assuming int is always 32
+            fits_read_dtype = TINT;
+        } else {
+            PyErr_SetString(PyExc_TypeError, "don't know how to deal with TLONG on this system");
+            return NULL;
+        }
+    }
+    */
+    if (fits_read_pixll(self->fits, fits_read_dtype, firstpixels, size,
+                        0, data, &anynul, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+
+    Py_RETURN_NONE;
+}
+
 
 static PyMethodDef PyFITSObject_methods[] = {
     {"moveabs_hdu",          (PyCFunction)PyFITSObject_moveabs_hdu,          METH_VARARGS, "moveabs_hdu\n\nMove to the specified HDU."},
@@ -847,6 +1136,7 @@ static PyMethodDef PyFITSObject_methods[] = {
     {"read_columns_as_rec",          (PyCFunction)PyFITSObject_read_columns_as_rec,          METH_VARARGS, "read_columns_as_rec\n\nRead the specified columns into the input rec array.  No checking of array is done."},
     {"read_rows_as_rec",          (PyCFunction)PyFITSObject_read_rows_as_rec,          METH_VARARGS, "read_rows_as_rec\n\nRead the subset of rows into the input rec array.  No checking of array is done."},
     {"read_as_rec",          (PyCFunction)PyFITSObject_read_as_rec,          METH_VARARGS, "read_as_rec\n\nRead the entire data set into the input rec array.  No checking of array is done."},
+    {"write_image",          (PyCFunction)PyFITSObject_write_image,          METH_VARARGS, "write_image\n\nWrite the input image to a new extension."},
     {"read_image",          (PyCFunction)PyFITSObject_read_image,          METH_VARARGS, "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
     {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
