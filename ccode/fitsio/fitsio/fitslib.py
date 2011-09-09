@@ -119,6 +119,7 @@ class FITSHDU:
     def read_image(self):
         dtype, output_typenum, shape = self._get_image_dtype_and_shape()
         array = numpy.zeros(shape, dtype=dtype)
+        print array
         self._FITS.read_image(self.ext+1, output_typenum, array)
         return array
 
