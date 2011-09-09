@@ -10,11 +10,13 @@ Advantages
 ----------
 
     - Can read arbitrary subsets of columns and rows without loading the whole
-    file.
+      file.
     - Uses TDIM information to return array columns in the correct shape
     - Can write unsigned types.  Note the FITS standard does not support
-    unsigned 8 byte yet.
+      unsigned 8 byte yet.
     - Correctly writes 1 byte integers, both signed and unsigned.
+    - Correctly write string columns.
+    - Correctly read all types and shapes of string columns.
 
     TODO:
         - writing
