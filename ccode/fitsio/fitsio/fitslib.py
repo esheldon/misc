@@ -21,6 +21,7 @@ Advantages
 
 TODO
 ----
+    - string array columns
     - Use TDIM information
     - writing
     - writing extension names, reading by extension names
@@ -56,17 +57,20 @@ class FITS:
         creation.
     """
     def __init__(self, filename, mode, create=False, clobber=False):
+        self.open(filename, mode, create=create, clobber=clobber)
+    
+    def open(self, filename, mode, create=False, clobber=False):
         self.filename = extract_filename(filename)
-
+        self.mode=mode
+        self.create=create
+        self.clobber=clobber
         if mode not in _int_modemap:
             raise ValueError("mode should be one of 'r','rw',READONLY,READWRITE")
         self.charmode = _char_modemap[mode]
         self.intmode = _int_modemap[mode]
 
-        self.create=create
         self.int_create = 1 if create else 0
 
-        self.clobber=clobber
 
         if create and clobber:
             if os.path.exists(filename):
@@ -77,6 +81,26 @@ class FITS:
 
     def close(self):
         self._FITS.close()
+        self._FITS=None
+        self.filename=None
+        self.mode=None
+        self.create=None
+        self.clobber=None
+        self.charmode=None
+        self.intmode=None
+        self.int_create=None
+        self.hdu_list=None
+
+
+    def reopen(self):
+        """
+        CFITSIO is unpredictable about flushing it's buffers.  It is necessary
+        to close and reopen after writing tables.
+        """
+        self._FITS.close()
+        del self._FITS
+        self._FITS =  _fitsio_wrap.FITS(self.filename, self.intmode, 0)
+
 
     def write_image(self, img):
         """
@@ -91,12 +115,17 @@ class FITS:
         self._FITS.write_image(img)
         self.update_hdu_list()
 
+    def _create_table(self):
+        ttyp=['col1','col2']
+        tform=['J','B']
+        self._FITS.create_table(ttyp,tform)
+
     def update_hdu_list(self):
-        self._hdu_list = []
+        self.hdu_list = []
         for ext in xrange(1000):
             try:
                 hdu = FITSHDU(self._FITS, ext)
-                self._hdu_list.append(hdu)
+                self.hdu_list.append(hdu)
             except RuntimeError:
                 break
 
@@ -105,10 +134,10 @@ class FITS:
         self._FITS.moveabs_hdu(ext+1)
 
     def __getitem__(self, ext):
-        if not hasattr(self, '_hdu_list'):
+        if not hasattr(self, 'hdu_list'):
             self.update_hdu_list()
 
-        n_ext = len(self._hdu_list)
+        n_ext = len(self.hdu_list)
         if isinstance(ext,(int,long)):
             if (ext < 0) or (ext > (n_ext-1)):
                 raise ValueError("extension number %s out of "
@@ -116,23 +145,32 @@ class FITS:
         else:
             raise ValueError("don't yet support getting "
                              "extensions by name")
-        return self._hdu_list[ext]
+        return self.hdu_list[ext]
 
 
     def __repr__(self):
         spacing = ' '*2
-        if not hasattr(self, '_hdu_list'):
+        if not hasattr(self, 'hdu_list'):
             self.update_hdu_list()
 
         rep = []
         rep.append("%sfile: %s" % (spacing,self.filename))
         rep.append("%smode: %s" % (spacing,_modeprint_map[self.intmode]))
-        for i,hdu in enumerate(self._hdu_list):
+        for i,hdu in enumerate(self.hdu_list):
             t = hdu.info['hdutype']
             rep.append("%sHDU%d: %s" % (spacing,(i+1), _hdu_type_map[t]))
 
         rep = '\n'.join(rep)
         return rep
+
+    #def __del__(self):
+    #    self.close()
+    def __enter__(self):
+        return self
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.close()
+
+
 
 class FITSHDU:
     def __init__(self, fits, ext):
@@ -246,6 +284,13 @@ class FITSHDU:
         nrows = self.info['numrows']
         array = numpy.zeros(nrows, dtype=dtype)
         self._FITS.read_as_rec(self.ext+1, array)
+
+        for colnum,name in enumerate(array.dtype.names):
+            self._rescale_array(array[name], 
+                                self.info['colinfo'][colnum]['tscale'], 
+                                self.info['colinfo'][colnum]['tzero'])
+
+
         return array
 
     def read_rows(self, rows):
@@ -296,7 +341,9 @@ class FITSHDU:
             colnumsp[:] += 1
             self._FITS.read_columns_as_rec(self.ext+1, colnumsp, array, rows)
             
-            for colnum,name in enumerate(array.dtype.names):
+            for i in xrange(colnums.size):
+                colnum = int(colnums[i])
+                name = array.dtype.names[i]
                 self._rescale_array(array[name], 
                                     self.info['colinfo'][colnum]['tscale'], 
                                     self.info['colinfo'][colnum]['tzero'])
@@ -339,7 +386,12 @@ class FITSHDU:
         """
         npy_type = self._get_tbl_numpy_dtype(colnum)
         name = self.info['colinfo'][colnum]['ttype']
-        repeat = self.info['colinfo'][colnum]['trepeat']
+
+        # need to deal with string array columns
+        if npy_type[0] == 'S':
+            repeat=1
+        else:
+            repeat = self.info['colinfo'][colnum]['trepeat']
         if repeat > 1:
             return (name,npy_type,repeat)
         else:
@@ -369,7 +421,11 @@ class FITSHDU:
         else:
             nrows = rows.size
 
-        repeat = self.info['colinfo'][colnum]['trepeat']
+        # need to deal with string array columns
+        if npy_type[0] == 'S':
+            repeat = 1
+        else:
+            repeat = self.info['colinfo'][colnum]['trepeat']
         if repeat > 1:
             shape = (nrows, repeat)
         else:
@@ -386,16 +442,17 @@ class FITSHDU:
 
         return npy_type
 
-    def _get_tbl_numpy_dtype(self, colnum):
+    def _get_tbl_numpy_dtype(self, colnum, include_endianness=True):
         try:
             ftype = self.info['colinfo'][colnum]['tdatatype']
             npy_type = _table_fits2npy[ftype]
         except KeyError:
             raise KeyError("unsupported fits data type: %d" % ftype)
 
-        if npy_type not in ['u1','i1','S']:
-            npy_type = '>'+npy_type
-        elif npy_type == 'S':
+        if include_endianness:
+            if npy_type not in ['u1','i1','S']:
+                npy_type = '>'+npy_type
+        if npy_type == 'S':
             width = self.info['colinfo'][colnum]['twidth']
             npy_type = 'S%d' % width
         return npy_type
@@ -465,16 +522,22 @@ class FITSHDU:
             format = cspacing + "%-" + str(nname) + "s %" + str(ntype) + "s  %s"
             pformat = cspacing + "%-" + str(nname) + "s\n %" + str(nspace+nname+ntype) + "s  %s"
 
-            for c in self.info['colinfo']:
+            #for c in self.info['colinfo']:
+            for colnum,c in enumerate(self.info['colinfo']):
                 if len(c['ttype']) > 15:
                     f = pformat
                 else:
                     f = format
-                if c['trepeat'] > 1:
-                    rep = 'array[%d]' % c['trepeat']
-                else:
-                    rep=''
-                dt = _table_fits2npy[c['tdatatype']]
+
+                #dt = _table_fits2npy[c['tdatatype']]
+                dt = self._get_tbl_numpy_dtype(colnum, include_endianness=False)
+
+                # need to deal with string array cols
+                rep=''
+                if dt[0] != 'S':
+                    if c['trepeat'] > 1:
+                        rep = 'array[%d]' % c['trepeat']
+
                 s = f % (c['ttype'],dt,rep)
                 text.append(s)
 
@@ -509,7 +572,7 @@ _hdu_type_map = {IMAGE_HDU:'IMAGE_HDU',
                  'ASCII_TBL':ASCII_TBL,
                  'BINARY_TBL':BINARY_TBL}
 
-# no support yet for logical or complex
+# no support yet for complex
 _table_fits2npy = {11:'u1',
                    12: 'i1',
                    14: 'i1', # logical. Note pyfits uses this for i1, cfitsio casts to char*
@@ -524,6 +587,15 @@ _table_fits2npy = {11:'u1',
                    81: 'i8',
                    82: 'f8'}
 
+# for TFORM
+# note actually there are no unsigned, they get scaled
+# and converted to signed.  When reading, can only do signed.
+_table_npy2fits_str = {'u1':'B',
+                       'S' :'A',
+                       'i2':'I',
+                       'i4':'J',
+                       'f4':'E',
+                       'f8':'D'}
 
 # remember, you should be using the equivalent image type for this
 _image_bitpix2npy = {8: 'u1',
@@ -548,6 +620,39 @@ def test_create():
 
     if os.path.exists(fname):
         os.remove(fname)
+
+def test_create_table():
+    fname='test-write-table.fits'
+    with FITS(fname,'rw',create=True,clobber=True) as fits:
+        fits._create_table()
+
+def test_write_new_table(type=BINARY_TBL):
+    fname='test-write-table.fits'
+    with FITS(fname,'rw',create=True,clobber=True) as fits:
+        fits._FITS.test_write_new_table()
+        fits.reopen()
+        print fits
+        print fits[1]
+
+        print 'Reading all rows'
+        data = fits[1].read()
+        print data
+        data = fits[1].read_columns(['Planet','Diameter'])
+        print data
+        data = fits[1].read_column('Planet')
+        print data
+
+        rows = [1,3]
+        print '\nReading rows',rows
+        data = fits[1].read(rows=rows)
+        print data
+        data = fits[1].read_columns(['Planet','Diameter'], rows=rows)
+        print data
+        data = fits[1].read_column('Planet', rows=rows)
+        print data
+
+
+    return
 
 def test_write_image(dtype):
     fname='test-write.fits'
