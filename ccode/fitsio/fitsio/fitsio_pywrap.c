@@ -455,10 +455,11 @@ struct stringlist* stringlist_delete(struct stringlist* slist) {
     return NULL;
 }
 
-int stringlist_addfrom_listobj(struct stringlist* slist, PyObject* listObj) {
+int stringlist_addfrom_listobj(struct stringlist* slist, PyObject* listObj, const char* listname) {
     size_t size=0, i=0;
 
     if (!PyList_Check(listObj)) {
+        PyErr_Format(PyExc_ValueError, "Expected a list for %s.", listname);
         return 1;
     }
     size = PyList_Size(listObj);
@@ -467,7 +468,7 @@ int stringlist_addfrom_listobj(struct stringlist* slist, PyObject* listObj) {
         PyObject* tmp = PyList_GetItem(listObj, i);
         const char* tmpstr;
         if (!PyString_Check(tmp)) {
-            PyErr_SetString(PyExc_ValueError, "Expected a string in list.");
+            PyErr_Format(PyExc_ValueError, "Expected only strings in %s list.", listname);
             return 1;
         }
         tmpstr = (const char*) PyString_AsString(tmp);
@@ -492,6 +493,8 @@ static PyObject *
 PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* kwds) {
     int status=0;
     int table_type=BINARY_TBL;
+    int nfields=0;
+    LONGLONG nrows=0;
 
     static char *kwlist[] = {"ttyp","tform","tunit", "tdim", "extname", NULL};
     // these are all strings
@@ -513,24 +516,53 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
         return NULL;
     }
 
-    if (stringlist_addfrom_listobj(ttyp, ttypObj)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to extract ttyp list");
+    if (stringlist_addfrom_listobj(ttyp, ttypObj, "names")) {
+        status=99;
         goto create_table_cleanup;
     }
     stringlist_print(ttyp);
-    if (stringlist_addfrom_listobj(tform, tformObj)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to extract tform list");
+    if (stringlist_addfrom_listobj(tform, tformObj, "formats")) {
+        status=99;
         goto create_table_cleanup;
     }
     stringlist_print(tform);
-    if (tunitObj != NULL) {
-        if (stringlist_addfrom_listobj(tunit, tunitObj)) {
-            PyErr_SetString(PyExc_RuntimeError, "failed to extract tunit list");
+
+    if (tunitObj != NULL && tunitObj != Py_None) {
+        if (stringlist_addfrom_listobj(tunit, tunitObj,"units")) {
+            status=99;
             goto create_table_cleanup;
         }
         stringlist_print(tunit);
     }
 
+    if (tdimObj != NULL && tdimObj != Py_None) {
+        if (stringlist_addfrom_listobj(tdim, tdimObj, "dims")) {
+            status=99;
+            goto create_table_cleanup;
+        }
+        stringlist_print(tdim);
+    }
+
+    if (extnameObj != NULL && extnameObj != Py_None) {
+        char* tmp;
+        if (!PyString_Check(extnameObj)) {
+            PyErr_SetString(PyExc_ValueError, "Expected a string for extension name");
+            status=99;
+            goto create_table_cleanup;
+        }
+        tmp = PyString_AsString(extnameObj);
+        extname = malloc(sizeof(char)* (strlen(tmp) + 1) );
+        strcpy(extname, tmp);
+        printf("extension name: %s\n", extname);
+    }
+
+    nfields = ttyp->size;
+    if ( fits_create_tbl(self->fits, table_type, nrows, nfields, 
+                         ttyp->data, tform->data, tunit->data, extname, &status) ) {
+        set_ioerr_string_from_status(status);
+        goto create_table_cleanup;
+        return NULL;
+    }
 
 create_table_cleanup:
     ttyp = stringlist_delete(ttyp);
@@ -539,6 +571,40 @@ create_table_cleanup:
     tdim = stringlist_delete(tdim);
     free(extname);
 
+    if (status != 0) {
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+// write a column.  This should be called immediately after calling
+// create_table.  The array must be contiguous.
+//
+// I hope to bypass this sort of thing eventually.
+static PyObject *
+PyFITSObject_write_column(struct PyFITSObject* self, PyObject* args) {
+    int status=0;
+    int colnum=0;
+    PyObject* array=NULL;
+    int npy_dtype=0;
+
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_ValueError, "fits file is NULL");
+    }
+
+    if (!PyArg_ParseTuple(args, (char*)"iO", &colnum, &array)) {
+        return NULL;
+    }
+
+    if (!PyArray_Check(array)) {
+        PyErr_SetString(PyExc_ValueError,"only arrays can be written to columns");
+        return NULL;
+    }
+
+    npy_dtype = PyArray_TYPE(array);
+
+    // now what?  we have an array of a given type, and a declared fits column
+    // of a given type.
     Py_RETURN_NONE;
 }
 
@@ -1312,6 +1378,7 @@ static PyMethodDef PyFITSObject_methods[] = {
     {"read_image",          (PyCFunction)PyFITSObject_read_image,          METH_VARARGS, "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
     {"test_write_new_table",          (PyCFunction)PyFITSObject_test_write_new_table,          METH_VARARGS, "test_write_new_table\n\nWrite the input image to a new extension."},
     {"create_table",          (PyCFunction)PyFITSObject_create_table,          METH_KEYWORDS, "create_table\n\nCreate a new table with the input parameters."},
+    {"write_column",          (PyCFunction)PyFITSObject_write_column,          METH_KEYWORDS, "write_column\n\nWrite a column into the current table."},
     {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
