@@ -267,6 +267,70 @@ fits_to_npy_image_type(int bitpix) {
     return 0;
 }
 
+// this is the parameter that goes in the type for fits_write_col
+static int 
+npy_to_fits_table_type(int npy_dtype) {
+
+    char mess[255];
+    switch (npy_dtype) {
+        case NPY_UINT8:
+            return TBYTE;
+        case NPY_INT8:
+            return TSBYTE;
+        case NPY_UINT16:
+            return TUSHORT;
+        case NPY_INT16:
+            return TSHORT;
+        case NPY_UINT32:
+            if (sizeof(unsigned int) == sizeof(npy_uint32)) {
+                return TUINT;
+            } else if (sizeof(unsigned long) == sizeof(npy_uint32)) {
+                return TULONG;
+            } else {
+                PyErr_SetString(PyExc_TypeError, "could not determine 4 byte unsigned integer type");
+                return -9999;
+            }
+        case NPY_INT32:
+            if (sizeof(int) == sizeof(npy_int32)) {
+                return TINT;
+            } else if (sizeof(long) == sizeof(npy_int32)) {
+                return TLONG;
+            } else {
+                PyErr_SetString(PyExc_TypeError, "could not determine 4 byte integer type");
+                return -9999;
+            }
+
+        case NPY_INT64:
+            if (sizeof(int) == sizeof(npy_int64)) {
+                return TINT;
+            } else if (sizeof(long) == sizeof(npy_int64)) {
+                return TLONG;
+            } else if (sizeof(long long) == sizeof(npy_int64)) {
+                return TLONGLONG;
+            } else {
+                PyErr_SetString(PyExc_TypeError, "could not determine 8 byte integer type");
+                return -9999;
+            }
+
+
+        case NPY_FLOAT32:
+            return TFLOAT;
+        case NPY_FLOAT64:
+            return TDOUBLE;
+
+        case NPY_UINT64:
+            PyErr_SetString(PyExc_TypeError, "Unsigned 8 byte integer images are not supported by the FITS standard");
+            return -9999;
+
+        default:
+            sprintf(mess,"Unsupported numpy image datatype %d", npy_dtype);
+            PyErr_SetString(PyExc_TypeError, mess);
+            return -9999;
+    }
+
+    return 0;
+}
+
 
 
 static int 
@@ -494,7 +558,7 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
     int status=0;
     int table_type=BINARY_TBL;
     int nfields=0;
-    LONGLONG nrows=0;
+    LONGLONG nrows=0; // start empty
 
     static char *kwlist[] = {"ttyp","tform","tunit", "tdim", "extname", NULL};
     // these are all strings
@@ -586,7 +650,13 @@ PyFITSObject_write_column(struct PyFITSObject* self, PyObject* args) {
     int status=0;
     int colnum=0;
     PyObject* array=NULL;
+
+    void* data=NULL;
+    LONGLONG nrows=0;
+    LONGLONG firstrow=1;
+    LONGLONG firstelem=1;
     int npy_dtype=0;
+    int fits_dtype=0;
 
     if (self->fits == NULL) {
         PyErr_SetString(PyExc_ValueError, "fits file is NULL");
@@ -602,6 +672,17 @@ PyFITSObject_write_column(struct PyFITSObject* self, PyObject* args) {
     }
 
     npy_dtype = PyArray_TYPE(array);
+    fits_dtype = npy_to_fits_table_type(npy_dtype);
+    if (fits_dtype == -9999) {
+        return NULL;
+    }
+
+    nrows = PyArray_SIZE(array);
+    data = PyArray_DATA(array);
+    if( fits_write_col(self->fits, fits_dtype, colnum, firstrow, firstelem, nrows, data, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
 
     // now what?  we have an array of a given type, and a declared fits column
     // of a given type.
