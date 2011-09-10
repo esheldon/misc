@@ -100,11 +100,15 @@ class FITS:
         self._FITS.close()
         del self._FITS
         self._FITS =  _fitsio_wrap.FITS(self.filename, self.intmode, 0)
+        self.update_hdu_list()
 
 
     def write_image(self, img):
         """
         write a new image to the fits file.  File must be opened READWRITE
+
+        Split this into a create_image in FITS and a write() method
+        in the FITSHDU class?
 
         parameters
         ----------
@@ -115,14 +119,30 @@ class FITS:
         self._FITS.write_image(img)
         self.update_hdu_list()
 
-    def write_column(self, colnum, data):
+
+    def create_table(self, names, formats, units=None, dims=None, extname=None):
         """
+        Create a new, empty table extension and reload the hdu list.
+
+        You can write data into the extension using
+            fits[extension].write(array)
+            fits[extension].write_column(array)
+
+        parameters
+        ----------
+        names: list of strings
+            The list of field names
+        formats: list of strings
+            The TFORM format strings for each field.
+        units: list of strings, optional
+            An optional list of unit strings for each field.
+        dims: list of strings, optional
+            An optional list of dimension strings for each field.  Should
+            match the repeat count for the formats fields.
+        extname: string, optional
+            An optional extension name.
         """
 
-        data = numpy.array(data, ndmin=1, order='F')
-        self._FITS.write_column(colnum, data)
-
-    def _create_table(self, names, formats, units=None, dims=None, extname=None):
         if not isinstance(names,list) or not isinstance(formats,list):
             raise ValueError("names and formats should be lists")
         if len(names) != len(formats):
@@ -141,6 +161,9 @@ class FITS:
             if not isinstance(extname,str):
                 raise ValueError("extension name must be a string")
         self._FITS.create_table(names, formats, tunit=units, tdim=dims, extname=extname)
+
+        # fits seems to have some issues with flushing.
+        self.reopen()
 
 
     def update_hdu_list(self):
@@ -210,6 +233,16 @@ class FITSHDU:
         self._FITS = fits
         self.ext = ext
         self._update_info()
+
+    def write_column(self, column, data):
+        """
+        """
+
+        colnum = self._extract_colnum(column)
+        data = numpy.array(data, ndmin=1, order='F')
+        print 'writing',data.size,'to column',column
+        self._FITS.write_column(colnum+1, data)
+
 
 
     def read(self, columns=None, rows=None):
@@ -652,9 +685,14 @@ def test_create_table():
         units = ['km/s', 'day']
         extname = 'MyTable'
         dims=['(3,4)','(2,3,4)']
-        fits._create_table(names, formats, units=units, dims=dims, extname=extname)
+        fits.create_table(names, formats, units=units, dims=dims, extname=extname)
 
-        #fits.write_column([3,4,5])
+        fits[1].write_column("col1", [3,4,5])
+
+        # hmm... more flushing problems.
+        fits.reopen()
+        print fits[1].read_column('col1')
+        print fits[1].read()
 
 def test_write_new_table(type=BINARY_TBL):
     fname='test-write-table.fits'
