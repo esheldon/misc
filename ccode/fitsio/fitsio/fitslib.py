@@ -118,7 +118,8 @@ class FITS:
     def _create_table(self):
         ttyp=['col1','col2']
         tform=['J','B']
-        self._FITS.create_table(ttyp,tform)
+        tunit = ['km/s', 'none']
+        self._FITS.create_table(ttyp,tform, tunit=tunit)
 
     def update_hdu_list(self):
         self.hdu_list = []

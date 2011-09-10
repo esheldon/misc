@@ -49,7 +49,6 @@ PyFITSObject_init(struct PyFITSObject* self, PyObject *args, PyObject *kwds)
     int create=0;
 
     if (!PyArg_ParseTuple(args, (char*)"sii", &filename, &mode, &create)) {
-        printf("failed to Parse init args filename,mode,create");
         return -1;
     }
 
@@ -124,7 +123,6 @@ PyFITSObject_moveabs_hdu(struct PyFITSObject* self, PyObject* args) {
     }
 
     if (!PyArg_ParseTuple(args, (char*)"i", &hdunum)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number");
         return NULL;
     }
 
@@ -153,7 +151,6 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
     }
 
     if (!PyArg_ParseTuple(args, (char*)"i", &hdunum)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number");
         return NULL;
     }
 
@@ -385,7 +382,6 @@ PyFITSObject_write_image(struct PyFITSObject* self, PyObject* args) {
     int status=0;
 
     if (!PyArg_ParseTuple(args, (char*)"O", &array)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse array input");
         return NULL;
     }
 
@@ -458,11 +454,13 @@ struct stringlist* stringlist_delete(struct stringlist* slist) {
     }
     return NULL;
 }
-struct stringlist* stringlist_from_listobj(PyObject* listObj) {
-    size_t size=0, i=0;
-    struct stringlist* slist;
 
-    slist = stringlist_new();
+int stringlist_addfrom_listobj(struct stringlist* slist, PyObject* listObj) {
+    size_t size=0, i=0;
+
+    if (!PyList_Check(listObj)) {
+        return 1;
+    }
     size = PyList_Size(listObj);
 
     for (i=0; i<size; i++) {
@@ -470,15 +468,12 @@ struct stringlist* stringlist_from_listobj(PyObject* listObj) {
         const char* tmpstr;
         if (!PyString_Check(tmp)) {
             PyErr_SetString(PyExc_ValueError, "Expected a string in list.");
-            stringlist_delete(slist);
-            return NULL;
+            return 1;
         }
         tmpstr = (const char*) PyString_AsString(tmp);
         stringlist_push(slist, tmpstr);
-
     }
-
-    return slist;
+    return 0;
 }
 
 void stringlist_print(struct stringlist* slist) {
@@ -498,8 +493,7 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
     int status=0;
     int table_type=BINARY_TBL;
 
-    //static char *kwlist[] = {"ttyp","tform","tunit", "tdim", "extname", NULL};
-    static char *kwlist[] = {"tunit", "tdim", "extname", NULL};
+    static char *kwlist[] = {"ttyp","tform","tunit", "tdim", "extname", NULL};
     // these are all strings
     PyObject* ttypObj=NULL;
     PyObject* tformObj=NULL;
@@ -507,40 +501,43 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
     PyObject* tdimObj=NULL;     // optional
     PyObject* extnameObj=NULL;  // optional
 
-    struct stringlist* ttyp=NULL;
-    struct stringlist* tform=NULL;
     // these must be freed
-    /*
-    char **ttyp=NULL;
-    char **tform=NULL;
-    char **tunit=NULL;
-    char **tdim=NULL;
+    struct stringlist* ttyp=stringlist_new();
+    struct stringlist* tform=stringlist_new();
+    struct stringlist* tunit=stringlist_new();
+    struct stringlist* tdim=stringlist_new();
     char* extname=NULL;
-
-    int nfields=0;
-    */
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOO", kwlist,
                           &ttypObj, &tformObj, &tunitObj, &tdimObj, &extnameObj)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse array input");
         return NULL;
     }
 
-    printf("number in ttypObj: %ld\n", PyList_Size(ttypObj));
-    printf("number in tformObj: %ld\n", PyList_Size(tformObj));
-    ttyp = stringlist_from_listobj(ttypObj);
+    if (stringlist_addfrom_listobj(ttyp, ttypObj)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to extract ttyp list");
+        goto create_table_cleanup;
+    }
     stringlist_print(ttyp);
-    tform = stringlist_from_listobj(tformObj);
+    if (stringlist_addfrom_listobj(tform, tformObj)) {
+        PyErr_SetString(PyExc_RuntimeError, "failed to extract tform list");
+        goto create_table_cleanup;
+    }
     stringlist_print(tform);
+    if (tunitObj != NULL) {
+        if (stringlist_addfrom_listobj(tunit, tunitObj)) {
+            PyErr_SetString(PyExc_RuntimeError, "failed to extract tunit list");
+            goto create_table_cleanup;
+        }
+        stringlist_print(tunit);
+    }
+
 
 create_table_cleanup:
     ttyp = stringlist_delete(ttyp);
     tform = stringlist_delete(tform);
-    /*
-    free(tunit);
-    free(tdim);
+    tunit = stringlist_delete(tunit);
+    tdim = stringlist_delete(tdim);
     free(extname);
-    */
 
     Py_RETURN_NONE;
 }
@@ -732,7 +729,6 @@ PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
     PyObject* rowsobj;
 
     if (!PyArg_ParseTuple(args, (char*)"iiOO", &hdunum, &colnum, &array, &rowsobj)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse column number, array");
         return NULL;
     }
 
@@ -903,7 +899,6 @@ PyFITSObject_read_columns_as_rec(struct PyFITSObject* self, PyObject* args) {
     PyObject* rowsobj;
 
     if (!PyArg_ParseTuple(args, (char*)"iOOO", &hdunum, &columnsobj, &array, &rowsobj)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, column list, array, rows");
         return NULL;
     }
 
@@ -1006,7 +1001,6 @@ PyFITSObject_read_rows_as_rec(struct PyFITSObject* self, PyObject* args) {
     npy_int64* rows=NULL;
 
     if (!PyArg_ParseTuple(args, (char*)"iOO", &hdunum, &array, &rowsobj)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, array");
         return NULL;
     }
 
@@ -1095,7 +1089,6 @@ PyFITSObject_read_as_rec(struct PyFITSObject* self, PyObject* args) {
     void* data;
 
     if (!PyArg_ParseTuple(args, (char*)"iO", &hdunum, &array)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, array");
         return NULL;
     }
 
@@ -1155,7 +1148,6 @@ PyFITSObject_read_image_new(struct PyFITSObject* self, PyObject* args) {
     int anynul=0;
 
     if (!PyArg_ParseTuple(args, (char*)"i", &hdunum)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, array");
         return NULL;
     }
 
@@ -1251,7 +1243,6 @@ PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
     int anynul=0;
 
     if (!PyArg_ParseTuple(args, (char*)"iO", &hdunum, &array)) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to parse hdu number, array");
         return NULL;
     }
 
@@ -1320,7 +1311,7 @@ static PyMethodDef PyFITSObject_methods[] = {
     {"write_image",          (PyCFunction)PyFITSObject_write_image,          METH_VARARGS, "write_image\n\nWrite the input image to a new extension."},
     {"read_image",          (PyCFunction)PyFITSObject_read_image,          METH_VARARGS, "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
     {"test_write_new_table",          (PyCFunction)PyFITSObject_test_write_new_table,          METH_VARARGS, "test_write_new_table\n\nWrite the input image to a new extension."},
-    {"create_table",          (PyCFunction)PyFITSObject_create_table,          METH_VARARGS, "create_table\n\nCreate a new table with the input parameters."},
+    {"create_table",          (PyCFunction)PyFITSObject_create_table,          METH_KEYWORDS, "create_table\n\nCreate a new table with the input parameters."},
     {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
