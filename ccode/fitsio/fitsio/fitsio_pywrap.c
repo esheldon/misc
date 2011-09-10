@@ -318,12 +318,15 @@ npy_to_fits_table_type(int npy_dtype) {
         case NPY_FLOAT64:
             return TDOUBLE;
 
+        case NPY_STRING:
+            return TSTRING;
+
         case NPY_UINT64:
             PyErr_SetString(PyExc_TypeError, "Unsigned 8 byte integer images are not supported by the FITS standard");
             return -9999;
 
         default:
-            sprintf(mess,"Unsupported numpy image datatype %d", npy_dtype);
+            sprintf(mess,"Unsupported numpy table datatype %d", npy_dtype);
             PyErr_SetString(PyExc_TypeError, mess);
             return -9999;
     }
@@ -423,7 +426,7 @@ npy_to_fits_image_types(int npy_dtype, int *fits_img_type, int *fits_datatype) {
     return 0;
 }
 
-int get_ndim(PyObject* obj) {
+int pyarray_get_ndim(PyObject* obj) {
     PyArrayObject* arr;
     arr = (PyArrayObject*) obj;
     return arr->nd;
@@ -459,7 +462,7 @@ PyFITSObject_write_image(struct PyFITSObject* self, PyObject* args) {
         return NULL;
     }
 
-    ndims = get_ndim(array);
+    ndims = pyarray_get_ndim(array);
     // order must be reversed for FITS
     for (i=0; i<ndims; i++) {
         //dims[i] = PyArray_DIM(array, i);
@@ -495,10 +498,12 @@ struct stringlist* stringlist_new(void) {
 }
 // push a copy of the string onto the string list
 void stringlist_push(struct stringlist* slist, const char* str) {
+    size_t newsize=0;
     size_t slen=0;
     size_t i=0;
 
-    slist->data = realloc(slist->data, slist->size+1);
+    newsize = slist->size+1;
+    slist->data = realloc(slist->data, sizeof(char*)*newsize);
     slist->size += 1;
 
     i = slist->size-1;
@@ -510,8 +515,10 @@ void stringlist_push(struct stringlist* slist, const char* str) {
 struct stringlist* stringlist_delete(struct stringlist* slist) {
     if (slist != NULL) {
         size_t i=0;
-        for (i=0; i < slist->size; i++) {
-            free(slist->data[i]);
+        if (slist->data != NULL) {
+            for (i=0; i < slist->size; i++) {
+                free(slist->data[i]);
+            }
         }
         free(slist->data);
         free(slist);
@@ -551,6 +558,61 @@ void stringlist_print(struct stringlist* slist) {
     }
 }
 
+/*
+ * Write tdims from the list.  The list must be the expected length.
+ * Entries must be strings or None; if None the tdim is not written.
+ *
+ * The keys are written as TDIM{colnum}
+ */
+static int 
+add_tdims_from_listobj(fitsfile* fits, PyObject* tdimObj, int ncols) {
+    int status=0;
+    size_t size=0, i=0;
+    char keyname[20];
+    int colnum=0;
+    PyObject* tmp=NULL;
+    const char* tdim=NULL;
+
+    if (tdimObj == NULL || tdimObj == Py_None) {
+        // it is ok for it to be empty
+        return 0;
+    }
+
+    if (!PyList_Check(tdimObj)) {
+        PyErr_SetString(PyExc_ValueError, "Expected a list for tdims");
+        return 1;
+    }
+
+    size = PyList_Size(tdimObj);
+    if (size != ncols) {
+        PyErr_Format(PyExc_ValueError, "Expected %d elements in tdims list, got %ld", ncols, size);
+        return 1;
+    }
+
+    for (i=0; i<ncols; i++) {
+        colnum=i+1;
+        tmp = PyList_GetItem(tdimObj, i);
+        if (tmp != Py_None) {
+            if (!PyString_Check(tmp)) {
+                PyErr_SetString(PyExc_ValueError, "Expected only strings or None for tdim");
+                return 1;
+            }
+
+            tdim = (const char*) PyString_AsString(tmp);
+            sprintf(keyname, "TDIM%d", colnum);
+            if (fits_write_key(fits, TSTRING, keyname, tdim, NULL, &status)) {
+                set_ioerr_string_from_status(status);
+                return 1;
+            }
+        }
+    }
+
+/*
+int fits_write_key(fitsfile *fptr, int datatype, char *keyname, 
+        void *value, char *comment, int *status)
+        */
+}
+
 
 // create a new table structure.  No physical rows are added yet.
 static PyObject *
@@ -572,19 +634,21 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
     struct stringlist* ttyp=stringlist_new();
     struct stringlist* tform=stringlist_new();
     struct stringlist* tunit=stringlist_new();
-    struct stringlist* tdim=stringlist_new();
+    //struct stringlist* tdim=stringlist_new();
     char* extname=NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|OOO", kwlist,
                           &ttypObj, &tformObj, &tunitObj, &tdimObj, &extnameObj)) {
         return NULL;
     }
+    
 
     if (stringlist_addfrom_listobj(ttyp, ttypObj, "names")) {
         status=99;
         goto create_table_cleanup;
     }
     stringlist_print(ttyp);
+
     if (stringlist_addfrom_listobj(tform, tformObj, "formats")) {
         status=99;
         goto create_table_cleanup;
@@ -599,6 +663,7 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
         stringlist_print(tunit);
     }
 
+    /*
     if (tdimObj != NULL && tdimObj != Py_None) {
         if (stringlist_addfrom_listobj(tdim, tdimObj, "dims")) {
             status=99;
@@ -606,6 +671,7 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
         }
         stringlist_print(tdim);
     }
+    */
 
     if (extnameObj != NULL && extnameObj != Py_None) {
         char* tmp;
@@ -625,14 +691,19 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
                          ttyp->data, tform->data, tunit->data, extname, &status) ) {
         set_ioerr_string_from_status(status);
         goto create_table_cleanup;
-        return NULL;
     }
 
+    /*
+    if (add_tdims_from_listobj(self->fits, tdimObj, nfields)) {
+        status=99;
+        goto create_table_cleanup;
+    }
+    */
 create_table_cleanup:
     ttyp = stringlist_delete(ttyp);
     tform = stringlist_delete(tform);
     tunit = stringlist_delete(tunit);
-    tdim = stringlist_delete(tdim);
+    //tdim = stringlist_delete(tdim);
     free(extname);
 
     if (status != 0) {
@@ -676,6 +747,9 @@ PyFITSObject_write_column(struct PyFITSObject* self, PyObject* args) {
     if (fits_dtype == -9999) {
         return NULL;
     }
+
+    fprintf(stderr,"twidth: %lld\n", self->fits->Fptr->tableptr[colnum-1].twidth);
+    fprintf(stderr,"trepeat: %lld\n", self->fits->Fptr->tableptr[colnum-1].trepeat);
 
     nrows = PyArray_SIZE(array);
     data = PyArray_DATA(array);
