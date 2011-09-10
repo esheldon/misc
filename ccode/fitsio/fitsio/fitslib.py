@@ -115,11 +115,33 @@ class FITS:
         self._FITS.write_image(img)
         self.update_hdu_list()
 
-    def _create_table(self):
-        ttyp=['col1','col2']
-        tform=['J','B']
-        tunit = ['km/s', 'none']
-        self._FITS.create_table(ttyp,tform, tunit=tunit)
+    def write_column(self, colnum, data):
+        """
+        """
+
+        data = numpy.array(data, ndmin=1, order='F')
+        self._FITS.write_column(colnum, data)
+
+    def _create_table(self, names, formats, units=None, dims=None, extname=None):
+        if not isinstance(names,list) or not isinstance(formats,list):
+            raise ValueError("names and formats should be lists")
+        if len(names) != len(formats):
+            raise ValueError("names and formats must be same length")
+        if units is not None:
+            if not isinstance(units,list):
+                raise ValueError("units should be a list")
+            if len(units) != len(names):
+                raise ValueError("names and units must be same length")
+        if dims is not None:
+            if not isinstance(dims,list):
+                raise ValueError("dims should be a list")
+            if len(dims) != len(names):
+                raise ValueError("names and dims must be same length")
+        if extname is not None:
+            if not isinstance(extname,str):
+                raise ValueError("extension name must be a string")
+        self._FITS.create_table(names, formats, tunit=units, tdim=dims, extname=extname)
+
 
     def update_hdu_list(self):
         self.hdu_list = []
@@ -625,7 +647,14 @@ def test_create():
 def test_create_table():
     fname='test-write-table.fits'
     with FITS(fname,'rw',create=True,clobber=True) as fits:
-        fits._create_table()
+        names=['col1','col2']
+        formats=['J','B']
+        units = ['km/s', 'day']
+        extname = 'MyTable'
+        dims=['(3,4)','(2,3,4)']
+        fits._create_table(names, formats, units=units, dims=dims, extname=extname)
+
+        #fits.write_column([3,4,5])
 
 def test_write_new_table(type=BINARY_TBL):
     fname='test-write-table.fits'
