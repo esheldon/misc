@@ -94,8 +94,9 @@ class FITS:
 
     def reopen(self):
         """
-        CFITSIO is unpredictable about flushing it's buffers.  It is necessary
-        to close and reopen after writing tables.
+        CFITSIO is unpredictable about flushing it's buffers.  It is sometimes
+        necessary to close and reopen after writing if you want to read the
+        data.
         """
         self._FITS.close()
         del self._FITS
@@ -105,28 +106,68 @@ class FITS:
 
     def write_image(self, img):
         """
-        write a new image to the fits file.  File must be opened READWRITE
+        Create a new image extension and write the data.  
 
-        Split this into a create_image in FITS and a write() method
-        in the FITSHDU class?
+        Unlike tables, the only way to create image extensions and write the
+        data is atomically using this function.
 
         parameters
         ----------
         img: ndarray
             An n-dimensional image.
+
+        restrictions
+        ------------
+        The File must be opened READWRITE
         """
         print 'writing image type:',img.dtype.descr
         self._FITS.write_image(img)
         self.update_hdu_list()
 
+    def write_table(self, data, units=None, extname=None):
+        """
+        Create a new table extension and write the data.
+
+        The table definition is taken from the input rec array.  If you
+        want to append new rows to the table, access the HDU directly
+        and use the write() function, e.g.
+            fits[extension].write(data, append_rows=True)
+
+        parameters
+        ----------
+        data: recarray
+            A numpy array with fields.  The table definition will be
+            determined from this array.
+        extname: string, optional
+            An optional string for the extension name.
+        """
+
+        if data.dtype.fields == None:
+            raise ValueError("data must have fields")
+        names, formats, dims = descr2tabledef(data.dtype.descr)
+        print names
+        print formats
+        print dims
+        self.create_table(names,formats,
+                          units=units, dims=dims, extname=extname)
+        
+        for colnum,name in enumerate(data.dtype.names):
+            self[-1].write_column(colnum, data[name])
 
     def create_table(self, names, formats, units=None, dims=None, extname=None):
         """
         Create a new, empty table extension and reload the hdu list.
 
-        You can write data into the extension using
+        You can write data into the new extension using
             fits[extension].write(array)
             fits[extension].write_column(array)
+
+        typically you will instead just use 
+
+            fits.write(recarray)
+
+        which will create the new table extension for you with the appropriate
+        fields.
 
         parameters
         ----------
@@ -141,6 +182,10 @@ class FITS:
             match the repeat count for the formats fields.
         extname: string, optional
             An optional extension name.
+
+        restrictions
+        ------------
+        The File must be opened READWRITE
         """
 
         if not isinstance(names,list) or not isinstance(formats,list):
@@ -183,15 +228,11 @@ class FITS:
         if not hasattr(self, 'hdu_list'):
             self.update_hdu_list()
 
-        n_ext = len(self.hdu_list)
         if isinstance(ext,(int,long)):
-            if (ext < 0) or (ext > (n_ext-1)):
-                raise ValueError("extension number %s out of "
-                                 "bounds [%d,%d]" % (ext,0,n_ext-1))
+            return self.hdu_list[ext]
         else:
             raise ValueError("don't yet support getting "
                              "extensions by name")
-        return self.hdu_list[ext]
 
 
     def __repr__(self):
@@ -236,6 +277,7 @@ class FITSHDU:
 
     def write_column(self, column, data):
         """
+        Write data to a column in this HDU
         """
 
         colnum = self._extract_colnum(column)
@@ -609,6 +651,139 @@ def extract_filename(filename):
     return filename
 
 
+def descr2tabledef(descr):
+    """
+    Create a FITS table def from the input numpy descriptor.
+
+    parameters
+    ----------
+    descr: list
+        A numpy recarray type descriptor  array.dtype.descr
+
+    returns
+    -------
+    names, formats, dims: tuple of lists
+        These are the ttyp, tform and tdim header entries
+        for each field.  dim entries may be None
+    """
+    names=[]
+    formats=[]
+    dims=[]
+
+    for d in descr:
+        if len(d) == 2:
+            # this is a scalar column
+            shape = None
+        else:
+            shape = d[2]
+
+        # these have the form '<f4' or '|S25', etc.  Extract the pure type
+        npy_dtype = d[1][1:]
+        if npy_dtype[0] == 'S':
+            name, form, dim = npy_string2fits(d)
+        else:
+            name, form, dim = npy_num2fits(d)
+
+        names.append(name)
+        formats.append(form)
+        dims.append(dim)
+
+    return names, formats, dims
+
+def npy_num2fits(d):
+    """
+    d is the full element from the descr
+
+    For vector,array columns the form is the total counts
+    followed by the code.
+
+    For array columns with dimension greater than 1, the dim is set to
+        (dim1, dim2, ...)
+    So it is treated like an extra dimension
+        
+    """
+
+    dim = None
+
+    name = d[0]
+
+    npy_dtype = d[1][1:]
+    if npy_dtype[0] == 'S':
+        raise ValueError("got S type: use npy_string2fits")
+
+    if npy_dtype not in _table_npy2fits_form:
+        raise ValueError("unsupported type '%s'" % npy_dtype)
+    form = _table_npy2fits_form[npy_dtype]
+
+    # now the dimensions
+    if len(d) > 2:
+        if isinstance(d[2], tuple):
+            # this is an array column.  the form
+            # should be total elements followed by A
+            #count = 1
+            #count = [count*el for el in d[2]]
+            count=reduce(lambda x, y: x*y, d[2])
+            form = '%d%s' % (count,form)
+
+            # will have to do tests to see if this is the right order
+            dim = [str(e) for e in d[2]]
+            dim = '(' + ','.join(dim)+')'
+        else:
+            # this is a vector (1d array) column
+            count = d[2]
+            form = '%d%s' % (count,form)
+
+    return name, form, dim
+
+
+def npy_string2fits(d):
+    """
+    d is the full element from the descr
+
+    form for strings is the total number of bytes followed by A.  Thus
+    for vector or array columns it is the size of the string times the
+    total number of elements in the array.
+
+    Then the dim is set to
+        (sizeofeachstring, dim1, dim2, ...)
+    So it is treated like an extra dimension
+        
+    """
+
+    dim = None
+
+    name = d[0]
+
+    npy_dtype = d[1][1:]
+    if npy_dtype[0] != 'S':
+        raise ValueError("expected S type")
+
+    # get the size of each string
+    string_size_str = npy_dtype[1:]
+    string_size = int(string_size_str)
+
+    # now the dimensions
+    if len(d) == 2:
+        form = string_size_str+'A'
+    else:
+        if isinstance(d[2], tuple):
+            # this is an array column.  the form
+            # should be total elements followed by A
+            #count = 1
+            #count = [count*el for el in d[2]]
+            count=reduce(lambda x, y: x*y, d[2])
+            count = string_size*count
+            form = '%dA' % count
+
+            # will have to do tests to see if this is the right order
+            dim = [string_size_str] + [str(e) for e in d[2]]
+            dim = '(' + ','.join(dim)+')'
+        else:
+            # this is a vector (1d array) column
+            count = string_size*d[2]
+            form = '%dA' % count
+
+    return name, form, dim
 
 
 READONLY=0
@@ -646,12 +821,16 @@ _table_fits2npy = {11:'u1',
 # for TFORM
 # note actually there are no unsigned, they get scaled
 # and converted to signed.  When reading, can only do signed.
-_table_npy2fits_str = {'u1':'B',
-                       'S' :'A',
-                       'i2':'I',
-                       'i4':'J',
-                       'f4':'E',
-                       'f8':'D'}
+_table_npy2fits_form = {'u1':'B',
+                        'i1':'S', # gets converted to unsigned
+                        'S' :'A',
+                        'u2':'U', # gets converted to signed
+                        'i2':'I',
+                        'u4':'V', # gets converted to signed
+                        'i4':'J',
+                        'i8':'K',
+                        'f4':'E',
+                        'f8':'D'}
 
 # remember, you should be using the equivalent image type for this
 _image_bitpix2npy = {8: 'u1',
@@ -677,24 +856,31 @@ def test_create():
     if os.path.exists(fname):
         os.remove(fname)
 
-def test_create_table():
+def test_write_table():
     fname='test-write-table.fits'
+    dtype=[('f','f4'),
+           ('fvec','f4',3),
+           ('farr','f4',(2,3)),#] 
+           ('s','S8')]#,
+           #('svec','S12',3),
+           #('sarr','S5',(3,4))]
+    nrows=4
+    data=numpy.zeros(4, dtype=dtype)
+
+    data['f'] = numpy.random.random(nrows)
+    data['fvec'] = numpy.random.random(nrows*3).reshape(nrows,3)
+    data['farr'] = numpy.random.random(nrows*2*3).reshape(nrows,2,3)
+    data['s'] = ['hello','world','and','bye']
+
+    print 'writing to:',fname
     with FITS(fname,'rw',create=True,clobber=True) as fits:
-        names=['col1','col2']
-        formats=['J','B']
-        units = ['km/s', 'day']
-        extname = 'MyTable'
-        dims=['(3,4)','(2,3,4)']
-        fits.create_table(names, formats, units=units, dims=dims, extname=extname)
+        fits.write_table(data)
 
-        fits[1].write_column("col1", [3,4,5])
+    return
+    with FITS(fname,'r') as fits:
+        return fits[-1].read()
 
-        # hmm... more flushing problems.
-        fits.reopen()
-        print fits[1].read_column('col1')
-        print fits[1].read()
-
-def test_write_new_table(type=BINARY_TBL):
+def test_write_new_table_old(type=BINARY_TBL):
     fname='test-write-table.fits'
     with FITS(fname,'rw',create=True,clobber=True) as fits:
         fits._FITS.test_write_new_table()
