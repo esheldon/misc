@@ -768,6 +768,8 @@ int write_string_column(
 static PyObject *
 PyFITSObject_write_column(struct PyFITSObject* self, PyObject* args) {
     int status=0;
+    int hdunum=0;
+    int hdutype=0;
     int colnum=0;
     PyObject* array=NULL;
 
@@ -782,9 +784,15 @@ PyFITSObject_write_column(struct PyFITSObject* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "fits file is NULL");
     }
 
-    if (!PyArg_ParseTuple(args, (char*)"iO", &colnum, &array)) {
+    if (!PyArg_ParseTuple(args, (char*)"iiO", &hdunum, &colnum, &array)) {
         return NULL;
     }
+
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
 
     if (!PyArray_Check(array)) {
         PyErr_SetString(PyExc_ValueError,"only arrays can be written to columns");
@@ -943,24 +951,133 @@ static int read_column_bytes_byrow(
     return 0;
 }
 
+// let python do the conversions
+static PyObject *
+PyFITSObject_write_string_key(struct PyFITSObject* self, PyObject* args) {
+    int status=0;
+    int hdunum=0;
+    int hdutype=0;
 
+    char* keyname=NULL;
+    char* value=NULL;
+    char* comment=NULL;
+    char* comment_in=NULL;
+ 
+    if (!PyArg_ParseTuple(args, (char*)"isss", &hdunum, &keyname, &value, &comment_in)) {
+        return NULL;
+    }
 
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
+        return NULL;
+    }
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    if (strlen(comment_in) > 0) {
+        comment=comment_in;
+    }
+
+    if (ffukys(self->fits, keyname, value, comment, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+ 
+static PyObject *
+PyFITSObject_write_double_key(struct PyFITSObject* self, PyObject* args) {
+    int status=0;
+    int hdunum=0;
+    int hdutype=0;
+
+    int decimals=-15;
+
+    char* keyname=NULL;
+    double value=0;
+    char* comment=NULL;
+    char* comment_in=NULL;
+ 
+    if (!PyArg_ParseTuple(args, (char*)"isds", &hdunum, &keyname, &value, &comment_in)) {
+        return NULL;
+    }
+
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
+        return NULL;
+    }
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    if (strlen(comment_in) > 0) {
+        comment=comment_in;
+    }
+
+    if (ffukyd(self->fits, keyname, value, decimals, comment, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+ 
+static PyObject *
+PyFITSObject_write_long_key(struct PyFITSObject* self, PyObject* args) {
+    int status=0;
+    int hdunum=0;
+    int hdutype=0;
+
+    char* keyname=NULL;
+    long value=0;
+    char* comment=NULL;
+    char* comment_in=NULL;
+ 
+    if (!PyArg_ParseTuple(args, (char*)"isls", &hdunum, &keyname, &value, &comment_in)) {
+        return NULL;
+    }
+
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
+        return NULL;
+    }
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    if (strlen(comment_in) > 0) {
+        comment=comment_in;
+    }
+
+    if (ffukyj(self->fits, keyname, (LONGLONG) value, comment, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+ 
 // read from a column into a contiguous array.  Don't yet
 // support subset of rows.
 //
 // no error checking on the input array is performed!!
 static PyObject *
 PyFITSObject_read_column(struct PyFITSObject* self, PyObject* args) {
-    int hdunum;
-    int hdutype;
-    int colnum;
+    int hdunum=0;
+    int hdutype=0;
+    int colnum=0;
 
     FITSfile* hdu=NULL;
-    tcolumn* col;
+    tcolumn* col=NULL;
     int status=0;
 
-    PyObject* array;
-    void* data;
+    PyObject* array=NULL;
+    void* data=NULL;
     npy_intp stride=0;
 
     PyObject* rowsobj;
@@ -1121,19 +1238,19 @@ static int read_rec_column_bytes_byrow(
 // python method for reading specified columns and rows
 static PyObject *
 PyFITSObject_read_columns_as_rec(struct PyFITSObject* self, PyObject* args) {
-    int hdunum;
-    int hdutype;
-    npy_intp ncols;
+    int hdunum=0;
+    int hdutype=0;
+    npy_intp ncols=0;
     npy_int64* colnums=NULL;
 
     FITSfile* hdu=NULL;
     int status=0;
 
-    PyObject* columnsobj;
-    PyObject* array;
-    void* data;
+    PyObject* columnsobj=NULL;
+    PyObject* array=NULL;
+    void* data=NULL;
 
-    PyObject* rowsobj;
+    PyObject* rowsobj=NULL;
 
     if (!PyArg_ParseTuple(args, (char*)"iOOO", &hdunum, &columnsobj, &array, &rowsobj)) {
         return NULL;
@@ -1225,13 +1342,13 @@ static int read_rec_bytes_byrow(
 // python method to read all columns but subset of rows
 static PyObject *
 PyFITSObject_read_rows_as_rec(struct PyFITSObject* self, PyObject* args) {
-    int hdunum;
-    int hdutype;
+    int hdunum=0;
+    int hdutype=0;
 
     FITSfile* hdu=NULL;
     int status=0;
-    PyObject* array;
-    void* data;
+    PyObject* array=NULL;
+    void* data=NULL;
 
     PyObject* rowsobj=NULL;
     npy_intp nrows=0;
@@ -1317,13 +1434,13 @@ static int read_rec_bytes(fitsfile* fits, void* data, int* status) {
 // read entire table at once
 static PyObject *
 PyFITSObject_read_as_rec(struct PyFITSObject* self, PyObject* args) {
-    int hdunum;
-    int hdutype;
+    int hdunum=0;
+    int hdutype=0;
 
     FITSfile* hdu=NULL;
     int status=0;
-    PyObject* array;
-    void* data;
+    PyObject* array=NULL;
+    void* data=NULL;
 
     if (!PyArg_ParseTuple(args, (char*)"iO", &hdunum, &array)) {
         return NULL;
@@ -1458,14 +1575,13 @@ PyFITSObject_read_image_new(struct PyFITSObject* self, PyObject* args) {
 // of the input array is done.
 static PyObject *
 PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
-    int hdunum;
-    int hdutype;
+    int hdunum=0;
+    int hdutype=0;
     int status=0;
     PyObject* array=NULL;
     void* data=NULL;
     int npy_dtype=0;
     int dummy=0, fits_read_dtype=0;
-    //FITSfile* hdu=NULL;
 
     int maxdim=10;
     int datatype=0; // type info for axis
@@ -1524,6 +1640,64 @@ PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
+// read the entire header as a list of strings
+static PyObject *
+PyFITSObject_read_header(struct PyFITSObject* self, PyObject* args) {
+    int status=0;
+    int hdunum=0;
+    int hdutype=0;
+
+    char keyname[FLEN_KEYWORD];
+    char value[FLEN_VALUE];
+    char comment[FLEN_COMMENT];
+
+    int nkeys=0, morekeys=0, i=0;
+
+    PyObject* list=NULL;
+    PyObject* dict=NULL;  // to hold the dict for each record
+
+
+    if (!PyArg_ParseTuple(args, (char*)"i", &hdunum)) {
+        return NULL;
+    }
+
+    if (self->fits == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FITS file is NULL");
+        return NULL;
+    }
+    if (fits_movabs_hdu(self->fits, hdunum, &hdutype, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    if (fits_get_hdrspace(self->fits, &nkeys, &morekeys, &status)) {
+        set_ioerr_string_from_status(status);
+        return NULL;
+    }
+
+    list=PyList_New(nkeys);
+    for (i=0; i<nkeys; i++) {
+        // this just returns the character string stored in the header; we
+        // can eval in python
+        if (fits_read_keyn(self->fits, i+1, keyname, value, comment, &status)) {
+            // is this enough?
+            Py_XDECREF(list);
+            set_ioerr_string_from_status(status);
+            return NULL;
+        }
+
+        dict = PyDict_New();
+        PyDict_SetItemString(dict, "name", PyString_FromString(keyname));
+        PyDict_SetItemString(dict, "value", PyString_FromString(value));
+        PyDict_SetItemString(dict, "comment", PyString_FromString(comment));
+
+        PyList_SetItem(list, i, dict);
+
+    }
+
+    return list;
+}
+ 
 
 static PyMethodDef PyFITSObject_methods[] = {
     {"moveabs_hdu",          (PyCFunction)PyFITSObject_moveabs_hdu,          METH_VARARGS, "moveabs_hdu\n\nMove to the specified HDU."},
@@ -1534,8 +1708,12 @@ static PyMethodDef PyFITSObject_methods[] = {
     {"read_as_rec",          (PyCFunction)PyFITSObject_read_as_rec,          METH_VARARGS, "read_as_rec\n\nRead the entire data set into the input rec array.  No checking of array is done."},
     {"write_image",          (PyCFunction)PyFITSObject_write_image,          METH_VARARGS, "write_image\n\nWrite the input image to a new extension."},
     {"read_image",           (PyCFunction)PyFITSObject_read_image,           METH_VARARGS, "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
+    {"read_header",           (PyCFunction)PyFITSObject_read_header,           METH_VARARGS, "read_header\n\nRead the entire header as a list of dictionaries."},
     {"create_table",         (PyCFunction)PyFITSObject_create_table,         METH_KEYWORDS, "create_table\n\nCreate a new table with the input parameters."},
     {"write_column",         (PyCFunction)PyFITSObject_write_column,         METH_KEYWORDS, "write_column\n\nWrite a column into the current table."},
+    {"write_string_key",         (PyCFunction)PyFITSObject_write_string_key,         METH_KEYWORDS, "write_string_key\n\nWrite a string key into the specified HDU."},
+    {"write_double_key",         (PyCFunction)PyFITSObject_write_double_key,         METH_KEYWORDS, "write_double_key\n\nWrite a double key into the specified HDU."},
+    {"write_long_key",         (PyCFunction)PyFITSObject_write_long_key,         METH_KEYWORDS, "write_long_key\n\nWrite a long key into the specified HDU."},
     {"close",                (PyCFunction)PyFITSObject_close,                METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
