@@ -26,19 +26,18 @@ Advantages
 TODO
 ----
     - test reading of all types both in read rec mode and read single
-      column mode.
-    - read header all at once, with types, into some kind of ordered
-      dict.  Maybe new class for header?
-    - read single header keywords
-    - write/update single header keywords
+      column mode.  Also with subsets of rows.
 
     - write TDIM using standard routines
     - append rows to tables
-    - writing extension names, reading by extension names
+    - access by extension names
     - read row ranges
     - implement bit, logical, and complex types
     - write with compression.  Should be straightforward.
 
+    - explore separate classes for image and table HDUs
+
+    - error checking creating, appending python lists in the c code
 NOTES:
     A principle: 
         
@@ -51,6 +50,7 @@ NOTES:
 import os
 import numpy
 from . import _fitsio_wrap
+import copy
 
 class FITS:
     """
@@ -143,7 +143,7 @@ class FITS:
         self._FITS.write_image(img)
         self.reopen()
 
-    def write_table(self, data, units=None, extname=None):
+    def write_table(self, data, units=None, extname=None, header=None):
         """
         Create a new table extension and write the data.
 
@@ -159,19 +159,32 @@ class FITS:
             determined from this array.
         extname: string, optional
             An optional string for the extension name.
+        header: FITSHDR, list, dict
+            A set of header keys to write. The keys are written before the data
+            is written to the table, preventing a resizing of the table area.
+            
+            Must be one of these:
+                - FITSHDR object
+                - list of dictionaries containing 'name','value' and optionally
+                  a 'comment' field.
+                - a dictionary of keyword-value pairs; no comments are written
+                  in this case, and the order is arbitrary
+
+
         """
 
         if data.dtype.fields == None:
             raise ValueError("data must have fields")
         names, formats, dims = descr2tabledef(data.dtype.descr)
         self.create_table(names,formats,
-                          units=units, dims=dims, extname=extname)
+                          units=units, dims=dims, extname=extname,
+                          header=header)
         
         for colnum,name in enumerate(data.dtype.names):
             self[-1].write_column(colnum, data[name])
         self.reopen()
 
-    def create_table(self, names, formats, units=None, dims=None, extname=None):
+    def create_table(self, names, formats, units=None, dims=None, extname=None, header=None):
         """
         Create a new, empty table extension and reload the hdu list.
 
@@ -199,6 +212,14 @@ class FITS:
             match the repeat count for the formats fields.
         extname: string, optional
             An optional extension name.
+        header: FITSHDR, list, dict
+            A set of header keys to write. Must be one of these:
+                - FITSHDR object
+                - list of dictionaries containing 'name','value' and optionally
+                  a 'comment' field.
+                - a dictionary of keyword-value pairs; no comments are written
+                  in this case, and the order is arbitrary
+
 
         restrictions
         ------------
@@ -226,6 +247,9 @@ class FITS:
 
         # fits seems to have some issues with flushing.
         self.reopen()
+
+        if header is not None:
+            self[-1].write_keys(header)
 
 
     def update_hdu_list(self):
@@ -292,19 +316,121 @@ class FITSHDU:
         self.ext = ext
         self._update_info()
 
+    def write_key(self, keyname, value, comment=""):
+        """
+        Write the input value to the header
+
+        parameters
+        ----------
+        keyname: string
+            Name of keyword to write/update
+        value: scalar
+            Value to write, can be string float or integer type,
+            including numpy scalar types.
+        comment: string, optional
+            An optional comment to write for this key
+        """
+
+        stypes = (str,unicode,numpy.string_)
+        ftypes = (float,numpy.float32,numpy.float64)
+        itypes = (int,long,
+                  numpy.uint8,numpy.int8,
+                  numpy.uint16,numpy.int16,
+                  numpy.uint32,numpy.int32,
+                  numpy.uint64,numpy.int64)
+
+
+        if isinstance(value, stypes):
+            self._FITS.write_string_key(self.ext+1,
+                                        str(keyname),
+                                        str(value),
+                                        str(comment))
+        elif isinstance(value, ftypes):
+            self._FITS.write_double_key(self.ext+1,
+                                        str(keyname),
+                                        float(value),
+                                        str(comment))
+        elif isinstance(value, itypes):
+            self._FITS.write_long_key(self.ext+1,
+                                      str(keyname),
+                                      int(value),
+                                      str(comment))
+
+    def write_keys(self, records):
+        """
+        Write the keywords to the header.
+
+        parameters
+        ----------
+        records: FITSHDR or list or dict
+            Must be one of these:
+                - FITSHDR object
+                - list of dictionaries containing 'name','value' and optionally
+                  a 'comment' field.
+                - a dictionary of keyword-value pairs; no comments are written
+                  in this case, and the order is arbitrary
+        """
+
+        if isinstance(records, dict):
+            for k in records:
+                self.write_key(k,records[k])
+        else:
+            if isinstance(records,list):
+                h = FITSHRD(records)
+            elif isinstance(records,FITSHDR):
+                h = records
+
+            for r in h.records():
+                name=r['name']
+                value=r['value']
+                comment = r.get('comment','')
+                self.write_key(name,value,comment)
+
     def write_column(self, column, data):
         """
         Write data to a column in this HDU
+
+        parameters
+        ----------
+        column: scalar string/integer
+            The column in which to write.  Can be the name or number (0 offset)
+        column: ndarray
+            Numerical python array to write.  This should match the
+            shape of the column.  You are probably better using fits.write_table()
+            to be sure.
         """
 
         colnum = self._extract_colnum(column)
-        #data = numpy.array(data, ndmin=1, order='F')
-        # need it contiguous
+
+        # need it to be contiguous and native byte order.  For now, make a
+        # copy.  but we may be able to avoid this with some care.
         data = numpy.array(data, ndmin=1)
-        #print 'writing',data.size,'to column',column
-        self._FITS.write_column(colnum+1, data)
+        self._FITS.write_column(self.ext+1, colnum+1, data)
+
+    def read_header(self):
+        """
+        Read the header as a FITSHDR
+
+        The FITSHDR allows access to the values and comments by name and
+        number.
+        """
+        return FITSHDR(self._FITS.read_header(self.ext+1))
 
 
+    def read_header_list(self):
+        """
+        Read the header as a list of dictionaries.
+
+        You will usually use read_header instead, which just sends this to the
+        constructor of a FITSHDR, which allows access to the values and
+        comments by name and number.
+
+        Each dictionary is
+            'name': the keyword name
+            'value': the value field as a string
+            'comment': the comment field as a string.
+        """
+        return self._FITS.read_header(self.ext+1)
 
     def read(self, columns=None, rows=None):
         """
@@ -830,8 +956,83 @@ def npy_string2fits(d):
 
     return name, form, dim
 
- 
+class FITSHDR:
+    def __init__(self, record_list=None):
+        self._record_list = []
+        self._record_map = {}
 
+        if record_list is not None:
+
+            if isinstance(record_list, dict):
+                record_list = [record_list]
+            elif not isinstance(record_list, list):
+                raise ValueError("expected a list of dicts")
+
+            for h in record_list:
+                self.add_record(h)
+
+    def add_record(self, record):   
+        self.check_record(record)
+        self._record_list.append(record)
+        self._add_to_map(record, len(self._record_list)-1)
+
+    def _add_to_map(self, record, num):
+        self._record_map[record['name']] = record
+        self._record_map[num] = record
+
+    def check_record(self, record):
+        if not isinstance(record,dict):
+            raise ValueError("each record must be a dictionary")
+        if 'name' not in record:
+            raise ValueError("each record must have a 'name' field")
+        if 'value' not in record:
+            raise ValueError("each record must have a 'value' field")
+
+    def get_comment(self, item):
+        if item not in self._record_map:
+            raise ValueError("unknown record: %s" % item)
+        if 'comment' not in self._record_map[item]:
+            return None
+        else:
+            return self._record_map[item]['comment']
+
+    def records(self):
+        """
+        Return the list of full records as a list of dictionaries.
+        """
+        return self._record_list
+
+    def keys(self):
+        """
+        Return a copy of the current key list.
+        """
+        return [e['name'] for e in self._record_list]
+
+    def __len__(self):
+        return len(self._record_list)
+
+    def __contains__(self, item):
+        return item in self._record_map
+
+    def __getitem__(self, item):
+        if item not in self._record_map:
+            raise ValueError("unknown record: %s" % item)
+        return eval(self._record_map[item]['value'])
+
+    def __repr__(self):
+        rep=[]
+        for record in self._record_list:
+            if record['value'][0] == "'":
+                v = '%-8s= %-20s' % (record['name'],record['value'])
+            else:
+                v = '%-8s= %20s' % (record['name'],record['value'])
+            if 'comment' in record:
+                v = '%s / %s' % (v,record['comment'])
+
+            rep.append(v)
+        
+        rep = '\n'.join(rep)
+        return rep
 
 READONLY=0
 READWRITE=1
@@ -929,7 +1130,16 @@ def test_write_table():
     print data
     print 'writing to:',fname
     with FITS(fname,'rw',create=True,clobber=True) as fits:
-        fits.write_table(data)
+        header = {'test1':35,
+                  'test2':'stuff',
+                  'test3':'blah blah',
+                  'dbl': 23.299843,
+                  'lng':3423432}
+        fits.write_table(data, header=header)
+        fits[-1].write_key("keysnc", "hello")
+        fits[-1].write_key("keysc", "hello","a comment for string")
+        fits[-1].write_key("keydc", numpy.pi,"a comment for pi")
+        fits[-1].write_key("keylc", 323423432,"a comment for long")
 
     with FITS(fname,'r') as fits:
 
@@ -950,6 +1160,8 @@ def test_write_table():
         if 's' in data.dtype.names and 'svec' in data.dtype.names:
             print 's,sarr:',fits[-1].read_columns(['s','sarr'])
 
+        h = fits[-1].read_header()
+        print h
         return fits[-1].read()
 
 def test_write_image(dtype):
