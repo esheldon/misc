@@ -289,7 +289,7 @@ class FITS:
         for i,hdu in enumerate(self.hdu_list):
             t = hdu.info['hdutype']
             name = hdu.info['extname']
-            rep.append("%s%d %-15s %s" % (spacing, i, _hdu_type_map[t], name))
+            rep.append("%s%-6d %-15s %s" % (spacing, i, _hdu_type_map[t], name))
 
         rep = '\n'.join(rep)
         return rep
@@ -750,8 +750,11 @@ class FITSHDU:
     def __repr__(self):
         spacing = ' '*2
         text = []
-        text.append("%sHDU: %d" % (spacing,self.info['hdunum']))
+        #text.append("%sHDU: %d" % (spacing,self.info['hdunum']))
+        text.append("%sextension: %d" % (spacing,self.info['hdunum']-1))
         text.append("%stype: %s" % (spacing,_hdu_type_map[self.info['hdutype']]))
+        if self.info['extname'] != "":
+            text.append("%sextname: %s" % (spacing,self.info['extname']))
         
         if self.info['hdutype'] == _hdu_type_map['IMAGE_HDU']:
             text.append("%simage info:" % spacing)
