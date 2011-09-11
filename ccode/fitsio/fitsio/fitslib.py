@@ -2,7 +2,7 @@
 Features
 --------
     - Read subsets of table rows and columns.
-    - Read and write all image types.  Can read compressed images.
+    - Read and write all supported image types.  Can read compressed images.
     - Correctly interpret TDIM information for array columns.
     - Read and write all image types.  Can read compressed images.
 
@@ -10,20 +10,25 @@ Features
 Advantages
 ----------
 
-    - Can read arbitrary subsets of columns and rows without loading the whole
-      file.
+    - Read arbitrary subsets of table columns and rows without loading the
+      whole file.
+
     - Uses TDIM information to return array columns in the correct shape
-    - Can write unsigned types.  Note the FITS standard does not support
-      unsigned 8 byte yet.
-    - Correctly writes 1 byte integers table columns, both signed and unsigned.
-    - Correctly write string table columns.
-    - Correctly read all types and shapes of string columns.
+    - Correctly writes and reads string table columns, including array columns
+      of arbitrary shape.
+
+    - Supports unsigned types the only way the FITS standard allows, by
+      converting to signed.  Note the FITS standard does not support.  Similarly,
+      signed byte are converted to unsigned.  Be careful of this feature!
+
+    - Correctly writes 1 byte integers table columns.
 
 TODO
 ----
     - test reading of all types both in read rec mode and read single
-        column mode.
-    - read header in entirety, with types.  Maybe new class for header?
+      column mode.
+    - read header all at once, with types, into some kind of ordered
+      dict.  Maybe new class for header?
     - read single header keywords
     - write/update single header keywords
 
@@ -32,6 +37,7 @@ TODO
     - writing extension names, reading by extension names
     - read row ranges
     - implement bit, logical, and complex types
+    - write with compression.  Should be straightforward.
 
 NOTES:
     A principle: 
@@ -44,7 +50,7 @@ NOTES:
 """
 import os
 import numpy
-import _fitsio_wrap
+from . import _fitsio_wrap
 
 class FITS:
     """
@@ -135,7 +141,7 @@ class FITS:
         """
         print 'writing image type:',img.dtype.descr
         self._FITS.write_image(img)
-        self.update_hdu_list()
+        self.reopen()
 
     def write_table(self, data, units=None, extname=None):
         """
@@ -158,14 +164,12 @@ class FITS:
         if data.dtype.fields == None:
             raise ValueError("data must have fields")
         names, formats, dims = descr2tabledef(data.dtype.descr)
-        print names
-        print formats
-        print dims
         self.create_table(names,formats,
                           units=units, dims=dims, extname=extname)
         
         for colnum,name in enumerate(data.dtype.names):
             self[-1].write_column(colnum, data[name])
+        self.reopen()
 
     def create_table(self, names, formats, units=None, dims=None, extname=None):
         """
@@ -886,18 +890,6 @@ _image_bitpix2npy = {8: 'u1',
                      -32: 'f4',
                      -64: 'f8'}
 
-def test_create():
-    fname='test-write.fits'
-    mode='rw'
-
-    fits1 = FITS(fname,mode,create=True,clobber=True)
-    try:
-        fits2 = FITS(fname,mode,create=True)
-    except IOError:
-        print 'Caught expected exception on existing file'
-
-    if os.path.exists(fname):
-        os.remove(fname)
 
 def test_write_table():
     fname='test-write-table.fits'
@@ -905,9 +897,9 @@ def test_write_table():
            ('f','f4'),
            ('fvec','f4',2),
            ('darr','f8',(2,3)),#] 
-           ('s','S8'),
-           ('svec','S12',3),
-           ('sarr','S5',(3,4))]
+           ('s','S5'),
+           ('svec','S6',3),
+           ('sarr','S2',(3,4))]
     #dtype=[('s','S8'),
     #       ('svec','S12',3)]
 
@@ -959,34 +951,6 @@ def test_write_table():
             print 's,sarr:',fits[-1].read_columns(['s','sarr'])
 
         return fits[-1].read()
-
-def test_write_new_table_old(type=BINARY_TBL):
-    fname='test-write-table.fits'
-    with FITS(fname,'rw',create=True,clobber=True) as fits:
-        fits._FITS.test_write_new_table()
-        fits.reopen()
-        print fits
-        print fits[1]
-
-        print 'Reading all rows'
-        data = fits[1].read()
-        print data
-        data = fits[1].read_columns(['Planet','Diameter'])
-        print data
-        data = fits[1].read_column('Planet')
-        print data
-
-        rows = [1,3]
-        print '\nReading rows',rows
-        data = fits[1].read(rows=rows)
-        print data
-        data = fits[1].read_columns(['Planet','Diameter'], rows=rows)
-        print data
-        data = fits[1].read_column('Planet', rows=rows)
-        print data
-
-
-    return
 
 def test_write_image(dtype):
     fname='test-write.fits'
