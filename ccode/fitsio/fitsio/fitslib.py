@@ -284,9 +284,12 @@ class FITS:
         rep = []
         rep.append("%sfile: %s" % (spacing,self.filename))
         rep.append("%smode: %s" % (spacing,_modeprint_map[self.intmode]))
+
+        rep.append('%sextnum %-15s %s' % (spacing,"hdutype","hduname"))
         for i,hdu in enumerate(self.hdu_list):
             t = hdu.info['hdutype']
-            rep.append("%sHDU%d: %s" % (spacing,(i+1), _hdu_type_map[t]))
+            name = hdu.info['extname']
+            rep.append("%s%d %-15s %s" % (spacing, i, _hdu_type_map[t], name))
 
         rep = '\n'.join(rep)
         return rep
@@ -1135,7 +1138,8 @@ def test_write_table():
                   'test3':'blah blah',
                   'dbl': 23.299843,
                   'lng':3423432}
-        fits.write_table(data, header=header)
+        fits.write_table(data, header=header, extname='mytable')
+        #fits.write_table(data, header=header)
         fits[-1].write_key("keysnc", "hello")
         fits[-1].write_key("keysc", "hello","a comment for string")
         fits[-1].write_key("keydc", numpy.pi,"a comment for pi")
