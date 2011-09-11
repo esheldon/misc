@@ -741,7 +741,7 @@ int write_string_column(
     strdata = malloc(nelem*sizeof(char*));
     if (strdata == NULL) {
         PyErr_SetString(PyExc_MemoryError, "could not allocate temporary string pointers");
-        status = 99;
+        *status = 99;
         return 1;
     }
     cdata = (char* ) data;
@@ -818,47 +818,6 @@ PyFITSObject_write_column(struct PyFITSObject* self, PyObject* args) {
     // now what?  we have an array of a given type, and a declared fits column
     // of a given type.
     Py_RETURN_NONE;
-}
-
-static PyObject *
-PyFITSObject_test_write_new_table(struct PyFITSObject* self, PyObject* args) {
-
-    int status=0;
-    int table_type=BINARY_TBL;
-
-    char *ttype[] = { "Planet", "Diameter", "Density" };
-    char *tform[] = { "8a",     "1J",       "1E"    };
-    char *tunit[] = { "\0",      "km",       "g/cm"    };
-
-    /* define the name diameter, and density of each planet */
-    char *planet[] = {"Mercury", "Venus", "Earth", "Mars","Jupiter","Saturn"};
-    int diameter[] = {4880,     12112,   12742,   6800,  143000,   121000};
-    float density[]  = { 5.1,      5.3,     5.52,   3.94,   1.33,     0.69};
-
-    long nrows    = 6;       /* table will have 6 rows    */
-    int tfields   = 3;       /* table will have 3 columns */
-    char* extname=NULL;           /* extension name */
-
-    LONGLONG firstrow  = 1;  /* first row in table to write   */
-    LONGLONG firstelem = 1;  /* first element in row  (ignored in ASCII tables) */
-
-    /* append a new empty binary table onto the FITS file */
-    // try with zero rows first
-    if ( fits_create_tbl(self->fits, table_type, 0, tfields, ttype, tform,
-                         tunit, extname, &status) ) {
-        set_ioerr_string_from_status(status);
-        return NULL;
-    }
-
-    fits_write_col(self->fits, TSTRING, 1, firstrow, firstelem, nrows, planet,
-                   &status);
-    fits_write_col(self->fits, TINT, 2, firstrow, firstelem, nrows, diameter,
-                   &status);
-    fits_write_col(self->fits, TFLOAT, 3, firstrow, firstelem, nrows, density,
-                   &status);
-
-    Py_RETURN_NONE;
-
 }
 
  
@@ -1580,17 +1539,16 @@ PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
 
 static PyMethodDef PyFITSObject_methods[] = {
     {"moveabs_hdu",          (PyCFunction)PyFITSObject_moveabs_hdu,          METH_VARARGS, "moveabs_hdu\n\nMove to the specified HDU."},
-    {"get_hdu_info",          (PyCFunction)PyFITSObject_get_hdu_info,          METH_VARARGS, "get_hdu_info\n\nReturn a dict with info about the specified HDU."},
+    {"get_hdu_info",         (PyCFunction)PyFITSObject_get_hdu_info,         METH_VARARGS, "get_hdu_info\n\nReturn a dict with info about the specified HDU."},
     {"read_column",          (PyCFunction)PyFITSObject_read_column,          METH_VARARGS, "read_column\n\nRead the column into the input array.  No checking of array is done."},
-    {"read_columns_as_rec",          (PyCFunction)PyFITSObject_read_columns_as_rec,          METH_VARARGS, "read_columns_as_rec\n\nRead the specified columns into the input rec array.  No checking of array is done."},
-    {"read_rows_as_rec",          (PyCFunction)PyFITSObject_read_rows_as_rec,          METH_VARARGS, "read_rows_as_rec\n\nRead the subset of rows into the input rec array.  No checking of array is done."},
+    {"read_columns_as_rec",  (PyCFunction)PyFITSObject_read_columns_as_rec,  METH_VARARGS, "read_columns_as_rec\n\nRead the specified columns into the input rec array.  No checking of array is done."},
+    {"read_rows_as_rec",     (PyCFunction)PyFITSObject_read_rows_as_rec,     METH_VARARGS, "read_rows_as_rec\n\nRead the subset of rows into the input rec array.  No checking of array is done."},
     {"read_as_rec",          (PyCFunction)PyFITSObject_read_as_rec,          METH_VARARGS, "read_as_rec\n\nRead the entire data set into the input rec array.  No checking of array is done."},
     {"write_image",          (PyCFunction)PyFITSObject_write_image,          METH_VARARGS, "write_image\n\nWrite the input image to a new extension."},
-    {"read_image",          (PyCFunction)PyFITSObject_read_image,          METH_VARARGS, "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
-    {"test_write_new_table",          (PyCFunction)PyFITSObject_test_write_new_table,          METH_VARARGS, "test_write_new_table\n\nWrite the input image to a new extension."},
-    {"create_table",          (PyCFunction)PyFITSObject_create_table,          METH_KEYWORDS, "create_table\n\nCreate a new table with the input parameters."},
-    {"write_column",          (PyCFunction)PyFITSObject_write_column,          METH_KEYWORDS, "write_column\n\nWrite a column into the current table."},
-    {"close",          (PyCFunction)PyFITSObject_close,          METH_VARARGS, "close\n\nClose the fits file."},
+    {"read_image",           (PyCFunction)PyFITSObject_read_image,           METH_VARARGS, "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
+    {"create_table",         (PyCFunction)PyFITSObject_create_table,         METH_KEYWORDS, "create_table\n\nCreate a new table with the input parameters."},
+    {"write_column",         (PyCFunction)PyFITSObject_write_column,         METH_KEYWORDS, "write_column\n\nWrite a column into the current table."},
+    {"close",                (PyCFunction)PyFITSObject_close,                METH_VARARGS, "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
 
