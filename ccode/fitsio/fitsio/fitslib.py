@@ -21,6 +21,8 @@ Advantages
 
 TODO
 ----
+    - test reading of all types both in read rec mode and read single
+        column mode.
     - read header in entirety, with types.  Maybe new class for header?
     - read single header keywords
     - write/update single header keywords
@@ -899,7 +901,8 @@ def test_create():
 
 def test_write_table():
     fname='test-write-table.fits'
-    dtype=[('f','f4'),
+    dtype=[('i1scalar','i1'),
+           ('f','f4'),
            ('fvec','f4',2),
            ('darr','f8',(2,3)),#] 
            ('s','S8'),
@@ -911,6 +914,8 @@ def test_write_table():
     nrows=4
     data=numpy.zeros(4, dtype=dtype)
 
+    if 'i1scalar' in data.dtype.names:
+        data['i1scalar'] = 1 + numpy.arange(nrows, dtype='i1')
     if 'f' in data.dtype.names:
         data['f'] = 1 + numpy.arange(nrows, dtype='f4')
     if 'fvec' in data.dtype.names:
