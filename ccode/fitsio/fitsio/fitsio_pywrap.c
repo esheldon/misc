@@ -1514,18 +1514,6 @@ PyFITSObject_read_image(struct PyFITSObject* self, PyObject* args) {
     npy_dtype = PyArray_TYPE(array);
     npy_to_fits_image_types(npy_dtype, &dummy, &fits_read_dtype);
 
-    // need to deal with incorrect types in cfitsio for long types
-    /*
-    if (fits_read_dtype == TLONG) {
-        if (sizeof(long) == sizeof(npy_int64) && sizeof(int) == sizeof(npy_int32)) {
-            // internally read_pix uses int for TINT, so assuming int is always 32
-            fits_read_dtype = TINT;
-        } else {
-            PyErr_SetString(PyExc_TypeError, "don't know how to deal with TLONG on this system");
-            return NULL;
-        }
-    }
-    */
     if (fits_read_pixll(self->fits, fits_read_dtype, firstpixels, size,
                         0, data, &anynul, &status)) {
         set_ioerr_string_from_status(status);
