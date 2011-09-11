@@ -142,10 +142,11 @@ PyFITSObject_moveabs_hdu(struct PyFITSObject* self, PyObject* args) {
 static PyObject *
 PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
     int hdunum=0, hdutype=0, ext=0;
-    int status=0;
+    int status=0, tstatus=0;
     PyObject* dict=NULL;
 
     FITSfile* hdu=NULL;
+    char extname[FLEN_VALUE];
 
     if (self->fits == NULL) {
         Py_RETURN_NONE;
@@ -163,6 +164,9 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
         return NULL;
     }
 
+
+
+
     hdu = self->fits->Fptr;
 
     dict = PyDict_New();
@@ -170,6 +174,16 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
     PyDict_SetItemString(dict, "hdunum", PyInt_FromLong((long)hdunum));
     PyDict_SetItemString(dict, "extnum", PyInt_FromLong((long)ext));
     PyDict_SetItemString(dict, "hdutype", PyInt_FromLong((long)hdutype));
+
+
+    if (fits_read_key(self->fits, TSTRING, "EXTNAME", extname, NULL, &tstatus)==0) {
+        PyDict_SetItemString(dict, "extname", PyString_FromString(extname));
+    } else {
+        //sprintf(extname,"HDU%d",hdunum);
+        //PyDict_SetItemString(dict, "extname", PyString_FromString(extname));
+        PyDict_SetItemString(dict, "extname", PyString_FromString(""));
+    }
+
 
     PyDict_SetItemString(dict, "imgdim", PyInt_FromLong((long)hdu->imgdim));
     PyDict_SetItemString(dict, "zndim", PyInt_FromLong((long)hdu->zndim));
