@@ -949,6 +949,10 @@ def test_write_table():
             print 'svec:',fits[-1].read_column('svec')
         if 'sarr' in data.dtype.names:
             print 'sarr:',fits[-1].read_column('sarr')
+
+        if 's' in data.dtype.names and 'svec' in data.dtype.names:
+            print 's,sarr:',fits[-1].read_columns(['s','sarr'])
+
         return fits[-1].read()
 
 def test_write_new_table_old(type=BINARY_TBL):
