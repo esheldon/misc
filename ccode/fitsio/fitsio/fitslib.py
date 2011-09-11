@@ -21,13 +21,24 @@ Advantages
 
 TODO
 ----
-    - string array columns
-    - Use TDIM information
-    - writing
+    - read header in entirety, with types.  Maybe new class for header?
+    - read single header keywords
+    - write/update single header keywords
+
+    - write TDIM using standard routines
+    - append rows to tables
     - writing extension names, reading by extension names
-    - strings (pyfits does it wrong, so hard to test without writing)
-    - row ranges
+    - read row ranges
     - implement bit, logical, and complex types
+
+NOTES:
+    A principle: 
+        
+        since numpy uses C order, FITS uses fortran order, we have to write the
+        TDIM and image dimensions in reverse order, but write the data as is.
+        Then we need to also reverse the dims in creating the numpy dtype, but
+        read as is.
+
 """
 import os
 import numpy
@@ -281,8 +292,10 @@ class FITSHDU:
         """
 
         colnum = self._extract_colnum(column)
-        data = numpy.array(data, ndmin=1, order='F')
-        print 'writing',data.size,'to column',column
+        #data = numpy.array(data, ndmin=1, order='F')
+        # need it contiguous
+        data = numpy.array(data, ndmin=1)
+        #print 'writing',data.size,'to column',column
         self._FITS.write_column(colnum+1, data)
 
 
@@ -315,20 +328,6 @@ class FITSHDU:
             return self.read_rows(rows)
         else:
             return self.read_all()
-
-    def read_image_new(self):
-        """
-        Read the image.
-
-        If the HDU is an IMAGE_HDU, read the corresponding image.  Compression
-        and scaling are dealt with properly.
-
-        parameters
-        ----------
-        None
-        """
-        array = self._FITS.read_image(self.ext+1)
-        return array
 
 
     def read_image(self):
@@ -484,14 +483,19 @@ class FITSHDU:
         """
         npy_type = self._get_tbl_numpy_dtype(colnum)
         name = self.info['colinfo'][colnum]['ttype']
+        tdim = self.info['colinfo'][colnum]['tdim']
 
+        shape = tdim2shape(tdim, is_string=(npy_type[0] == 'S'))
+
+        """
         # need to deal with string array columns
         if npy_type[0] == 'S':
             repeat=1
         else:
             repeat = self.info['colinfo'][colnum]['trepeat']
-        if repeat > 1:
-            return (name,npy_type,repeat)
+        """
+        if shape is not None:
+            return (name,npy_type,shape)
         else:
             return (name,npy_type)
 
@@ -512,23 +516,38 @@ class FITSHDU:
         return npy_dtype, shape
 
     def _get_simple_dtype_and_shape(self, colnum, rows=None):
+        """
+        When reading a single column, we want the basic data
+        type and the shape of the array.
+
+        for scalar columns, shape is just nrows, otherwise
+        it is (nrows, dim1, dim2)
+
+        """
+
+        # basic datatype
         npy_type = self._get_tbl_numpy_dtype(colnum)
+        info = self.info['colinfo'][colnum]
 
         if rows is None:
             nrows = self.info['numrows']
         else:
             nrows = rows.size
 
-        # need to deal with string array columns
-        if npy_type[0] == 'S':
-            repeat = 1
-        else:
-            repeat = self.info['colinfo'][colnum]['trepeat']
-        if repeat > 1:
-            shape = (nrows, repeat)
-        else:
-            shape = nrows
+        shape = None
+        tdim = info['tdim']
 
+        shape = tdim2shape(tdim, is_string=(npy_type[0] == 'S'))
+        if shape is not None:
+            if not isinstance(shape,tuple):
+                # vector
+                shape = (nrows,shape)
+            else:
+                # multi-dimensional
+                shape = tuple( [nrows] + list(shape) )
+        else:
+            # scalar
+            shape = nrows
         return npy_type, shape
 
     def _get_image_numpy_dtype(self):
@@ -620,23 +639,27 @@ class FITSHDU:
             format = cspacing + "%-" + str(nname) + "s %" + str(ntype) + "s  %s"
             pformat = cspacing + "%-" + str(nname) + "s\n %" + str(nspace+nname+ntype) + "s  %s"
 
-            #for c in self.info['colinfo']:
             for colnum,c in enumerate(self.info['colinfo']):
                 if len(c['ttype']) > 15:
                     f = pformat
                 else:
                     f = format
 
-                #dt = _table_fits2npy[c['tdatatype']]
                 dt = self._get_tbl_numpy_dtype(colnum, include_endianness=False)
 
-                # need to deal with string array cols
-                rep=''
-                if dt[0] != 'S':
-                    if c['trepeat'] > 1:
-                        rep = 'array[%d]' % c['trepeat']
+                tdim = c['tdim']
+                dimstr=''
+                if dt[0] == 'S':
+                    if len(tdim) > 1:
+                        dimstr = [str(d) for d in tdim[1:]]
+                else:
+                    if len(tdim) > 1 or tdim[0] > 1:
+                        dimstr = [str(d) for d in tdim]
+                if dimstr != '':
+                    dimstr = ','.join(dimstr)
+                    dimstr = 'array[%s]' % dimstr
 
-                s = f % (c['ttype'],dt,rep)
+                s = f % (c['ttype'],dt,dimstr)
                 text.append(s)
 
         text = '\n'.join(text)
@@ -650,6 +673,20 @@ def extract_filename(filename):
     filename = os.path.expanduser(filename)
     return filename
 
+def tdim2shape(tdim, is_string=False):
+    shape=None
+    if len(tdim) > 1 or tdim[0] > 1:
+        if is_string:
+            shape = list( reversed(tdim[1:]) )
+        else:
+            shape = list( reversed(tdim) )
+
+        if len(shape) == 1:
+            shape = shape[0]
+        else:
+            shape = tuple(shape)
+
+    return shape
 
 def descr2tabledef(descr):
     """
@@ -671,12 +708,6 @@ def descr2tabledef(descr):
     dims=[]
 
     for d in descr:
-        if len(d) == 2:
-            # this is a scalar column
-            shape = None
-        else:
-            shape = d[2]
-
         # these have the form '<f4' or '|S25', etc.  Extract the pure type
         npy_dtype = d[1][1:]
         if npy_dtype[0] == 'S':
@@ -726,7 +757,9 @@ def npy_num2fits(d):
             form = '%d%s' % (count,form)
 
             # will have to do tests to see if this is the right order
-            dim = [str(e) for e in d[2]]
+            dim = list(reversed(d[2]))
+            #dim = d[2]
+            dim = [str(e) for e in dim]
             dim = '(' + ','.join(dim)+')'
         else:
             # this is a vector (1d array) column
@@ -776,14 +809,22 @@ def npy_string2fits(d):
             form = '%dA' % count
 
             # will have to do tests to see if this is the right order
-            dim = [string_size_str] + [str(e) for e in d[2]]
+            dim = list(reversed(d[2]))
+            #dim = d[2]
+            dim = [string_size_str] + [str(e) for e in dim]
             dim = '(' + ','.join(dim)+')'
         else:
             # this is a vector (1d array) column
             count = string_size*d[2]
             form = '%dA' % count
 
+            # will have to do tests to see if this is the right order
+            dim = [string_size_str, str(d[2])]
+            dim = '(' + ','.join(dim)+')'
+
     return name, form, dim
+
+ 
 
 
 READONLY=0
@@ -859,25 +900,55 @@ def test_create():
 def test_write_table():
     fname='test-write-table.fits'
     dtype=[('f','f4'),
-           ('fvec','f4',3),
-           ('farr','f4',(2,3)),#] 
-           ('s','S8')]#,
-           #('svec','S12',3),
-           #('sarr','S5',(3,4))]
+           ('fvec','f4',2),
+           ('darr','f8',(2,3)),#] 
+           ('s','S8'),
+           ('svec','S12',3),
+           ('sarr','S5',(3,4))]
+    #dtype=[('s','S8'),
+    #       ('svec','S12',3)]
+
     nrows=4
     data=numpy.zeros(4, dtype=dtype)
 
-    data['f'] = numpy.random.random(nrows)
-    data['fvec'] = numpy.random.random(nrows*3).reshape(nrows,3)
-    data['farr'] = numpy.random.random(nrows*2*3).reshape(nrows,2,3)
-    data['s'] = ['hello','world','and','bye']
+    if 'f' in data.dtype.names:
+        data['f'] = 1 + numpy.arange(nrows, dtype='f4')
+    if 'fvec' in data.dtype.names:
+        data['fvec'] = 1 + numpy.arange(nrows*2,dtype='f4').reshape(nrows,2)
+    if 'darr' in data.dtype.names:
+        data['darr'] = 1 + numpy.arange(nrows*2*3,dtype='f8').reshape(nrows,2,3)
+    if 's' in data.dtype.names:
+        data['s'] = ['hello','world','and','bye']
+    if 'svec' in data.dtype.names:
+        data['svec'][:,0] = 'hello'
+        data['svec'][:,1] = 'there'
+        data['svec'][:,2] = 'world'
+        print 'svec shape:',data['svec'].shape
+    if 'sarr' in data.dtype.names:
+        s = 1 + numpy.arange(nrows*3*4)
+        s = [str(el) for el in s]
+        data['sarr'] = numpy.array(s).reshape(nrows,3,4)
 
+    print data
     print 'writing to:',fname
     with FITS(fname,'rw',create=True,clobber=True) as fits:
         fits.write_table(data)
 
-    return
     with FITS(fname,'r') as fits:
+
+        if 'f' in data.dtype.names:
+            print 'f:',fits[-1].read_column('f')
+
+        if 'fvec' in data.dtype.names:
+            print 'fvec:',fits[-1].read_column('fvec')
+        if 'darr' in data.dtype.names:
+            print 'darr:',fits[-1].read_column('darr')
+        if 's' in data.dtype.names:
+            print 's:',fits[-1].read_column('s')
+        if 'svec' in data.dtype.names:
+            print 'svec:',fits[-1].read_column('svec')
+        if 'sarr' in data.dtype.names:
+            print 'sarr:',fits[-1].read_column('sarr')
         return fits[-1].read()
 
 def test_write_new_table_old(type=BINARY_TBL):

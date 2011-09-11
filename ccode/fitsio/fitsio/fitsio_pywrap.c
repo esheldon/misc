@@ -84,7 +84,8 @@ PyFITSObject_repr(struct PyFITSObject* self) {
 long get_groupsize(tcolumn* colptr) {
     long gsize=0;
     if (colptr->tdatatype == TSTRING) {
-        gsize = colptr->twidth;
+        //gsize = colptr->twidth;
+        gsize = colptr->trepeat;
     } else {
         gsize = colptr->twidth*colptr->trepeat;
     }
@@ -202,8 +203,12 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
     {
         PyObject* colinfo = PyList_New(0);
         if (hdutype != IMAGE_HDU) {
-            int i;
+            int i=0, j=0;
             tcolumn* col;
+            int maxdim=10;
+            int naxis=0;
+            long naxes[10];
+            int tstatus=0;
             for (i=0; i<hdu->tfield; i++) {
                 PyObject* d = PyDict_New();
 
@@ -220,6 +225,19 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
                 PyDict_SetItemString(d, "tscale", PyFloat_FromDouble(col->tscale));
                 PyDict_SetItemString(d, "tzero", PyFloat_FromDouble(col->tzero));
 
+                if (fits_read_tdim(self->fits, i+1, maxdim, &naxis, naxes, &tstatus)) {
+                    Py_XINCREF(Py_None);
+                    PyDict_SetItemString(d, "tdim", Py_None);
+                } else {
+                    PyObject* tdim_list = PyList_New(naxis);
+                    PyObject* tdim;
+                    for (j=0; j<naxis; j++) {
+                        tdim = PyLong_FromLong((long)naxes[j]);
+                        PyList_SetItem(tdim_list, j, tdim);
+                    }
+                    PyDict_SetItemString(d, "tdim", tdim_list);
+                }
+
                 PyList_Append(colinfo, d);
             }
         }
@@ -230,6 +248,7 @@ PyFITSObject_get_hdu_info(struct PyFITSObject* self, PyObject* args) {
 
 // this converts bitpix to a corresponding numpy dtype
 // of the right type
+/*
 static int 
 fits_to_npy_image_type(int bitpix) {
 
@@ -266,7 +285,7 @@ fits_to_npy_image_type(int bitpix) {
 
     return 0;
 }
-
+*/
 // this is the parameter that goes in the type for fits_write_col
 static int 
 npy_to_fits_table_type(int npy_dtype) {
@@ -571,7 +590,7 @@ add_tdims_from_listobj(fitsfile* fits, PyObject* tdimObj, int ncols) {
     char keyname[20];
     int colnum=0;
     PyObject* tmp=NULL;
-    const char* tdim=NULL;
+    char* tdim=NULL;
 
     if (tdimObj == NULL || tdimObj == Py_None) {
         // it is ok for it to be empty
@@ -598,7 +617,7 @@ add_tdims_from_listobj(fitsfile* fits, PyObject* tdimObj, int ncols) {
                 return 1;
             }
 
-            tdim = (const char*) PyString_AsString(tmp);
+            tdim = PyString_AsString(tmp);
             sprintf(keyname, "TDIM%d", colnum);
             if (fits_write_key(fits, TSTRING, keyname, tdim, NULL, &status)) {
                 set_ioerr_string_from_status(status);
@@ -607,10 +626,7 @@ add_tdims_from_listobj(fitsfile* fits, PyObject* tdimObj, int ncols) {
         }
     }
 
-/*
-int fits_write_key(fitsfile *fptr, int datatype, char *keyname, 
-        void *value, char *comment, int *status)
-        */
+    return 0;
 }
 
 
@@ -647,31 +663,22 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
         status=99;
         goto create_table_cleanup;
     }
-    stringlist_print(ttyp);
+    //stringlist_print(ttyp);
 
     if (stringlist_addfrom_listobj(tform, tformObj, "formats")) {
         status=99;
         goto create_table_cleanup;
     }
-    stringlist_print(tform);
+    //stringlist_print(tform);
 
     if (tunitObj != NULL && tunitObj != Py_None) {
         if (stringlist_addfrom_listobj(tunit, tunitObj,"units")) {
             status=99;
             goto create_table_cleanup;
         }
-        stringlist_print(tunit);
+        //stringlist_print(tunit);
     }
 
-    /*
-    if (tdimObj != NULL && tdimObj != Py_None) {
-        if (stringlist_addfrom_listobj(tdim, tdimObj, "dims")) {
-            status=99;
-            goto create_table_cleanup;
-        }
-        stringlist_print(tdim);
-    }
-    */
 
     if (extnameObj != NULL && extnameObj != Py_None) {
         char* tmp;
@@ -693,12 +700,10 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
         goto create_table_cleanup;
     }
 
-    /*
     if (add_tdims_from_listobj(self->fits, tdimObj, nfields)) {
         status=99;
         goto create_table_cleanup;
     }
-    */
 create_table_cleanup:
     ttyp = stringlist_delete(ttyp);
     tform = stringlist_delete(tform);
@@ -712,6 +717,50 @@ create_table_cleanup:
     Py_RETURN_NONE;
 }
 
+// No error checking performed here
+static
+int write_string_column( 
+        fitsfile *fits,  /* I - FITS file pointer                       */
+        int  colnum,     /* I - number of column to write (1 = 1st col) */
+        LONGLONG  firstrow,  /* I - first row to write (1 = 1st row)        */
+        LONGLONG  firstelem, /* I - first vector element to write (1 = 1st) */
+        LONGLONG  nelem,     /* I - number of strings to write              */
+        char  *data,
+        int  *status) {   /* IO - error status                           */
+
+    LONGLONG i=0;
+    LONGLONG twidth=0;
+    // need to create a char** representation of the data I think that
+    // multi-dimensional stuff needs to be packed down to 1-d for this, so
+    // let's try that first
+    char* cdata=NULL;
+    char** strdata=NULL;
+
+    twidth = fits->Fptr->tableptr[colnum-1].twidth;
+
+    strdata = malloc(nelem*sizeof(char*));
+    if (strdata == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "could not allocate temporary string pointers");
+        status = 99;
+        return 1;
+    }
+    cdata = (char* ) data;
+    for (i=0; i<nelem; i++) {
+        strdata[i] = &cdata[twidth*i];
+    }
+
+    if( fits_write_col_str(fits, colnum, firstrow, firstelem, nelem, strdata, status)) {
+        set_ioerr_string_from_status(*status);
+        free(strdata);
+        return 1;
+    }
+
+    free(strdata);
+
+    return 0;
+}
+
+
 // write a column.  This should be called immediately after calling
 // create_table.  The array must be contiguous.
 //
@@ -723,9 +772,9 @@ PyFITSObject_write_column(struct PyFITSObject* self, PyObject* args) {
     PyObject* array=NULL;
 
     void* data=NULL;
-    LONGLONG nrows=0;
     LONGLONG firstrow=1;
     LONGLONG firstelem=1;
+    LONGLONG nelem=0;
     int npy_dtype=0;
     int fits_dtype=0;
 
@@ -748,14 +797,22 @@ PyFITSObject_write_column(struct PyFITSObject* self, PyObject* args) {
         return NULL;
     }
 
-    fprintf(stderr,"twidth: %lld\n", self->fits->Fptr->tableptr[colnum-1].twidth);
-    fprintf(stderr,"trepeat: %lld\n", self->fits->Fptr->tableptr[colnum-1].trepeat);
-
-    nrows = PyArray_SIZE(array);
     data = PyArray_DATA(array);
-    if( fits_write_col(self->fits, fits_dtype, colnum, firstrow, firstelem, nrows, data, &status)) {
-        set_ioerr_string_from_status(status);
-        return NULL;
+    nelem = PyArray_SIZE(array);
+
+    if (fits_dtype == TSTRING) {
+
+        // this is my wrapper for strings
+        if (write_string_column(self->fits, colnum, firstrow, firstelem, nelem, data, &status)) {
+            set_ioerr_string_from_status(status);
+            return NULL;
+        }
+        
+    } else {
+        if( fits_write_col(self->fits, fits_dtype, colnum, firstrow, firstelem, nelem, data, &status)) {
+            set_ioerr_string_from_status(status);
+            return NULL;
+        }
     }
 
     // now what?  we have an array of a given type, and a declared fits column
@@ -1345,6 +1402,7 @@ recread_cleanup:
  
 // read an n-dimensional "image" into the input array.  Only minimal checking
 // of the input array is done.
+/*
 static PyObject *
 PyFITSObject_read_image_new(struct PyFITSObject* self, PyObject* args) {
     int hdunum;
@@ -1380,11 +1438,9 @@ PyFITSObject_read_image_new(struct PyFITSObject* self, PyObject* args) {
         return NULL;
     }
 
-    /*
-    if (npy_to_fits_image_types(int npy_dtype, int *fits_img_type, int *fits_datatype)) {
-        return NULL;
-    }
-    */
+    //if (npy_to_fits_image_types(int npy_dtype, int *fits_img_type, int *fits_datatype)) {
+    //    return NULL;
+    //}
 
     if (fits_get_img_paramll(self->fits, maxdim, &datatype, &ndims, dims, &status)) {
         set_ioerr_string_from_status(status);
@@ -1438,7 +1494,7 @@ PyFITSObject_read_image_new(struct PyFITSObject* self, PyObject* args) {
 
     Py_RETURN_NONE;
 }
-
+*/
 // read an n-dimensional "image" into the input array.  Only minimal checking
 // of the input array is done.
 static PyObject *
