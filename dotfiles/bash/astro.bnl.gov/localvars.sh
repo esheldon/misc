@@ -8,21 +8,30 @@ fi
 f=/opt/astro/SL53/bin/setup.astro.sh
 if [[ -e $f ]]; then
     source "$f"
-    export C_INCLUDE_PATH=`/opt/astro/SL53/bin/addpath -env C_INCLUDE_PATH - ${ROOTSYS}/include/root /opt/astro/SL53/include /usr/local/include`
-    export CPATH=`/opt/astro/SL53/bin/addpath -env CPATH - ${ROOTSYS}/include/root /opt/astro/SL53/include /usr/local/include`
-
 fi
 
 f=/opt/astro/SL53/bin/setup.hadoop.sh
 if [[ -e $f ]]; then
     source "$f"
+    # make want to change to not have hadoop at the end?
+    append_path C_INCLUDE_PATH $HADOOP_HOME/src/c++/libhdfs/
+    append_path CPATH $HADOOP_HOME/src/c++/libhdfs/
+    append_path LD_LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
+    append_path LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
+
 fi
+
+
+append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include
+append_path CPATH /usr/java/jdk1.6.0_14/include
+append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include/linux
+append_path CPATH /usr/java/jdk1.6.0_14/include/linux
 
 export MAXBCG_CATDIR=/mount/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
 export MAXBCG_INPUT=/mount/tutti1/esheldon/maxbcg-input
 
 export PHOTOZ_DIR=~esheldon/photoz
-export SWEEP_REDUCE=~esheldon/sweep_reduce
+export SWEEP_REDUCE=~esheldon/sweep-reduce
 
 export MASK_DIR=~esheldon/masks
 
