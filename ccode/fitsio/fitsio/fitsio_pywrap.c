@@ -11,12 +11,26 @@ struct PyFITSObject {
 
 void set_ioerr_string_from_status(int status) {
     char status_str[FLEN_STATUS], errmsg[FLEN_ERRMSG];
+    char message[1024];
+
+    int nleft=1024;
 
     if (status) {
-      fits_get_errstatus(status, status_str);  /* get the error description */
+        fits_get_errstatus(status, status_str);  /* get the error description */
 
-      sprintf(errmsg, "FITSIO status = %d: %s\n", status, status_str);
-      PyErr_SetString(PyExc_IOError, errmsg);
+        sprintf(message, "FITSIO status = %d: %s\n", status, status_str);
+
+        nleft -= strlen(status_str)+1;
+
+        while ( nleft > 0 && fits_read_errmsg(errmsg) )  { /* get error stack messages */
+            strncat(message, errmsg, nleft-1);
+            nleft -= strlen(errmsg)+1;
+            if (nleft >= 2) {
+                strncat(message, "\n", nleft-1);
+            }
+            nleft-=2;
+        }
+        PyErr_SetString(PyExc_IOError, message);
     }
     return;
 }
