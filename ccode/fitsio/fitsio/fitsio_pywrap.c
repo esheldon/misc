@@ -54,7 +54,6 @@ PyFITSObject_init(struct PyFITSObject* self, PyObject *args, PyObject *kwds)
 
     if (create) {
         if (fits_create_file(&self->fits, filename, &status)) {
-            //fits_report_error(stderr,status);
             set_ioerr_string_from_status(status);
             return -1;
         }
@@ -77,6 +76,33 @@ PyFITSObject_repr(struct PyFITSObject* self) {
     }  else {
         return PyString_FromString("");
     }
+}
+
+
+// if input is NULL or None, return NULL
+// if maxlen is 0, the full string is copied, else
+// it is maxlen+1 for the following null
+char* copy_py_string(PyObject* obj, int maxlen, int* status) {
+    char* buffer=NULL;
+    int len=0;
+    if (obj != NULL && obj != Py_None) {
+        char* tmp;
+        if (!PyString_Check(obj)) {
+            PyErr_SetString(PyExc_ValueError, "Expected a string for extension name");
+            *status=99;
+            return NULL;
+        }
+        tmp = PyString_AsString(obj);
+        if (maxlen > 0) {
+            len = maxlen;
+        } else {
+            len = strlen(tmp);
+        }
+        buffer = malloc(sizeof(char)*(len+1));
+        strncpy(buffer, tmp, len);
+    }
+
+    return buffer;
 }
 
 
@@ -464,13 +490,74 @@ int pyarray_get_ndim(PyObject* obj) {
     arr = (PyArrayObject*) obj;
     return arr->nd;
 }
+
+// It is useful to create the extension first so we can write keywords
+// into the header before adding data.  This avoid possibly moving the data
+// if the header grows too large.
 static PyObject *
-PyFITSObject_write_image(struct PyFITSObject* self, PyObject* args) {
+PyFITSObject_create_image_hdu(struct PyFITSObject* self, PyObject* args, PyObject* kwds) {
     // allow 10 dimensions
     int ndims=0;
     long dims[] = {0,0,0,0,0,0,0,0,0,0};
-    LONGLONG nelements=1; // should be cumprod of dims
-    //long firstpixels[]={1,1,1,1,1,1,1,1,1,1};
+    int image_datatype=0; // fits type for image, AKA bitpix
+    int datatype=0; // type for the data we entered
+
+    PyObject* array;
+    PyObject* extnameObj;
+    char* extname=NULL;
+    int npy_dtype=0;
+    int i=0;
+    int status=0;
+
+    static char *kwlist[] = {"array","extname", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist,
+                          &array, &extnameObj)) {
+        goto create_image_hdu_cleanup;
+    }
+ 
+    if (!PyArray_Check(array)) {
+        PyErr_SetString(PyExc_TypeError, "input must be an array.");
+        goto create_image_hdu_cleanup;
+    }
+
+    npy_dtype = PyArray_TYPE(array);
+    if (npy_to_fits_image_types(npy_dtype, &image_datatype, &datatype)) {
+        goto create_image_hdu_cleanup;
+    }
+
+    extname = copy_py_string(extnameObj, 0, &status);
+    if (status != 0) {
+        goto create_image_hdu_cleanup;
+    }
+
+    // order must be reversed for FITS
+    ndims = pyarray_get_ndim(array);
+    for (i=0; i<ndims; i++) {
+        dims[ndims-i-1] = PyArray_DIM(array, i);
+    }
+
+    if (fits_create_img(self->fits, image_datatype, ndims, dims, &status)) {
+        set_ioerr_string_from_status(status);
+        goto create_image_hdu_cleanup;
+    }
+
+create_image_hdu_cleanup:
+
+    free(extname);
+    if (status != 0) {
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
+
+
+// write the image to an existing HDU created using create_image_hdu
+// dims are not checked
+static PyObject *
+PyFITSObject_write_image(struct PyFITSObject* self, PyObject* args) {
+    LONGLONG nelements=1;
     LONGLONG firstpixel=1;
     int image_datatype=0; // fits type for image, AKA bitpix
     int datatype=0; // type for the data we entered
@@ -478,13 +565,12 @@ PyFITSObject_write_image(struct PyFITSObject* self, PyObject* args) {
     PyObject* array;
     void* data=NULL;
     int npy_dtype=0;
-    int i=0;
     int status=0;
 
     if (!PyArg_ParseTuple(args, (char*)"O", &array)) {
         return NULL;
     }
-
+ 
     if (!PyArray_Check(array)) {
         PyErr_SetString(PyExc_TypeError, "input must be an array.");
         return NULL;
@@ -495,20 +581,9 @@ PyFITSObject_write_image(struct PyFITSObject* self, PyObject* args) {
         return NULL;
     }
 
-    ndims = pyarray_get_ndim(array);
-    // order must be reversed for FITS
-    for (i=0; i<ndims; i++) {
-        //dims[i] = PyArray_DIM(array, i);
-        dims[ndims-i-1] = PyArray_DIM(array, i);
-        nelements *= dims[ndims-i-1];
-    }
-
-    if (fits_create_img(self->fits, image_datatype, ndims, dims, &status)) {
-        set_ioerr_string_from_status(status);
-        return NULL;
-    }
 
     data = PyArray_DATA(array);
+    nelements = PyArray_SIZE(array);
     if (fits_write_img(self->fits, datatype, firstpixel, nelements, data, &status)) {
         set_ioerr_string_from_status(status);
         return NULL;
@@ -646,7 +721,7 @@ add_tdims_from_listobj(fitsfile* fits, PyObject* tdimObj, int ncols) {
 
 // create a new table structure.  No physical rows are added yet.
 static PyObject *
-PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* kwds) {
+PyFITSObject_create_table_hdu(struct PyFITSObject* self, PyObject* args, PyObject* kwds) {
     int status=0;
     int table_type=BINARY_TBL;
     int nfields=0;
@@ -693,18 +768,9 @@ PyFITSObject_create_table(struct PyFITSObject* self, PyObject* args, PyObject* k
         //stringlist_print(tunit);
     }
 
-
-    if (extnameObj != NULL && extnameObj != Py_None) {
-        char* tmp;
-        if (!PyString_Check(extnameObj)) {
-            PyErr_SetString(PyExc_ValueError, "Expected a string for extension name");
-            status=99;
-            goto create_table_cleanup;
-        }
-        tmp = PyString_AsString(extnameObj);
-        extname = malloc(sizeof(char)* (strlen(tmp) + 1) );
-        strcpy(extname, tmp);
-        printf("extension name: %s\n", extname);
+    extname = copy_py_string(extnameObj, 0, &status);
+    if (status != 0) {
+        goto create_table_cleanup;
     }
 
     nfields = ttyp->size;
@@ -1664,6 +1730,7 @@ PyFITSObject_read_header(struct PyFITSObject* self, PyObject* args) {
     char keyname[FLEN_KEYWORD];
     char value[FLEN_VALUE];
     char comment[FLEN_COMMENT];
+    char card[FLEN_CARD];
 
     int nkeys=0, morekeys=0, i=0;
 
@@ -1691,6 +1758,15 @@ PyFITSObject_read_header(struct PyFITSObject* self, PyObject* args) {
 
     list=PyList_New(nkeys);
     for (i=0; i<nkeys; i++) {
+
+        // the full card
+        if (fits_read_record(self->fits, i+1, card, &status)) {
+            // is this enough?
+            Py_XDECREF(list);
+            set_ioerr_string_from_status(status);
+            return NULL;
+        }
+
         // this just returns the character string stored in the header; we
         // can eval in python
         if (fits_read_keyn(self->fits, i+1, keyname, value, comment, &status)) {
@@ -1701,6 +1777,7 @@ PyFITSObject_read_header(struct PyFITSObject* self, PyObject* args) {
         }
 
         dict = PyDict_New();
+        PyDict_SetItemString(dict, "card", PyString_FromString(card));
         PyDict_SetItemString(dict, "name", PyString_FromString(keyname));
         PyDict_SetItemString(dict, "value", PyString_FromString(value));
         PyDict_SetItemString(dict, "comment", PyString_FromString(comment));
@@ -1714,21 +1791,22 @@ PyFITSObject_read_header(struct PyFITSObject* self, PyObject* args) {
  
 
 static PyMethodDef PyFITSObject_methods[] = {
-    {"moveabs_hdu",          (PyCFunction)PyFITSObject_moveabs_hdu,          METH_VARARGS, "moveabs_hdu\n\nMove to the specified HDU."},
-    {"get_hdu_info",         (PyCFunction)PyFITSObject_get_hdu_info,         METH_VARARGS, "get_hdu_info\n\nReturn a dict with info about the specified HDU."},
-    {"read_column",          (PyCFunction)PyFITSObject_read_column,          METH_VARARGS, "read_column\n\nRead the column into the input array.  No checking of array is done."},
-    {"read_columns_as_rec",  (PyCFunction)PyFITSObject_read_columns_as_rec,  METH_VARARGS, "read_columns_as_rec\n\nRead the specified columns into the input rec array.  No checking of array is done."},
-    {"read_rows_as_rec",     (PyCFunction)PyFITSObject_read_rows_as_rec,     METH_VARARGS, "read_rows_as_rec\n\nRead the subset of rows into the input rec array.  No checking of array is done."},
-    {"read_as_rec",          (PyCFunction)PyFITSObject_read_as_rec,          METH_VARARGS, "read_as_rec\n\nRead the entire data set into the input rec array.  No checking of array is done."},
-    {"write_image",          (PyCFunction)PyFITSObject_write_image,          METH_VARARGS, "write_image\n\nWrite the input image to a new extension."},
-    {"read_image",           (PyCFunction)PyFITSObject_read_image,           METH_VARARGS, "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
-    {"read_header",           (PyCFunction)PyFITSObject_read_header,           METH_VARARGS, "read_header\n\nRead the entire header as a list of dictionaries."},
-    {"create_table",         (PyCFunction)PyFITSObject_create_table,         METH_KEYWORDS, "create_table\n\nCreate a new table with the input parameters."},
-    {"write_column",         (PyCFunction)PyFITSObject_write_column,         METH_KEYWORDS, "write_column\n\nWrite a column into the current table."},
-    {"write_string_key",         (PyCFunction)PyFITSObject_write_string_key,         METH_KEYWORDS, "write_string_key\n\nWrite a string key into the specified HDU."},
-    {"write_double_key",         (PyCFunction)PyFITSObject_write_double_key,         METH_KEYWORDS, "write_double_key\n\nWrite a double key into the specified HDU."},
-    {"write_long_key",         (PyCFunction)PyFITSObject_write_long_key,         METH_KEYWORDS, "write_long_key\n\nWrite a long key into the specified HDU."},
-    {"close",                (PyCFunction)PyFITSObject_close,                METH_VARARGS, "close\n\nClose the fits file."},
+    {"moveabs_hdu",          (PyCFunction)PyFITSObject_moveabs_hdu,          METH_VARARGS,  "moveabs_hdu\n\nMove to the specified HDU."},
+    {"get_hdu_info",         (PyCFunction)PyFITSObject_get_hdu_info,         METH_VARARGS,  "get_hdu_info\n\nReturn a dict with info about the specified HDU."},
+    {"read_column",          (PyCFunction)PyFITSObject_read_column,          METH_VARARGS,  "read_column\n\nRead the column into the input array.  No checking of array is done."},
+    {"read_columns_as_rec",  (PyCFunction)PyFITSObject_read_columns_as_rec,  METH_VARARGS,  "read_columns_as_rec\n\nRead the specified columns into the input rec array.  No checking of array is done."},
+    {"read_rows_as_rec",     (PyCFunction)PyFITSObject_read_rows_as_rec,     METH_VARARGS,  "read_rows_as_rec\n\nRead the subset of rows into the input rec array.  No checking of array is done."},
+    {"read_as_rec",          (PyCFunction)PyFITSObject_read_as_rec,          METH_VARARGS,  "read_as_rec\n\nRead the entire data set into the input rec array.  No checking of array is done."},
+    {"create_image_hdu",     (PyCFunction)PyFITSObject_create_image_hdu,     METH_KEYWORDS, "create_image_hdu\n\nWrite the input image to a new extension."},
+    {"write_image",          (PyCFunction)PyFITSObject_write_image,          METH_VARARGS,  "write_image\n\nWrite the input image to a new extension."},
+    {"read_image",           (PyCFunction)PyFITSObject_read_image,           METH_VARARGS,  "read_image\n\nRead the entire n-dimensional image array.  No checking of array is done."},
+    {"read_header",          (PyCFunction)PyFITSObject_read_header,          METH_VARARGS,  "read_header\n\nRead the entire header as a list of dictionaries."},
+    {"create_table_hdu",     (PyCFunction)PyFITSObject_create_table_hdu,     METH_KEYWORDS, "create_table_hdu\n\nCreate a new table with the input parameters."},
+    {"write_column",         (PyCFunction)PyFITSObject_write_column,         METH_VARARGS,  "write_column\n\nWrite a column into the current table."},
+    {"write_string_key",     (PyCFunction)PyFITSObject_write_string_key,     METH_VARARGS,  "write_string_key\n\nWrite a string key into the specified HDU."},
+    {"write_double_key",     (PyCFunction)PyFITSObject_write_double_key,     METH_VARARGS,  "write_double_key\n\nWrite a double key into the specified HDU."},
+    {"write_long_key",       (PyCFunction)PyFITSObject_write_long_key,       METH_VARARGS,  "write_long_key\n\nWrite a long key into the specified HDU."},
+    {"close",                (PyCFunction)PyFITSObject_close,                METH_VARARGS,  "close\n\nClose the fits file."},
     {NULL}  /* Sentinel */
 };
 
