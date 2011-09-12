@@ -1,4 +1,110 @@
 """
+Read and write data to FITS files using the cfitsio library.
+
+This is a python extension written in c and python.  The cfitsio library and
+headers are required to compile the code.
+
+Examples
+--------
+
+    >>> import fitsio
+
+    # if you already know what you want to do, you can use the read
+    # and write convienience functions
+
+    # read all data from the specified extension
+    >>> data = fitsio.read(filename, extension)
+
+    # open the file and write a new binary table
+    # by default a new extension is appended to the file.
+    # use clobber=True to overwrite an existing file instead
+    >>> fitsio.write(filename, recarray)
+
+
+    # the FITS class gives the ability to explore the data, and more
+    # control over what happens
+
+    # open a FITS file and explore
+    >>> fits=fitsio.FITS('data.fits','r')
+
+    # see what is in here
+    >>> fits
+
+    file: data.fits
+    mode: READONLY
+    extnum hdutype         hduname
+    0      IMAGE_HDU
+    1      BINARY_TBL      mytable
+
+    # explore the extensions, either by extension number or
+    # extension name if available
+    >>> fits[0]
+
+    extension: 0
+    type: IMAGE_HDU
+    image info:
+      data type: f8
+      dims: [4096,2048]
+
+    >>> fits['mytable']  # can also use fits[1]
+
+    extension: 1
+    type: BINARY_TBL
+    extname: mytable
+    column info:
+      i1scalar            u1
+      f                   f4
+      fvec                f4  array[2]
+      darr                f8  array[3,2]
+      s                   S5
+      svec                S6  array[3]
+      sarr                S2  array[4,3]
+
+    # read the image from extension zero
+    >>> img = fits[0].read()
+
+    # read all rows and columns from the binary table extension
+    >>> data = fits[1].read()
+    >>> data = fits['mytable'].read()
+
+    # read a subset of rows and columns
+    >>> data = fits[1].read(rows=[1,5], columns=['index','x','y'])
+    
+    # read the header
+    >>> h = fits[0].read_header()
+    >>> h['BITPIX']
+    -64
+
+    # now write some data
+    >>> fits = FITS('test.fits','rw')
+
+    # create an image
+    >>> img=numpy.arange(20,30)
+
+    # write the data to the primary HDU
+    >>> fits.write_image(img)
+ 
+    # create a rec array
+    >>> nrows=35
+    >>> data = numpy.zeros(nrows, dtype=[('index','i4'),('x','f8'),('arr','f4',(3,4))])
+    >>> data['index'] = numpy.arange(nrows,dtype='i4')
+    >>> data['x'] = numpy.random.random(nrows)
+    >>> data['arr'] = numpy.arange(nrows*3*4,dtype='f4').reshape(nrows,3,4)
+
+    # create a new table extension and write the data
+    >>> fits.write_table(data)
+
+    # you can also write a header at the same time.  The header
+    # can be a simple dict, or a list of dicts with 'name','value','comment'
+    # fields, or a FITSHDR object
+
+    >>> header = {'somekey': 35, 'location': 'kitt peak'}
+    >>> fits.write_table(data, header=header)
+   
+    # you can add individual keys to an existing HDU
+    >>> fits[1].write_key(name, value, comment="my comment")
+
+
 Features
 --------
     - Read subsets of table rows and columns.
@@ -11,17 +117,20 @@ Advantages
 ----------
 
     - Read arbitrary subsets of table columns and rows without loading the
-      whole file.
+    whole file.
 
-    - Uses TDIM information to return array columns in the correct shape
+    - TDIM information is used to return array columns in the correct shape
     - Correctly writes and reads string table columns, including array columns
-      of arbitrary shape.
+    of arbitrary shape.
 
     - Supports unsigned types the only way the FITS standard allows, by
-      converting to signed.  Note the FITS standard does not support.  Similarly,
-      signed byte are converted to unsigned.  Be careful of this feature!
+    converting to signed and using zero offsets.  Note the FITS standard does
+    not support.  Similarly, signed byte are converted to unsigned.  Be careful
+    of this feature!
 
     - Correctly writes 1 byte integers table columns.
+
+    - data are guaranteed to conform to the FITS standard.
 
 TODO
 ----
@@ -30,27 +139,104 @@ TODO
 
     - write TDIM using standard routines
     - append rows to tables
-    - access by extension names
-    - read row ranges
+    - read row ranges optimally
     - implement bit, logical, and complex types
-    - write with compression.  Should be straightforward.
+    - write images with compression.  Should be straightforward.
 
     - explore separate classes for image and table HDUs
 
     - error checking creating, appending python lists in the c code
+
 NOTES:
     A principle: 
         
         since numpy uses C order, FITS uses fortran order, we have to write the
         TDIM and image dimensions in reverse order, but write the data as is.
-        Then we need to also reverse the dims in creating the numpy dtype, but
-        read as is.
+        Then we need to also reverse the dims as read from the header when
+        creating the numpy dtype, but read as is.
 
 """
 import os
 import numpy
 from . import _fitsio_wrap
 import copy
+
+
+def read(filename, ext, rows=None, columns=None, header=False):
+    """
+    read data from the specified HDU
+
+    By default, all data are read.  For tables, send columns= and rows= to
+    select subsets of the data.  Table data are read into a recarray; use a
+    FITS object and read_column() to get a single column as an ordinary array.
+
+    parameters
+    ----------
+    filename: string
+        A filename. 
+    columns: optional
+        An optional set of columns to read from table HDUs.  Default is to
+        read all.  Can be string or number.
+    rows: optional
+        An optional list of rows to read from table HDUS.  Default is to
+        read all.
+    header: bool, optional
+        If True, read the FITS header and return a tuple (data,header)
+        Default is False.
+
+    """
+
+    fits = FITS(filename, 'r')
+    data = fits.read(rows=rows, columns=columns)
+    if header:
+        h = fits.read_header()
+        return data, h
+    else:
+        return data
+
+def write(filename, data, extname=None, units=None, header=None, clobber=False):
+    """
+    Write data to a FITS file.
+
+    parameters
+    ----------
+    filename: string
+        A filename. 
+    data:
+        Either a normal n-dimensional array or a recarray.  Images are written
+        to a new IMAGE_HDU and recarrays are written to BINARY_TBl hdus.
+    extname: string, optional
+        An optional name for the new header unit.
+    header: FITSHDR, list, dict, optional
+        A set of header keys to write. The keys are written before the data
+        is written to the table, preventing a resizing of the table area.
+        
+        Must be one of these:
+            - FITSHDR object
+            - list of dictionaries containing 'name','value' and optionally
+              a 'comment' field.
+            - a dictionary of keyword-value pairs; no comments are written
+              in this case, and the order is arbitrary
+    clobber: bool, optional
+        If True, overwrite any existing file. Default is to append
+        a new extension on existing files.
+
+
+    table keywords
+    --------------
+    These keywords are only active when writing tables.
+
+    units: list
+        A list of strings representing units for each column.
+
+    """
+    fits = FITS(filename, 'rw', clobber=clobber)
+
+    if data.dtype.fields == None:
+        fits.write_image(data, extname=extname, header=header)
+    else:
+        fits.write_table(data, units=units, extname=extname, header=header)
+
 
 class FITS:
     """
@@ -69,46 +255,50 @@ class FITS:
         For reading and writing
             'rw' or 1
         You can also use fitsio.READONLY and fitsio.READWRITE.
-    create: boolean, optional
-        If True, then attemp to create the file before opening.
     clobber:        
-        If create=True, then remove any existing file before
-        creation.
+        If the mode is READWRITE, and clobber=True, then remove any existing
+        file before opening.
+
     """
-    def __init__(self, filename, mode, create=False, clobber=False):
-        self.open(filename, mode, create=create, clobber=clobber)
+    def __init__(self, filename, mode, clobber=False):
+        self.open(filename, mode, clobber=clobber)
     
-    def open(self, filename, mode, create=False, clobber=False):
+    def open(self, filename, mode, clobber=False):
         self.filename = extract_filename(filename)
         self.mode=mode
-        self.create=create
         self.clobber=clobber
+
         if mode not in _int_modemap:
             raise ValueError("mode should be one of 'r','rw',READONLY,READWRITE")
+
         self.charmode = _char_modemap[mode]
         self.intmode = _int_modemap[mode]
 
-        self.int_create = 1 if create else 0
+        create=0
+        if mode in [READWRITE,'rw']:
+            if self.clobber:
+                create=1
+                if os.path.exists(filename):
+                    print 'Removing existing file'
+                    os.remove(filename)
+            else:
+                if os.path.exists(filename):
+                    create=0
+                else:
+                    create=1
 
-
-        if create and clobber:
-            if os.path.exists(filename):
-                print 'Removing existing file'
-                os.remove(filename)
-
-        self._FITS =  _fitsio_wrap.FITS(filename, self.intmode, self.int_create)
+        self._FITS =  _fitsio_wrap.FITS(filename, self.intmode, create)
 
     def close(self):
         self._FITS.close()
         self._FITS=None
         self.filename=None
         self.mode=None
-        self.create=None
         self.clobber=None
         self.charmode=None
         self.intmode=None
-        self.int_create=None
         self.hdu_list=None
+        self.hdu_map=None
 
 
     def reopen(self):
@@ -123,7 +313,7 @@ class FITS:
         self.update_hdu_list()
 
 
-    def write_image(self, img):
+    def write_image(self, img, extname=None, header=None):
         """
         Create a new image extension and write the data.  
 
@@ -134,14 +324,71 @@ class FITS:
         ----------
         img: ndarray
             An n-dimensional image.
+        extname: string, optional
+            An optional extension name.
+        header: FITSHDR, list, dict, optional
+            A set of header keys to write. Must be one of these:
+                - FITSHDR object
+                - list of dictionaries containing 'name','value' and optionally
+                  a 'comment' field.
+                - a dictionary of keyword-value pairs; no comments are written
+                  in this case, and the order is arbitrary
+
 
         restrictions
         ------------
         The File must be opened READWRITE
         """
         print 'writing image type:',img.dtype.descr
+        self.create_image_hdu(img, extname=extname, header=header)
         self._FITS.write_image(img)
         self.reopen()
+
+    def create_image_hdu(self, img, extname=None, header=None):
+        """
+        Create a new, empty image HDU and reload the hdu list.
+
+        You can write data into the new extension using
+            fits[extension].write(image)
+
+        typically you will instead just use 
+
+            fits.write_image(image)
+
+        which will create the new image extension for you with the appropriate
+        structure.
+
+        parameters
+        ----------
+        img: ndarray
+            An image with which to determine the properties of the HDU
+        extname: string, optional
+            An optional extension name.
+        header: FITSHDR, list, dict, optional
+            A set of header keys to write. Must be one of these:
+                - FITSHDR object
+                - list of dictionaries containing 'name','value' and optionally
+                  a 'comment' field.
+                - a dictionary of keyword-value pairs; no comments are written
+                  in this case, and the order is arbitrary
+
+
+        restrictions
+        ------------
+        The File must be opened READWRITE
+        """
+
+        if img.dtype.fields is not None:
+            raise ValueError("got recarray, expected regular ndarray")
+        self._FITS.create_image_hdu(img, extname=extname)
+
+        # fits seems to have some issues with flushing.
+        self.reopen()
+
+        if header is not None:
+            self[-1].write_keys(header)
+
+
 
     def write_table(self, data, units=None, extname=None, header=None):
         """
@@ -159,7 +406,7 @@ class FITS:
             determined from this array.
         extname: string, optional
             An optional string for the extension name.
-        header: FITSHDR, list, dict
+        header: FITSHDR, list, dict, optional
             A set of header keys to write. The keys are written before the data
             is written to the table, preventing a resizing of the table area.
             
@@ -176,15 +423,15 @@ class FITS:
         if data.dtype.fields == None:
             raise ValueError("data must have fields")
         names, formats, dims = descr2tabledef(data.dtype.descr)
-        self.create_table(names,formats,
-                          units=units, dims=dims, extname=extname,
-                          header=header)
+        self.create_table_hdu(names,formats,
+                              units=units, dims=dims, extname=extname,
+                              header=header)
         
         for colnum,name in enumerate(data.dtype.names):
             self[-1].write_column(colnum, data[name])
         self.reopen()
 
-    def create_table(self, names, formats, units=None, dims=None, extname=None, header=None):
+    def create_table_hdu(self, names, formats, units=None, dims=None, extname=None, header=None):
         """
         Create a new, empty table extension and reload the hdu list.
 
@@ -194,7 +441,7 @@ class FITS:
 
         typically you will instead just use 
 
-            fits.write(recarray)
+            fits.write_table(recarray)
 
         which will create the new table extension for you with the appropriate
         fields.
@@ -243,7 +490,7 @@ class FITS:
         if extname is not None:
             if not isinstance(extname,str):
                 raise ValueError("extension name must be a string")
-        self._FITS.create_table(names, formats, tunit=units, tdim=dims, extname=extname)
+        self._FITS.create_table_hdu(names, formats, tunit=units, tdim=dims, extname=extname)
 
         # fits seems to have some issues with flushing.
         self.reopen()
@@ -254,10 +501,14 @@ class FITS:
 
     def update_hdu_list(self):
         self.hdu_list = []
+        self.hdu_map={}
         for ext in xrange(1000):
             try:
                 hdu = FITSHDU(self._FITS, ext)
                 self.hdu_list.append(hdu)
+                self.hdu_map[ext] = hdu
+                if hdu.info['extname'] != '':
+                    self.hdu_map[hdu.info['extname']] = hdu
             except RuntimeError:
                 break
 
@@ -269,12 +520,16 @@ class FITS:
         if not hasattr(self, 'hdu_list'):
             self.update_hdu_list()
 
-        if isinstance(ext,(int,long)):
-            return self.hdu_list[ext]
-        else:
-            raise ValueError("don't yet support getting "
-                             "extensions by name")
+        # first try just hitting the hdu_list
+        try:
+            hdu = self.hdu_list[ext]
+        except:
+            # might be a string
+            if ext not in self.hdu_map:
+                raise ValueError("extension not found: %s" % ext)
+            hdu = self.hdu_map[ext]
 
+        return hdu
 
     def __repr__(self):
         spacing = ' '*2
@@ -439,7 +694,7 @@ class FITSHDU:
         """
         read data from this HDU
 
-        By default, all data are read.  For tables, Send columns= and rows= to
+        By default, all data are read.  For tables, send columns= and rows= to
         select subsets of the data.  Table data are read into a recarray; use
         read_column() to get a single column as an ordinary array.
 
@@ -596,10 +851,10 @@ class FITSHDU:
 
     def _rescale_array(self, array, scale, zero):
         if scale != 1.0:
-            print 'rescaling array'
+            #print 'rescaling array'
             array *= scale
         if zero != 0.0:
-            print 're-zeroing array'
+            #print 're-zeroing array'
             array += zero
 
     def get_rec_dtype(self, colnums=None):
@@ -1023,22 +1278,21 @@ class FITSHDR:
     def __getitem__(self, item):
         if item not in self._record_map:
             raise ValueError("unknown record: %s" % item)
-        return eval(self._record_map[item]['value'])
+
+        if item == 'COMMENT':
+            # there could be many comments, just return one
+            return self._record_map[item]['comment']
+
+        s = self._record_map[item]['value']
+        try:
+            val = eval(s)
+        except:
+            val = s
+        return val
 
     def __repr__(self):
-        rep=[]
-        for record in self._record_list:
-            if record['value'][0] == "'":
-                v = '%-8s= %-20s' % (record['name'],record['value'])
-            else:
-                v = '%-8s= %20s' % (record['name'],record['value'])
-            if 'comment' in record:
-                v = '%s / %s' % (v,record['comment'])
-
-            rep.append(v)
-        
-        rep = '\n'.join(rep)
-        return rep
+        rep = [r['card'] for r in self._record_list]
+        return '\n'.join(rep)
 
 READONLY=0
 READWRITE=1
@@ -1107,8 +1361,9 @@ def test_write_table():
            ('s','S5'),
            ('svec','S6',3),
            ('sarr','S2',(3,4))]
-    #dtype=[('s','S8'),
-    #       ('svec','S12',3)]
+    dtype2=[('index','i4'),
+            ('x','f8'),
+            ('y','f8')]
 
     nrows=4
     data=numpy.zeros(4, dtype=dtype)
@@ -1135,7 +1390,7 @@ def test_write_table():
 
     print data
     print 'writing to:',fname
-    with FITS(fname,'rw',create=True,clobber=True) as fits:
+    with FITS(fname,'rw',clobber=True) as fits:
         header = {'test1':35,
                   'test2':'stuff',
                   'test3':'blah blah',
@@ -1148,28 +1403,39 @@ def test_write_table():
         fits[-1].write_key("keydc", numpy.pi,"a comment for pi")
         fits[-1].write_key("keylc", 323423432,"a comment for long")
 
+    # add a new extension using the convenience function
+    nrows2=10
+    data2 = numpy.zeros(nrows2, dtype=dtype2)
+    data2['index'] = numpy.arange(nrows2,dtype='i4')
+    data2['x'] = numpy.arange(nrows2,dtype='f8')
+    data2['y'] = numpy.arange(nrows2,dtype='f8')
+    write(fname, data2, extname="newext", header={'ra':335.2,'dec':-25.2})
+        
+
     with FITS(fname,'r') as fits:
 
         if 'f' in data.dtype.names:
-            print 'f:',fits[-1].read_column('f')
+            print 'f:',fits[1].read_column('f')
 
         if 'fvec' in data.dtype.names:
-            print 'fvec:',fits[-1].read_column('fvec')
+            print 'fvec:',fits[1].read_column('fvec')
         if 'darr' in data.dtype.names:
-            print 'darr:',fits[-1].read_column('darr')
+            print 'darr:',fits[1].read_column('darr')
         if 's' in data.dtype.names:
-            print 's:',fits[-1].read_column('s')
+            print 's:',fits[1].read_column('s')
         if 'svec' in data.dtype.names:
-            print 'svec:',fits[-1].read_column('svec')
+            print 'svec:',fits[1].read_column('svec')
         if 'sarr' in data.dtype.names:
-            print 'sarr:',fits[-1].read_column('sarr')
+            print 'sarr:',fits[1].read_column('sarr')
 
         if 's' in data.dtype.names and 'svec' in data.dtype.names:
-            print 's,sarr:',fits[-1].read_columns(['s','sarr'])
+            print 's,sarr:',fits[1].read_columns(['s','sarr'])
 
-        h = fits[-1].read_header()
+        h = fits[1].read_header()
         print h
-        return fits[-1].read()
+
+        print fits[2].read()
+        return fits[1].read()
 
 def test_write_image(dtype):
     fname='test-write.fits'
@@ -1181,16 +1447,29 @@ def test_write_image(dtype):
     img = numpy.arange(nx*ny, dtype=dtype).reshape(nx,ny)
     print 'writing image:'
     print img
-    fits = FITS(fname,mode,create=True,clobber=True)
 
-    fits.write_image(img)
+    header = {'test1':35,
+              'test2':'stuff',
+              'test3':'blah blah',
+              'dbl': 23.299843,
+              'lng':3423432}
+
+    print 'writing header:'
+    print header
+
+    fits = FITS(fname,mode,clobber=True)
+
+    fits.write_image(img, header=header, extname='little_image')
 
     print fits
     print fits[0]
 
     imgread = fits[0].read()
+    hread = fits[0].read_header()
     print 'read image:'
     print imgread
+    print 'read header:'
+    print hread
 
     maxdiff = numpy.abs( (img-imgread) ).max()
     print 'maxdiff:',maxdiff
