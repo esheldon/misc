@@ -1398,10 +1398,10 @@ def test_write_table():
                   'lng':3423432}
         fits.write_table(data, header=header, extname='mytable')
         #fits.write_table(data, header=header)
-        fits[-1].write_key("keysnc", "hello")
-        fits[-1].write_key("keysc", "hello","a comment for string")
-        fits[-1].write_key("keydc", numpy.pi,"a comment for pi")
-        fits[-1].write_key("keylc", 323423432,"a comment for long")
+        fits[1].write_key("keysnc", "hello")
+        fits[1].write_key("keysc", "hello","a comment for string")
+        fits[1].write_key("keydc", numpy.pi,"a comment for pi")
+        fits[1].write_key("keylc", 323423432,"a comment for long")
 
     # add a new extension using the convenience function
     nrows2=10
@@ -1434,7 +1434,7 @@ def test_write_table():
         h = fits[1].read_header()
         print h
 
-        print fits[2].read()
+        print fits['newext'].read()
         return fits[1].read()
 
 def test_write_image(dtype):
