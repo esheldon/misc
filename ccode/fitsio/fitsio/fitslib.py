@@ -1,160 +1,16 @@
 """
-Read and write data to FITS files using the cfitsio library.
+fitslib
 
-This is a python extension written in c and python.  The cfitsio library and
-headers are required to compile the code.
+See docs for the package, e.g.
+    import fitsio
+    help(fitsio)
+In ipython:
+    fitsio?
 
-Examples
---------
-
-    >>> import fitsio
-
-    # if you already know what you want to do, you can use the read
-    # and write convienience functions
-
-    # read all data from the specified extension
-    >>> data = fitsio.read(filename, extension)
-
-    # open the file and write a new binary table
-    # by default a new extension is appended to the file.
-    # use clobber=True to overwrite an existing file instead
-    >>> fitsio.write(filename, recarray)
-
-
-    # the FITS class gives the ability to explore the data, and more
-    # control over what happens
-
-    # open a FITS file and explore
-    >>> fits=fitsio.FITS('data.fits','r')
-
-    # see what is in here
-    >>> fits
-
-    file: data.fits
-    mode: READONLY
-    extnum hdutype         hduname
-    0      IMAGE_HDU
-    1      BINARY_TBL      mytable
-
-    # explore the extensions, either by extension number or
-    # extension name if available
-    >>> fits[0]
-
-    extension: 0
-    type: IMAGE_HDU
-    image info:
-      data type: f8
-      dims: [4096,2048]
-
-    >>> fits['mytable']  # can also use fits[1]
-
-    extension: 1
-    type: BINARY_TBL
-    extname: mytable
-    column info:
-      i1scalar            u1
-      f                   f4
-      fvec                f4  array[2]
-      darr                f8  array[3,2]
-      s                   S5
-      svec                S6  array[3]
-      sarr                S2  array[4,3]
-
-    # read the image from extension zero
-    >>> img = fits[0].read()
-
-    # read all rows and columns from the binary table extension
-    >>> data = fits[1].read()
-    >>> data = fits['mytable'].read()
-
-    # read a subset of rows and columns
-    >>> data = fits[1].read(rows=[1,5], columns=['index','x','y'])
-    
-    # read the header
-    >>> h = fits[0].read_header()
-    >>> h['BITPIX']
-    -64
-
-    # now write some data
-    >>> fits = FITS('test.fits','rw')
-
-    # create an image
-    >>> img=numpy.arange(20,30)
-
-    # write the data to the primary HDU
-    >>> fits.write_image(img)
- 
-    # create a rec array
-    >>> nrows=35
-    >>> data = numpy.zeros(nrows, dtype=[('index','i4'),('x','f8'),('arr','f4',(3,4))])
-    >>> data['index'] = numpy.arange(nrows,dtype='i4')
-    >>> data['x'] = numpy.random.random(nrows)
-    >>> data['arr'] = numpy.arange(nrows*3*4,dtype='f4').reshape(nrows,3,4)
-
-    # create a new table extension and write the data
-    >>> fits.write_table(data)
-
-    # you can also write a header at the same time.  The header
-    # can be a simple dict, or a list of dicts with 'name','value','comment'
-    # fields, or a FITSHDR object
-
-    >>> header = {'somekey': 35, 'location': 'kitt peak'}
-    >>> fits.write_table(data, header=header)
-   
-    # you can add individual keys to an existing HDU
-    >>> fits[1].write_key(name, value, comment="my comment")
-
-
-Features
---------
-    - Read subsets of table rows and columns.
-    - Read and write all supported image types.  Can read compressed images.
-    - Correctly interpret TDIM information for array columns.
-    - Read and write all image types.  Can read compressed images.
-
-
-Advantages
-----------
-
-    - Read arbitrary subsets of table columns and rows without loading the
-    whole file.
-
-    - TDIM information is used to return array columns in the correct shape
-    - Correctly writes and reads string table columns, including array columns
-    of arbitrary shape.
-
-    - Supports unsigned types the only way the FITS standard allows, by
-    converting to signed and using zero offsets.  Note the FITS standard does
-    not support.  Similarly, signed byte are converted to unsigned.  Be careful
-    of this feature!
-
-    - Correctly writes 1 byte integers table columns.
-
-    - data are guaranteed to conform to the FITS standard.
-
-TODO
-----
-    - test reading of all types both in read rec mode and read single
-      column mode.  Also with subsets of rows.
-
-    - write TDIM using standard routines
-    - append rows to tables
-    - read row ranges optimally
-    - implement bit, logical, and complex types
-    - write images with compression.  Should be straightforward.
-
-    - explore separate classes for image and table HDUs
-
-    - error checking creating, appending python lists in the c code
-
-NOTES:
-    A principle: 
-        
-        since numpy uses C order, FITS uses fortran order, we have to write the
-        TDIM and image dimensions in reverse order, but write the data as is.
-        Then we need to also reverse the dims as read from the header when
-        creating the numpy dtype, but read as is.
-
+Also see docs for the FITS class and its methods.
+    help(fitsio.FITS)
+In ipython:
+    fitsio.FITS?
 """
 import os
 import numpy
@@ -164,17 +20,23 @@ import copy
 
 def read(filename, ext, rows=None, columns=None, header=False):
     """
-    read data from the specified HDU
+    Convenience function to read data from the specified FITS HDU
 
     By default, all data are read.  For tables, send columns= and rows= to
     select subsets of the data.  Table data are read into a recarray; use a
     FITS object and read_column() to get a single column as an ordinary array.
 
+    Under the hood, a FITS object is constructed and data are read using
+    an associated FITSHDU object.
+
     parameters
     ----------
     filename: string
         A filename. 
-    columns: optional
+    ext: number or string
+        The extension.  Either the numerical extension from zero
+        or a string extension name.
+    columns: list or array, optional
         An optional set of columns to read from table HDUs.  Default is to
         read all.  Can be string or number.
     rows: optional
@@ -186,17 +48,42 @@ def read(filename, ext, rows=None, columns=None, header=False):
 
     """
 
-    fits = FITS(filename, 'r')
-    data = fits.read(rows=rows, columns=columns)
-    if header:
-        h = fits.read_header()
-        return data, h
-    else:
-        return data
+    with FITS(filename, 'r') as fits:
+        data = fits[ext].read(rows=rows, columns=columns)
+        if header:
+            h = fits[ext].read_header()
+            return data, h
+        else:
+            return data
+
+def read_header(filename, ext):
+    """
+    Convenience function to read the header from the specified FITS HDU
+
+    The FITSHDR allows access to the values and comments by name and
+    number.
+
+    Under the hood, a FITS object is constructed and data are read using
+    an associated FITSHDU object.
+
+    parameters
+    ----------
+    filename: string
+        A filename. 
+    ext: number or string
+        The extension.  Either the numerical extension from zero
+        or a string extension name.
+    """
+    with FITS(filename, 'r') as fits:
+        return fits[ext].read_header()
+
+
 
 def write(filename, data, extname=None, units=None, header=None, clobber=False):
     """
-    Write data to a FITS file.
+    Convenience function to Write data to a FITS file.
+
+    Under the hood, a FITS object is constructed.
 
     parameters
     ----------
@@ -231,11 +118,11 @@ def write(filename, data, extname=None, units=None, header=None, clobber=False):
 
     """
     fits = FITS(filename, 'rw', clobber=clobber)
-
-    if data.dtype.fields == None:
-        fits.write_image(data, extname=extname, header=header)
-    else:
-        fits.write_table(data, units=units, extname=extname, header=header)
+    with FITS(filename, 'rw', clobber=clobber) as fits:
+        if data.dtype.fields == None:
+            fits.write_image(data, extname=extname, header=header)
+        else:
+            fits.write_table(data, units=units, extname=extname, header=header)
 
 
 class FITS:
@@ -672,7 +559,7 @@ class FITSHDU:
         The FITSHDR allows access to the values and comments by name and
         number.
         """
-        return FITSHDR(self._FITS.read_header(self.ext+1))
+        return FITSHDR(self.read_header_list())
 
 
     def read_header_list(self):
