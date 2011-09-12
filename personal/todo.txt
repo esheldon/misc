@@ -1,7 +1,12 @@
 Quick look Queue
+    zhaoming's letter
+    Don's comments
+    Mandeep
+    zhaoming's paper
+    ukidss TS
+
     updated billing addresses:
         water
-        oil
 
 BigBOSS
     - fill out SDSS footpring info for response to review
@@ -9,13 +14,12 @@ BigBOSS
 
 DES:
 
-
-
 objshear
     kathy romer, chris miller catalogs
 
     RedMapper
-    
+        - get first redmapper catalog
+        - apply 1Mpc cuts; need to do this for randoms too... ugly. 
         - Look into new binning scheme on lambda.
 
     shears:
@@ -28,6 +32,7 @@ objshear
 
 
 BOSS 
+    ukidss TS
 
     Target Selection Overview Paper
 
