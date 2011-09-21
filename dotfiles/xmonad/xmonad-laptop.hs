@@ -35,4 +35,8 @@ main = do
                        ppTitle = xmobarColor "green" "" . shorten 50
                    },
                    terminal = "xterm"
-    }
+    }`additionalKeys` myKeyBindings
+
+-- newer versions of dmenu are for some reason not recognized automatically,
+-- so put it here explicitly.  Also we can control the color :)
+myKeyBindings = [((mod1Mask, xK_p), spawn "dmenu_run -nb black -nf white")]
