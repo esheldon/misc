@@ -15,14 +15,14 @@ out_to_console no
 #font *mintsmild.se*
 #font -*-*-*-*-*-*-34-*-*-*-*-*-*-*
 #font -artwiz-snap-normal-r-normal-*-*-100-*-*-p-*-iso8859-1
-font fixed
+#font fixed
 
 # Use Xft?
 use_xft yes
 
 # Xft font when Xft is enabled
-xftfont Bitstream Vera Sans Mono:size=8
-#xftfont Monaco:size=10
+#xftfont Bitstream Vera Sans Mono:size=8
+xftfont Terminus:size=12
 
 own_window_transparent no
 own_window_colour hotpink
@@ -41,10 +41,10 @@ update_interval 2
 #own_window no
 
 # For xfce
-own_window yes
-own_window_type desktop
-own_window_hints undecorated,below,skip_taskbar
-own_window_transparent yes
+#own_window yes
+#own_window_type desktop
+#own_window_hints undecorated,below,skip_taskbar
+#own_window_transparent yes
 
 # Use double buffering (reduces flicker, may not work for everyone)
 double_buffer yes
@@ -66,7 +66,8 @@ draw_borders no
 stippled_borders 10
 
 # border margins
-border_margin 4
+# said no such configuration
+#border_margin 4
 
 # border width
 border_width 1
@@ -84,11 +85,12 @@ default_outline_color white
 #alignment top_right
 #gap_x 13
 #gap_y 50
+#gap_y 200
 #alignment bottom_left
 #alignment bottom_right
 #alignment top_right
 alignment middle_right
-gap_y 50
+gap_y 0
 
 
 # Gap between borders of screen and text
@@ -222,21 +224,25 @@ uppercase no
 #    http://conky.sourceforge.net/variables.html
 
 TEXT
-$nodename $alignr $kernel
+$alignc $nodename
 ${hr}
+$sysname $kernel $alignr $machine
 Uptime: $alignr ${color lightgrey} $uptime$color
-${time %I:%M:%S%p} $alignr ${time %F}
+${time %H:%M:%S%p} $alignr ${time %F}
 
-CPU:${color grey} ${i2c 1-002d temp 1}°C $color${color skyblue} $alignr ${cpu cpu1}%$color
-${color lightgrey}${cpugraph cpu1 006400 00FF00}$color
-Down:${color skyblue} ${downspeed eth0} $alignr ${color lightgrey} Tot: ${color skyblue}${totaldown eth0}$color
-${color lightgrey}${downspeedgraph eth0 2554C7 306EFF 1000}$color
-Up:${color FBB117} ${upspeed eth0} $alignr ${color lightgrey} Tot: ${color FBB117}${totalup eth0}$color
-${color lightgrey}${upspeedgraph eth0 AF7817 FBB117 100}$color
-RAM: ${mem}/${memmax}
+CPU1: ${color skyblue} ${cpu cpu1}%$color $alignr CPU2: ${color skyblue} ${cpu cpu2}%$color
+${color lightgrey}${cpugraph cpu1 25,120 006400 00FF00}$color ${color lightgrey}${cpugraph cpu2 25,120 006400 00FF00}$color
+Total CPU: ${color green} ${cpu cpu0}%$color
+${color lightgrey}${cpugraph cpu0 006400 00FF00}$color
+Down: ${color FBB117}${downspeed eth1}$color $alignr Up: ${color FBB117} ${upspeed eth1}$color
+${color green}${totaldown eth1} $alignr ${totalup eth1}$color
+${color lightgrey}${downspeedgraph eth1 25,120 2554C7 306EFF 1000} ${upspeedgraph eth1 25,120 AF7817 FBB117 100}$color
+RAM: ${color yellow}${mem}/${memmax}$color
 ${color skyblue}${memgraph 006400 00FF00}$color
+HD IO: ${color FBB117}${diskio}
+${color lightgrey}${diskiograph 006400 00FF00}$color
 
-/ ${color orange}${voffset -3}${font Pie charts for maps:size=14}${execi 60 bash ~/.dotfiles/conky/scripts/df2piefont.sh /}${font}$color${voffset -6}   Swap ${color yellow}${voffset -3}${font Pie charts for maps:size=14}${execi 60 bash ~/.dotfiles/conky/scripts/free2piefont.sh swap}${font}$color
+/ ${color orange}${voffset -2}${font Pie charts for maps:size=14}${execi 60 bash ~/.dotfiles/conky/scripts/df2piefont.sh /}${font}$color${voffset -6}   Swap ${color yellow}${voffset -2}${font Pie charts for maps:size=14}${execi 60 bash ~/.dotfiles/conky/scripts/free2piefont.sh swap}${font}$color
 
 ${color}Proc by CPU      PID       %
 ${color #ddaa00} ${top name 1}${top pid 1} ${top cpu 1}
