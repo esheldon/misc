@@ -84,7 +84,7 @@ for type; do
         ln -vfs ~/.dotfiles/bash/bash_profile .bash_profile
         ln -vfs ~/.dotfiles/inputrc .inputrc
         ln -vfs ~/.dotfiles/X/Xdefaults .Xdefaults
-        ln -vfs ~/.dotfiles/conky/conkyrc.thin .conkyrc
+        ln -vfs ~/.dotfiles/conky/conkyrc.treebeard .conkyrc
         ln -vfs ~/.dotfiles/screen/screenrc .screenrc
         ln -vfs ~/.dotfiles/mrxvt/mrxvtrc .mrxvtrc
         ln -vfs ~/.dotfiles/Eterm .Eterm
