@@ -77,6 +77,11 @@ alias ackp='ack --pager="less -R"'
 
 alias grep='grep --color=auto'
 
+alias pcat=pygmentize
+function pless() {
+    pcat "$1" | less -R
+}
+
 function printpath
 {
 	echo -e $(echo $1 | sed 's/:/\\n/g')
