@@ -1,1 +1,1 @@
-prepend_path PATH ~/.gem/ruby/1.8/bin
+#prepend_path PATH ~/.gem/ruby/1.8/bin
