@@ -35,6 +35,9 @@ else
     flavor=Linux
 fi
 fbexec=~/local/products/$flavor/fbpanel/6.1/bin/fbpanel
+if [[ ! -x $fbexec ]]; then
+    fbexec=/usr/bin/fbpanel
+fi
 if [[ -x $fbexec ]]; then
     $fbexec &
     sleep $sleeptime

@@ -47,6 +47,12 @@ def main():
         print "Could not import numpy"
 
     try:
+        ip.ex("import fitsio")
+    except:
+        print "Could not import fitsio"
+
+
+    try:
         ip.ex("import zphot")
     except:
         print "Could not import zphot"

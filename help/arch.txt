@@ -1,0 +1,46 @@
+Working on treebeard.
+
+Dual booting
+
+windows is on sda
+install on sdb
+
+
+I did the auto-configure of partitions on sdb.  All should work pretty easily.
+
+For packages, I didn't check the full dev box, but i might need a lot of that
+stuff later.
+
+
+grub
+------
+
+remember, you *do* want to install grub on the MBR of sda!
+
+/boot/grub/menu.lst
+
+You'll have to edit this
+
+To get dual booting with windows uncomment the end
+stuff for windows in /boot/grub/menu.lst but not
+the makeactive since this is windows 7
+
+
+Also, it will write the wrong /boot/grub/menu.lst and you'll have to rename to
+
+    vmlinuz26               becomes     vmlinuz-linux
+    kernel26.img            becomes     initramfs-linux.img
+    kernel26-fallback.img   becomes     initramfs-linux-fallback.img
+
+This might not happen if you do the non net-install
+
+
+Now I boot up and all is well!
+
+
+All that is running outside the kernel is
+
+    - udevd
+    - system log
+    - crod
+    - dhcpd

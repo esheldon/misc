@@ -1,0 +1,8 @@
+xrdb -merge ~/.Xdefaults
+xmodmap ~/.Xmodmap
+synclient TouchPadOff=1
+nm-applet --sm-disable
+gnome-power-manager
+fbpanel
+xsetroot -solid black
+xset r rate 300 30

@@ -1,0 +1,2 @@
+killall gnome-keyring-daemon
+exec lxsession -s xmonad

@@ -1,0 +1,7 @@
+"1.0b6.1 (created: 2011/03/09 09:25:18)
+
+loadplugins '\.(js|penta)$'
+group user
+set editor='gvim -f +<line> +"sil! call cursor(0, <column>)" -c "set filetype=mail" -c "set spell spelllang=en_us" <file>'
+
+" vim: set ft=pentadactyl:
