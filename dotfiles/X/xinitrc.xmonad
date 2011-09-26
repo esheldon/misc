@@ -39,7 +39,13 @@ if [[ ! -x $fbexec ]]; then
     fbexec=/usr/bin/fbpanel
 fi
 if [[ -x $fbexec ]]; then
-    $fbexec &
+
+    if [[ -e ~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc ]]; then
+        GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc $fbexec &
+    else
+        $fpexec &
+    fi
+
     sleep $sleeptime
 
     if [ -x /usr/bin/nm-applet ]; then

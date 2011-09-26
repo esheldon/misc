@@ -1,21 +1,29 @@
 Quick look Queue
+    zhaoming's letter
+    Don's comments, rebuild paper and post.  Add authors. submit.
+        - remake tables
+        - remake figures
+    Mandeep
+    zhaoming's paper
+    apj refereeing
+
+    ukidss TS
+
     updated billing addresses:
         water
-        oil
 
 BigBOSS
-    - fill out SDSS footpring info for response to review
+    - fill out SDSS footprint info for response to review
         deadline is before august?  Ask Nick Mostek
 
 DES:
-
-
 
 objshear
     kathy romer, chris miller catalogs
 
     RedMapper
-    
+        - get first redmapper catalog
+        - apply 1Mpc cuts; need to do this for randoms too... ugly. 
         - Look into new binning scheme on lambda.
 
     shears:
@@ -28,6 +36,7 @@ objshear
 
 
 BOSS 
+    ukidss TS
 
     Target Selection Overview Paper
 

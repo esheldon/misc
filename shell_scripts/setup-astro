@@ -20,7 +20,8 @@ ip=""
 iscorus="no"
 
 
-ip=$(ifconfig | grep "inet " | grep -v "inet addr:127" | awk '{print $2}' | cut -d ":" -f 2)
+#ip=$(ifconfig | grep "inet " | grep -v "inet addr:127" | awk '{print $2}' | cut -d ":" -f 2)
+ip=$(ip addr | grep 'inet ' | grep -v 'inet 127' | awk '{print $2}' | cut -d '/' -f 1)
 
 check=$(echo $ip | grep 130\.199\.15)
 if [ "$check" == "$ip" ]; then
