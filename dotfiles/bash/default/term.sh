@@ -29,6 +29,9 @@ function setp
     # time warner gives an annoying hostname, so just map all Darwins to fangorn
     if [[ $sysname == "Darwin" ]]; then
         PS1="[esheldon@fangorn \W] "
+    elif [[ $TERM == "linux" ]]; then
+        # console, no title bar
+        PS1="[\u@\h \W] "
     else
         if [[ $hname == "astro0034" ]]; then
             PS1="[\u@astro \W] "

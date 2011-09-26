@@ -1,0 +1,15 @@
+If you create a local branch and you want to then create the remove branch
+(e.g. on github) as a copy of the local one, do the following:
+
+    git push origin bundle:refs/heads/bundle
+
+Here origin means "where I got the original copy of this repo from" If that
+gives an error like 
+
+    error: src refspec origin does not match any.
+    error: failed to push some refs to 'git@github.com:esheldon/fitsio.git'
+
+Then you might have to run a command like this
+
+    git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/master
+
