@@ -1,4 +1,4 @@
-ip=$(ifconfig  | grep 'inet ' | grep -v 'inet addr:127' | awk '{print $2}' | cut -d ':' -f 2)
+ip=$(/sbin/ifconfig  | grep 'inet ' | grep -v 'inet addr:127' | awk '{print $2}' | cut -d ':' -f 2)
 
 
 check_corus=$(echo $ip | grep 130\.199\.175)

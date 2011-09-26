@@ -1,0 +1,143 @@
+I first tried arch linux, but udev could not find my ethernet card.
+
+So, ubuntu it is.
+
+For ubuntu, can use usb-creator (ubuntu based distros only) to make a bootable
+usb for installation.  I tried Lubuntu 11
+
+The install fails if I try using the usb port on the back left.  It succeeds
+using the front left.
+
+
+After install, easiest way to get started is using the stuff on the eeebuntu
+3.0 labeled usb stick (relabel it!).  get the id_rsa* stuff off there and put
+it in ~/.ssh.  Then install 
+    ssh-askpass
+    keychain 
+    
+and you should be good to go.  There is a version of mysetup.sh on there. If it is out of date, just get it from the webfactional account.
+
+Note I could not get Xmodmap or Xdefaults to work under lxde. Need to look into
+it.
+
+capslock
+--------
+
+I found this advice on making capslock control in the console. I used
+this to make capslock another ctrl
+
+Edit /etc/default/keyboard
+
+        XKBOPTIONS="ctrl:nocaps"
+
+then run
+
+        sudo dpkg-reconfigure -phigh console-setup
+    
+original article
+
+    http://www.noah.org/wiki/CapsLock_Remap_Howto
+
+NOTE: this wasn't supposed to help with X11 but it seems
+to; in lxde it is working
+
+XSession
+--------
+
+I put XSession.desktop file  under /usr/share/xsessions/
+
+IMPORTANT NOTE: you DO seem to need the display manager or else lots of things
+you won't have permission to run, like the nm-applet, mounting usb drives from
+pcman, and some other device related things. I'm sure I could figure this out
+but for now this isn't too intolerable.
+
+This seems pam related: lxdm has permissions for this stuff.
+
+try workaround but none works:
+    I implemented the dbus hack, using group netdev instead
+    of network, as I was already in it
+    https://bbs.archlinux.org/viewtopic.php?id=63576
+
+    Make sure to launch xmonad with 
+        exec ck-launch-session xmonad
+
+    And put this at the bottom of /etc/pam.d/login
+
+        session optional pam_loginuid.so
+        session optional pam_ck_connector.so
+
+
+
+problems
+
+    Lots that were resolved by just using the damned XSession, related
+    to what I said above that lxdm has permissions to do certain
+    things that I don't.
+
+    fbpanel didn't look right because I needed to use a dark gtk theme, but
+    setting it under the lxde session didn't progagate after reboot.
+
+    Tried gtk-theme-switch and installing a dark gtk theme and it works.
+    clealooks-darkorange is my fav but I had to alter the INSENSITIVE
+    (widgets/buttons not pushable) to be a better color. this is not under
+    dotfiles/gtk-themes. 
+
+LXSession
+---------
+
+Tried using LXSession seems to be a good way to manage things like autostart.
+But in the end it doesn't help me any.
+
+But here's how it works:
+ 
+There is a new area ~/.dotfiles/lxsession/xmonad that you should linke under
+~/.config/lxsession
+
+In the desktop.conf you specify the window manager is xmonad, and you
+can do things like set the key repeat speed (although I figure out you
+can do that with xset)
+
+Then 
+    exec lxsession -s xmonad 
+
+instead of xmonad in the ~/.xsession file.  
+
+I still had a problem with gnome-keyring running multiple instances, so
+I added a killall gnome-keyring to the top of the xsession file.  This is
+at
+
+    ~/.dotfiles/X/xinitrc.lxsession
+
+One nice thing is the ability to use lxsession-logout or (lxde-logout I
+suppose), which is a nice dialog that allows logging out, rebooting, shutting
+down, etc.  so that's a way to avoid going back to the display manager.
+
+But on the other hand I can't just get out with a key stroke, using alt-shift-q
+will leave the session running.
+
+Grub
+---------
+I don't like not seeing the printed text.
+
+in grub 2.0 you edit kernel mode lines by editing
+    /etc/default/grub
+
+I removed 
+    GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+
+Leave it blank to print all the info but still bring
+up a display manager.
+
+Replace with this to skip the display manager.
+    GRUB_CMDLINE_LINUX_DEFAULT="text"
+
+
+Then ran
+    sudo update-grub
+
+That worked.
+
+
+
+
+

@@ -40,6 +40,7 @@ if [[ -e $f ]]; then
     module load cosmology  # *
     module load admom      # *
     module load fimage     # *
+    module load fitsio
 
     module load numpydb    # *
 

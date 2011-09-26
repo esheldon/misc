@@ -1,3 +1,8 @@
+# this is a way to have firefox use it's own gtk settings
+# this is nice because I need to use a dark theme for fbpanel
+# but dark themes never work right in firefox.
+alias myfirefox='GTK2_RC_FILES="/usr/share/themes/Clearlooks/gtk-2.0/gtkrc" firefox'
+
 # awk simplifies life
 alias mailtail="tail -n 100 -f ~/.getmail/gmail.log  | awk '{print \$1,\$2,\$4,\$10}'"
 alias astro='ssh esheldon@astro.physics.nyu.edu'
@@ -69,6 +74,13 @@ alias mrxvt10='mrxvt -xft -xftfn Monaco -xftsz 10'
 alias lmrxvt10='mrxvt -cf ~/.dotfiles/mrxvt/mrxvtrc-lightbg -xft -xftfn Monaco -xftsz 10'
 
 alias ackp='ack --pager="less -R"'
+
+alias grep='grep --color=auto'
+
+alias pcat=pygmentize
+function pless() {
+    pcat "$1" | less -R
+}
 
 function printpath
 {

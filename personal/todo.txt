@@ -1,44 +1,42 @@
 Quick look Queue
+    zhaoming's letter
+    Don's comments, rebuild paper and post.  Add authors. submit.
+        - remake tables
+        - remake figures
+    Mandeep
+    zhaoming's paper
+    apj refereeing
+
+    ukidss TS
+
     updated billing addresses:
-        chase*
-        others?
-    see zphot
+        water
 
 BigBOSS
-    - fill out SDSS footpring info for response to review
+    - fill out SDSS footprint info for response to review
         deadline is before august?  Ask Nick Mostek
-zphot:
-
-    - data model: include link to arxiv paper when ready
-
-    - make sure files get linked to main website in usual place
 
 DES:
 
-    Bob didn't actually implement new s/g!
+objshear
+    kathy romer, chris miller catalogs
 
-shears:
+    RedMapper
+        - get first redmapper catalog
+        - apply 1Mpc cuts; need to do this for randoms too... ugly. 
+        - Look into new binning scheme on lambda.
 
-    Test with old princeton file:
-        Note princeton file has r+i combined, which is a bit problematic,
-        but we should at least see no bias.
+    shears:
+        - Match Frank's file
+        - look at various local tests 
+            - PSF tests need to be devised
+            - <e> vs R
+            - <e> vs psf e
+            - <e> vs position, run, etc.
 
-        * Compare in pixel coordinates.
-        * Compare my equatorial rotations to those in the file.
-
-    Match Frank's file
-
-RedMapper
-    
-    - Look into new binning scheme on lambda.
-
-    - look at various local tests 
-        - PSF tests need to be devised
-        - <e> vs R
-        - <e> vs psf e
-        - <e> vs position, run, etc.
 
 BOSS 
+    ukidss TS
 
     Target Selection Overview Paper
 
@@ -47,8 +45,4 @@ BOSS
         References to tiling stuff and brief description
 
 
-objshear
-    kathy romer, chris miller catalogs
-
-    .json config files good?  Can't put comments in per field...
 

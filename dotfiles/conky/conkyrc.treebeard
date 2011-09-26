@@ -15,13 +15,14 @@ out_to_console no
 #font *mintsmild.se*
 #font -*-*-*-*-*-*-34-*-*-*-*-*-*-*
 #font -artwiz-snap-normal-r-normal-*-*-100-*-*-p-*-iso8859-1
-font fixed
+#font fixed
 
 # Use Xft?
-# use_xft yes
+use_xft yes
 
 # Xft font when Xft is enabled
 #xftfont Bitstream Vera Sans Mono:size=8
+xftfont Terminus:size=12
 
 own_window_transparent no
 own_window_colour hotpink
@@ -37,7 +38,13 @@ mail_spool $MAIL
 # Update interval in seconds
 update_interval 2
 # Create own window instead of using desktop (required in nautilus)
-own_window no
+#own_window no
+
+# For xfce
+#own_window yes
+#own_window_type desktop
+#own_window_hints undecorated,below,skip_taskbar
+#own_window_transparent yes
 
 # Use double buffering (reduces flicker, may not work for everyone)
 double_buffer yes
@@ -59,7 +66,8 @@ draw_borders no
 stippled_borders 10
 
 # border margins
-border_margin 4
+# said no such configuration
+#border_margin 4
 
 # border width
 border_width 1
@@ -74,16 +82,21 @@ default_outline_color white
 #minimum_size 10 10
 #gap_x 13
 #gap_y 13
-alignment top_right
+#alignment top_right
 #gap_x 13
 #gap_y 50
+#gap_y 200
 #alignment bottom_left
 #alignment bottom_right
+#alignment top_right
+alignment middle_right
+gap_y 0
+
 
 # Gap between borders of screen and text
 
 # Add spaces to keep things from moving about?  This only affects certain objects.
-use_spacer no
+use_spacer none
 
 # Subtract file system buffers from used memory?
 no_buffers yes
@@ -210,29 +223,32 @@ uppercase no
 # For explanations of the following see:
 #    http://conky.sourceforge.net/variables.html
 
-
 TEXT
-$nodename - $sysname $kernel on $machine
-${color lightgrey}${hr}
-${color skyblue}${time}
-${color lightgrey}Uptime:$color $uptime ${color lightgrey}- Load:$color $loadavg
+$alignc $nodename
+${hr}
+$sysname $kernel $alignr $machine
+Uptime: $alignr ${color lightgrey} $uptime$color
+${time %H:%M:%S%p} $alignr ${time %F}
 
-CPU:
-${color lightgrey}${cpugraph cpu1 32,150 006400 00FF00} $alignr${color lightgrey}${cpugraph cpu2 32,150 006400 00FF00}
-${color lightgrey}RAM Usage:$color $mem/$memmax - $memperc% $membar
-${color lightgrey}Swap Usage:$color $swap/$swapmax - $swapperc% ${swapbar}
-${color lightgrey}Processes:$color $processes  ${color grey}Running:$color $running_processes
+CPU1: ${color skyblue} ${cpu cpu1}%$color $alignr CPU2: ${color skyblue} ${cpu cpu2}%$color
+${color lightgrey}${cpugraph cpu1 25,120 006400 00FF00}$color ${color lightgrey}${cpugraph cpu2 25,120 006400 00FF00}$color
+Total CPU: ${color green} ${cpu cpu0}%$color
+${color lightgrey}${cpugraph cpu0 006400 00FF00}$color
+Down: ${color FBB117}${downspeed eth1}$color $alignr Up: ${color FBB117} ${upspeed eth1}$color
+${color green}${totaldown eth1} $alignr ${totalup eth1}$color
+${color lightgrey}${downspeedgraph eth1 25,120 2554C7 306EFF 1000} ${upspeedgraph eth1 25,120 AF7817 FBB117 100}$color
+RAM: ${color yellow}${mem}/${memmax}$color
+${color skyblue}${memgraph 006400 00FF00}$color
+HD IO: ${color FBB117}${diskio}
+${color lightgrey}${diskiograph 006400 00FF00}$color
 
-${color lightgrey}Network:
- Down:${color 3BB9FF} ${downspeed eth0} {color lightgrey} ${offset 75}Up:${color FBB117} ${upspeed eth0} 
-${color lightgrey}${downspeedgraph eth0 32,150 2554C7 306EFF 1000} $alignr${color lightgrey}${upspeedgraph eth0 32,150 AF7817 FBB117 100}
-${color lightgrey}File systems:
- / $color${fs_used /}/${fs_size /} ${fs_bar /}
-${color}Proc by CPU           PID   CPU%   MEM%
-${color #ddaa00} ${top name 1} ${top pid 1} ${top cpu 1} ${top mem 1}
-${color lightgrey} ${top name 2} ${top pid 2} ${top cpu 2} ${top mem 2}
-${color lightgrey} ${top name 3} ${top pid 3} ${top cpu 3} ${top mem 3}
+/ ${color orange}${voffset -2}${font Pie charts for maps:size=14}${execi 60 bash ~/.dotfiles/conky/scripts/df2piefont.sh /}${font}$color${voffset -6}   Swap ${color yellow}${voffset -2}${font Pie charts for maps:size=14}${execi 60 bash ~/.dotfiles/conky/scripts/free2piefont.sh swap}${font}$color
+
+${color}Proc by CPU      PID       %
+${color #ddaa00} ${top name 1}${top pid 1} ${top cpu 1}
+${color lightgrey} ${top name 2}${top pid 2} ${top cpu 2}
+${color lightgrey} ${top name 3}${top pid 3} ${top cpu 3}
 ${color}Proc by Mem
-${color #ddaa00} ${top_mem name 1} ${top_mem pid 1} ${top_mem cpu 1} ${top_mem mem 1}
-${color lightgrey} ${top_mem name 2} ${top_mem pid 2} ${top_mem cpu 2} ${top_mem mem 2}
-${color lightgrey} ${top_mem name 3} ${top_mem pid 3} ${top_mem cpu 3} ${top_mem mem 3}
+${color #ddaa00} ${top_mem name 1}${top_mem pid 1} ${top_mem mem 1}
+${color lightgrey} ${top_mem name 2}${top_mem pid 2} ${top_mem mem 2}
+${color lightgrey} ${top_mem name 3}${top_mem pid 3} ${top_mem mem 3}

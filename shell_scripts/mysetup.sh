@@ -84,7 +84,7 @@ for type; do
         ln -vfs ~/.dotfiles/bash/bash_profile .bash_profile
         ln -vfs ~/.dotfiles/inputrc .inputrc
         ln -vfs ~/.dotfiles/X/Xdefaults .Xdefaults
-        ln -vfs ~/.dotfiles/conky/conkyrc.thin .conkyrc
+        ln -vfs ~/.dotfiles/conky/conkyrc.treebeard .conkyrc
         ln -vfs ~/.dotfiles/screen/screenrc .screenrc
         ln -vfs ~/.dotfiles/mrxvt/mrxvtrc .mrxvtrc
         ln -vfs ~/.dotfiles/Eterm .Eterm
@@ -117,6 +117,7 @@ for type; do
         ln -vfs ~/.dotfiles/svn/servers.inside .subversion/servers.inside
         ln -vfs ~/.dotfiles/svn/servers.outside .subversion/servers.outside
 
+        ln -vfs ~/.dotfiles/proxy
 
         # the modmap won't work in the mac windows system
         if [ `uname` != 'Darwin' ]; then

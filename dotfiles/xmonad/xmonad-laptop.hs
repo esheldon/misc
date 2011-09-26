@@ -5,7 +5,6 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
 
-
 -- provides smartBorders for e.g. mplayer
 import XMonad.Layout.NoBorders
 
@@ -30,12 +29,14 @@ main = do
 	xmproc <- spawnPipe "/usr/bin/xmobar /home/esheldon/.xmonad/xmobarrc"
 	xmonad $ defaultConfig {
         manageHook = myManageHooks <+> manageHook defaultConfig,
-        layoutHook = avoidStruts $ smartBorders $ layoutHook defaultConfig,
-        logHook = dynamicLogWithPP $ xmobarPP { 
-            ppOutput = hPutStrLn xmproc,
-            ppTitle = xmobarColor "green" "" . shorten 50
-        },
-        -- rebind apple command key to mod. also windows on such kbrds
-        modMask = mod4Mask, 
-        terminal = "xfce4-terminal"
-	}
+                   layoutHook = avoidStruts $ smartBorders $ layoutHook defaultConfig,
+                   logHook = dynamicLogWithPP $ xmobarPP { 
+                       ppOutput = hPutStrLn xmproc,
+                       ppTitle = xmobarColor "green" "" . shorten 50
+                   },
+                   terminal = "xterm"
+    }`additionalKeys` myKeyBindings
+
+-- newer versions of dmenu are for some reason not recognized automatically,
+-- so put it here explicitly.  Also we can control the color :)
+myKeyBindings = [((mod1Mask, xK_p), spawn "dmenu_run -nb black -nf white")]
