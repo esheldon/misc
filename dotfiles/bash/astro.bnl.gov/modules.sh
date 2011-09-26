@@ -43,6 +43,7 @@ if [[ -e $f ]]; then
     module load fitsio
 
     module load numpydb    # *
+    module load pgnumpy    # *
 
     module load scikits_learn # *
 
