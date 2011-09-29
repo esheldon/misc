@@ -83,4 +83,26 @@ Introduction
                          ^ s do
 
         "help" -> I think this can be tied back into your explanation of what
-        PCA is, also help is not the best word.
+        PCA is, also "help" is not the best word, and images cannot get help.
+
+        "reconstructed polynomial coefficients from PCA to file" this is
+        somewhat confusing.  I think using the eigen vector terminology is more
+        clean.
+
+    p5
+
+        First two sentences can be compressed.  "The polynomial fitting method
+        in Jarvis & Jain is simple but may not be an efficient representation
+        of the underlying spatial patterns".
+
+        "concern"  To whom is this a concern?  If it is your concern you should
+        state that.
+
+        "We eliminate" -> "In this work, we take a different approach that does
+        not suffer these limitations.  We take as our data vector the PSF
+        values in a grid of cells on the focal plane, and reconstruct the eigen
+        ``images'' of this grid using PCA.  This method can handle arbitrarily
+        complicated PSF patterns, limited only by the spatial frequency set by
+        the cell size."
+        
+
