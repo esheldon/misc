@@ -1,0 +1,86 @@
+Generally:
+
+    You often leave out "the" and other small words.  E.g.
+
+        "This may be a concern when correlated PSF noise level is high."
+                                    ^ missing "the"
+
+abstract
+
+    You should spell out PSF and PCA the first time.
+
+    "spatially correlated PSF noise *can* be mistaken as signal"
+
+    "Grid based PSF interpolation faces..."  A grid can't face anything :) You
+    should probably say, "One challenge presented by grid based PSF
+    interpolation is the possibility of empty cells", or something like that.
+        
+        Also, you should explain that you are using stars to determine the PSF,
+        so that the missing data means there are no stars in the cell.
+
+    "Expectation ..."  -> "We used Expectation Maximization to deal with this
+    missing data"
+
+    "We find that the fit residual"  Is this residual higher meaning there is
+    higher variance only or is it systematic?
+    
+    "Finally..." I think you are addressing the linear interpolation between
+    cells. You should probably spell this out.
+
+Introduction
+
+    p1
+
+        You should again re-introduce the PSF acronym (and others).
+
+        Another systematic is the correction for the PSF.  Even if the PSF is
+        known perfectly, the current algorithms don't correct it perfectly.
+
+        "In this work ..." -> "In this work we concentrate on PSF
+        interpolation".
+    p2
+
+        I think you can be more general here, no need to limit this to future
+        surveys.  Your method is applicable to SDSS too.
+
+    p3
+
+        "approaches to interpolating" -> "approaches to PSF interpolation"
+
+        Use a colon: "interpolation: underlying physics...."
+
+        "Underlying physics modeling" I think you can just say "physical
+        modeling"
+
+        "..method that uses".  Methods can't use anything, only people can :)
+        You can say: "In the first approach, we fit models to stellar images
+        that represent the physical state of the telescope, optics, and
+        atmosphere at the time of observation, such as defocus and seeing."
+
+        "This has been show..."  -> "This method has been shown to accurately
+        recover the true PSF for space-based missions where only a few 
+        well understood parameters are sufficient to model the PSF"
+
+        " apply similar strategy" 
+                ^ a
+
+        "encouraging partially"
+                    ^ ,
+
+        "difficulty..." -> perhaps "difficulty of modeling ground based
+        systems, for which the PSF is less stable" ?
+
+        "including" -> "include"
+
+        Spell out PCA the first time in the main text.
+
+    p4
+
+        I think it would be better to begin by explaining what PCA is in
+        general, then moving to how it applies to this particular problem.
+
+        "individual image does"
+                         ^ s do
+
+        "help" -> I think this can be tied back into your explanation of what
+        PCA is, also help is not the best word.
