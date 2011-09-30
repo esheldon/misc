@@ -35,7 +35,7 @@ Abstract
     higher variance only or is it systematic?
     
     "Finally..." I think you are addressing the linear interpolation between
-    cells. You should probably spell this out.
+    cells. You should probably expand on this.
 
 1. Introduction
 ---------------
@@ -49,6 +49,7 @@ Abstract
 
         "In this work ..." -> "In this work we concentrate on PSF
         interpolation".
+
     p2
 
         I think you can be more general here, no need to limit this to future
@@ -69,8 +70,8 @@ Abstract
         atmosphere at the time of observation, such as defocus and seeing."
 
         "This has been show..."  -> "This method has been shown to accurately
-        recover the true PSF for space-based missions where only a few 
-        well understood parameters are sufficient to model the PSF"
+        recover the true PSF for simulations of space-based missions where only
+        a few well understood parameters are sufficient to model the PSF"
 
         " apply a similar strategy" 
                 ^
@@ -243,10 +244,11 @@ Abstract
 
 
 * I'm going to limit my comments about wording and English from here on.
+  I'll help more with that later.
 
 
 3. Simulated Data
--------------^---
+             ^ capitalize
 
 4. No Missing Data
 ------------------
