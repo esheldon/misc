@@ -1,16 +1,9 @@
 Quick look Queue
-    zhaoming's letter
-    Don's comments, rebuild paper and post.  Add authors. submit.
-        - remake tables
-        - remake figures
-    Mandeep
-    zhaoming's paper
     apj refereeing
-
+    meeting with Don P
+    put arXiv link in p(z) data model page.
+    shape testing, lots of correlations
     ukidss TS
-
-    updated billing addresses:
-        water
 
 BigBOSS
     - fill out SDSS footprint info for response to review
