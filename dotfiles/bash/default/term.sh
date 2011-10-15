@@ -57,7 +57,8 @@ esac
 # don't do this stuff in the linux console
 if [[ $TERM != "linux" ]]; then
     if [[ $sysname == "Darwin" ]]; then
-        export TERM=xterm-color
+        #export TERM=xterm-color
+        export TERM=xterm-256color
     else
         case $TERM in
             screen*)
