@@ -1,0 +1,36 @@
+#!/bin/bash
+
+function usage_and_exit {
+    echo "usage: rsqlplus -u user -h host -p port -d dbname"
+    echo "  username defaults to current user, conninfo to desdb"
+    exit 45
+}
+
+user=`whoami`
+port=1521
+dbname="desoper"
+host="leovip148.ncsa.uiuc.edu"
+
+while getopts "u:h:d:p:" Option; do
+    case $Option in
+        u)  user=$OPTARG 
+            ;;
+        h)  host=$OPTARG 
+            ;;
+        p)  port=$OPTARG 
+            ;;
+        d)  dbname=$OPTARG 
+            ;;
+      [?]) usage_and_exit
+           exit 45
+           ;;  
+   esac
+done
+shift $(($OPTIND - 1))
+
+echo -n "password for $user: "
+read -s password
+
+conninfo="$user/$password@$host:$port/$dbname"
+echo $conninfo
+rlwrap --always-readline sqlplus "$conninfo"
