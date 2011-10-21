@@ -18,6 +18,7 @@ if [[ -e $f ]]; then
         setup scipy
         setup biggles
         setup ipython
+        setup parallel
 
         setup esutil -r ~/exports-tutti/esutil-local
         setup recfile -r ~/exports-tutti/recfile-local
