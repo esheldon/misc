@@ -232,7 +232,7 @@ if &t_Co > 2 || has("gui_running")
     else
 
 		if &t_Co < 256
-            set background=light
+            set background=dark
             colorscheme default
 		else
             Zenburn()

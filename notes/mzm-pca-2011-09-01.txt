@@ -1,0 +1,346 @@
+General
+-------
+
+    - You often leave out "the" and other small words.  E.g.
+
+        "This may be a concern when correlated PSF noise level is high."
+                                    ^ missing "the"
+
+    - You sometimes just write "eigens", but instead you should expand this to
+      "eigen values" or "eigen images" or "eigen vectors".
+
+    - You often say "less" when you should say "fewer".
+    - You often say "shows PCA is doing an excellent job" but you have not
+      quantified this.  You must quantify these things using a hypothesis and
+      some statistic, or you should remove the sentence.
+    
+Abstract
+--------
+
+    You should spell out PSF and PCA the first time.
+
+    "spatially correlated PSF noise *can* be mistaken as signal"
+
+    "Grid based PSF interpolation faces..."  A grid can't face anything :) You
+    should probably say, "One challenge presented by grid based PSF
+    interpolation is the possibility of empty cells", or something like that.
+        
+        Also, you should explain that you are using stars to determine the PSF,
+        so that the missing data means there are no stars in the cell.
+
+    "Expectation ..."  -> "We used Expectation Maximization to deal with this
+    missing data"
+
+    "We find that the fit residual"  Is this residual higher meaning there is
+    higher variance only or is it systematic?
+    
+    "Finally..." I think you are addressing the linear interpolation between
+    cells. You should probably expand on this.
+
+1. Introduction
+---------------
+
+    p1
+
+        You should again re-introduce the PSF acronym (and others).
+
+        Another systematic is the correction for the PSF.  Even if the PSF is
+        known perfectly, the current algorithms don't correct it perfectly.
+
+        "In this work ..." -> "In this work we concentrate on PSF
+        interpolation".
+
+    p2
+
+        I think you can be more general here, no need to limit this to future
+        surveys.  Your method is applicable to SDSS too.
+
+    p3
+
+        "approaches to interpolating" -> "approaches to PSF interpolation"
+
+        Use a colon: "interpolation: underlying physics...."
+
+        "Underlying physics modeling" I think you can just say "physical
+        modeling"
+
+        "..method that uses".  Methods can't use anything, only people can :)
+        You can say: "In the first approach, we fit models to stellar images
+        that represent the physical state of the telescope, optics, and
+        atmosphere at the time of observation, such as defocus and seeing."
+
+        "This has been show..."  -> "This method has been shown to accurately
+        recover the true PSF for simulations of space-based missions where only
+        a few well understood parameters are sufficient to model the PSF"
+
+        " apply a similar strategy" 
+                ^
+
+        "encouraging, partially"
+                    ^
+
+        "difficulty..." -> perhaps "difficulty of modeling ground based
+        systems, for which the PSF is less stable" ?
+
+        "including" -> "include"
+
+        Spell out PCA the first time in the main text.
+
+    p4
+
+        I think it would be better to begin by explaining what PCA is in
+        general, then moving to how it applies to this particular problem.
+
+        "individual images does"
+                         ^
+
+        "help" -> I think this can be tied back into your explanation of what
+        PCA is, also "help" is not the best word, and images cannot get help.
+
+        "reconstructed polynomial coefficients from PCA to file" this is
+        somewhat confusing.  I think using the eigen vector terminology is more
+        clean.
+
+        Not sure an ordered list is required to describe Jarvis & Jain.
+
+    p5
+
+        First two sentences can be compressed.  "The polynomial fitting method
+        in Jarvis & Jain is simple but may not be an efficient representation
+        of the underlying spatial patterns".
+
+        "concern"  To whom is this a concern?  If it is your concern you should
+        state that.
+
+        "We eliminate" -> "In this work, we take a different approach that does
+        not suffer these limitations.  We take as our data vector the PSF
+        values in a grid of cells on the focal plane, and reconstruct the eigen
+        ``images'' of this grid using PCA.  This method can handle arbitrarily
+        complicated PSF patterns, limited only by the spatial frequency set by
+        the cell size."
+        
+2. Algorithms
+-------------
+
+    p1
+
+        "grid cells" -> "cells"
+
+        "neither" -> "not"
+
+        "pixels nor uniform" -> "pixels, nor must they be uniform in size"
+
+        "average PSFs of the stars" -> "average PSF from stars in that cell"
+
+        "provide a PSF measurement"
+                 ^
+        
+        "vector will be missing" -> need to say what missing means, maybe
+        "vector are said to be ``missing''; i.e. there is no information in
+        that cell".
+
+        "Our goal is to find" -> "As part of our algorithm, we find"
+
+        "The reason..." I think this sentence belongs earlier in the paragraph.
+
+    p2
+    
+        "We only apply SVD..." -> "EM PCA is designed to work with missing
+        data, while the standard SVD approach requires a complete data set.
+        Since we will always have missing data in a real world scenario, we
+        only use SVD as a reference implementation."
+
+        ref numerical recipes.  Also, "We follow the convention from 
+        Numerical Recipes"
+
+        "i.e." -> "e.g."
+
+    p5
+
+        "EM PCA is an algorithm to iteratively factorize a matrix." 
+
+        "EM PCA tries to find" -> "EM PCA is designed to find"
+
+        "does not require orthoginality on W" -> "does not require that
+        W be orthogonal"
+
+        "vectors need to be specified " -> "vectors to be calculated, can
+        be specified ahead of time."
+
+        "In fact, only calculating.." -> "In real world scenarios where
+        relatively few k are needed, this results in a dramatic reduction in
+        dimensionality. As a result EM PCA is generally much faster than SVD
+        for PCA determination."
+
+    p6
+
+        "..., EM PCA starts"  PCA is a concept, it can't start anything.
+        perhaps "When using EM PCA in the case of no missing data, we start by
+        making"
+
+        "updating of X and W iterate" -> "we iteratively update X and W"
+
+        "stopping" -> "convergence"?
+
+        "tiny" is relative.  Do you actually test the difference, or the
+        *relative* difference?  (a2-a1)/a1 ?
+
+    p7
+
+        "one generalize" -> "we generalize the steps".  You should choose
+        either "one" or "we", but you should not mix them.
+
+        "and y* is treated as uknown otherwis" -> "otherwise y* is treated as
+        unknown"
+
+        "After finding the solution, we set the corresponding"
+                                     ^^
+
+    p8
+
+       "We would like to point out"  Is this not shown in Roweis' paper?
+
+    p9
+
+        "The eigens are not unique either." -> "Furthermore, the eigen vectors
+        are not unique."
+
+
+        "Despite the non-orthogonaity... " I don't understand this sentence!
+
+        "equally as well" -> "equally good".  Can you justify that?
+
+    p10
+
+        "The PCA code is written"
+             ^^^
+
+        "..is to fill in the missing components of the data" -> "..is to fil
+        the missing components in the data vectors"
+
+        "The reason.." -> "The reason is that QR factorization is performed
+        during each iteration for all vectors with missing components."
+
+        "24 and 240 CPU hours" This is only meaningful if you know the details
+        of the data.
+
+        "The time spent for each iteration scales linearly with the number of
+                      ^                    ^^^^^^^^^^^^^^^
+        exposures"
+
+    p11
+
+        "The dominant .. " -> "The memory consumption is dominated by storage
+        of the data matrix"
+
+            
+        "cells we use is on the order of 1000" -> "We use on the order of 1000
+        grid cells, and only e1 and e2 are used to describe the PSF"
+
+        "So one data " -> "So one data vector with double precision requires
+        only 16K bytes, and 10^4 exposures require only 160M of memory.
+
+        "In such a case..." These sentences need to be rewritten.
+
+
+* I'm going to limit my comments about wording and English from here on.
+  I'll help more with that later.
+
+
+3. Simulated Data
+             ^ capitalize
+
+4. No Missing Data
+------------------
+
+Maybe say "PCA with No Missing Data"?
+
+4.1
+---
+
+I'm not sure it is not useful to show any eigen images.  Let's discuss.
+
+4.2
+---
+
+    p3 
+        we can check your theory by looking at the distribution of std.
+
+
+    Reason for correlated noise..?
+
+4.3
+---
+
+    You should explain *before* equation 12 that this is the auto-correlation.
+
+5
+--
+
+    You say "Such a systematic offset" but that word doesn't fit here.   It is
+    probably enough to say "In our simulation, this increase in noise is
+    expected because, in removing data, we lower the density of PSF estimators"
+
+    Also, you might be able to estimate this increase and see if it is
+    consistent.
+
+5.1
+---
+
+    Remember, there is a strong convention that "significant" means > 3-sigma,
+    so be careful to only say that if you can show it is 3 sigma or more.
+
+    p3 "mean of the non-missing data"  mean of what quantity? less->fewer
+
+
+    Can you be sure of the over-fitting argument?
+
+    p4 "large decrease for the missing data" decrease with what variable?
+
+Figure 9
+
+    What do you think about using fractions instead of percentage, and use "f"
+    as the symbol?
+
+    I think the argument is basically that there is an "effective" stellar
+    density per exposure and the variance should go as sqrt of that, right?
+
+6
+-
+
+    "and the ellipticities smaller" -> "and the measured galaxy ellipticities
+    smaller"
+
+    As we discussed, in the absence of distortions the seeing and other effects
+    commute.  Also, with spatially invariant PSF it doesn't matter.
+
+7
+-
+
+When you earlier introduce the simulation, you should mention that you will
+explore randomly positioned stars in this section.
+
+
+8% seems large to me!
+
+
+I think you may need some more statistical analysis of this, the numbers seem
+odd.  Can you predict them?
+
+8 Conclusions
+
+"There are three main" should start a new paragraph.
+
+p3 
+
+    What about interpolation between the grid cells required for correcting
+    galaxies?
+
+p4
+
+    How can one check the correlated noise part, if the stars are also used for
+    getting the interpolation?  Seems like one would need a validation split.
+
+My acknowledgment is usually
+
+    ES is supported by DOE grant DE-AC02-98CH10886

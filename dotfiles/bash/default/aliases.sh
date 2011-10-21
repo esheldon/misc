@@ -3,6 +3,8 @@
 # but dark themes never work right in firefox.
 alias myfirefox='GTK2_RC_FILES="/usr/share/themes/Clearlooks/gtk-2.0/gtkrc" firefox'
 
+export treebeard=192.168.127.102
+
 # awk simplifies life
 alias mailtail="tail -n 100 -f ~/.getmail/gmail.log  | awk '{print \$1,\$2,\$4,\$10}'"
 alias astro='ssh esheldon@astro.physics.nyu.edu'
@@ -45,7 +47,6 @@ alias less='less -R'
 
 alias gvim='gvim -geometry 90x55'
 
-alias rsqlplus='rlwrap --always-readline sqlplus  pipeline/dc01user@desdb/prdes'
 
 alias lib='cd ~/idl.lib/pro'
 alias oh='cd ~/oh'

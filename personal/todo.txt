@@ -1,16 +1,30 @@
 Quick look Queue
-    zhaoming's letter
-    Don's comments, rebuild paper and post.  Add authors. submit.
-        - remake tables
-        - remake figures
-    Mandeep
-    zhaoming's paper
+    Update my letter for mzm to say I am architect of DES and BOSS.
     apj refereeing
-
+    put arXiv link in p(z) data model page.
+    shape testing, lots of correlations
     ukidss TS
 
-    updated billing addresses:
-        water
+    variable length arrays
+
+fitsio
+
+    - practice with object arrays.
+
+    - We should just use the offset reading for everything row and column
+      based, it is more general and should not incur any slowdown.  This will
+      facilitate the vararray stuff too, since we will have to update fewer
+      functions.
+
+    - vararray: make get_rec_dtype to return a list of offsets and a bool array
+      whether this is a vararray or not.  There will also be a new keyword for
+      vtype='fixed' or vtype='object'.  Then use the offset code for reading
+      those, copying in vararray stuff after as either the 
+
+    -  Convert the "read as list" code to read into an array of objects, and
+       make sure you use the stride.  For copying into the fixed length arrays,
+       and copy that result into the rec array, but probably should have a
+       separate code for reading these since that involves inefficiecies.
 
 BigBOSS
     - fill out SDSS footprint info for response to review

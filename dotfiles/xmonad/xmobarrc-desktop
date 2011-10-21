@@ -1,4 +1,4 @@
-Config { font = "xft:Terminus-9"
+Config { font = "xft:Terminus-10"
        , bgColor = "black"
        , fgColor = "grey"
        , position = TopW L 85
