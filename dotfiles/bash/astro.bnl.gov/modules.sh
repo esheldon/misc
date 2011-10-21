@@ -1,8 +1,13 @@
 # will want a different one for tutti
 f=~astrodat/setup/setup-modules.sh
 if [[ -e $f ]]; then
-
     source "$f"
+fi
+check=`module 2>&1`
+check=`echo $check | grep "command not found"`
+
+if [[ $check == "" ]]; then
+
 
     # those marked with * have platform dependent code, e.g. the are
     # stand-alone C or extensions for python, etc.
@@ -10,6 +15,9 @@ if [[ -e $f ]]; then
     # this are under $MODULESHOME/modulefiles
     # and installed under $MODULE_INSTALLS
     module load use.own
+
+    # for oracle libraries
+    module load libaio     # *
 
     module load parallel
 
