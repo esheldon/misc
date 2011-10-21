@@ -4,4 +4,6 @@ loadplugins '\.(js|penta)$'
 group user
 set editor='gvim -f +<line> +"sil! call cursor(0, <column>)" -c "set filetype=mail" -c "set spell spelllang=en_us" <file>'
 
+highlight StatusLineNormal color:black
+
 " vim: set ft=pentadactyl:

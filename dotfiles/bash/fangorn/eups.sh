@@ -1,7 +1,6 @@
 f=/Users/esheldon/local/products/eups/bin/setups.sh
 if [[ -e "$f" ]]; then
     source "$f"
-    echo hello
 
     setup local -r ~/local
     #setup numpy
