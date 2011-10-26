@@ -21,6 +21,8 @@ if [[ $check == "" ]]; then
 
     module load parallel
 
+    module load cjson      # *
+
     module load pyyaml
     # also loads pcre      # *
     module load swig       # *
