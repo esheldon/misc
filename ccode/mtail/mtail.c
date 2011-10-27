@@ -72,27 +72,27 @@ Copyright (C) 2010  Erin Sheldon (erin dot sheldon at gmail dot com)
 
 struct tail {
 
-	char *buf;
+    char *buf;
     char *line_buf;
 
-	char fname[MAXFILELEN];
-	int fd;
-	WINDOW *win;
-	WINDOW *border_win;
+    char fname[MAXFILELEN];
+    int fd;
+    WINDOW *win;
+    WINDOW *border_win;
 
     /* these are row,col in characters on the screen, not the file matrix */
-	int startrow;
-	int numrows;
+    int startrow;
+    int numrows;
 
-	int startcol;
-	int numcols;
+    int startcol;
+    int numcols;
 
-	struct stat sbuf;
+    struct stat sbuf;
 };
 
 struct mtail {
 
-	WINDOW *stdscr;
+    WINDOW *stdscr;
 
     long poll_time;
 
@@ -133,7 +133,7 @@ int parse_command_line(int argc, char* argv[], int* ncol, int* numfiles) {
         fprintf(stderr,"number of columns must be an integer > 0\n");
         exit(45);
     }
-	*numfiles = argc - optind;
+    *numfiles = argc - optind;
     return optind;
 
 }
@@ -142,55 +142,55 @@ struct mtail* mtail_new(int numfiles) {
     struct mtail* mtst;
 
     mtst = (struct mtail*) calloc(1, sizeof(struct mtail));
-	if (mtst == NULL) {
-		fprintf(stderr,"could not calloc struct mtail\n");
+    if (mtst == NULL) {
+        fprintf(stderr,"could not calloc struct mtail\n");
         exit(45);
-	}
+    }
 
     mtst->numfiles = numfiles;
 
     mtst->tst = (struct tail *) calloc(numfiles, sizeof(struct tail));
-	if (mtst == NULL) {
-		fprintf(stderr,"could not calloc struct tail\n");
+    if (mtst == NULL) {
+        fprintf(stderr,"could not calloc struct tail\n");
         exit(45);
-	}
+    }
 
     return mtst;
 }
 
 
 void open_files(char* argv[], int ind, struct mtail* mtst) {
-	/* Open them files */
+    /* Open them files */
     int i, j;
     struct tail* tst;
 
     tst = mtst->tst;
-	for (i=0;i<mtst->numfiles;i++) {
+    for (i=0;i<mtst->numfiles;i++) {
         if (strlen(argv[ind]) > MAXFILELEN) {
             fprintf(stderr,"File name too long: %s\n", argv[ind]);
             exit(45);
         }
-		strncpy(tst[i].fname, argv[ind],MAXFILELEN);
-		if ((tst[i].fd = open(tst[i].fname, O_RDONLY)) < 0) {
-			fprintf(stderr,"Failed to open %s\n",tst[i].fname);
-			for (j=0;j<i;j++) {
-				close(tst[j].fd);
-			}
+        strncpy(tst[i].fname, argv[ind],MAXFILELEN);
+        if ((tst[i].fd = open(tst[i].fname, O_RDONLY)) < 0) {
+            fprintf(stderr,"Failed to open %s\n",tst[i].fname);
+            for (j=0;j<i;j++) {
+                close(tst[j].fd);
+            }
             exit(45);
-		}
-		if (fstat(tst[i].fd, &(tst[i].sbuf)) < 0) {
-			fprintf(stderr,"failed to fstat\n");
+        }
+        if (fstat(tst[i].fd, &(tst[i].sbuf)) < 0) {
+            fprintf(stderr,"failed to fstat\n");
             exit(45);
-		}
+        }
         ind++;
-	}
+    }
 }
 
 void init_screen(struct mtail* mtst) {
-	if ((mtst->stdscr = initscr()) == NULL) {
-		perror("initscr\n");
+    if ((mtst->stdscr = initscr()) == NULL) {
+        perror("initscr\n");
         exit(45);
-	}
+    }
 }
 
 
@@ -225,18 +225,18 @@ void set_geometry(struct mtail* mtst) {
     if ((mtst->numfiles % mtst->ncol) != 0) {
         mtst->nrow += 1;
     }
-	getmaxyx(mtst->stdscr, mtst->ymax, mtst->xmax);
+    getmaxyx(mtst->stdscr, mtst->ymax, mtst->xmax);
 
     /* don't use the last line, helps with terminals that don't clear upon
      * quitting like within screen */
     //mtst->ymax -= 1;
 
     /* is right here because of our arithmetic for regions sizes */
-	if (mtst->ymax < (mtst->numfiles * 4)) {
-		fprintf(stderr,"Screen too small!\n");
-		endwin();
+    if (mtst->ymax < (mtst->numfiles * 4)) {
+        fprintf(stderr,"Screen too small!\n");
+        endwin();
         exit(45);
-	}
+    }
 
     /* There will be a separator between rows, so subtract nrows */
     mtst->ywinsize     = (mtst->ymax - mtst->nrow)/mtst->nrow;
@@ -311,7 +311,7 @@ void draw_borders(struct mtail* mtst) {
 
     for (row=0; row<mtst->nrow; row++) {
         y = yseparator_position(mtst, row);
-		mvhline(y,0,linechar,mtst->xmax);
+        mvhline(y,0,linechar,mtst->xmax);
     }
 
 
@@ -340,7 +340,7 @@ void draw_borders(struct mtail* mtst) {
 
 
 
-	wrefresh(mtst->stdscr);
+    wrefresh(mtst->stdscr);
 }
 
 void print_filenames(struct mtail* mtst) {
@@ -381,55 +381,55 @@ void create_windows(struct mtail* mtst) {
 
     tst = mtst->tst;
 
-	for (i=0; i<mtst->numfiles; i++) {
+    for (i=0; i<mtst->numfiles; i++) {
 
         /* eli didn't use the last column.. */
-		tst[i].win = subwin(mtst->stdscr, 
-                            tst[i].numrows, 
-                            /*tst[i].numcols-1,*/
-                            tst[i].numcols,
-                            tst[i].startrow,
-                            tst[i].startcol);
+        tst[i].win = subwin(mtst->stdscr, 
+                tst[i].numrows, 
+                /*tst[i].numcols-1,*/
+                tst[i].numcols,
+                tst[i].startrow,
+                tst[i].startcol);
 
-		scrollok(tst[i].win,1);
+        scrollok(tst[i].win,1);
 
-	}
-	wrefresh(mtst->stdscr);
+    }
+    wrefresh(mtst->stdscr);
 
 }
 
 int getline(int fd, int line_len, char *line)
 {
-	int i=0;
-	char the_char = 0;
-	int count = 1;
+    int i=0;
+    char the_char = 0;
+    int count = 1;
 
-	bzero(line, line_len);
-	while ((i<(line_len-1)) && (count > 0) && (the_char != '\n')) {
-		count = read(fd, &the_char, 1);
-		if ((count > 0) && (the_char != '\n')) {
-			line[i] = the_char;
-		} else if (the_char == '\n') {
+    bzero(line, line_len);
+    while ((i<(line_len-1)) && (count > 0) && (the_char != '\n')) {
+        count = read(fd, &the_char, 1);
+        if ((count > 0) && (the_char != '\n')) {
+            line[i] = the_char;
+        } else if (the_char == '\n') {
             /* why this extra if? */
-			line[i] = '\n';
-		} else {
-			return(-1);
-		}
-		i++;
-	}
+            line[i] = '\n';
+        } else {
+            return(-1);
+        }
+        i++;
+    }
 
     /* never true */
-	if (i == line_len) {
-		line[i] = '\n';
-	}
-	return(0);
+    if (i == line_len) {
+        line[i] = '\n';
+    }
+    return(0);
 }
 
 
 
 /* load the initial data */
 void load_initial_file_data(struct mtail* mtst) {
-    int i, ncols, test, retval;
+    int i, ncols, retval;
     int j,ctr;
     char* line;
 
@@ -442,28 +442,28 @@ void load_initial_file_data(struct mtail* mtst) {
         ncols = tst[i].numcols;
         line = tst[i].line_buf;
 
-		test = lseek(tst[i].fd, tst[i].sbuf.st_size - (tst[i].numrows+2)*ncols, SEEK_SET);
-         
-		if ((tst[i].buf = (char *) calloc(tst[i].numrows * ncols, sizeof(char))) == NULL) {
-			fprintf(stderr,"Calloc buf failed\n");
-            exit(45);
-		}
-		ctr = 0;
-		do {
-			retval = getline(tst[i].fd, ncols, line);
-			if (ctr < (tst[i].numrows - 1)) {
-				memcpy((tst[i].buf + ctr * ncols), line, ncols);
-				ctr++;
-			} else {
-				memmove(tst[i].buf, tst[i].buf + ncols, ncols * (tst[i].numrows - 1));
-				memcpy((tst[i].buf + ctr * ncols), line, ncols);
-			}
-		} while (retval != -1);
+        lseek(tst[i].fd, tst[i].sbuf.st_size - (tst[i].numrows+2)*ncols, SEEK_SET);
 
-		for (j=0;j<tst[i].numrows;j++) {
-			waddstr(tst[i].win,tst[i].buf + j * ncols);
-		}
-		wrefresh(tst[i].win);
+        if ((tst[i].buf = (char *) calloc(tst[i].numrows * ncols, sizeof(char))) == NULL) {
+            fprintf(stderr,"Calloc buf failed\n");
+            exit(45);
+        }
+        ctr = 0;
+        do {
+            retval = getline(tst[i].fd, ncols, line);
+            if (ctr < (tst[i].numrows - 1)) {
+                memcpy((tst[i].buf + ctr * ncols), line, ncols);
+                ctr++;
+            } else {
+                memmove(tst[i].buf, tst[i].buf + ncols, ncols * (tst[i].numrows - 1));
+                memcpy((tst[i].buf + ctr * ncols), line, ncols);
+            }
+        } while (retval != -1);
+
+        for (j=0;j<tst[i].numrows;j++) {
+            waddstr(tst[i].win,tst[i].buf + j * ncols);
+        }
+        wrefresh(tst[i].win);
 
         free(tst[i].buf);
 
@@ -472,7 +472,7 @@ void load_initial_file_data(struct mtail* mtst) {
 }
 void tail_files(struct mtail* mtst) {
     int i, ncol, retval;
-	struct stat sbuf_new;
+    struct stat sbuf_new;
     char* line;
     struct tail* tst;
 
@@ -481,29 +481,29 @@ void tail_files(struct mtail* mtst) {
 
     tst = mtst->tst;
 
-	while(1) {
-		for(i=0;i<mtst->numfiles;i++) {
+    while(1) {
+        for(i=0;i<mtst->numfiles;i++) {
 
             line = tst[i].line_buf;
             ncol = tst[i].numcols;
 
-			if (fstat(tst[i].fd, &sbuf_new) < 0) {
+            if (fstat(tst[i].fd, &sbuf_new) < 0) {
                 exit(45);
-			}
-			if (sbuf_new.st_size > tst[i].sbuf.st_size) {
-				wrefresh(tst[i].win);
-				memcpy(&(tst[i].sbuf), &sbuf_new, sizeof(sbuf_new));
-				do {
+            }
+            if (sbuf_new.st_size > tst[i].sbuf.st_size) {
+                wrefresh(tst[i].win);
+                memcpy(&(tst[i].sbuf), &sbuf_new, sizeof(sbuf_new));
+                do {
 
-					retval = getline(tst[i].fd, ncol, line);
-					waddstr(tst[i].win,line);
-					wrefresh(tst[i].win);
+                    retval = getline(tst[i].fd, ncol, line);
+                    waddstr(tst[i].win,line);
+                    wrefresh(tst[i].win);
 
-				} while (retval != -1);
-			}
-		}
-		usleep(mtst->poll_time);
-	}
+                } while (retval != -1);
+            }
+        }
+        usleep(mtst->poll_time);
+    }
 
 }
 
@@ -513,14 +513,14 @@ int main(int argc, char *argv[])
 
     struct mtail* mtst;
 
-	int numfiles, ncol, ind;
+    int numfiles, ncol, ind;
 
     ind = parse_command_line(argc, argv, &ncol, &numfiles);
 
-	if (numfiles == 0) {
-		printf("Usage: mtail [-c ncol] file1 [file2] [file3] ...\n");
-		exit(0);
-	}
+    if (numfiles == 0) {
+        printf("Usage: mtail [-c ncol] file1 [file2] [file3] ...\n");
+        exit(0);
+    }
 
     mtst = mtail_new(numfiles);
     mtst->ncol = ncol;
@@ -536,10 +536,10 @@ int main(int argc, char *argv[])
 
     tail_files(mtst);
 
-	sleep(2);
-	endwin();
+    sleep(2);
+    endwin();
 
-	return(0);
+    return(0);
 }
 
 
