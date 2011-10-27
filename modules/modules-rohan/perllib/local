@@ -1,0 +1,30 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+##
+## perllib modulefile
+##
+proc ModulesHelp { } {
+    global version
+
+    puts stderr "	My collection of perll scripts."
+    puts stderr "
+	Version $version
+"
+}
+
+# for Tcl script use only
+set     version      local
+
+
+module-whatis	"collection of perll scripts"
+conflict perllib
+
+eval set  [ array get env HOME ]
+
+
+set PERLLIB_DIR $HOME/perllib
+
+prepend-path PATH $PERLLIB_DIR
+prepend-path PERL5LIB $PERLLIB_DIR
+
+setenv PERLLIB_DIR $PERLLIB_DIR

@@ -45,7 +45,6 @@ if ( ! -d $dotfileDir ) then
     set dotfileDir = $defaultDotfileDir
     if ( ! -d $dotfileDir ) then
 	    # no configuraton found
-        echo No configuration found!
 	    exit
     endif
 endif
