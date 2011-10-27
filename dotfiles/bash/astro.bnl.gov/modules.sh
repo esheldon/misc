@@ -44,7 +44,7 @@ if [[ $check == "" ]]; then
     # this is currently just the python extension
     module load stomp      # *
 
-    module load esutil     # *
+    module load esutil/local     # *
     module load recfile    # *
 
     module load cosmology  # *
