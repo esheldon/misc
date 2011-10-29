@@ -50,10 +50,10 @@ class Reader:
             else:
                 return datadict
 
-        except Exception, e:
+        except:
             print 'error processing query results:',query.replace('\n','<br>'),'<p>'
             print traceback.format_exc().replace('\n','<br>')
-            raise e
+            raise
 
     def ReadAsTuples(self, query):
         try:
@@ -66,10 +66,10 @@ class Reader:
             if len(res) < 1:
                 return [], []
             return res, desc
-        except Exception, e:
+        except:
             print 'error executing query:',query.replace('\n','<br>'),'<p>'
             print traceback.format_exc().replace('\n','<br>')
-            raise e
+            raise
         
     def GetDescDict(self, desc):
         """
