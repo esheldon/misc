@@ -23,7 +23,7 @@ xterm*saveLines: 2000
 xterm*scrollBar: false
 xterm*scrollKey: true
 xterm*scrollTtyOutput: false
-xterm*charClass: 45-47:48,126:48
+xterm*charClass: 45-47:48,58:48,126:48
 xterm*cursorColor: yellow
 xterm*rightScrollBar: true
 

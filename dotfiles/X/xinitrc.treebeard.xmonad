@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# these are not getting killed off on logout, and
+# each time lxdm comes up it starts a new one
+killall gnome-keyring-daemon
+
+if [ -r ~/.Xdefaults ]; then
+	xrdb -merge ~/.Xdefaults
+fi
+if [ -r ~/.Xmodmap ]; then
+	xmodmap ~/.Xmodmap
+fi
+
+xsetroot -solid black
+
+# speed up the keyboard
+xset r rate 300 30
+
+# you can't start this here, or it will for some reason mess with lxdm after
+# you log off. It doesn't get killed when you log off, that's part of the
+# reason, but if you start it within the session it is OK, maybe because of how
+# it puts itself on the root.
+# 
+#if [ -x /usr/bin/conky ]; then
+#    conky &
+#fi
+
+sleeptime=1
+
+if [ -x /usr/bin/xscreensaver ]; then
+	xscreensaver &
+fi
+
+sleep $sleeptime
+
+if [[ -e ~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc ]]; then
+    GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc fbpanel &
+else
+    fbpanel &
+fi
+
+
+#exec ck-launch-session dbus-launch xmonad
+exec xmonad

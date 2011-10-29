@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"pgnumpy install straight from git repo"
+conflict pgnumpy
+
+eval set  [ array get env HOME ]
+
+set PGNUMPY_DIR $HOME/exports/pgnumpy-local
+
+prepend-path PYTHONPATH $PGNUMPY_DIR/lib/python2.7/site-packages/
+
+setenv PGNUMPY_DIR $PGNUMPY_DIR
+
