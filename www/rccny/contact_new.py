@@ -47,7 +47,8 @@ for d in curs.description:
             val = None 
         else:
             if form.has_key(name):
-                val = str(form[name].value)
+                #val = str(form[name].value)
+                val = unicode(form[name].value,'utf8','ignore')
             else:
                 val = '' 
 
@@ -56,10 +57,8 @@ for d in curs.description:
             if name=='lastname':
                 lastname=val
  
-        if val is not None:
-            tmp = str(val)
-            if tmp != "":
-                alltext.append(tmp)
+        if val is not None and val != "":
+            alltext.append(val)
 
         insert_vals.append(val)
  

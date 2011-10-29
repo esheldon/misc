@@ -12,6 +12,7 @@ import urllib
 print "Content-type: text/html\n\n"
 print
 
+
 qs = os.environ['QUERY_STRING']
 
 # Get inputs
