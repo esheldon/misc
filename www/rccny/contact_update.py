@@ -49,7 +49,8 @@ for d in curs.description:
     if name not in skip:
         if form.has_key(name):
             # This assumes all fields are text except id
-            val = str(form[name].value)
+            #val = str(form[name].value)
+            val = unicode(form[name].value,'utf8','ignore')
             setpairs.append(name+'=?')
             insert_vals.append(val)
             string_vals.append(val)
