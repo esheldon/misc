@@ -21,6 +21,11 @@ if [[ -e $f ]]; then
 
 fi
 
+if [[ $(hostname) == "tutti.astro.bnl.gov" ]]; then
+    source ~/local/des-oracle-tutti/setup.sh
+else
+    source ~/local/des-oracle/setup.sh
+fi
 
 append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include
 append_path CPATH /usr/java/jdk1.6.0_14/include

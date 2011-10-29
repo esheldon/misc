@@ -1,4 +1,4 @@
-Config { font = "-zevv-peep-medium-r-normal--16-140-75-75-c-80-iso8859-15"
+Config { font = "xft:Terminus-10"
        , bgColor = "black"
        , fgColor = "grey"
        , position = TopW L 85
