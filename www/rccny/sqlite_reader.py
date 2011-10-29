@@ -24,8 +24,10 @@ class Reader:
 
     def ReadAsDict(self, query, return_tup=False, convert_unicode=True):
 
+        # ReadAsTuples already has a try-except block
+        datatup,desc = self.ReadAsTuples(query)
+
         try:
-            datatup,desc = self.ReadAsTuples(query)
             if len(datatup) == 0:
                 return {}
 
@@ -47,23 +49,27 @@ class Reader:
                 return datadict, datatup, desc
             else:
                 return datadict
-        except:
-            print 'error executing query:',query
+
+        except Exception, e:
+            print 'error processing query results:',query.replace('\n','<br>'),'<p>'
             print traceback.format_exc().replace('\n','<br>')
-            raise RuntimeError("caught exception")
-        
+            raise e
 
     def ReadAsTuples(self, query):
-        curs = self.conn.cursor()
-        curs.execute(query)
+        try:
+            curs = self.conn.cursor()
+            curs.execute(query)
 
-        res = curs.fetchall()
-        desc = curs.description
-        curs.close()
-        if len(res) < 1:
-            return [], []
-        return res, desc
-
+            res = curs.fetchall()
+            desc = curs.description
+            curs.close()
+            if len(res) < 1:
+                return [], []
+            return res, desc
+        except Exception, e:
+            print 'error executing query:',query.replace('\n','<br>'),'<p>'
+            print traceback.format_exc().replace('\n','<br>')
+            raise e
         
     def GetDescDict(self, desc):
         """
