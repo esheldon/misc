@@ -1,7 +1,7 @@
-
 import sqlite3 as sqlite
 import os
 import re
+import traceback
 
 class Reader:
     """
@@ -24,41 +24,52 @@ class Reader:
 
     def ReadAsDict(self, query, return_tup=False, convert_unicode=True):
 
+        # ReadAsTuples already has a try-except block
         datatup,desc = self.ReadAsTuples(query)
-        if len(datatup) == 0:
-            return {}
 
-        datadict = [] 
-        irow = 0
-        for row in datatup:
-            datadict.append({})
-            i=0
-            for c in row:
-                if convert_unicode and isinstance(c, unicode):
-                    val = str(c)
-                else:
-                    val = c
-                datadict[irow][ desc[i][0] ] = val
-                i = i+1
-            irow=irow+1
+        try:
+            if len(datatup) == 0:
+                return {}
 
-        if return_tup:
-            return datadict, datatup, desc
-        else:
-            return datadict
+            datadict = [] 
+            irow = 0
+            for row in datatup:
+                datadict.append({})
+                i=0
+                for c in row:
+                    if convert_unicode and isinstance(c, unicode):
+                        val = str(c)
+                    else:
+                        val = c
+                    datadict[irow][ desc[i][0] ] = val
+                    i = i+1
+                irow=irow+1
 
+            if return_tup:
+                return datadict, datatup, desc
+            else:
+                return datadict
+
+        except:
+            print 'error processing query results:',query.replace('\n','<br>'),'<p>'
+            print traceback.format_exc().replace('\n','<br>')
+            raise
 
     def ReadAsTuples(self, query):
-        curs = self.conn.cursor()
-        curs.execute(query)
+        try:
+            curs = self.conn.cursor()
+            curs.execute(query)
 
-        res = curs.fetchall()
-        desc = curs.description
-        curs.close()
-        if len(res) < 1:
-            return [], []
-        return res, desc
-
+            res = curs.fetchall()
+            desc = curs.description
+            curs.close()
+            if len(res) < 1:
+                return [], []
+            return res, desc
+        except:
+            print 'error executing query:',query.replace('\n','<br>'),'<p>'
+            print traceback.format_exc().replace('\n','<br>')
+            raise
         
     def GetDescDict(self, desc):
         """
