@@ -71,6 +71,8 @@ for type; do
         ln -vfs ~/.dotfiles/vim .vim
         ln -vfs ~/.dotfiles/vim/vimrc .vimrc
 
+        ln -vfs ~/.dotfiles/mailcap .mailcap
+
         if [ -e .bashrc ]; then
             rm -f .bashrc
         fi
