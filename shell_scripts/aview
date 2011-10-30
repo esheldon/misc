@@ -1,0 +1,68 @@
+#!/bin/bash
+# attachment view.
+#
+# read a file from stdin, look at the type given as
+# first argument to determine how to open
+
+function usage_and_exit {
+    echo "
+    usage: aview type
+
+    This program is designed for viewing attachments.
+    Data are sent in standard input, ala sup, and opened with
+    the right program based on the type argument
+    "
+    exit 45
+}
+function tmp_filename {
+    echo "/tmp/$(basename $0).$$-$RANDOM.tmp"
+}
+function get_temp_file {
+    f=$(tmp_filename)
+    while [[ -e $f ]]; do
+        f=$(tmp_filename)
+    done
+    echo $f
+}
+
+if [[ $# -lt 1 ]]; then
+    usage_and_exit
+fi
+
+type=$1
+
+if [[ $type == "ps" || $type == "pdf" ]]; then
+    if [[ `which evince` != "" ]]; then
+        prog="evince"
+    elif [[ `which gv` != "" ]]; then
+        prog="gv"
+    else
+        echo "could not find evince or gv"
+        exit 45
+    fi
+elif [[ $type == "image" ]]; then
+    if [[ `which qiv` != "" ]]; then
+        prog="qiv"
+    else
+        echo "could not find qiv"
+        exit 45
+    fi
+elif [[ $type == "html" ]]; then
+    prog="firefox"
+else
+    echo "unsupported type: $type.  Only support ps/pdf/image/html"
+    exit 45
+fi
+
+tmpfile=$(get_temp_file)
+#echo $tmpfile
+cat - > "$tmpfile"
+
+
+# programs are often noisy
+$prog $tmpfile 2> /dev/null
+#$prog $tmpfile
+
+if [[ $type != "html" ]]; then
+    rm $tmpfile
+fi
