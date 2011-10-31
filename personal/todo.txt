@@ -1,4 +1,6 @@
 Quick look Queue
+    add setup stuff in astrodat to my github
+
     work from ids in single epoch stuff too, no ambiguity then.then
 
     Update my letter for mzm to say I am architect of DES and BOSS.
