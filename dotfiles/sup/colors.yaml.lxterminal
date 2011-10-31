@@ -2,10 +2,8 @@
 # index view
 #
 :status: # status bar at bottom
-  :fg: black
+  :fg: default
   :bg: default
-  :attrs: 
-    - bold
 
 :date: # the date on the left
     :fg: default
