@@ -1,11 +1,8 @@
 Quick look Queue
-    Update my letter for mzm to say I am architect of DES and BOSS.
-    apj refereeing
-    put arXiv link in p(z) data model page.
-    shape testing, lots of correlations
-    ukidss TS
+    work from ids in single epoch stuff too, no ambiguity then.then
 
-    variable length arrays
+    Update my letter for mzm to say I am architect of DES and BOSS.
+    shape testing, lots of correlations
 
 fitsio
 
