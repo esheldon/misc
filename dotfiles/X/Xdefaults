@@ -3,9 +3,12 @@
 ! xterm configuration
 !
 
+customization: -color
+
 ! No bold fonts
 xterm*boldFont: 8x13
 xterm*boldMode: false
+
 
 ! dont include the newline when triple clicking
 xterm*cutNewLine: true
@@ -60,7 +63,7 @@ xterm*color4: #99ccff
 !! a bright pinkish red
 xterm*color5: #ff6699
 !! a brighter cyan
-xterm*color6: #66ffff
+!!xterm*color6: #66ffff
 
 !! a bright orange (bold)
 xterm*color9: #ff6600
@@ -74,7 +77,17 @@ xterm*color12: #99ccff
 !! a less harsh color than bright magenta
 xterm*color13: #ff6699
 !! a less harsh cyan
-xterm*color14: #66ffff
+!!xterm*color14: #66ffff
+
+
+! I use this one for mail in sup.  The colors work better
+mailterm*faceName: Terminus
+!mailterm*faceName: Deja\ Vu\ Sans\ Mono
+!mailterm*faceSize: 12
+!mailterm*faceSize: 12
+mailterm*faceSize: 14
+!mailterm*boldMode: true
+
 
 xclock*reverseVideo: true
 xclock*minorColor: grey80

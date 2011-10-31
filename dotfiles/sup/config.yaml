@@ -7,7 +7,8 @@
 :discard_snippets_from_encrypted_messages: false
 :accounts: 
   :default: 
-    :signature: ~/.signature
+    # this one must be full path for some reason
+    :signature: /home/esheldon/.signature
     :email: erin.sheldon@gmail.com
     :sendmail: msmtp --account=gmail -t
     :name: Erin Sheldon
