@@ -1,10 +1,14 @@
 Quick look Queue
-    add setup stuff in astrodat to my github
+    see how multishear is writing it's logs.  stderr?  what
+    about my outputs?
 
-    work from ids in single epoch stuff too, no ambiguity then.then
+    update SE stuff for new runconfigs and to use database
+    add setup stuff in astrodat to my github
 
     Update my letter for mzm to say I am architect of DES and BOSS.
     shape testing, lots of correlations
+
+    implement SessionPool on my wrapped oracle connection.
 
 fitsio
 
