@@ -26,7 +26,7 @@ if [[ $hname == "desdb" || $hname == "desar" || $hname == "deslogin" ]]; then
 	hname="desdb"
 fi
 
-export EDITOR=vi
+export EDITOR=vim
 export LESS="-XP[%f] %lb/%L"
 export RSYNC_RSH="ssh"
 
