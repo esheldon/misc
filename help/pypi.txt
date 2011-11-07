@@ -1,0 +1,12 @@
+I currently just make sure the setup.py has the right metadata and then do
+    python setup.py register.
+
+Then go to pypi and upload the file.  You can automate it with
+
+    python setup.py sdist upload
+
+But sdist won't put everything in there.  Apparently I can write a MANIFEST.in
+that will specify everything that needs to go in.
+
+Now when I do a new release, how do I get the new release info into there? Do I
+re-register with a new version in the setup.py?

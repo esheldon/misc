@@ -81,10 +81,9 @@ struct scat* scat_read(const char* filename) {
         exit(EXIT_FAILURE);
     }
 
-    int rval;
 
     int64 sigmacrit_style;
-    rval=fread(&sigmacrit_style, sizeof(int64), 1, fptr);
+    fread(&sigmacrit_style, sizeof(int64), 1, fptr);
 
 #ifndef WITH_TRUEZ
     if (sigmacrit_style != 2) {
@@ -93,12 +92,12 @@ struct scat* scat_read(const char* filename) {
     }
 
     int64 n_zlens;
-    rval=fread(&n_zlens, sizeof(int64), 1, fptr);
+    fread(&n_zlens, sizeof(int64), 1, fptr);
     printf("    Reading %ld zlens values: ", n_zlens);
 
     // using a temporary variable since scat is not yet allocated
     struct f64vector* zlens = f64vector_new(n_zlens);
-    rval=fread(&zlens->data[0], sizeof(double), n_zlens, fptr);
+    fread(&zlens->data[0], sizeof(double), n_zlens, fptr);
 
     printf(" %lf %lf\n", zlens->data[0], zlens->data[n_zlens-1]);
 
@@ -112,7 +111,7 @@ struct scat* scat_read(const char* filename) {
 
 
     int64 nsource;
-    rval=fread(&nsource, sizeof(int64), 1, fptr);
+    fread(&nsource, sizeof(int64), 1, fptr);
     printf("Reading %ld sources\n", nsource);
     printf("    creating scat...");
 
@@ -133,11 +132,11 @@ struct scat* scat_read(const char* filename) {
     struct source* src = &scat->data[0];
     double ra_rad,dec_rad;
     for (size_t i=0; i<scat->size; i++) {
-        rval=fread(&src->ra, sizeof(double), 1, fptr);
-        rval=fread(&src->dec, sizeof(double), 1, fptr);
-        rval=fread(&src->g1, sizeof(double), 1, fptr);
-        rval=fread(&src->g2, sizeof(double), 1, fptr);
-        rval=fread(&src->err, sizeof(double), 1, fptr);
+        fread(&src->ra, sizeof(double), 1, fptr);
+        fread(&src->dec, sizeof(double), 1, fptr);
+        fread(&src->g1, sizeof(double), 1, fptr);
+        fread(&src->g2, sizeof(double), 1, fptr);
+        fread(&src->err, sizeof(double), 1, fptr);
 
         //src->g1 = -src->g1;
 
@@ -145,10 +144,10 @@ struct scat* scat_read(const char* filename) {
 
         // read the full inverse critical density for
         // interpolation.  Note these are already allocated
-        rval=fread(&src->scinv->data[0], sizeof(double), n_zlens, fptr);
+        fread(&src->scinv->data[0], sizeof(double), n_zlens, fptr);
 
 #else
-        rval=fread(&src->z, sizeof(double), 1, fptr);
+        fread(&src->z, sizeof(double), 1, fptr);
 
 #endif
 

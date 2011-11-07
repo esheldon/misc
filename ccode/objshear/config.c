@@ -13,20 +13,19 @@ struct config* config_read(const char* filename) {
 
     struct config* c=calloc(1, sizeof(struct config));
 
-    int ret;
     char key[255];
-    ret=fscanf(fptr, "%s %s", key, c->lens_file);
-    ret=fscanf(fptr, "%s %s", key, c->source_file);
-    ret=fscanf(fptr, "%s %s", key, c->output_file);
-    //ret=fscanf(fptr, "%s %s", key, c->temp_file);
-    ret=fscanf(fptr, "%s %lf", key, &c->H0);
-    ret=fscanf(fptr, "%s %lf", key, &c->omega_m);
-    ret=fscanf(fptr, "%s %ld", key, &c->npts);
-    ret=fscanf(fptr, "%s %ld", key, &c->nside);
-    ret=fscanf(fptr, "%s %ld", key, &c->sigmacrit_style);
-    ret=fscanf(fptr, "%s %ld", key, &c->nbin);
-    ret=fscanf(fptr, "%s %lf", key, &c->rmin);
-    ret=fscanf(fptr, "%s %lf", key, &c->rmax);
+    fscanf(fptr, "%s %s", key, c->lens_file);
+    fscanf(fptr, "%s %s", key, c->source_file);
+    fscanf(fptr, "%s %s", key, c->output_file);
+    //fscanf(fptr, "%s %s", key, c->temp_file);
+    fscanf(fptr, "%s %lf", key, &c->H0);
+    fscanf(fptr, "%s %lf", key, &c->omega_m);
+    fscanf(fptr, "%s %ld", key, &c->npts);
+    fscanf(fptr, "%s %ld", key, &c->nside);
+    fscanf(fptr, "%s %ld", key, &c->sigmacrit_style);
+    fscanf(fptr, "%s %ld", key, &c->nbin);
+    fscanf(fptr, "%s %lf", key, &c->rmin);
+    fscanf(fptr, "%s %lf", key, &c->rmax);
 
     c->log_rmin = log10(c->rmin);
     c->log_rmax = log10(c->rmax);
