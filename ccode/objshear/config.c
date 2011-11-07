@@ -17,7 +17,6 @@ struct config* config_read(const char* filename) {
     fscanf(fptr, "%s %s", key, c->lens_file);
     fscanf(fptr, "%s %s", key, c->source_file);
     fscanf(fptr, "%s %s", key, c->output_file);
-    //fscanf(fptr, "%s %s", key, c->temp_file);
     fscanf(fptr, "%s %lf", key, &c->H0);
     fscanf(fptr, "%s %lf", key, &c->omega_m);
     fscanf(fptr, "%s %ld", key, &c->npts);
