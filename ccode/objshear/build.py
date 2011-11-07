@@ -18,29 +18,24 @@ parser.add_options(optlist)
 
 options,args = parser.parse_args()
 prefix=os.path.expanduser( options.prefix )
-with_truez=options.with_truez
-debug=options.debug
-noopt=options.noopt
-sdssmask=options.sdssmask
-nocache=options.no_cache_output
 
 CC='gcc'
 
 LINKFLAGS=['-lm']
 
 CFLAGS=['-std=c99','-Wall','-Werror']
-if not noopt:
+if not options.noopt:
     CFLAGS += ['-O2']
-if not debug:
+if not options.debug:
     CFLAGS += ['-DNDEBUG']
 
-if with_truez:
+if options.with_truez:
     CFLAGS += ['-DWITH_TRUEZ']
 
-if sdssmask:
+if options.sdssmask:
     CFLAGS += ['-DSDSSMASK']
 
-if nocache:
+if options.no_cache_output:
     CFLAGS += ['-DNO_CACHE_OUTPUT']
 
 test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/test-healpix']},
@@ -63,7 +58,7 @@ objshear_sources = ['config','lens','lensum','source','cosmo','interp',
                     'healpix','gcirc','stack','Vector','sort','histogram',
                     'shear',
                     'objshear']
-if sdssmask:
+if options.sdssmask:
     objshear_sources += ['sdss-survey']
 
 programs = [{'name':'objshear', 'sources':objshear_sources}]
