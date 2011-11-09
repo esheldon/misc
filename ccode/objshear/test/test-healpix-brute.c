@@ -14,12 +14,18 @@
 
 int main(int argc, char** argv) {
     double boxsize=1;
+    int showpix=0;
 
     int64 nside=4096;
     struct healpix* hpix = hpix_new(nside);
+
+    if (argc > 1) {
+        showpix=1;
+    }
     printf("nside: %ld\n", nside);
-    printf("  npix: %ld\n", hpix->npix);
-    printf("  area: %le\n", hpix->area*R2D*R2D);
+    printf("    npix: %ld\n", hpix->npix);
+    printf("    area: %le\n", hpix->area*R2D*R2D);
+    printf(" showpix: %d\n", showpix);
 
     // generate random ra/dec between 0 and 1
     double ra[NRANDOMS];
@@ -78,6 +84,9 @@ int main(int argc, char** argv) {
     for (size_t i=0; i<listpix->size; i++) {
         int64 pix = listpix->data[i];
 
+        if (showpix) {
+            printf("    pixelval: %ld\n", pix);
+        }
 
         if (pix >= minpix && pix <= maxpix) {
 
