@@ -39,12 +39,11 @@ if [[ -e $f ]]; then
 
         # columns, sdsspy are under mercurial
         #setup mercurial
-        # this is pure python, use astro exports
-        setup columns -r ~/exports/columns-local
+        setup columns -r ~/exports-tutti/columns-local
 
         #setup pv
 
-        #setup scons
+        setup scons
         setup pyyaml
 
 
