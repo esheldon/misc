@@ -43,10 +43,9 @@ struct lcat* lcat_read(const char* filename) {
         exit(EXIT_FAILURE);
     }
 
-    int rval;
     int64 nlens;
 
-    rval=fread(&nlens, sizeof(int64), 1, fptr);
+    fread(&nlens, sizeof(int64), 1, fptr);
     printf("Reading %ld lenses\n", nlens);
     printf("    creating lcat...");
 
@@ -57,10 +56,10 @@ struct lcat* lcat_read(const char* filename) {
     struct lens* lens = &lcat->data[0];
     double ra_rad,dec_rad;
     for (size_t i=0; i<nlens; i++) {
-        rval=fread(&lens->zindex, sizeof(int64), 1, fptr);
-        rval=fread(&lens->ra, sizeof(double), 1, fptr);
-        rval=fread(&lens->dec, sizeof(double), 1, fptr);
-        rval=fread(&lens->z, sizeof(double), 1, fptr);
+        fread(&lens->zindex, sizeof(int64), 1, fptr);
+        fread(&lens->ra, sizeof(double), 1, fptr);
+        fread(&lens->dec, sizeof(double), 1, fptr);
+        fread(&lens->z, sizeof(double), 1, fptr);
 
         ra_rad = lens->ra*D2R;
         dec_rad = lens->dec*D2R;
@@ -72,7 +71,7 @@ struct lcat* lcat_read(const char* filename) {
 
         // maskflags must always exist, but it will currently be ignored unless
         // you compile with -DSDSSMASK
-        rval=fread(&lens->maskflags, sizeof(int64), 1, fptr);
+        fread(&lens->maskflags, sizeof(int64), 1, fptr);
 #ifdef SDSSMASK
         // add sin(lam),cos(lam),sin(eta),cos(eta)
         eq2sdss_sincos(lens->ra,lens->dec,
