@@ -5,9 +5,11 @@
 
 customization: -color
 
-! No bold fonts
-xterm*boldFont: 8x13
+! This means never use overstriking for bold
 xterm*boldMode: false
+
+! This means just display a different color, dont use the bold font
+xterm*colorBDMode: true
 
 
 ! dont include the newline when triple clicking
@@ -86,7 +88,10 @@ mailterm*faceName: Terminus
 !mailterm*faceSize: 12
 !mailterm*faceSize: 12
 mailterm*faceSize: 14
-!mailterm*boldMode: true
+
+! This means just display a different color, dont use the bold font
+mailterm*colorBDMode: false
+
 
 
 xclock*reverseVideo: true
