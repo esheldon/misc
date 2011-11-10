@@ -50,6 +50,7 @@ test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/
                  {'name':'test/test-source',
                   'sources':['source','sort','healpix','histogram','stack','Vector','test/test-source']},
                  {'name':'test/test-lens','sources':['lens','cosmo','test/test-lens']},
+                 {'name':'test/test-lens-loadhpix','sources':['lens','cosmo','stack','healpix','test/test-lens-loadhpix']},
                  {'name':'test/test-cosmo','sources':['cosmo','test/test-cosmo']},
                  {'name':'test/test-sort','sources':['sort','Vector','test/test-sort']},
                  {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
