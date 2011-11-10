@@ -98,6 +98,7 @@ void %(shortname)sstack_push(struct %(shortname)sstack* stack, %(type)s val);
 
 int __%(shortname)sstack_compare_el(const void *a, const void *b);
 void %(shortname)sstack_sort(struct %(shortname)sstack* stack);
+%(type)s* %(shortname)sstack_find(struct %(shortname)sstack* stack, %(type)s el);
 '''
 
 fformat='''
@@ -235,6 +236,9 @@ int __%(shortname)sstack_compare_el(const void *a, const void *b) {
 void %(shortname)sstack_sort(struct %(shortname)sstack* stack) {
     qsort(stack->data, stack->size, sizeof(%(type)s), __%(shortname)sstack_compare_el);
 }
+%(type)s* %(shortname)sstack_find(struct %(shortname)sstack* stack, %(type)s el) {
+    return (%(type)s*) bsearch(&el, stack->data, stack->size, sizeof(%(type)s), __%(shortname)sstack_compare_el);
+}
 '''
 
 tformat='''// This file was auto-generated
@@ -282,7 +286,17 @@ int main(int argc, char** argv) {
         printf("    stack[%%ld]: %(format)s\\n", i, stack->data[i]);
     }
 
-
+    printf("finding elements\\n");
+    %(type)s vals[]={88,7,100};
+    %(type)s* elptr=NULL;
+    for (size_t i=0; i<3; i++) {
+        elptr=%(shortname)sstack_find(stack, vals[i]);
+        if (elptr == NULL) {
+            printf("Did not find %(format)s\\n", vals[i]);
+        } else {
+            printf("Found value %(format)s: %(format)s\\n", vals[i], *elptr);
+        }
+    }
 
     %(shortname)sstack_delete(stack);
 }

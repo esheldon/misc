@@ -56,14 +56,18 @@ test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/
                  {'name':'test/test-sort','sources':['sort','Vector','test/test-sort']},
                  {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
 
-objshear_sources = ['config','lens','lensum','source','cosmo','interp',
+sobjshear_sources = ['config','lens','lensum','source','cosmo','interp',
                     'healpix','gcirc','stack','Vector','sort','histogram',
                     'shear',
-                    'objshear']
+                    'sobjshear']
+sobjshear_sources = ['config', 'stack', 'Vector','source','lens','cosmo','healpix',
+                     'shear','lensum','histogram',
+                     'sobjshear']
+
 if options.sdssmask:
     objshear_sources += ['sdss-survey']
 
-programs = [{'name':'objshear', 'sources':objshear_sources}]
+programs = [{'name':'sobjshear', 'sources':sobjshear_sources}]
 
 if options.test:
     programs += test_programs
