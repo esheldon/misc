@@ -26,7 +26,7 @@ Description
 
 
 
-    Use the typename when calling this script. The shortnames are used in
+    Use the long typename when calling this script. The shortnames are used in
     function names and structure defs.  See the README for more details.
 
     A test program is also generated for each type with the name test-{type}vector.c
@@ -47,19 +47,20 @@ import sys
 # shortname is for the struct name and functions, e.g. 
 #   struct i64vector, i64vector_new
 typemap={}
-typemap['float32'] = {'ctype':'float32',  'shortname':'f32',  'format':'%f'}
-typemap['float64'] = {'ctype':'float64',  'shortname':'f64',  'format':'%lf'}
-typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',   'format':'%d'}
-typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',   'format':'%u'}
-typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16',  'format':'%d'}
-typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16',  'format':'%u'}
-typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32',  'format':'%d'}
-typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32',  'format':'%u'}
-typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64',  'format':'%ld'}
-typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64',  'format':'%lu'}
-typemap['char']    = {'ctype':'char',     'shortname':'char', 'format':'%c'}
-typemap['uchar']   = {'ctype':'unsigned char', 'shortname':'uchar',  'format':'%c'}
-typemap['size'] = {'ctype':'size_t',  'shortname':'sz',  'format':'%ld'}
+typemap['float32'] = {'ctype':'float32',  'shortname':'f32',  'sortype':'float', 'format':'%f'}
+typemap['float64'] = {'ctype':'float64',  'shortname':'f64',  'sortype':'double', 'format':'%lf'}
+typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',   'sortype':'int32_t', 'format':'%d'}
+typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',   'sortype':'int32_t', 'format':'%u'}
+typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16',  'sortype':'int32_t', 'format':'%d'}
+typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16',  'sortype':'int32_t', 'format':'%u'}
+typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32',  'sortype':'int64_t', 'format':'%d'}
+typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32',  'sortype':'int64_t', 'format':'%u'}
+typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64',  'sortype':'int64_t', 'format':'%ld'}
+typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64',  'sortype':'int64_t', 'format':'%lu'}
+typemap['char']    = {'ctype':'char',     'shortname':'char', 'sortype':'int32_t', 'format':'%c'}
+typemap['uchar']   = {'ctype':'unsigned char', 'shortname':'uchar', 'sortype':'int32_t',  'format':'%c'}
+typemap['size']    = {'ctype':'size_t',  'shortname':'sz',  'sortype':'int64_t', 'format':'%ld'}
+
 
 hformat='''
 struct %(shortname)svector {
@@ -72,6 +73,8 @@ struct %(shortname)svector* %(shortname)svector_fromarray(%(type)s* arr, size_t 
 struct %(shortname)svector* %(shortname)svector_copy(struct %(shortname)svector* vec);
 struct %(shortname)svector* %(shortname)svector_range(size_t num);
 void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsize);
+int __%(shortname)svector_compare_el(const void *a, const void *b);
+void %(shortname)svector_sort(struct %(shortname)svector* vector);
 
 // clears all memory in ->data and sets pointer to NULL
 struct %(shortname)svector* %(shortname)svector_delete(struct %(shortname)svector* vector);
@@ -156,6 +159,23 @@ void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsi
     vector->size = newsize;
 }
 
+int __%(shortname)svector_compare_el(const void *a, const void *b) {
+    %(sortype)s temp = 
+        (  (%(sortype)s) *( (%(type)s*)a ) ) 
+         -
+        (  (%(sortype)s) *( (%(type)s*)b ) );
+    if (temp > 0)
+        return 1;
+    else if (temp < 0)
+        return -1;
+    else
+        return 0;
+}
+
+void %(shortname)svector_sort(struct %(shortname)svector* vector) {
+    qsort(vector->data, vector->size, sizeof(%(type)s), __%(shortname)svector_compare_el);
+}
+
 struct %(shortname)svector* %(shortname)svector_delete(struct %(shortname)svector* vector) {
     if (vector != NULL) {
         free(vector->data);
@@ -174,7 +194,7 @@ tformat='''// This file was auto-generated
 #include "Vector.h"
 
 int main(int argc, char** argv) {
-    struct %(shortname)svector* vector = %(shortname)svector_new(15);
+    struct %(shortname)svector* vector = %(shortname)svector_new(10);
 
     printf("size: %%ld\\n", vector->size);
     printf("setting data\\n");
@@ -183,14 +203,29 @@ int main(int argc, char** argv) {
     }
 
     for (size_t i=0; i<vector->size; i++) {
-        printf("vector[%%ld]: %(format)s\\n", i, vector->data[i]);
+        printf("    vector[%%ld]: %(format)s\\n", i, vector->data[i]);
     }
 
-    printf("resizing to 25\\n");
-    %(shortname)svector_resize(vector, 25);
+    printf("resizing to 15\\n");
+    %(shortname)svector_resize(vector, 15);
 
     for (size_t i=0; i<vector->size; i++) {
-        printf("vector[%%ld]: %(format)s\\n", i, vector->data[i]);
+        printf("    vector[%%ld]: %(format)s\\n", i, vector->data[i]);
+    }
+
+    %(shortname)svector_resize(vector, 10);
+    printf("putting unordered elements\\n");
+    vector->data[3] = 88;
+    vector->data[5] = 25;
+    vector->data[9] = 1.3;
+
+    for (size_t i=0; i<vector->size; i++) {
+        printf("    vector[%%ld]: %(format)s\\n", i, vector->data[i]);
+    }
+    printf("sorting\\n");
+    %(shortname)svector_sort(vector);
+    for (size_t i=0; i<vector->size; i++) {
+        printf("    vector[%%ld]: %(format)s\\n", i, vector->data[i]);
     }
 
     %(shortname)svector_delete(vector);
@@ -200,7 +235,7 @@ int main(int argc, char** argv) {
     size_t size=sizeof(arr)/sizeof(%(type)s);
     struct %(shortname)svector* vfromarr=%(shortname)svector_fromarray(arr,size);
     for (size_t i=0; i<vector->size; i++) {
-        printf("fromarray vector[%%ld]: %(format)s\\n", i, vfromarr->data[i]);
+        printf("    fromarray vector[%%ld]: %(format)s\\n", i, vfromarr->data[i]);
     }
 
     %(shortname)svector_delete(vector);
@@ -267,7 +302,8 @@ def generate_c(types):
         if type not in typemap:
             raise ValueError("type not supported: %s" % type)
         text = cformat % {'type':typemap[type]['ctype'],
-                          'shortname':typemap[type]['shortname']}
+                          'shortname':typemap[type]['shortname'],
+                          'sortype':typemap[type]['sortype']}
         fobj.write(text)
 
     fobj.close()

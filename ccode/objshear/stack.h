@@ -46,4 +46,7 @@ void i64stack_push(struct i64stack* stack, int64_t val);
 // if empty, INT64_MIN is returned
 int64_t i64stack_pop(struct i64stack* stack);
 
+int __i64stack_compare_el(const void *a, const void *b);
+void i64stack_sort(struct i64stack* stack);
+
 #endif  // header guard

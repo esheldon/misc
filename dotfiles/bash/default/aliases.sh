@@ -5,6 +5,8 @@ alias myfirefox='GTK2_RC_FILES="/usr/share/themes/Clearlooks/gtk-2.0/gtkrc" fire
 
 export treebeard=192.168.127.102
 
+alias hdfs="hadoop fs"
+
 # awk simplifies life
 alias mailtail="tail -n 100 -f ~/.getmail/gmail.log  | awk '{print \$1,\$2,\$4,\$10}'"
 alias astro='ssh esheldon@astro.physics.nyu.edu'

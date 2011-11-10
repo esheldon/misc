@@ -124,3 +124,21 @@ int64_t i64stack_pop(struct i64stack* stack) {
     return val;
         
 }
+
+int __i64stack_compare_el(const void *a, const void *b) {
+    int64_t temp = 
+        (  (int64_t) *( (int64_t*)a ) ) 
+         -
+        (  (int64_t) *( (int64_t*)b ) );
+    if (temp > 0)
+        return 1;
+    else if (temp < 0)
+        return -1;
+    else
+        return 0;
+}
+
+
+void i64stack_sort(struct i64stack* stack) {
+    qsort(stack->data, stack->size, sizeof(int64_t), __i64stack_compare_el);
+}
