@@ -8,8 +8,8 @@
 //#include "shear.h"
 
 void usage_and_exit(void) {
-    printf("usage: sobjshear [config_file]\n");
-    printf("  If config_file is not sent as an argument, the CONFIG_FILE env variable is used\n");
+    printf("usage: sobjshear [config_url]\n");
+    printf("  If config_url is not sent as an argument, the CONFIG_URL env variable is used\n");
     exit(EXIT_FAILURE);
 }
 
@@ -17,10 +17,10 @@ void usage_and_exit(void) {
 int main(int argc, char** argv) {
     int64 counter=0;
 
-    const char* config_file=get_config_filename(argc, argv);
-    if (config_file==NULL)
+    const char* config_url=get_config_url(argc, argv);
+    if (config_url==NULL)
         usage_and_exit();
-    struct shear* shear=shear_init(config_file);
+    struct shear* shear=shear_init(config_url);
 
 #ifndef WITH_TRUEZ
     struct source* src=source_new(shear->config->nzl);

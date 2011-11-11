@@ -4,10 +4,15 @@
 #include "defs.h"
 #include "Vector.h"
 
+#ifdef HDFS
+#include "hdfs_lines.h"
+#endif
+
+#define CONFIG_KEYSZ 50
+#define CONFIG_STRSZ 256
+
 struct config {
-    char lens_file[255];
-    char output_file[255];
-    char temp_file[255];
+    char lens_url[255];
 
     double H0;
     double omega_m;
@@ -28,10 +33,13 @@ struct config {
     double log_rmax;
     double log_binsize;
 
+#ifdef HDFS
+    hdfsFS fs;
+#endif
 };
 
-const char* get_config_filename(int argc, char** argv);
-struct config* config_read(const char* filename);
+const char* get_config_url(int argc, char** argv);
+struct config* config_read(const char* url);
 struct config* config_delete(struct config* config);
 void config_print(struct config* config);
 

@@ -11,4 +11,3 @@ FILE* open_url(const char* filename, const char* mode) {
     }
     return fptr;
 }
-
