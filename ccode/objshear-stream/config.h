@@ -30,6 +30,7 @@ struct config {
 
 };
 
+const char* get_config_filename(int argc, char** argv);
 struct config* config_read(const char* filename);
 struct config* config_delete(struct config* config);
 void config_print(struct config* config);

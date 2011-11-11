@@ -79,39 +79,6 @@ int source_read(FILE* stream, struct source* src) {
 }
 
 
-/*
-void scat_add_hpixid(struct scat* scat, struct healpix* hpix) {
-
-    scat->minpix=INT64_MAX;
-    scat->maxpix=-1;
-    struct source* src = &scat->data[0];
-    for (size_t i=0; i<scat->size; i++) {
-        int64 id = hpix_eq2pix(hpix, src->ra, src->dec);
-        src->hpixid = id;
-
-        if (id > scat->maxpix) {
-            scat->maxpix=id;
-        }
-        if (id < scat->minpix) {
-            scat->minpix=id;
-        }
-        src++;
-    }
-}
-*/
-
-/*
-#ifdef WITH_TRUEZ
-void scat_add_dc(struct scat* scat, struct cosmo* cosmo) {
-    struct source* src = &scat->data[0];
-    for (size_t i=0; i<scat->size; i++) {
-        src->dc = Dc(cosmo, 0.0, src->z);
-        src++;
-    }
-}
-#endif
-*/
-
 void source_print(struct source* src) {
     wlog("    ra:     %lf  dec: %lf\n", src->ra, src->dec);
     wlog("    g1:     %lf  g2: %lf\n", src->g1, src->g2);

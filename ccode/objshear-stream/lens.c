@@ -7,6 +7,8 @@
 #include "log.h"
 #include "healpix.h"
 #include "stack.h"
+#include "urls.h"
+
 //#include "histogram.h"
 
 #ifdef SDSSMASK
@@ -43,12 +45,7 @@ struct lcat* lcat_new(size_t n_lens) {
 
 struct lcat* lcat_read(const char* filename) {
     wlog("Reading lenses from %s\n", filename);
-    FILE* fptr=fopen(filename,"r");
-    if (fptr==NULL) {
-        wlog("Could not open file: %s\n", filename);
-        exit(EXIT_FAILURE);
-    }
-
+    FILE* fptr=open_url(filename, "r");
     size_t nlens;
 
     fscanf(fptr,"%lu", &nlens);
@@ -88,6 +85,7 @@ struct lcat* lcat_read(const char* filename) {
         lens++;
 
     }
+    fclose(fptr);
     wlog("OK\n");
 
     return lcat;

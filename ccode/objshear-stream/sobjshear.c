@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "config.h"
 #include "source.h"
 #include "shear.h"
 #include "log.h"
 #include "defs.h"
-#include <unistd.h>
 //#include "shear.h"
 
 void usage_and_exit(void) {
@@ -13,24 +13,13 @@ void usage_and_exit(void) {
     exit(EXIT_FAILURE);
 }
 
-const char* get_config_filename(int argc, char** argv) {
-    const char* config_file=NULL;
-    if (argc >= 2) {
-        config_file=argv[1];
-    } else {
-        config_file=getenv("CONFIG_FILE");
-        if (config_file==NULL) {
-            usage_and_exit();
-        }
-    }
-
-    return config_file;
-}
 
 int main(int argc, char** argv) {
     int64 counter=0;
-    const char* config_file=get_config_filename(argc, argv);
 
+    const char* config_file=get_config_filename(argc, argv);
+    if (config_file==NULL)
+        usage_and_exit();
     struct shear* shear=shear_init(config_file);
 
 #ifndef WITH_TRUEZ
@@ -61,7 +50,7 @@ int main(int argc, char** argv) {
 
     wlog("Read a total of %lu sources\n", counter);
 
-    // print some summary info to the terminal
+    // print some summary info
     shear_print_sum(shear);
 
     wlog("Writing results to stdout\n");

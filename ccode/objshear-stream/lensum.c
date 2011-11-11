@@ -25,6 +25,7 @@ struct lensums* lensums_new(size_t nlens, size_t nbin) {
     struct lensum* lensum = &lensums->data[0];
 
     for (size_t i=0; i<nlens; i++) {
+        lensum->index = i;
         lensum->nbin = nbin;
         lensum->npair = calloc(nbin, sizeof(int64));
         lensum->wsum  = calloc(nbin, sizeof(double));
@@ -162,7 +163,6 @@ struct lensum* lensum_new(size_t nbin) {
     return lensum;
 }
 
-
 // add the second lensum into the first
 void lensum_add(struct lensum* dest, struct lensum* src) {
 
@@ -179,25 +179,53 @@ void lensum_add(struct lensum* dest, struct lensum* src) {
 
 }
 
+int lensum_read(FILE* stream, struct lensum* lensum) {
+    int nbin=lensum->nbin;
+    int nexpect = 5+5*nbin;
+    int nread=0;
+    int i=0;
+
+    nread+=fscanf(stream,"%ld", &lensum->index);
+    nread+=fscanf(stream,"%ld", &lensum->zindex);
+    nread+=fscanf(stream,"%lf", &lensum->weight);
+    nread+=fscanf(stream,"%ld", &lensum->totpairs);
+    nread+=fscanf(stream,"%lf", &lensum->sshsum);
+
+    for (i=0; i<nbin; i++) 
+        nread+=fscanf(stream,"%ld", &lensum->npair[i]);
+
+    for (i=0; i<nbin; i++) 
+        nread+=fscanf(stream,"%lf", &lensum->rsum[i]);
+    for (i=0; i<nbin; i++) 
+        nread+=fscanf(stream,"%lf", &lensum->wsum[i]);
+    for (i=0; i<nbin; i++) 
+        nread+=fscanf(stream,"%lf", &lensum->dsum[i]);
+    for (i=0; i<nbin; i++) 
+        nread+=fscanf(stream,"%lf", &lensum->osum[i]);
+
+    return (nread == nexpect);
+}
+
+
 void lensum_write(struct lensum* lensum, FILE* stream) {
     int nbin = lensum->nbin;
     int i=0;
 
-    fprintf(stream,"%ld %.15e %ld %.15e ", 
-            lensum->zindex, lensum->weight, lensum->totpairs, lensum->sshsum);
+    fprintf(stream,"%ld %ld %.16g %ld %.16g ", 
+            lensum->index, lensum->zindex, lensum->weight, lensum->totpairs, lensum->sshsum);
 
     for (i=0; i<nbin; i++) 
         fprintf(stream,"%ld ", lensum->npair[i]);
 
     for (i=0; i<nbin; i++) 
-        fprintf(stream,"%.15e ", lensum->rsum[i]);
+        fprintf(stream,"%.16g ", lensum->rsum[i]);
     for (i=0; i<nbin; i++) 
-        fprintf(stream,"%.15e ", lensum->wsum[i]);
+        fprintf(stream,"%.16g ", lensum->wsum[i]);
     for (i=0; i<nbin; i++) 
-        fprintf(stream,"%.15e ", lensum->dsum[i]);
+        fprintf(stream,"%.16g ", lensum->dsum[i]);
     for (i=0; i<nbin-1; i++) 
-        fprintf(stream,"%.15e ", lensum->osum[i]);
-    fprintf(stream,"%.15e\n", lensum->osum[nbin-1]);
+        fprintf(stream,"%.16g ", lensum->osum[i]);
+    fprintf(stream,"%.16g\n", lensum->osum[nbin-1]);
 
 }
 
@@ -209,16 +237,17 @@ void lensum_print(struct lensum* lensum) {
     wlog("  ssh:      %lf\n", lensum->sshsum/lensum->weight);
     wlog("  totpairs: %ld\n", lensum->totpairs);
     wlog("  nbin:     %ld\n", lensum->nbin);
-    wlog("  bin       npair            wsum            dsum            osum           rsum\n");
+    wlog("  bin       npair            wsum            dsum            osum           rsum meanr\n");
 
     for (size_t i=0; i<lensum->nbin; i++) {
-        wlog("  %3lu %11ld %15.6lf %15.6lf %15.6lf   %e\n", 
+        wlog("  %3lu %11ld %15.6lf %15.6lf %15.6lf   %e %g\n", 
              i,
              lensum->npair[i],
              lensum->wsum[i],
              lensum->dsum[i],
              lensum->osum[i],
-             lensum->rsum[i]);
+             lensum->rsum[i],
+             lensum->rsum[i]/lensum->npair[i]);
     }
 }
 
