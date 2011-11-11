@@ -33,6 +33,7 @@ struct shear* shear_init(const char* config_file) {
     struct config* config=shear->config;
     wlog("config structure:\n");
     config_print(config);
+    exit(0);
 
     // now initialize the structures we need
     wlog("Initalizing cosmo in flat universe\n");

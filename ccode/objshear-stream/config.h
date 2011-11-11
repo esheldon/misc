@@ -40,6 +40,11 @@ struct config {
 
 const char* get_config_url(int argc, char** argv);
 struct config* config_read(const char* url);
+
+#ifdef HDFS
+struct config* hdfs_config_read(const char* url);
+#endif 
+
 struct config* config_delete(struct config* config);
 void config_print(struct config* config);
 
