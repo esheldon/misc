@@ -18,6 +18,11 @@ const char* get_config_url(int argc, char** argv) {
 }
 
 struct config* config_read(const char* url) {
+
+#ifdef HDFS
+    return hdfs_config_read(url);
+#endif
+
     wlog("Reading config from %s\n", url);
 
     FILE* stream=fopen(url,"r");
@@ -61,16 +66,18 @@ struct config* config_read(const char* url) {
 
 #ifdef HDFS
 #include "hdfs_lines.h"
+
 struct config* hdfs_config_read(const char* url) {
+
     struct config* c=calloc(1, sizeof(struct config));
-    config->fs = hdfs_connect();
+    c->fs = hdfs_connect();
 
     wlog("Reading config from %s\n", url);
 
     int buffsize=1024;
-    hdfsFile hdfs_file = hdfs_open(config->fs, url, O_RDONLY, buffsize);
+    hdfsFile hdfs_file = hdfs_open(c->fs, url, O_RDONLY, buffsize);
 
-    struct hdfs_lines* hl=hdfs_lines_new(config->fs, hdfs_file, buffsize);
+    struct hdfs_lines* hl=hdfs_lines_new(c->fs, hdfs_file, buffsize);
 
     c->zl=NULL;
 
@@ -105,7 +112,7 @@ struct config* hdfs_config_read(const char* url) {
         line += nread+1;
 
         for (i=0; i<c->zl->size; i++) {
-            sscanf(s, "%lf%n", &c->zl->data[i], &nread);
+            sscanf(line, "%lf%n", &c->zl->data[i], &nread);
             line += nread+1;
         }
     }
@@ -115,7 +122,7 @@ struct config* hdfs_config_read(const char* url) {
     c->log_binsize = (c->log_rmax - c->log_rmin)/c->nbin;
 
     hl = hdfs_lines_delete(hl);
-    hdfsCloseFile(config->fs, hdfs_file);
+    hdfsCloseFile(c->fs, hdfs_file);
 
     return c;
 }
@@ -129,7 +136,6 @@ struct config* config_delete(struct config* self) {
         free(self->zl);
 #ifdef HDFS
     hdfsDisconnect(self->fs);
-    self->fs=NULL;
 #endif
     }
     free(self);

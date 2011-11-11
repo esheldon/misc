@@ -68,6 +68,9 @@ if options.sdssmask:
 
 if options.hdfs:
     sobjshear_sources += ['hdfs_lines']
+    redshear_sources += ['hdfs_lines']
+    LINKFLAGS += ['-L${HADOOP_HOME}/libhdfs','-lhdfs']
+    CFLAGS += ['-DHDFS','-I${HADOOP_HOME}/src/c++/libhdfs']
 
 programs = [{'name':'sobjshear', 'sources':sobjshear_sources},
             {'name':'redshear', 'sources':redshear_sources}]
