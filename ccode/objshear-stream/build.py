@@ -10,6 +10,7 @@ parser = optparse.OptionParser()
 optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix,help="where to install"),
          optparse.Option('--with-truez',action="store_true",default=False,help="use true z for sources"),
          optparse.Option('--sdssmask',action="store_true",default=False,help="check quadrants from sdss mask"),
+         optparse.Option('--hdfs',action="store_true",default=False,help="Files are in hdfs"),
          optparse.Option('--no-cache-output',action="store_true",default=False,help="keep outputs in memory"),
          optparse.Option('--noopt',action="store_true",help="turn off compiler optimizations"),
          optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)"),
@@ -64,6 +65,9 @@ redshear_sources = ['lensum','config','urls','Vector',
 
 if options.sdssmask:
     sobjshear_sources += ['sdss-survey']
+
+if options.hdfs:
+    sobjshear_sources += ['hdfs_lines']
 
 programs = [{'name':'sobjshear', 'sources':sobjshear_sources},
             {'name':'redshear', 'sources':redshear_sources}]

@@ -50,7 +50,7 @@ struct shear* shear_init(const char* config_file) {
     shear->hpix = hpix_new(config->nside);
 
     // finally read the data
-    shear->lcat = lcat_read(config->lens_file);
+    shear->lcat = lcat_read(config->lens_url);
 
     // order is important here
     wlog("Adding Da to lenses\n");
