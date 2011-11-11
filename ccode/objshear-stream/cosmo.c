@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "cosmo.h"
 #include "defs.h"
+#include "log.h"
 
 
 struct cosmo* cosmo_new(
@@ -42,12 +43,12 @@ struct cosmo* cosmo_new(
 }
 
 void cosmo_print(struct cosmo* c) {
-    printf("    H0: %lf\n", c->H0);
-    printf("    DH: %lf\n", c->DH);
-    printf("    flat: %d\n", c->flat);
-    printf("    omega_m: %lf\n", c->omega_m);
-    printf("    omega_l: %lf\n", c->omega_l);
-    printf("    omega_k: %lf\n", c->omega_k);
+    wlog("    H0: %lf\n", c->H0);
+    wlog("    DH: %lf\n", c->DH);
+    wlog("    flat: %d\n", c->flat);
+    wlog("    omega_m: %lf\n", c->omega_m);
+    wlog("    omega_l: %lf\n", c->omega_l);
+    wlog("    omega_k: %lf\n", c->omega_k);
 }
 
 // usage:  cosmo=cosmo_delete(cosmo);

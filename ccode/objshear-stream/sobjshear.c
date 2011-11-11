@@ -4,6 +4,7 @@
 #include "shear.h"
 #include "log.h"
 #include "defs.h"
+#include <unistd.h>
 //#include "shear.h"
 
 void usage_and_exit(void) {
@@ -62,7 +63,9 @@ int main(int argc, char** argv) {
 
     // print some summary info to the terminal
     shear_print_sum(shear);
-    //shear_write(shear);
+
+    wlog("Writing results to stdout\n");
+    shear_write(shear, stdout);
 
     src=source_delete(src);
     shear=shear_delete(shear);

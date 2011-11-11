@@ -50,4 +50,47 @@ int __i64stack_compare_el(const void *a, const void *b);
 void i64stack_sort(struct i64stack* stack);
 int64_t* i64stack_find(struct i64stack* stack, int64_t el);
 
+struct szstack {
+    size_t size;            // number of elements that are visible to the user
+    size_t allocated_size;  // number of allocated elements in data vector
+    size_t push_realloc_style; // Currently always STACK_PUSH_REALLOC_MULT, 
+                               // which is reallocate to allocated_size*realloc_multval
+    size_t push_initsize;      // default size on first push, default STACK_PUSH_INITSIZE 
+    double realloc_multval; // when allocated size is exceeded while pushing, 
+                            // reallocate to allocated_size*realloc_multval, default 
+                            // STACK_PUSH_REALLOC_MULTVAL
+                            // if allocated_size was zero, we allocate to push_initsize
+    size_t* data;
+};
+
+struct szstack* szstack_new(size_t num);
+
+// if size > allocated size, then a reallocation occurs
+// if size <= internal size, then only the ->size field is reset
+// use szstack_realloc() to reallocate the data vector and set the ->size
+void szstack_resize(struct szstack* stack, size_t newsize);
+
+// perform reallocation on the underlying data vector. This does
+// not change the size field unless the new size is smaller
+// than the viewed size
+void szstack_realloc(struct szstack* stack, size_t newsize);
+
+// completely clears memory in the data vector
+void szstack_clear(struct szstack* stack);
+
+// clears all memory and sets pointer to NULL
+// usage: stack=sztack_delete(stack);
+struct szstack* szstack_delete(struct szstack* stack);
+
+// if reallocation is needed, size is increased by 50 percent
+// unless size is zero, when it 100 are allocated
+void szstack_push(struct szstack* stack, size_t val);
+// pop the last element and decrement size; no reallocation is performed
+// if empty, INT64_MIN is returned
+size_t szstack_pop(struct szstack* stack);
+
+int __szstack_compare_el(const void *a, const void *b);
+void szstack_sort(struct szstack* stack);
+size_t* szstack_find(struct szstack* stack, size_t el);
+
 #endif  // header guard

@@ -2,7 +2,9 @@
 #define _LENS_HEADER
 
 #include "cosmo.h"
+#include "tree.h"
 #include "defs.h"
+#include "healpix.h"
 
 struct lens {
 
@@ -23,7 +25,7 @@ struct lens {
     // We will fill these with the healpix pixels within
     // the search radius for each lens
     struct i64stack* hpix;
-    struct szvector* rev;
+    //struct szvector* rev;
 
     double cos_search_angle;
 
@@ -40,6 +42,11 @@ struct lens {
 struct lcat {
     size_t size;
     struct lens* data;
+
+    // a tree to tell us which lenses were intersected
+    // with what pixels.  Can search by pixel value to
+    // get the indices of the associated lenses
+    struct tree_node* hpix_tree;
 };
 
 struct lcat* lcat_new(size_t n_lens);
@@ -53,6 +60,7 @@ void lcat_print_firstlast(struct lcat* lcat);
 struct lcat* lcat_delete(struct lcat* lcat);
 
 
-void lcat_disc_intersect(struct lcat* lcat, int64 nside, double rmax);
+void lcat_disc_intersect(struct lcat* lcat, struct healpix* hpix, double rmax);
+void lcat_build_hpix_tree(struct lcat* lcat);
 
 #endif

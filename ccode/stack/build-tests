@@ -32,7 +32,8 @@ types=['f32',
        'i64',
        'u64',
        'c',
-       'u']
+       'u',
+       'sz']
 
 def testname(type):
     return 'test-%sstack' % type

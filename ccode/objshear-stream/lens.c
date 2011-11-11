@@ -7,7 +7,7 @@
 #include "log.h"
 #include "healpix.h"
 #include "stack.h"
-#include "histogram.h"
+//#include "histogram.h"
 
 #ifdef SDSSMASK
 #include "sdss-survey.h"
@@ -35,6 +35,8 @@ struct lcat* lcat_new(size_t n_lens) {
         wlog("Could not allocate %ld lenses in lcat\n", n_lens);
         exit(EXIT_FAILURE);
     }
+
+    lcat->hpix_tree=NULL;
 
     return lcat;
 }
@@ -111,10 +113,10 @@ void lcat_add_search_angle(struct lcat* lcat, double rmax) {
 
 
 
-void lcat_disc_intersect(struct lcat* lcat, int64 nside, double rmax) {
-    struct healpix* hpix = hpix_new(nside);
+void lcat_disc_intersect(struct lcat* lcat, struct healpix* hpix, double rmax) {
 
     struct lens* lens = &lcat->data[0];
+
     for (size_t i=0; i<lcat->size; i++) {
         lens->hpix = i64stack_new(0);
 
@@ -129,11 +131,26 @@ void lcat_disc_intersect(struct lcat* lcat, int64 nside, double rmax) {
         // since we can ask if within min/max pixel values
         i64stack_sort(lens->hpix);
 
-        lens->rev = i64getrev(lens->hpix);
+        //lens->rev = i64getrev(lens->hpix);
         lens++;
     }
 }
 
+void lcat_build_hpix_tree(struct lcat* lcat) {
+    int64* ptr=NULL;
+    struct lens* lens = &lcat->data[0];
+    for (size_t i=0; i<lcat->size; i++) {
+        // add to the tree
+        ptr = &lens->hpix->data[0];
+        for (size_t j=0; j<lens->hpix->size; j++) {
+            tree_insert(&lcat->hpix_tree, *ptr, i);
+            ptr++;
+        }
+
+        lens++;
+    }
+
+}
 
 void lcat_print_one(struct lcat* lcat, size_t el) {
     struct lens* lens = &lcat->data[el];
@@ -171,10 +188,11 @@ struct lcat* lcat_delete(struct lcat* lcat) {
         struct lens* lens=&lcat->data[0];
         for (size_t i=0; i<lcat->size; i++) {
             lens->hpix = i64stack_delete(lens->hpix);
-            lens->rev = szvector_delete(lens->rev);
+            //lens->rev = szvector_delete(lens->rev);
             lens++;
         }
         free(lcat->data);
+        lcat->hpix_tree = tree_delete(lcat->hpix_tree);
         free(lcat);
     }
     return NULL;

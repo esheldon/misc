@@ -28,12 +28,11 @@ struct shear {
 
 struct shear* shear_init(const char* config_filename);
 void shear_process_source(struct shear* self, struct source* src);
-int shear_trylens(struct shear* self, struct source* src, struct lens* lens);
 struct shear* shear_delete(struct shear* self);
 
 
 void shear_print_sum(struct shear* self);
-void shear_write_all(struct shear* self, FILE* stream);
+void shear_write(struct shear* self, FILE* stream);
 
 void shear_procpair(struct shear* self, 
                     struct source* src, 
