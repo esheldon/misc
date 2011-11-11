@@ -13,6 +13,7 @@
 #include "lensum.h"
 #include "source.h"
 #include "interp.h"
+#include "tree.h"
 #include "log.h"
 
 #ifdef SDSSMASK
@@ -51,11 +52,15 @@ struct shear* shear_init(const char* config_file) {
     // finally read the data
     shear->lcat = lcat_read(config->lens_file);
 
+    // order is important here
     wlog("Adding Da to lenses\n");
     lcat_add_da(shear->lcat, shear->cosmo);
+    wlog("Adding cos(search_angle) to lenses\n");
     lcat_add_search_angle(shear->lcat, config->rmax);
     wlog("Intersecting all lenses with healpix at rmax: %lf\n", config->rmax);
-    lcat_disc_intersect(shear->lcat, config->nside, config->rmax);
+    lcat_disc_intersect(shear->lcat, shear->hpix, config->rmax);
+    wlog("Building hpix tree for lenses\n");
+    lcat_build_hpix_tree(shear->lcat);
 
     lcat_print_firstlast(shear->lcat);
 
@@ -64,7 +69,6 @@ struct shear* shear_init(const char* config_file) {
     for (size_t i=0; i<shear->lensums->size; i++) {
         shear->lensums->data[i].zindex = shear->lcat->data[i].zindex;
     }
-
 
 #ifndef WITH_TRUEZ
     // interpolation region
@@ -78,6 +82,7 @@ struct shear* shear_init(const char* config_file) {
     shear->max_zlens = 9999;
 #endif
 
+    wlog("min_zlens: %lf  max_zlens: %lf\n", shear->min_zlens, shear->max_zlens);
 
 
     return shear;
@@ -86,54 +91,23 @@ struct shear* shear_init(const char* config_file) {
 
 void shear_process_source(struct shear* self, struct source* src) {
     src->hpixid = hpix_eq2pix(self->hpix, src->ra, src->dec);
-    struct lens* lens= &self->lcat->data[0];
-    struct lensum* lensum = &self->lensums->data[0];
-    for (size_t i=0; i<self->lcat->size; i++) {
 
-        if (lens->z >= self->min_zlens 
-                && lens->z <= self->max_zlens) {
-                //&& src->hpixid >= lens->hpix->data[0]
-                //&& src->hpixid <= lens->hpix->data[lens->hpix->size-1]) {
+    struct tree_node* node = tree_find(self->lcat->hpix_tree, src->hpixid);
 
-            lensum->totpairs++;
+    struct lens* lens=NULL;
+    struct lensum* lensum=NULL;
+    size_t ind=0;
+    for (size_t i=0; i<node->indices->size-1; i++) {
+        ind = node->indices->data[i];
+
+        lens = &self->lcat->data[ind];
+        lensum = &self->lensums->data[ind];
+
+        if (lens->z >= self->min_zlens && lens->z <= self->max_zlens) {
+            shear_procpair(self, src, lens, lensum);
         }
-
-
-        /*
-        if (shear_trylens(self, src, lens)) {
-            lensum->totpairs++;
-            //shear_procpair(self, src, lens, lensum);
-        }
-        */
-        lens++;
-        lensum++;
     }
-}
 
-int shear_trylens(struct shear* self, struct source* src, struct lens* lens) {
-    return 1;
-    //int64* hpix_ptr=NULL;
-    if (lens->z >= self->min_zlens 
-            && lens->z <= self->max_zlens
-            && src->hpixid >= lens->hpix->data[0]
-            && src->hpixid <= lens->hpix->data[lens->hpix->size-1]) {
-
-        return 1;
-
-        // now make sure the actual pixel value is found
-        /*
-        if (lens->rev->data[src->hpixid] != lens->rev->data[src->hpixid+1]) {
-            return 1;
-        }
-        */
-        /*
-        hpix_ptr = i64stack_find(lens->hpix, src->hpixid);
-        if (hpix_ptr != NULL) {
-            return 1;
-        }
-        */
-    }
-    return 0;
 }
 
 
@@ -142,14 +116,15 @@ void shear_procpair(struct shear* self,
                     struct lens* lens, 
                     struct lensum* lensum) {
 
-    //struct config* config=self->config;
+    struct config* config=self->config;
     
     double cosphi, cosradiff, sinradiff, theta;
-    double phi, arg;//, cos2theta, sin2theta;
-    //double scinv;
+    double phi, arg, cos2theta, sin2theta;
+    double scinv;
 
 #ifdef SDSSMASK
     // make sure object is in a pair of unmasked adjacent quadrants
+    // this actually slows down 20%
     if (!shear_test_quad(lens, src)) {
         return;
     }
@@ -173,10 +148,68 @@ void shear_procpair(struct shear* self,
         theta = atan2(sinradiff, arg) - M_PI_2;
 
         // these two calls are a significant fraction of cpu usage
-        /*
         cos2theta = cos(2*theta);
         sin2theta = sin(2*theta);
-        */
+
+        // note we already checked if lens z was in our interpolation range
+#ifndef WITH_TRUEZ
+        scinv = f64interplin(src->zlens, src->scinv, lens->z);
+#else
+        double dcl = lens->da*(1.+lens->z);
+        scinv = scinv_pre(lens->z, dcl, src->dc);
+#endif
+
+        if (scinv > 0) {
+            double r, logr;
+            int rbin;
+
+            r = phi*lens->da;
+            logr = log10(r);
+
+            rbin = (int)( (logr-config->log_rmin)/config->log_binsize );
+
+            if (rbin >= 0 && rbin < config->nbin) {
+                double scinv2, gamma1, gamma2, eweight, weight, err2;
+
+                err2 = src->err*src->err;
+                scinv2 = scinv*scinv;
+
+                eweight = 1./(GSN2 + err2);
+                weight = scinv2*eweight;
+
+                gamma1 = -(src->g1*cos2theta + src->g2*sin2theta);
+                gamma2 =  (src->g1*sin2theta - src->g2*cos2theta);
+
+                lensum->weight += weight;
+                lensum->totpairs += 1;
+                lensum->npair[rbin] += 1;
+
+                lensum->wsum[rbin] += weight;
+                lensum->dsum[rbin] += weight*gamma1/scinv;
+                lensum->osum[rbin] += weight*gamma2/scinv;
+
+                lensum->rsum[rbin] += r;
+
+                // calculating Ssh, shear polarizability
+                // factors of two cancel in both of these
+                double f_e = err2*eweight;
+                double f_sn = GSN2*eweight;
+
+                // coefficients (p 596 Bern02) 
+                // there is a k1*e^2/2 in Bern02 because
+                // its the total ellipticity he is using
+
+                double k0 = f_e*GSN2*4;  // factor of (1/2)^2 does not cancel here, 4 converts to shapenoise
+                double k1 = f_sn*f_sn;
+
+                // Factors of two don't cancel, need 2*2 for gamma instead of shape
+                double F = 1. - k0 - k1*gamma1*gamma1*4;
+
+                // get correction ssh using l->sshsum/l->weight
+                lensum->sshsum   += weight*F;
+
+            }
+        }
 
     }
 }
@@ -408,7 +441,7 @@ void shear_print_sum(struct shear* self) {
 }
 
 // this is for when we haven't written the file line by line[:w
-void shear_write_all(struct shear* self, FILE* stream) {
+void shear_write(struct shear* self, FILE* stream) {
     lensums_write(self->lensums, stream);
 }
 

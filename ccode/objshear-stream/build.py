@@ -61,11 +61,11 @@ sobjshear_sources = ['config','lens','lensum','source','cosmo','interp',
                     'shear',
                     'sobjshear']
 sobjshear_sources = ['config', 'stack', 'Vector','source','lens','cosmo','healpix',
-                     'shear','lensum','histogram',
+                     'shear','lensum','histogram','tree','interp',
                      'sobjshear']
 
 if options.sdssmask:
-    objshear_sources += ['sdss-survey']
+    sobjshear_sources += ['sdss-survey']
 
 programs = [{'name':'sobjshear', 'sources':sobjshear_sources}]
 

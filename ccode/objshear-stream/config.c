@@ -6,10 +6,10 @@
 #include "log.h"
 
 struct config* config_read(const char* filename) {
-    printf("Reading config from %s\n", filename);
+    wlog("Reading config from %s\n", filename);
     FILE* fptr=fopen(filename,"r");
     if (fptr==NULL) {
-        printf("Could not open file: %s\n", filename);
+        wlog("Could not open file: %s\n", filename);
         exit(EXIT_FAILURE);
     }
 

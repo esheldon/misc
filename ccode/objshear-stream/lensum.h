@@ -30,8 +30,7 @@ struct lensum* lensum_new(size_t nbin);
 struct lensums* lensums_new(size_t nlens, size_t nbin);
 
 // this one we write all the data out in binary format
-void lensums_write_header(size_t nlens, size_t nbin, FILE* fptr);
-void lensums_write(struct lensums* lensums, FILE* fptr);
+void lensums_write(struct lensums* lensums, FILE* stream);
 
 // these write the stdout
 struct lensum* lensums_sum(struct lensums* lensums);
@@ -47,7 +46,7 @@ struct lensum* lensum_new(size_t nbin);
 
 void lensum_add(struct lensum* dest, struct lensum* src);
 
-void lensum_write(struct lensum* lensum, FILE* fptr);
+void lensum_write(struct lensum* lensum, FILE* stream);
 void lensum_print(struct lensum* lensum);
 void lensum_clear(struct lensum* lensum);
 struct lensum* lensum_delete(struct lensum* lensum);

@@ -16,7 +16,11 @@ int main(int argc, char** argv) {
     double boxsize=1;
     int showpix=0;
 
-    int64 nside=4096;
+    if (argc < 2) {
+        printf("usage: test-healpix-brute nside\n");
+        exit(EXIT_FAILURE);
+    }
+    int64 nside=atoi(argv[1]);
     struct healpix* hpix = hpix_new(nside);
 
     if (argc > 1) {
