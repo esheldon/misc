@@ -5,10 +5,21 @@
 #include "Vector.h"
 #include "log.h"
 
+const char* get_config_filename(int argc, char** argv) {
+    const char* config_file=NULL;
+    if (argc >= 2) {
+        config_file=argv[1];
+    } else {
+        config_file=getenv("CONFIG_FILE");
+    }
+
+    return config_file;
+}
+
 struct config* config_read(const char* filename) {
     wlog("Reading config from %s\n", filename);
-    FILE* fptr=fopen(filename,"r");
-    if (fptr==NULL) {
+    FILE* stream=fopen(filename,"r");
+    if (stream==NULL) {
         wlog("Could not open file: %s\n", filename);
         exit(EXIT_FAILURE);
     }
@@ -17,23 +28,23 @@ struct config* config_read(const char* filename) {
     c->zl=NULL;
 
     char key[255];
-    fscanf(fptr, "%s %s", key, c->lens_file);
-    fscanf(fptr, "%s %lf", key, &c->H0);
-    fscanf(fptr, "%s %lf", key, &c->omega_m);
-    fscanf(fptr, "%s %ld", key, &c->npts);
-    fscanf(fptr, "%s %ld", key, &c->nside);
-    fscanf(fptr, "%s %ld", key, &c->sigmacrit_style);
-    fscanf(fptr, "%s %ld", key, &c->nbin);
-    fscanf(fptr, "%s %lf", key, &c->rmin);
-    fscanf(fptr, "%s %lf", key, &c->rmax);
+    fscanf(stream, "%s %s", key, c->lens_file);
+    fscanf(stream, "%s %lf", key, &c->H0);
+    fscanf(stream, "%s %lf", key, &c->omega_m);
+    fscanf(stream, "%s %ld", key, &c->npts);
+    fscanf(stream, "%s %ld", key, &c->nside);
+    fscanf(stream, "%s %ld", key, &c->sigmacrit_style);
+    fscanf(stream, "%s %ld", key, &c->nbin);
+    fscanf(stream, "%s %lf", key, &c->rmin);
+    fscanf(stream, "%s %lf", key, &c->rmax);
     if (c->sigmacrit_style == 2) {
         size_t i;
-        fscanf(fptr, "%s %lu", key, &c->nzl);
+        fscanf(stream, "%s %lu", key, &c->nzl);
         c->zl = f64vector_new(c->nzl);
         // this is the zlvals keyword
-        fscanf(fptr," %s ", key);
+        fscanf(stream," %s ", key);
         for (i=0; i<c->zl->size; i++) {
-            fscanf(fptr, "%lf", &c->zl->data[i]);
+            fscanf(stream, "%lf", &c->zl->data[i]);
         }
     }
 
@@ -41,7 +52,7 @@ struct config* config_read(const char* filename) {
     c->log_rmax = log10(c->rmax);
     c->log_binsize = (c->log_rmax - c->log_rmin)/c->nbin;
 
-    fclose(fptr);
+    fclose(stream);
 
     return c;
 }

@@ -4,7 +4,8 @@
 #include "defs.h"
 
 struct lensum {
-    int64 zindex;
+    int64 index;   // index in the lens list
+    int64 zindex;  // overall index, to get back to input catalog
     double weight;
     int64 totpairs;
 
@@ -46,6 +47,7 @@ struct lensum* lensum_new(size_t nbin);
 
 void lensum_add(struct lensum* dest, struct lensum* src);
 
+int lensum_read(FILE* stream, struct lensum* lensum);
 void lensum_write(struct lensum* lensum, FILE* stream);
 void lensum_print(struct lensum* lensum);
 void lensum_clear(struct lensum* lensum);

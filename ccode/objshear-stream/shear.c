@@ -124,7 +124,6 @@ void shear_procpair(struct shear* self,
 
 #ifdef SDSSMASK
     // make sure object is in a pair of unmasked adjacent quadrants
-    // this actually slows down 20%
     if (!shear_test_quad(lens, src)) {
         return;
     }
