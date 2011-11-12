@@ -211,7 +211,7 @@ void lensum_write(struct lensum* lensum, FILE* stream) {
     int nbin = lensum->nbin;
     int i=0;
 
-    fprintf(stream,"%ld %ld %.16g %ld %.16g ", 
+    fprintf(stream,"%ld\t%ld %.16g %ld %.16g ", 
             lensum->index, lensum->zindex, lensum->weight, lensum->totpairs, lensum->sshsum);
 
     for (i=0; i<nbin; i++) 
