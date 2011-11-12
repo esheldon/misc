@@ -1,8 +1,15 @@
 #include <stdlib.h>
+
+#include <hdfsJniHelper.h>
 #include <hdfs.h>
 
 #ifndef _HDFS_LINES
 #define _HDFS_LINES
+
+
+ssize_t hdfs_getline(char **lineptr, size_t *length, hdfsFile f);
+int errnoFromException(jthrowable exc, JNIEnv *env, const char *method, ...);
+
 
 /*
  * Read *lines* from hdfs

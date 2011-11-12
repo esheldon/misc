@@ -1,12 +1,158 @@
 /*
- * This could be sped up using memchr and memcpy, but presumably the
- * bottlneck is reading from hdfs in the first place.
+ * usage is similar to gnu getline in libc, except the 
+ * newline character is *not* included. This is because
+ * the underlying java routine strips the newline.
+ *
+ * // you can start NULL but you must have len=0. Internally the
+ * data are created and realloced as needed.  You can also
+ * pre-create the array before sending.
+ *
+ * char* linebuff=NULL;
+ * size_t len=0;
+ *
+ * while( hdfs_getline(&linebuff, &len, hdfs_file) >= 0 ) {
+ *     // work with line
+ * }
+ * free(linebuff);
+ *
+ *
  */
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "hdfs_lines.h"
+
+
+
+ssize_t hdfs_getline(char **lineptr, size_t *length, hdfsFile f)
+{
+
+    //Get the JNIEnv* corresponding to current thread
+    JNIEnv* env = getJNIEnv();
+    if (env == NULL) {
+        errno = EINTERNAL;
+        return -1;
+    }
+
+    //Error checking... make sure that this file is 'readable'
+    if (f->type != INPUT) {
+        fprintf(stderr, "Cannot read from a non-InputStream object!\n");
+        errno = EINVAL;
+        return -1;
+    }
+
+    //Parameters
+    jobject jInputStream = (jobject)(f ? f->file : NULL);
+
+    jthrowable jExc = NULL;
+    jstring jstr;
+    jvalue jval;
+
+    if (invokeMethod(env, &jval, &jExc, INSTANCE, jInputStream, 
+                     "org/apache/hadoop/fs/FSDataInputStream",
+                     "readLine", "()Ljava/lang/String;") != 0) {
+        errno = errnoFromException(jExc, env, "org.apache.hadoop.fs."
+                                   "FSDataInputStream::readLine");
+        return -1;
+    } else {
+
+        jstr = (jstring) jval.l;
+
+        if (jstr == NULL) {
+            return -1;
+        } else {
+            const char* cstr = (*env)->GetStringUTFChars(env, jstr, NULL);
+
+            size_t read_size = strlen(cstr);
+            // include 1 for null byte
+            size_t full_size = read_size+1;
+
+            if (*lineptr==NULL) {
+                *lineptr = calloc(full_size, sizeof(char));
+                *length = full_size;
+            } else {
+                if (*length < full_size) {
+                    *lineptr = realloc(*lineptr, full_size);
+                    *length = full_size;
+                }
+            }
+
+            strncpy(*lineptr, cstr, *length);
+            (*env)->ReleaseStringUTFChars(env, jstr, cstr);
+
+            return read_size;
+        }
+    }
+}
+
+
+// I copied this from the hdfs library, it was static there too
+/**
+ * Helper function to translate an exception into a meaningful errno value.
+ * @param exc: The exception.
+ * @param env: The JNIEnv Pointer.
+ * @param method: The name of the method that threw the exception. This
+ * may be format string to be used in conjuction with additional arguments.
+ * @return Returns a meaningful errno value if possible, or EINTERNAL if not.
+ */
+int errnoFromException(jthrowable exc, JNIEnv *env, const char *method, ...)
+{
+    va_list ap;
+    int errnum = 0;
+    char *excClass = NULL;
+
+    if (exc == NULL)
+        goto default_error;
+
+    if ((excClass = classNameOfObject((jobject) exc, env)) == NULL) {
+      errnum = EINTERNAL;
+      goto done;
+    }
+
+    if (!strcmp(excClass, "org.apache.hadoop.security."
+                "AccessControlException")) {
+        errnum = EACCES;
+        goto done;
+    }
+
+    if (!strcmp(excClass, "org.apache.hadoop.hdfs.protocol."
+                "QuotaExceededException")) {
+        errnum = EDQUOT;
+        goto done;
+    }
+
+    if (!strcmp(excClass, "java.io.FileNotFoundException")) {
+        errnum = ENOENT;
+        goto done;
+    }
+
+    //TODO: interpret more exceptions; maybe examine exc.getMessage()
+
+default_error:
+
+    //Can't tell what went wrong, so just punt
+    (*env)->ExceptionDescribe(env);
+    fprintf(stderr, "Call to ");
+    va_start(ap, method);
+    vfprintf(stderr, method, ap);
+    va_end(ap);
+    fprintf(stderr, " failed!\n");
+    errnum = EINTERNAL;
+
+done:
+
+    (*env)->ExceptionClear(env);
+
+    if (excClass != NULL)
+        free(excClass);
+
+    return errnum;
+}
+
+
+
+
 
 struct hdfs_lines* hdfs_lines_new(hdfsFS fs, hdfsFile file, size_t buffsize) {
     struct hdfs_lines* l=NULL;
