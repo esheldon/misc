@@ -62,19 +62,25 @@ sobjshear_sources = ['config', 'stack', 'Vector','source','lens','cosmo','healpi
                      'sobjshear']
 redshear_sources = ['healpix','cosmo','tree','stack','lens','lensum','config','urls','Vector',
                     'redshear']
+redshear2_sources = ['healpix','cosmo','tree','stack','lens','lensum','config','urls','Vector',
+                     'redshear2']
+
 
 if options.sdssmask:
     sobjshear_sources += ['sdss-survey']
     redshear_sources += ['sdss-survey']
+    redshear2_sources += ['sdss-survey']
 
 if options.hdfs:
     sobjshear_sources += ['hdfs_lines']
     redshear_sources += ['hdfs_lines']
+    redshear2_sources += ['hdfs_lines']
     LINKFLAGS += ['-L${HADOOP_HOME}/libhdfs','-lhdfs']
     CFLAGS += ['-DHDFS','-I${HADOOP_HOME}/src/c++/libhdfs']
 
 programs = [{'name':'sobjshear', 'sources':sobjshear_sources},
-            {'name':'redshear', 'sources':redshear_sources}]
+            {'name':'redshear', 'sources':redshear_sources},
+            {'name':'redshear2', 'sources':redshear2_sources}]
 
 if options.test:
     programs += test_programs
