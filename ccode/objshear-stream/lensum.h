@@ -44,10 +44,10 @@ struct lensums* lensums_delete(struct lensums* lensum);
 
 
 struct lensum* lensum_new(size_t nbin);
-
+int lensum_read(FILE* stream, struct lensum* lensum);
+struct lensum* lensum_copy(struct lensum* lensum);
 void lensum_add(struct lensum* dest, struct lensum* src);
 
-int lensum_read(FILE* stream, struct lensum* lensum);
 void lensum_write(struct lensum* lensum, FILE* stream);
 void lensum_print(struct lensum* lensum);
 void lensum_clear(struct lensum* lensum);
