@@ -10,6 +10,8 @@ xterm*boldMode: false
 
 ! This means just display a different color, dont use the bold font
 xterm*colorBDMode: true
+xterm*font: fixed
+xterm*boldFont: fixed
 
 
 ! dont include the newline when triple clicking
