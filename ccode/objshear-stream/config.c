@@ -69,51 +69,53 @@ struct config* config_read(const char* url) {
 
 struct config* hdfs_config_read(const char* url) {
 
+    size_t lbsz=255;
+    char* lbuf=calloc(lbsz, sizeof(char));
+
     struct config* c=calloc(1, sizeof(struct config));
     c->fs = hdfs_connect();
 
     wlog("Reading config from %s\n", url);
 
-    int buffsize=1024;
-    hdfsFile hdfs_file = hdfs_open(c->fs, url, O_RDONLY, buffsize);
+    tSize file_buffsize=1024;
+    hdfsFile hf = hdfs_open(c->fs, url, O_RDONLY, file_buffsize);
 
-    struct hdfs_lines* hl=hdfs_lines_new(c->fs, hdfs_file, buffsize);
 
     c->zl=NULL;
 
     char key[CONFIG_KEYSZ];
-    hdfs_lines_next(hl); sscanf(hl->line, "%s %s", key, c->lens_url);
-    hdfs_lines_next(hl); sscanf(hl->line, "%s %lf", key, &c->H0);
-    hdfs_lines_next(hl); sscanf(hl->line, "%s %lf", key, &c->omega_m);
-    hdfs_lines_next(hl); sscanf(hl->line, "%s %ld", key, &c->npts);
-    hdfs_lines_next(hl); sscanf(hl->line, "%s %ld", key, &c->nside);
-    hdfs_lines_next(hl); sscanf(hl->line, "%s %ld", key, &c->sigmacrit_style);
-    hdfs_lines_next(hl); sscanf(hl->line, "%s %ld", key, &c->nbin);
-    hdfs_lines_next(hl); sscanf(hl->line, "%s %lf", key, &c->rmin);
-    hdfs_lines_next(hl); sscanf(hl->line, "%s %lf", key, &c->rmax);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %s", key, c->lens_url);
+
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lf", key, &c->H0);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lf", key, &c->omega_m);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->npts);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->nside);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->sigmacrit_style);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->nbin);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lf", key, &c->rmin);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lf", key, &c->rmax);
 
     if (c->sigmacrit_style == 2) {
-        size_t i;
         int nread=0;
-        char* line=NULL;
+        char* lptr;
 
-        hdfs_lines_next(hl); sscanf(hl->line, "%s %lu", key, &c->nzl);
+        hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lu", key, &c->nzl);
         c->zl = f64vector_new(c->nzl);
 
         // this is the zlvals keyword
         // note space, that tells it to skip white space
         // reading until tab space or newline (although
         // we don't expect keywords alone on a line)
-        hdfs_lines_next(hl);
-        line=hl->line;
-        sscanf(line, " %49[^\t \n]%n", key, &nread);
+        hdfs_getline(hf, &lbuf, &lbsz);
+        lptr = lbuf;
+        sscanf(lptr, " %49[^\t \n]%n", key, &nread);
 
         // after each read, skip what we read plus delimiter
-        line += nread+1;
+        lptr += nread+1;
 
-        for (i=0; i<c->zl->size; i++) {
-            sscanf(line, "%lf%n", &c->zl->data[i], &nread);
-            line += nread+1;
+        for (size_t i=0; i<c->zl->size; i++) {
+            sscanf(lptr, "%lf%n", &c->zl->data[i], &nread);
+            lptr += nread+1;
         }
     }
 
@@ -121,11 +123,13 @@ struct config* hdfs_config_read(const char* url) {
     c->log_rmax = log10(c->rmax);
     c->log_binsize = (c->log_rmax - c->log_rmin)/c->nbin;
 
-    hl = hdfs_lines_delete(hl);
-    hdfsCloseFile(c->fs, hdfs_file);
+    hdfsCloseFile(c->fs, hf);
+    free(lbuf);
 
     return c;
 }
+
+
 #endif
 
 

@@ -206,12 +206,34 @@ int lensum_read(FILE* stream, struct lensum* lensum) {
     return (nread == nexpect);
 }
 
+struct lensum* lensum_copy(struct lensum* lensum) {
+    int i=0;
+
+    struct lensum* copy=lensum_new(lensum->nbin);
+    copy->index = lensum->index;
+    copy->zindex = lensum->zindex;
+    copy->weight = lensum->weight;
+    copy->totpairs = lensum->totpairs;
+    copy->sshsum = lensum->sshsum;
+    copy->nbin = lensum->nbin;
+
+    for (i=0; i<copy->nbin; i++) {
+        copy->npair[i] = lensum->npair[i];
+        copy->rsum[i] = lensum->rsum[i];
+        copy->wsum[i] = lensum->wsum[i];
+        copy->dsum[i] = lensum->dsum[i];
+        copy->osum[i] = lensum->osum[i];
+    }
+
+    return copy;
+}
+
 
 void lensum_write(struct lensum* lensum, FILE* stream) {
     int nbin = lensum->nbin;
     int i=0;
 
-    fprintf(stream,"%ld %ld %.16g %ld %.16g ", 
+    fprintf(stream,"%ld\t%ld %.16g %ld %.16g ", 
             lensum->index, lensum->zindex, lensum->weight, lensum->totpairs, lensum->sshsum);
 
     for (i=0; i<nbin; i++) 

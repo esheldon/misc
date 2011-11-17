@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "math.h"
 #include "lens.h"
+#include "config.h"
 #include "cosmo.h"
 #include "log.h"
 #include "healpix.h"
@@ -43,13 +44,35 @@ struct lcat* lcat_new(size_t n_lens) {
     return lcat;
 }
 
-struct lcat* lcat_read(const char* filename) {
-    wlog("Reading lenses from %s\n", filename);
-    FILE* fptr=open_url(filename, "r");
+int64 get_nlens(struct config* config) {
+
+#ifdef HDFS
+    return hdfs_get_nlens(config);
+#endif
+
+    int64 nlens=0;
+    wlog("getting nlens from url: %s\n", config->lens_url);
+    FILE* stream = open_url(config->lens_url,"r");
+    if (1 != fscanf(stream, "%ld", &nlens)) {
+        wlog("Could not read nlens from file %s\n", config->lens_url);
+        exit(EXIT_FAILURE);
+    }
+    fclose(stream);
+    return nlens;
+}
+
+struct lcat* lcat_read(struct config* config) {
+
+#ifdef HDFS
+    return hdfs_lcat_read(config);
+#endif
+
+    wlog("Reading lenses from %s\n", config->lens_url);
+    FILE* stream=open_url(config->lens_url, "r");
     size_t nlens;
 
-    fscanf(fptr,"%lu", &nlens);
-    wlog("Reading %ld lenses\n", nlens);
+    fscanf(stream,"%lu", &nlens);
+    wlog("Reading %lu lenses\n", nlens);
     wlog("    creating lcat...");
 
     struct lcat* lcat=lcat_new(nlens);
@@ -59,10 +82,10 @@ struct lcat* lcat_read(const char* filename) {
     struct lens* lens = &lcat->data[0];
     double ra_rad,dec_rad;
     for (size_t i=0; i<nlens; i++) {
-        int nread=fscanf(fptr,"%ld %lf %lf %lf %ld",
+        int nread=fscanf(stream,"%ld %lf %lf %lf %ld",
                 &lens->zindex,&lens->ra,&lens->dec,&lens->z,&lens->maskflags);
         if (5 != nread) {
-            wlog("Failed to read row %lu from %s\n", i, filename);
+            wlog("Failed to read row %lu from %s\n", i, config->lens_url);
             exit(EXIT_FAILURE);
         }
 
@@ -85,11 +108,93 @@ struct lcat* lcat_read(const char* filename) {
         lens++;
 
     }
-    fclose(fptr);
+    fclose(stream);
     wlog("OK\n");
 
     return lcat;
 }
+
+
+#ifdef HDFS
+#include "hdfs_lines.h"
+
+int64 hdfs_get_nlens(struct config* config) {
+    tSize buffsize=25;
+    char buff[25];
+    size_t nlens;
+
+    hdfsFile hf = hdfs_open(config->fs, config->lens_url, O_RDONLY, 0);
+    hdfsRead(config->fs, hf, buff, buffsize);
+
+    sscanf(buff, "%lu", &nlens);
+
+    hdfsCloseFile(config->fs, hf);
+    return nlens;
+}
+
+struct lcat* hdfs_lcat_read(struct config* config) {
+
+    wlog("Reading lenses from %s\n", config->lens_url);
+
+
+    tSize file_buffsize=1024;
+    hdfsFile hf = hdfs_open(config->fs, config->lens_url, O_RDONLY, file_buffsize);
+    size_t nlens;
+
+    size_t lbsz=255;
+    char* lbuf=calloc(lbsz, sizeof(char));
+
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%lu", &nlens);
+    wlog("Reading %lu lenses\n", nlens);
+    wlog("    creating lcat...");
+
+    struct lcat* lcat=lcat_new(nlens);
+    wlog("OK\n");
+
+    wlog("    reading data...");
+    struct lens* lens = &lcat->data[0];
+    double ra_rad,dec_rad;
+    for (size_t i=0; i<nlens; i++) {
+
+        hdfs_getline(hf, &lbuf, &lbsz);
+
+        int nread=sscanf(lbuf,"%ld %lf %lf %lf %ld",
+                &lens->zindex,&lens->ra,&lens->dec,&lens->z,&lens->maskflags);
+
+        if (5 != nread) {
+            wlog("Failed to read row %lu from %s\n", i, config->lens_url);
+            exit(EXIT_FAILURE);
+        }
+
+        ra_rad = lens->ra*D2R;
+        dec_rad = lens->dec*D2R;
+
+        lens->sinra = sin(ra_rad);
+        lens->cosra = cos(ra_rad);
+        lens->sindec = sin(dec_rad);
+        lens->cosdec = cos(dec_rad);
+
+#ifdef SDSSMASK
+        // add sin(lam),cos(lam),sin(eta),cos(eta)
+        eq2sdss_sincos(lens->ra,lens->dec,
+                       &lens->sinlam, &lens->coslam,
+                       &lens->sineta, &lens->coseta);
+#endif
+
+
+        lens++;
+
+    }
+
+    hdfsCloseFile(config->fs, hf);
+    free(lbuf);
+    wlog("OK\n");
+    return lcat;
+
+
+}
+
+#endif
 
 void lcat_add_da(struct lcat* lcat, struct cosmo* cosmo) {
     struct lens* lens = &lcat->data[0];

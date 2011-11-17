@@ -60,11 +60,13 @@ test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/
 sobjshear_sources = ['config', 'stack', 'Vector','source','lens','cosmo','healpix',
                      'shear','lensum','histogram','tree','interp','urls',
                      'sobjshear']
-redshear_sources = ['lensum','config','urls','Vector',
+redshear_sources = ['healpix','cosmo','tree','stack','lens','lensum','config','urls','Vector',
                     'redshear']
+
 
 if options.sdssmask:
     sobjshear_sources += ['sdss-survey']
+    redshear_sources += ['sdss-survey']
 
 if options.hdfs:
     sobjshear_sources += ['hdfs_lines']
