@@ -1,6 +1,7 @@
 #ifndef _LENS_HEADER
 #define _LENS_HEADER
 
+#include "config.h"
 #include "cosmo.h"
 #include "tree.h"
 #include "defs.h"
@@ -50,7 +51,16 @@ struct lcat {
 };
 
 struct lcat* lcat_new(size_t n_lens);
-struct lcat* lcat_read(const char* filename);
+int64 get_nlens(struct config* config);
+struct lcat* lcat_read(struct config* config); 
+
+#ifdef HDFS
+#include "hdfs_lines.h"
+int64 hdfs_get_nlens(struct config* config);
+struct lcat* hdfs_lcat_read(struct config* config); 
+#endif
+
+
 void lcat_add_da(struct lcat* lcat, struct cosmo* cosmo);
 void lcat_add_search_angle(struct lcat* lcat, double rmax);
 

@@ -33,7 +33,6 @@ struct shear* shear_init(const char* config_file) {
     struct config* config=shear->config;
     wlog("config structure:\n");
     config_print(config);
-    exit(0);
 
     // now initialize the structures we need
     wlog("Initalizing cosmo in flat universe\n");
@@ -50,8 +49,7 @@ struct shear* shear_init(const char* config_file) {
     wlog("Initalizing healpix at nside: %ld\n", config->nside);
     shear->hpix = hpix_new(config->nside);
 
-    // finally read the data
-    shear->lcat = lcat_read(config->lens_url);
+    shear->lcat = lcat_read(config);
 
     // order is important here
     wlog("Adding Da to lenses\n");
