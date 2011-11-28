@@ -10,6 +10,8 @@ xterm*boldMode: false
 
 ! This means just display a different color, dont use the bold font
 xterm*colorBDMode: true
+xterm*font: fixed
+xterm*boldFont: fixed
 
 
 ! dont include the newline when triple clicking
@@ -99,3 +101,18 @@ xclock*minorColor: grey80
 xclock*majorColor: cyan
 xclock*secondColor: cyan4
 xclock*hourColor: green4
+
+
+urxvt.font: xft:ubuntu mono:size=14
+urxvt*background: #f05ddd70bfa1
+
+! sienna for yellow
+!urxvt*color3: #A0522D
+urxvt*color3: sienna
+
+!! A darker green
+urxvt*color2: green4
+!! a darker cyan
+urxvt*color6: darkcyan
+urxvt*scrollBar: false
+urxvt*cursorColor: green4
