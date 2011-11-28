@@ -57,11 +57,9 @@ echo "will limit to maxjobs:    $maxjobs"
 for file; do
     outf1="$file.out"
     outf2="${file%.*}.out"
+    logf="${file%.*}.wqlog"
 
     if [[ ! -e $outf1 && ! -e $outf2 ]]; then
-    #if [[ "yes" == "no" ]]; then
-
-        logf="${file}.wqlog"
 
         njob=$(count_jobs $name)
         while [[ $njob -ge $maxjobs ]]; do
