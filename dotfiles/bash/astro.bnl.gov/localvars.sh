@@ -10,6 +10,12 @@ if [[ -e $f ]]; then
     source "$f"
 fi
 
+
+f=~astrodat/setup/setup-wq.sh
+if [[ -e $f ]]; then
+    source "$f"
+fi
+
 f=/opt/astro/SL53/bin/setup.hadoop.sh
 if [[ -e $f ]]; then
     source "$f"

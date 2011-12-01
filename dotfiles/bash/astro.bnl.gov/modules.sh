@@ -16,6 +16,8 @@ if [[ $check == "" ]]; then
     # and installed under $MODULE_INSTALLS
     module load use.own
 
+    #module load wq
+
     # for oracle libraries
     module load libaio     # *
 
@@ -23,7 +25,7 @@ if [[ $check == "" ]]; then
 
     module load cjson      # *
 
-    module load pyyaml
+    #module load pyyaml
     # also loads pcre      # *
     module load swig       # *
 
