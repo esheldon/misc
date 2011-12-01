@@ -46,6 +46,7 @@ if [[ -e $f ]]; then
         setup scons
         setup pyyaml
 
+        setup stomp -r ~/exports-tutti/stomp-work
 
     else
         # this will get numpy and python

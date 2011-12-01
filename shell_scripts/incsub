@@ -2,49 +2,41 @@
 
 function usage {
     echo "
-    usage: incsub [-h -q queue -n maxjobs] file_list
+    usage: incsub [-h -n maxjobs] file_list
 
         -n to specify the max number of allowed jobs in any queue. 
               default is 50.
-        -q Send the job to the specified queue and only monitor jobs in that 
-           queue.  The -n parameter will then refer to jobs in this queue only.
-        
         -h for this help message
 
-    Incrementally submit pbs jobs from the input file list, maintaining at most
-    the specified number of jobs in the queues.  Will wait 30 seconds between
-    job checks
+    Incrementally submit wq jobs from the input file list, maintaining at most
+    the specified number of jobs in the queues.  Jobs are submitted using
+    nohup.  Wait 30 seconds between job checks
 
-    If {filename}.log exists, the job will not be submitted.  Remove .log files
-    to get jobs to run.
+    If filename.out exists or filename with the extension removed and replaced
+    by .out exists, the job will not be submitted.  Remove those files to
+    get jobs to run.
+
+    Outputs from wq are sent to file.wqlog
 "
 }
 
 function count_jobs {
     name=$1
-    queue=$2
 
     # since we don't want the header, we demand the user field
     # equals the user instead of using -u to the qstat
-    awk_name="{if (\$3 == \"$name\") print \$0}"
-    if [[ "$queue" == "any" ]]; then
-        njob=$(qstat | awk "$awk_name" | wc -l)
-    else
-        awk_queue="{if (\$6 == \"$queue\") print \$0}"
-        njob=$(qstat | awk "$awk_queue" | awk "$awk_name" | wc -l)
-    fi
+    awk_name="{if (\$2 == \"$name\") print \$0}"
+    njob=$(wq ls | awk "$awk_name" | wc -l)
     echo "$njob"
 }
 
 name=`whoami`
 
 # number of jobs running at once
-queue="any"
 maxjobs=50
-while getopts "hn:q:" Option; do
+while getopts "hn:" Option; do
     case $Option in
         n) maxjobs=$OPTARG ;;
-        q) queue=$OPTARG ;;
         h) usage
            exit 45 ;;
         [?]) usage
@@ -58,31 +50,26 @@ if [ $# -lt 1 ]; then
     exit 45
 fi
 
-if [[ "$queue" != "any" ]]; then
-    echo "queue:                    $queue"
-fi
 echo "submitting jobs for user: $name"
 echo "number in list: $#"
 echo "will limit to maxjobs:    $maxjobs"
 
 for file; do
-    logf="$file.log"
-    if [ ! -e "$logf" ]; then
+    outf1="$file.out"
+    outf2="${file%.*}.out"
+    logf="${file%.*}.wqlog"
 
-        njob=$(count_jobs $name $queue)
-        while [[ "$njob" -ge "$maxjobs" ]]; do
+    if [[ ! -e $outf1 && ! -e $outf2 ]]; then
+
+        njob=$(count_jobs $name)
+        while [[ $njob -ge $maxjobs ]]; do
             sleep 30
             njob=$(count_jobs $name $queue)
         done
 
         dt=`date +"%T"`
-        if [[ "$queue" == "any" ]]; then
-            echo -n "Found $njob jobs, submitting $file ($dt) "
-            qsub $file
-        else
-            echo -n "Found $njob jobs, submitting $file to queue $queue ($dt) "
-            qsub -q $queue $file
-        fi
+        echo "Found $njob jobs, submitting $file ($dt) "
+        nohup wq sub "$file" &> "$logf" &
 
     fi
 done
