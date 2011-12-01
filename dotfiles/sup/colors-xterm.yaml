@@ -2,7 +2,7 @@
 # index view
 #
 :status: # status bar at bottom
-  :fg: default
+  :fg: blue
   :bg: default
 
 :date: # the date on the left
@@ -40,7 +40,7 @@
 
 :tagged:
   :fg: blue
-  :bg: black
+  :bg: default
 
 # @ symbol for attachments and > symbol indicating you are the explicit 
 # recipient (as oopposed to a mailing list, etc)
