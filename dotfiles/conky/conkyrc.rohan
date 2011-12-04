@@ -236,9 +236,10 @@ CPU3: ${color skyblue} ${cpu cpu3}%$color $alignr CPU4: ${color skyblue} ${cpu c
 ${color lightgrey}${cpugraph cpu3 25,120 006400 00FF00}$color ${color lightgrey}${cpugraph cpu4 25,120 006400 00FF00}$color
 Total CPU: ${color green} ${cpu cpu0}%$color
 ${color lightgrey}${cpugraph cpu0 006400 00FF00}$color
-Down: ${color FBB117}${downspeed eth0}$color $alignr Up: ${color FBB117} ${upspeed eth0}$color
-${color green}${totaldown eth0} $alignr ${totalup eth0}$color
+eth0:  $alignr ${color FBB117}${downspeed eth0}$color / ${color red} ${upspeed eth0}$color
 ${color lightgrey}${downspeedgraph eth0 25,120 2554C7 306EFF 1000} ${upspeedgraph eth0 25,120 AF7817 FBB117 100}$color
+wlan0: $alignr ${color FBB117}${downspeed wlan0}$color / ${color red} ${upspeed wlan0}$color
+${color lightgrey}${downspeedgraph wlan0 25,120 2554C7 306EFF 1000} ${upspeedgraph wlan0 25,120 AF7817 FBB117 100}$color
 RAM: ${color yellow}${mem}/${memmax}$color
 ${color skyblue}${memgraph 006400 00FF00}$color
 HD IO: ${color FBB117}${diskio}
