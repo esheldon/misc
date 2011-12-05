@@ -24,6 +24,8 @@ if [[ -e $f ]]; then
         setup espy -r ~/python
 
         setup esutil -r ~/exports-tutti/esutil-local
+        setup fitsio -r ~/exports-tutti/fitsio-local
+
         setup recfile -r ~/exports-tutti/recfile-local
         setup numpydb -r ~esheldon/exports-tutti/numpydb-local
 

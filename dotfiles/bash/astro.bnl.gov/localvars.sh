@@ -5,20 +5,18 @@ if [[ -e $f ]]; then
     source "$f"
 fi
 
+# all these require mount of /opt/astro/....
+# tutti does not mount these
 f=/opt/astro/SL53/bin/setup.astro.sh
 if [[ -e $f ]]; then
     source "$f"
-fi
 
-
-f=~astrodat/setup/setup-wq.sh
-if [[ -e $f ]]; then
+    f=~astrodat/setup/setup-wq.sh
     source "$f"
-fi
 
-f=/opt/astro/SL53/bin/setup.hadoop.sh
-if [[ -e $f ]]; then
+    f=/opt/astro/SL53/bin/setup.hadoop.sh
     source "$f"
+
     # make want to change to not have hadoop at the end?
     append_path C_INCLUDE_PATH $HADOOP_HOME/src/c++/libhdfs/
     append_path CPATH $HADOOP_HOME/src/c++/libhdfs/
@@ -27,9 +25,7 @@ if [[ -e $f ]]; then
 
 fi
 
-if [[ $(hostname) == "tutti.astro.bnl.gov" ]]; then
-    source ~/local/des-oracle-tutti/setup.sh
-else
+if [[ $(hostname) != "tutti.astro.bnl.gov" ]]; then
     source ~/local/des-oracle/setup.sh
 fi
 
