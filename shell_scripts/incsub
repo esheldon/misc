@@ -70,6 +70,7 @@ for file; do
         dt=`date +"%T"`
         echo "Found $njob jobs, submitting $file ($dt) "
         nohup wq sub "$file" &> "$logf" &
+        sleep 1
 
     fi
 done

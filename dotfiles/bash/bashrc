@@ -1,9 +1,9 @@
 # vim: set filetype=sh :
 # My "universal" bashrc
 
-if [[ -z "$PS1" ]]; then
-    return
-fi
+#if [[ -z "$PS1" ]]; then
+#    return
+#fi
 
 # use vi commands on the prompt
 set -o vi
