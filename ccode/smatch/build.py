@@ -18,7 +18,8 @@ CC='gcc'
 
 LINKFLAGS=['-lm']
 
-CFLAGS=['-std=c99','-Wall','-Werror','-O2']
+#CFLAGS=['-std=c99','-Wall','-Werror','-O2']
+CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 if not options.debug:
     CFLAGS += ['-DNDEBUG']
 
