@@ -149,21 +149,23 @@ void process_radec(struct cat* cat, double ra, double dec, size_t index) {
     struct tree_node* node = tree_find(cat->tree, hpixid);
 
     if (node != NULL) {
+
+        eq2xyz(ra,dec,&x,&y,&z);
+
         for (size_t i=0; i<node->indices->size; i++) {
             // index into other list
             size_t cat_ind = node->indices->data[i];
 
             struct point* pt = &cat->pts[cat_ind];
 
-            eq2xyz(ra,dec,&x,&y,&z);
 
-            double cos_angle = 
-                pt->x*x + pt->y*y + pt->z*z;
+            double cos_angle = pt->x*x + pt->y*y + pt->z*z;
 
             if (cos_angle > cat->cos_radius) {
                 printf("%lu %lu\n", index, cat_ind);
             }
         }
+
     }
 }
 
