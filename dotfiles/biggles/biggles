@@ -3,7 +3,7 @@ fontface = HersheySerif
 fontsize_min = 0.1
 
 [screen]
-width = 800
-height = 800
+width = 1100
+height = 1100
 # this is does not control fonts, doh!
 #linewidth = 3
