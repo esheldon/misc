@@ -58,7 +58,7 @@ void repeat_char(char c, int n) {
         fputc(c,stderr);
     }
 }
-static inline void move_bar(size_t this_index, size_t ntot, size_t ntoprint, char c)
+static inline void incr_bar(size_t this_index, size_t ntot, size_t ntoprint, char c)
 {
     if ( this_index % (ntot/ntoprint) != 0 ) 
         return;
@@ -67,6 +67,8 @@ static inline void move_bar(size_t this_index, size_t ntot, size_t ntoprint, cha
 
 
 struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int verbose) {
+
+    int barsize=70;
 
     if (verbose) wlog("Loading %s\n", fname);
     FILE* fptr=open_file(fname);
@@ -95,7 +97,7 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
 
     if (verbose) {
         wlog("    reading and building tree\n");
-        repeat_char('.', 70); wlog("\n");
+        repeat_char('.', barsize); wlog("\n");
     }
 
     double ra=0, dec=0, x=0, y=0, z=0;
@@ -125,7 +127,7 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
 
         pt++;
         count++;
-        move_bar(i+1, cat->size, 70, '=');
+        if (verbose) incr_bar(i+1, cat->size, barsize, '=');
     }
     listpix=i64stack_delete(listpix);
 
@@ -192,13 +194,13 @@ const char* process_args(int argc, char** argv, int64* nside, double* radius_arc
     if (optind == argc) {
         wlog("usage:\n");
         wlog("    cat file1 | smatch [options] file2 > result\n\n");
-        wlog("put smaller list as the argument and stream the larger\n\n");
+        wlog("Use smaller list as file2 and stream the larger\n\n");
         wlog("Options:\n");
-        wlog("  -r  search radius in arcsec. If not sent, must be third \n");
-        wlog("      column in file (third column not yet implemented)\n");
-        wlog("  -n  nside for healpix, power of two, default 4096 which \n");
-        wlog("      may use a lot of memory\n");
-        wlog("  -v  print out info and progress in stderr\n");
+        wlog("  -r rad   search radius in arcsec. If not sent, must be third \n");
+        wlog("           column in file2 (third column not yet implemented)\n");
+        wlog("  -n nside nside for healpix, power of two, default 4096 which \n");
+        wlog("           may use a lot of memory\n");
+        wlog("  -v       print out info and progress in stderr\n");
 
         exit(EXIT_FAILURE);
     }
