@@ -103,48 +103,92 @@ xclock*secondColor: cyan4
 xclock*hourColor: green4
 
 ! zenburn colors
-! URxvt.geometry: 80x25
-URxvt.font: xft:peep
-!URxvt*inheritPixmap: true
-URxvt*tintColor: gray30
-URxvt.internalBorder: 0
-! URxvt.loginShell: true
-URxvt.perl-ext-common: default,matcher,searchable-scrollback
-URxvt.pointerBlank: true
-URxvt.saveLines: 4000
-URxvt.secondaryScroll: true
-URxvt.scrollBar: false
-URxvt.scrollTtyKeypress: true
-URxvt.scrollWithBuffer: true
-URxvt*urlLauncher: /usr/bin/firefox
-!URxvt*background: #000010
-URxvt*background: #1f1f1f
-URxvt*foreground: white
-URxvt*cursorColor: green
-URxvt*colorUL: #c5f779
-URxvt*underlineColor: #c5f779
-!URxvt*color0: #000000
-URxvt*color1: #9e1828
-URxvt*color2: #aece92
-!URxvt*color3: #968a38
+! urxvt.geometry: 80x25
+urxvt.font: xft:peep
+!urxvt*inheritPixmap: true
+urxvt*tintColor: gray30
+urxvt.internalBorder: 0
+! urxvt.loginShell: true
+urxvt.perl-ext-common: default,matcher,searchable-scrollback
+urxvt.pointerBlank: true
+urxvt.saveLines: 4000
+urxvt.secondaryScroll: true
+urxvt.scrollBar: false
+urxvt.scrollTtyKeypress: true
+urxvt.scrollWithBuffer: true
+urxvt*urlLauncher: /usr/bin/firefox
+!urxvt*background: #000010
+urxvt*background: #1f1f1f
+!urxvt*foreground: white
+urxvt*foreground:  #dcdccc
+urxvt*cursorColor: yellow
+urxvt*colorUL: #c5f779
+urxvt*underlineColor: #c5f779
+
+!URxvt*color1: #9e1828
+!URxvt*color2: #aece92
 !! A brighter yellow
-URxvt*color3: #ffff66
-!URxvt*color4: #414171
+!URxvt*color3: #ffff66
 !! brighter blue
-URxvt*color4: #99ccff
-!URxvt*color5: #963c59
+!URxvt*color4: #99ccff
 !orange-red 
-URxvt*color5: #ff6600
+!URxvt*color5: #ff6600
 !URxvt*color6: #418179
-URxvt*color7: #bebebe
+!URxvt*color7: #bebebe
 !URxvt*color8: #666666
-URxvt*color9: #cf6171
-URxvt*color10: #c5f779
-URxvt*color11: #fff796
-URxvt*color12: #4186be
-URxvt*color13: #cf9ebe
-URxvt*color14: #71bebe
-URxvt*color15: #ffffff
+!URxvt*color9: #cf6171
+!URxvt*color10: #c5f779
+!URxvt*color11: #fff796
+!URxvt*color12: #4186be
+!URxvt*color13: #cf9ebe
+!URxvt*color14: #71bebe
+!URxvt*color15: #ffffff
+
+
+!urxvt*color0:      #1E2320
+!urxvt*color0:      black
+!urxvt*color1:      #705050
+! green + yellow
+!urxvt*color2:      #60b48a
+!urxvt*color3:      #dfaf8f
+! blue + purple
+!urxvt*color4: #4682B4
+! orange-red
+!urxvt*color5: #ff6600
+! cyan + white
+!urxvt*color6:      #8cd0d3
+!urxvt*color7:      #dcdccc
+! bright-black + bright-red
+!urxvt*color8:      #709080
+!urxvt*color9:      #dca3a3
+! bright-green + bright-yellow
+!urxvt*color10:     #c3bf9f
+!urxvt*color11:     #f0dfaf
+! bright-blue + bright-purple
+!urxvt*color12:     #94bff3
+!urxvt*color13:     #ec93d3
+! bright-cyan + bright-white
+!urxvt*color14:     #93e0e3
+!urxvt*color15:     #ffffff
+
+
+!urxvt*color1: #cc9393
+urxvt*color1: #705050
+urxvt*color2: #87af87
+urxvt*color3: #d0bf8f
+urxvt*color4: #6ca0a3
+!urxvt*color5: #dc8cc3
+urxvt*color5: salmon1
+urxvt*color6: #93e0e3
+urxvt*color7: #dcdccc
+urxvt*color8: #000000
+urxvt*color9: #dca3a3
+urxvt*color10: #bfebbf
+urxvt*color11: #f0dfaf
+urxvt*color12: #8cd0d3
+urxvt*color13: #dc8cc3
+urxvt*color14: #93e0e3
+urxvt*color15: #ffffff
 
 
 ! old one used for sup mail reading
