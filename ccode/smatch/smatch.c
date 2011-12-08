@@ -18,9 +18,31 @@ struct cat {
     struct healpix* hpix;
     struct tree_node* tree;
 
-    double cos_radius;
+    int radius_in_file;
+    double *cos_radius;
 };
 
+struct cat* cat_delete(struct cat* cat) {
+    if (cat) {
+        free(cat->pts);
+        free(cat->cos_radius);
+        cat->hpix = hpix_delete(cat->hpix);
+        cat->tree = tree_delete(cat->tree);
+
+        free(cat);
+    }
+
+    return NULL;
+}
+
+void* alloc_or_die(size_t nbytes, const char* description) {
+    void* data = malloc(nbytes);
+    if (data == NULL) {
+        wlog("could not allocate %s\n", description);
+        exit(EXIT_FAILURE);
+    }
+    return data;
+}
 
 FILE* open_file(const char* fname) {
     FILE* fptr=fopen(fname, "r");
@@ -70,26 +92,31 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
 
     int barsize=70;
 
-    if (verbose) wlog("Loading %s\n", fname);
     FILE* fptr=open_file(fname);
 
 
     size_t nlines=countlines(fptr);
-    if (verbose) wlog("    Found %lu lines\n", nlines);
+    if (verbose) wlog("    found %lu lines\n", nlines);
     rewind(fptr);
 
-    struct cat* cat = calloc(1, sizeof(struct cat));
-    double radius_radians = radius_arcsec/3600.*D2R;
-    cat->cos_radius = cos(radius_radians);
+    struct cat* cat = alloc_or_die(sizeof(struct cat), "catalog struct");
+
+    double radius_radians=0;
+    if (radius_arcsec <= 0) {
+        cat->radius_in_file=1;
+        cat->cos_radius = alloc_or_die(nlines*sizeof(double), "cos_radius array");
+    } else {
+        cat->radius_in_file=0;
+        cat->cos_radius = alloc_or_die(sizeof(double), "cos_radius");
+
+        radius_radians = radius_arcsec/3600.*D2R;
+        cat->cos_radius[0] = cos(radius_radians);
+    }
 
     cat->hpix=NULL;
     cat->tree=NULL;
 
-    cat->pts = calloc(nlines, sizeof(struct point));
-    if (cat->pts == NULL) {
-        wlog("could not allocate %lu points\n", nlines);
-        exit(EXIT_FAILURE);
-    }
+    cat->pts = alloc_or_die(nlines*sizeof(struct point),"points");
     cat->size = nlines;
 
     if (verbose) wlog("    creating hpix\n");
@@ -109,6 +136,14 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
         if (2 != fscanf(fptr, "%lf %lf", &ra, &dec)) {
             wlog("expected to read point at line %lu\n", i);
             exit(EXIT_FAILURE);
+        }
+        if (cat->radius_in_file) {
+            if (1 != fscanf(fptr, "%lf", &radius_arcsec)) {
+                wlog("expected to read radius at line %lu\n", i);
+                exit(EXIT_FAILURE);
+            }
+            radius_radians = radius_arcsec/3600.*D2R;
+            cat->cos_radius[i] = cos(radius_radians);
         }
 
         eq2xyz(ra,dec,&x,&y,&z);
@@ -146,10 +181,14 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
 void process_radec(struct cat* cat, double ra, double dec, size_t index) {
 
     double x=0,y=0,z=0;
+    double cos_radius=0;
     int64 hpixid = hpix_eq2pix(cat->hpix, ra, dec);
 
     struct tree_node* node = tree_find(cat->tree, hpixid);
 
+    if (!cat->radius_in_file) {
+        cos_radius = cat->cos_radius[0];
+    }
     if (node != NULL) {
 
         eq2xyz(ra,dec,&x,&y,&z);
@@ -158,12 +197,16 @@ void process_radec(struct cat* cat, double ra, double dec, size_t index) {
             // index into other list
             size_t cat_ind = node->indices->data[i];
 
+            if (cat->radius_in_file) {
+                cos_radius = cat->cos_radius[cat_ind];
+            }
+
             struct point* pt = &cat->pts[cat_ind];
 
 
             double cos_angle = pt->x*x + pt->y*y + pt->z*z;
 
-            if (cos_angle > cat->cos_radius) {
+            if (cos_angle > cos_radius) {
                 printf("%lu %lu\n", index, cat_ind);
             }
         }
@@ -192,15 +235,17 @@ const char* process_args(int argc, char** argv, int64* nside, double* radius_arc
     }
 
     if (optind == argc) {
-        wlog("usage:\n");
-        wlog("    cat file1 | smatch [options] file2 > result\n\n");
-        wlog("Use smaller list as file2 and stream the larger\n\n");
-        wlog("Options:\n");
-        wlog("  -r rad   search radius in arcsec. If not sent, must be third \n");
-        wlog("           column in file2 (third column not yet implemented)\n");
-        wlog("  -n nside nside for healpix, power of two, default 4096 which \n");
-        wlog("           may use a lot of memory\n");
-        wlog("  -v       print out info and progress in stderr\n");
+        wlog(
+        "usage:\n"
+        "    cat file1 | smatch [options] file2 > result\n\n"
+        "use smaller list as file2 and stream the larger\n\n"
+        "options:\n"
+        "  -r rad   search radius in arcsec. If not sent, must be third \n"
+        "           column in file2, in which case it can be different \n"
+        "           for each point.\n"
+        "  -n nside nside for healpix, power of two, default 4096 which \n"
+        "           may use a lot of memory\n"
+        "  -v       print out info and progress in stderr\n");
 
         exit(EXIT_FAILURE);
     }
@@ -216,14 +261,10 @@ int main(int argc, char** argv) {
     const char* file = process_args(argc, argv, &nside, &radius_arcsec, &verbose);
 
     if (verbose) {
-        wlog("nside:           %ld\n", nside);
-        wlog("radius (arcsec): %lf\n", radius_arcsec);
-        wlog("file:            %s\n", file);
-    }
-
-    if (radius_arcsec <= 0) {
-        wlog("radius in third column not yet implemented, send -r rad\n");
-        exit(EXIT_FAILURE);
+        if (radius_arcsec > 0)
+            wlog("radius: %0.1lf arcsec\n", radius_arcsec);
+        wlog("nside:  %ld\n", nside);
+        wlog("file:   %s\n", file);
     }
 
     struct cat* cat = read_cat(file, nside, radius_arcsec, verbose);
@@ -237,5 +278,7 @@ int main(int argc, char** argv) {
         index++;
     }
 
-    if (verbose) wlog("processed %lu from stream\n", index);
+    if (verbose) wlog("processed %lu from stream.\nCleaning up.\n", index);
+    cat = cat_delete(cat);
+    if (verbose) wlog("done.\n");
 }
