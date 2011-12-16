@@ -20,8 +20,7 @@
 :index_draft: # draft email
   :fg: red
   :bg: black
-  :attrs:
-    - bold
+  :attrs: [bold]
 
 :index_starred: # starred email subject color
   :fg: red
@@ -95,8 +94,7 @@
 :search_highlight:
   :fg: green
   :bg: black
-  :attrs:
-    - bold
+  :attrs: [bold]
 
 
 #
