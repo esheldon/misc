@@ -1,14 +1,12 @@
 Quick look Queue
-    see how multishear is writing it's logs.  stderr?  what
-    about my outputs?
-
-    update SE stuff for new runconfigs and to use database
-    add setup stuff in astrodat to my github
-
-    Update my letter for mzm to say I am architect of DES and BOSS.
-    shape testing, lots of correlations
-
-    implement SessionPool on my wrapped oracle connection.
+    - Call BAB radiology to reschedule if possible. If not, talk to Andres.
+    - Read through Eric's paper again, write down notes and Qs.
+    - Start getting multi-epoch stuff working with hdfs.  Note the SE
+      input files will have to point to hdfs too.
+    - Default to fs='hdfs'?
+    - hang out to see if Eric shows up in early evening?
+    - Try to make ctrl-c work for cxOracle
+    - implement SessionPool on my wrapped oracle connection.
 
 fitsio
 
