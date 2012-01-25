@@ -1,13 +1,31 @@
 Quick look Queue
-    - Call BAB radiology to reschedule if possible. If not, talk to Andres.
-    - Read through Eric's paper again, write down notes and Qs.
     - Start getting multi-epoch stuff working with hdfs.  Note the SE
       input files will have to point to hdfs too.
+    - ME check code, parallelized, with hdfs
+    - ME collation code, parallelized, with hdfs
     - Default to fs='hdfs'?
-    - hang out to see if Eric shows up in early evening?
+
+    - Think about masking bias
+    - Are our bright star masks aggressive enough?
+
+    - s/g sep in BOSS catalog
+    - stellar contamination for BOSS catalog
+
     - Try to make ctrl-c work for cxOracle
     - implement SessionPool on my wrapped oracle connection.
 
+redmapper
+
+    - telecon 2012-01-24
+
+        - put in some centering now and produce a catalog
+            - ready for proposals
+            - let people know cat exists and we'll iterate on it
+            - means slight punt on centering for v0.1
+                - I argue don't publish quickly obsolete paper
+
+        - chandra proposal?
+        - redshifts for high-z SPT clusters
 fitsio
 
     - practice with object arrays.
@@ -42,22 +60,12 @@ objshear
         - Look into new binning scheme on lambda.
 
     shears:
+        - s/g sep
+        - stellar contamination
         - Match Frank's file
         - look at various local tests 
             - PSF tests need to be devised
             - <e> vs R
             - <e> vs psf e
             - <e> vs position, run, etc.
-
-
-BOSS 
-    ukidss TS
-
-    Target Selection Overview Paper
-
-        Describe chunks
-
-        References to tiling stuff and brief description
-
-
 
