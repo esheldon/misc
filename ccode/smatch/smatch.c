@@ -178,10 +178,12 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
     return cat;
 }
 
-void process_radec(struct cat* cat, double ra, double dec, size_t index) {
+void process_radec(struct cat* cat, double ra, double dec, int64 maxmatch, size_t index) {
 
     double x=0,y=0,z=0;
     double cos_radius=0;
+    int64 nmatch=0;
+
     int64 hpixid = hpix_eq2pix(cat->hpix, ra, dec);
 
     struct tree_node* node = tree_find(cat->tree, hpixid);
@@ -208,23 +210,36 @@ void process_radec(struct cat* cat, double ra, double dec, size_t index) {
 
             if (cos_angle > cos_radius) {
                 printf("%lu %lu\n", index, cat_ind);
+                nmatch++;
+
+                // maxmatch <= 0 means return all
+                if (maxmatch > 0 && nmatch >= maxmatch) {
+                    break;
+                }
             }
         }
 
     }
+
+    return;
 }
 
 /* need -std=gnu99 since c99 doesn't have getopt */
-const char* process_args(int argc, char** argv, int64* nside, double* radius_arcsec, int* verbose) {
+const char* process_args(
+        int argc, char** argv, 
+        int64* nside, double* radius_arcsec, int64* maxmatch, int* verbose) {
     int c;
 
-    while ((c = getopt(argc, argv, "n:r:v")) != -1) {
+    while ((c = getopt(argc, argv, "n:r:m:v")) != -1) {
         switch (c) {
             case 'n':
                 *nside = (int64) atoi(optarg);
                 break;
             case 'r':
                 *radius_arcsec = atof(optarg);
+                break;
+            case 'm':
+                *maxmatch = (int64) atoi(optarg);
                 break;
             case 'v':
                 *verbose=1;
@@ -238,13 +253,17 @@ const char* process_args(int argc, char** argv, int64* nside, double* radius_arc
         wlog(
         "usage:\n"
         "    cat file1 | smatch [options] file2 > result\n\n"
-        "use smaller list as file2 and stream the larger\n\n"
+        "use smaller list as file2 and stream the larger\n"
+        "each line of output is index1 index2\n\n"
         "options:\n"
         "  -r rad   search radius in arcsec. If not sent, must be third \n"
         "           column in file2, in which case it can be different \n"
         "           for each point.\n"
         "  -n nside nside for healpix, power of two, default 4096 which \n"
         "           may use a lot of memory\n"
+        "  -m maxmatch\n"
+        "           maximum number of matches.  Default is 1.  \n"
+        "           maxmatch=0 means return all matches\n"
         "  -v       print out info and progress in stderr\n");
 
         exit(EXIT_FAILURE);
@@ -256,15 +275,17 @@ int main(int argc, char** argv) {
 
     int64 nside = 4096;
     double radius_arcsec = -1;
+    int64 maxmatch=1;
     int verbose=0;
 
-    const char* file = process_args(argc, argv, &nside, &radius_arcsec, &verbose);
+    const char* file = process_args(argc, argv, &nside, &radius_arcsec, &maxmatch, &verbose);
 
     if (verbose) {
         if (radius_arcsec > 0)
-            wlog("radius: %0.1lf arcsec\n", radius_arcsec);
-        wlog("nside:  %ld\n", nside);
-        wlog("file:   %s\n", file);
+            wlog("radius:    %0.1lf arcsec\n", radius_arcsec);
+        wlog("nside:     %ld\n", nside);
+        wlog("maxmatch:  %ld\n", maxmatch);
+        wlog("file:      %s\n", file);
     }
 
     struct cat* cat = read_cat(file, nside, radius_arcsec, verbose);
@@ -274,7 +295,7 @@ int main(int argc, char** argv) {
     size_t index=0;
     double ra=0, dec=0;
     while (2 == fscanf(stdin,"%lf %lf", &ra, &dec)) {
-        process_radec(cat, ra, dec, index);
+        process_radec(cat, ra, dec, maxmatch, index);
         index++;
     }
 
