@@ -1,8 +1,5 @@
 Quick look Queue
-    - Start getting multi-epoch stuff working with hdfs.  Note the SE
-      input files will have to point to hdfs too.
-    - ME check code, parallelized, with hdfs
-    - ME collation code, parallelized, with hdfs
+
     - Default to fs='hdfs'?
 
     - Think about masking bias
