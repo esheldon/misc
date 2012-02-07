@@ -1,3 +1,24 @@
+/*
+ * The optimal nside for speed depends on the density
+ * Density below in #/sq arcmin
+ *           nside
+ *           64 128 256 512 1024 2048 4096 8192
+ * dens 0.01  -  -   -   *    -    -    -    -
+ *      0.10  -  -   -   *    -    -    -    -
+ *      0.20  -  -   -   -    *    -    -    -
+ *      0.30  -  -   -   -    *    -    -    -
+ *      0.40  -  -   -   -    *    -    -    -
+ *      0.50  -  -   -   -    *    -    -    -
+ *      1.00  -  -   -   -    -    *    -    -
+ *      1.50  -  -   -   -    -    *    -    -
+ *      2.00  -  -   -   -    -    *    -    -
+ *      2.50  -  -   -   -    -    *    -    -
+ *      3.00  -  -   -   -    -    *    -    -
+ *      3.50  -  -   -   -    -    -    *    -
+ *      5.00  -  -   -   -    -    -    *    -
+ *
+ * But note memory usage grows rapidly with nside.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
