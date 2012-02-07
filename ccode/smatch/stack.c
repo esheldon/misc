@@ -284,6 +284,8 @@ int64_t* i64stack_find(struct i64stack* stack, int64_t el) {
     return (int64_t*) bsearch(&el, stack->data, stack->size, sizeof(int64_t), __i64stack_compare_el);
 }
 
+// num is *allocated* size*; the stack will still show
+// ->size==0 until you push
 struct szstack* szstack_new(size_t num) {
     struct szstack* stack = malloc(sizeof(struct szstack));
     if (stack == NULL) {
