@@ -17,7 +17,9 @@
  *      3.50  -  -   -   -    -    -    *    -
  *      5.00  -  -   -   -    -    -    *    -
  *
- * But note memory usage grows rapidly with nside.
+ * But note memory usage grows with nside, especially
+ * when fairly large match radii are used
+ *
  */
 #include <stdio.h>
 #include <stdlib.h>
