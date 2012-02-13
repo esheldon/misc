@@ -10,7 +10,7 @@ void tree_insert(struct tree_node ** self, int64_t val, size_t index) {
         (*self)->left = (*self)->right = NULL;
         (*self)->val=val;
         (*self)->indices = szstack_new(1);
-        (*self)->indices->data[0] = index;
+        szstack_push((*self)->indices, index);
         return;
     }
     if(val < (*self)->val) {
@@ -54,6 +54,7 @@ void tree_print_padding( char ch, int n )
     }
 }
 
+// send level=0 at first
 void tree_print( struct tree_node *self, int level )
 {
     if ( self == NULL ) {

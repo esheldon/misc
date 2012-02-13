@@ -11,7 +11,8 @@
 # this use the -u option
 #   setup-astro -u username start
 
-gateway=rftpexp
+#gateway=rftpexp
+gateway=rftpexp02
 domain=rhic.bnl.gov
 fullhost=$gateway.$domain
 
@@ -59,7 +60,8 @@ function connect
     if [[ "$alltunnels" == "yes" ]]; then
 		echo "Setting up all tunnels"
         ssh -f -N -p 22 -c 3des "${username}@${fullhost}" \
-                -L 3128:130.199.80.149:3127 -
+                -L 3128:rlnx00.rhic.bnl.gov:3127 -
+        
 
         ssh -f -N -p 22 -c 3des "${username}@${rsshfullhost}" \
 				-L 3129/192.168.1.130/3129 - \
