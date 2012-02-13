@@ -8,8 +8,8 @@
 //#include "shear.h"
 
 void usage_and_exit(void) {
-    printf("usage: sobjshear [config_url]\n");
-    printf("  If config_url is not sent as an argument, the CONFIG_URL env variable is used\n");
+    wlog("usage: sobjshear [config_url]\n");
+    wlog("  If config_url is not sent as an argument, the CONFIG_URL env variable is used\n");
     exit(EXIT_FAILURE);
 }
 

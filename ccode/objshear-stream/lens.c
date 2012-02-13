@@ -10,6 +10,10 @@
 #include "stack.h"
 #include "urls.h"
 
+#ifdef HDFS
+#include "hdfs_lines.h"
+#endif
+
 //#include "histogram.h"
 
 #ifdef SDSSMASK
@@ -44,27 +48,14 @@ struct lcat* lcat_new(size_t n_lens) {
     return lcat;
 }
 
-int64 get_nlens(struct config* config) {
-
-#ifdef HDFS
-    return hdfs_get_nlens(config);
-#endif
-
-    int64 nlens=0;
-    wlog("getting nlens from url: %s\n", config->lens_url);
-    FILE* stream = open_url(config->lens_url,"r");
-    if (1 != fscanf(stream, "%ld", &nlens)) {
-        wlog("Could not read nlens from file %s\n", config->lens_url);
-        exit(EXIT_FAILURE);
-    }
-    fclose(stream);
-    return nlens;
-}
 
 struct lcat* lcat_read(struct config* config) {
 
 #ifdef HDFS
-    return hdfs_lcat_read(config);
+    // if compiled with hdfs, and begins with hdfs:// then read as an hdfs file
+    if (is_in_hdfs(config->lens_url)) {
+        return hdfs_lcat_read(config);
+    }
 #endif
 
     wlog("Reading lenses from %s\n", config->lens_url);
@@ -116,21 +107,7 @@ struct lcat* lcat_read(struct config* config) {
 
 
 #ifdef HDFS
-#include "hdfs_lines.h"
 
-int64 hdfs_get_nlens(struct config* config) {
-    tSize buffsize=25;
-    char buff[25];
-    size_t nlens;
-
-    hdfsFile hf = hdfs_open(config->fs, config->lens_url, O_RDONLY, 0);
-    hdfsRead(config->fs, hf, buff, buffsize);
-
-    sscanf(buff, "%lu", &nlens);
-
-    hdfsCloseFile(config->fs, hf);
-    return nlens;
-}
 
 struct lcat* hdfs_lcat_read(struct config* config) {
 

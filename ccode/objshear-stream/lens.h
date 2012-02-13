@@ -51,12 +51,10 @@ struct lcat {
 };
 
 struct lcat* lcat_new(size_t n_lens);
-int64 get_nlens(struct config* config);
 struct lcat* lcat_read(struct config* config); 
 
 #ifdef HDFS
 #include "hdfs_lines.h"
-int64 hdfs_get_nlens(struct config* config);
 struct lcat* hdfs_lcat_read(struct config* config); 
 #endif
 

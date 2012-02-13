@@ -33,8 +33,8 @@ struct lensum_hash* find_lens(struct lensum_hash* lensums, int64 id) {
 
 
 void usage_and_exit(void) {
-    printf("usage: redshear [config_url]\n");
-    printf("  If config_url is not sent as an argument, the CONFIG_URL env variable is used\n");
+    wlog("usage: redshear [config_url]\n");
+    wlog("  If config_url is not sent as an argument, the CONFIG_URL env variable is used\n");
     exit(EXIT_FAILURE);
 }
 
