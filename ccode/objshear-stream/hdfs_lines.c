@@ -104,4 +104,13 @@ hdfsFile hdfs_open(hdfsFS fs, const char* url, int mode, tSize buffsize) {
     return hdfs_file;
 }
 
+// test if the name begins with hdfs://
+int is_in_hdfs(const char* name) {
+    int name_len=0;
+    name_len = strlen(name);
+    if (name_len < 7 ) {
+        return 0;
+    }
 
+    return (0==strncmp("hdfs://", name, 7));
+}

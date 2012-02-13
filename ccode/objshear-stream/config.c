@@ -5,6 +5,10 @@
 #include "Vector.h"
 #include "log.h"
 
+#ifdef HDFS
+#include "hdfs_lines.h"
+#endif
+
 
 const char* get_config_url(int argc, char** argv) {
     const char* config_url=NULL;
@@ -20,7 +24,10 @@ const char* get_config_url(int argc, char** argv) {
 struct config* config_read(const char* url) {
 
 #ifdef HDFS
-    return hdfs_config_read(url);
+    // if compiled with hdfs, and begins with hdfs:// then read as an hdfs file
+    if (is_in_hdfs(url)) {
+        return hdfs_config_read(url);
+    }
 #endif
 
     wlog("Reading config from %s\n", url);
@@ -65,7 +72,6 @@ struct config* config_read(const char* url) {
 }
 
 #ifdef HDFS
-#include "hdfs_lines.h"
 
 struct config* hdfs_config_read(const char* url) {
 
@@ -124,6 +130,8 @@ struct config* hdfs_config_read(const char* url) {
     c->log_binsize = (c->log_rmax - c->log_rmin)/c->nbin;
 
     hdfsCloseFile(c->fs, hf);
+    hdfsDisconnect(c->fs);
+
     free(lbuf);
 
     return c;
@@ -138,9 +146,6 @@ struct config* hdfs_config_read(const char* url) {
 struct config* config_delete(struct config* self) {
     if (self != NULL) {
         free(self->zl);
-#ifdef HDFS
-    hdfsDisconnect(self->fs);
-#endif
     }
     free(self);
     return NULL;
