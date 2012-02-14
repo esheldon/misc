@@ -75,16 +75,17 @@ struct config* config_read(const char* url) {
 
 struct config* hdfs_config_read(const char* url) {
 
+    hdfsFS fs;
     size_t lbsz=255;
     char* lbuf=calloc(lbsz, sizeof(char));
 
     struct config* c=calloc(1, sizeof(struct config));
-    c->fs = hdfs_connect();
+    fs = hdfs_connect();
 
     wlog("Reading config from %s\n", url);
 
     tSize file_buffsize=1024;
-    hdfsFile hf = hdfs_open(c->fs, url, O_RDONLY, file_buffsize);
+    hdfsFile hf = hdfs_open(fs, url, O_RDONLY, file_buffsize);
 
 
     c->zl=NULL;
@@ -129,8 +130,8 @@ struct config* hdfs_config_read(const char* url) {
     c->log_rmax = log10(c->rmax);
     c->log_binsize = (c->log_rmax - c->log_rmin)/c->nbin;
 
-    hdfsCloseFile(c->fs, hf);
-    hdfsDisconnect(c->fs);
+    hdfsCloseFile(fs, hf);
+    hdfsDisconnect(fs);
 
     free(lbuf);
 

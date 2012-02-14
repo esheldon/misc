@@ -33,9 +33,6 @@ struct config {
     double log_rmax;
     double log_binsize;
 
-#ifdef HDFS
-    hdfsFS fs;
-#endif
 };
 
 const char* get_config_url(int argc, char** argv);
