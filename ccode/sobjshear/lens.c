@@ -111,11 +111,14 @@ struct lcat* lcat_read(struct config* config) {
 
 struct lcat* hdfs_lcat_read(struct config* config) {
 
-    wlog("Reading lenses from %s\n", config->lens_url);
+    wlog("Reading lenses from hdfs %s\n", config->lens_url);
 
 
+    hdfsFS fs;
     tSize file_buffsize=1024;
-    hdfsFile hf = hdfs_open(config->fs, config->lens_url, O_RDONLY, file_buffsize);
+
+    fs = hdfs_connect();
+    hdfsFile hf = hdfs_open(fs, config->lens_url, O_RDONLY, file_buffsize);
     size_t nlens;
 
     size_t lbsz=255;
@@ -163,7 +166,8 @@ struct lcat* hdfs_lcat_read(struct config* config) {
 
     }
 
-    hdfsCloseFile(config->fs, hf);
+    hdfsCloseFile(fs, hf);
+    hdfsDisconnect(fs);
     free(lbuf);
     wlog("OK\n");
     return lcat;
