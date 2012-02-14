@@ -81,7 +81,6 @@ if options.test:
     programs += test_programs
 
 install_targets = [(prog['name'],'bin') for prog in programs]
-install_targets += [('objshear.table','ups')]
 
 
 def build():
