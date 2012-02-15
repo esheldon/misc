@@ -89,15 +89,6 @@ size_t countlines(FILE* fptr) {
     return count;
 }
 
-void eq2xyz(double ra, double dec, double* x, double* y, double* z) {
-    ra *= D2R;
-    dec *= D2R;
-
-    *x = cos(ra)*cos(dec);
-    *y = sin(ra)*cos(dec);
-    *z = sin(dec);
-}
-
 void repeat_char(char c, int n) {
     for (int i=0; i<n; i++) {
         fputc(c,stderr);
@@ -150,8 +141,11 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
         repeat_char('.', barsize); wlog("\n");
     }
 
-    double ra=0, dec=0, x=0, y=0, z=0;
+    double ra=0, dec=0;
     struct i64stack* listpix = i64stack_new(0);
+
+    // this will produce a more balanced tree across the whole sky
+    int64 half_npix=cat->hpix->npix/2;
 
     size_t count=0;
     struct point* pt = &cat->pts[0];
@@ -169,17 +163,13 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
             cat->cos_radius[i] = cos(radius_radians);
         }
 
-        eq2xyz(ra,dec,&x,&y,&z);
+        hpix_eq2xyz(ra,dec,&pt->x,&pt->y,&pt->z);
 
-        pt->x = x;
-        pt->y = y;
-        pt->z = z;
-
-        hpix_disc_intersect(cat->hpix, ra, dec, radius_radians, listpix);
+        hpix_disc_intersect(cat->hpix, pt->x, pt->y, pt->z, radius_radians, listpix);
 
         int64* ptr=listpix->data;
         while (ptr < listpix->data + listpix->size) {
-            tree_insert(&cat->tree, *ptr, count);
+            tree_insert(&cat->tree, (*ptr)-half_npix, count);
             ptr++;
         }
 
@@ -207,16 +197,17 @@ void process_radec(struct cat* cat, double ra, double dec, int64 maxmatch, size_
     double cos_radius=0;
     int64 nmatch=0;
 
-    int64 hpixid = hpix_eq2pix(cat->hpix, ra, dec);
+    int64 hpixid = hpix_eq2pix(cat->hpix, ra, dec) - cat->hpix->npix/2;
 
     struct tree_node* node = tree_find(cat->tree, hpixid);
+
 
     if (!cat->radius_in_file) {
         cos_radius = cat->cos_radius[0];
     }
     if (node != NULL) {
 
-        eq2xyz(ra,dec,&x,&y,&z);
+        hpix_eq2xyz(ra,dec,&x,&y,&z);
 
         for (size_t i=0; i<node->indices->size; i++) {
             // index into other list
@@ -227,7 +218,6 @@ void process_radec(struct cat* cat, double ra, double dec, int64 maxmatch, size_
             }
 
             struct point* pt = &cat->pts[cat_ind];
-
 
             double cos_angle = pt->x*x + pt->y*y + pt->z*z;
 

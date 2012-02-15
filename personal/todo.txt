@@ -1,5 +1,19 @@
 Quick look Queue
 
+    - check reduced lensums
+        - do we need the index-tab at beginning? Can we just
+            use zindex tab?
+        - make reader for this lensums file
+    - get wood delivered
+    - get details on pre-matching in mangle
+    - add match structures and sorting to smatch
+    - do a r < 21.8 run (sample s06)
+
+    - new redmapper. stack multiple centers
+    - faster masking edge stuff
+
+    - bug in fitsio
+
     - Default to fs='hdfs'?
 
     - Think about masking bias
@@ -11,19 +25,9 @@ Quick look Queue
     - Try to make ctrl-c work for cxOracle
     - implement SessionPool on my wrapped oracle connection.
 
-redmapper
-
-    - telecon 2012-01-24
-
-        - put in some centering now and produce a catalog
-            - ready for proposals
-            - let people know cat exists and we'll iterate on it
-            - means slight punt on centering for v0.1
-                - I argue don't publish quickly obsolete paper
-
-        - chandra proposal?
-        - redshifts for high-z SPT clusters
 fitsio
+
+    - appears to be a bug when reading a single field, multi-dimensional.
 
     - practice with object arrays.
 

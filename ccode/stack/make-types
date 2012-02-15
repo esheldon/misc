@@ -105,8 +105,8 @@ fformat='''
 struct %(shortname)sstack* %(shortname)sstack_new(size_t num) {
     struct %(shortname)sstack* stack = malloc(sizeof(struct %(shortname)sstack));
     if (stack == NULL) {
-        printf("Could not allocate struct %(shortname)sstack\\n");
-        exit(EXIT_FAILURE);
+        fprintf(stderr,"Could not allocate struct %(shortname)sstack\\n");
+        return NULL;
     }
 
     stack->size = 0;
@@ -120,8 +120,9 @@ struct %(shortname)sstack* %(shortname)sstack_new(size_t num) {
     } else {
         stack->data = calloc(num, sizeof(%(type)s));
         if (stack->data == NULL) {
-            printf("Could not allocate data in pixlist\\n");
-            exit(EXIT_FAILURE);
+            free(stack);
+            fprintf(stderr,"Could not allocate data for stack\\n");
+            return NULL;
         }
     }
 
@@ -136,8 +137,8 @@ void %(shortname)sstack_realloc(struct %(shortname)sstack* stack, size_t newsize
 
         %(type)s* newdata = realloc(stack->data, newsize*elsize);
         if (newdata == NULL) {
-            printf("failed to reallocate\\n");
-            exit(EXIT_FAILURE);
+            fprintf(stderr,"failed to reallocate\\n");
+            return;
         }
 
         if (newsize > stack->allocated_size) {
@@ -191,7 +192,7 @@ void %(shortname)sstack_push(struct %(shortname)sstack* stack, %(type)s val) {
         } else {
             // currenly we always use the multiplier reallocation  method.
             if (stack->push_realloc_style != STACK_PUSH_REALLOC_MULT) {
-                printf("Currently only support push realloc style STACK_PUSH_REALLOC_MULT\\n");
+                fprintf(stderr,"Currently only support push realloc style STACK_PUSH_REALLOC_MULT\\n");
                 exit(EXIT_FAILURE);
             }
             // this will "floor" the size
