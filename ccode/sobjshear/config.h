@@ -12,8 +12,6 @@
 #define CONFIG_STRSZ 256
 
 struct config {
-    char lens_url[255];
-
     double H0;
     double omega_m;
     int64 npts;  // for cosmo integration
@@ -35,7 +33,6 @@ struct config {
 
 };
 
-const char* get_config_url(int argc, char** argv);
 struct config* config_read(const char* url);
 
 #ifdef HDFS

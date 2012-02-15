@@ -1,7 +1,6 @@
 #ifndef _LENS_HEADER
 #define _LENS_HEADER
 
-#include "config.h"
 #include "cosmo.h"
 #include "tree.h"
 #include "defs.h"
@@ -51,11 +50,11 @@ struct lcat {
 };
 
 struct lcat* lcat_new(size_t n_lens);
-struct lcat* lcat_read(struct config* config); 
+struct lcat* lcat_read(const char* lens_url); 
 
 #ifdef HDFS
 #include "hdfs_lines.h"
-struct lcat* hdfs_lcat_read(struct config* config); 
+struct lcat* hdfs_lcat_read(const char* lens_url); 
 #endif
 
 
@@ -69,6 +68,6 @@ struct lcat* lcat_delete(struct lcat* lcat);
 
 
 void lcat_disc_intersect(struct lcat* lcat, struct healpix* hpix, double rmax);
-void lcat_build_hpix_tree(struct lcat* lcat);
+void lcat_build_hpix_tree(struct healpix* hpix, struct lcat* lcat);
 
 #endif
