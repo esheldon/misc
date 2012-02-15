@@ -34,6 +34,7 @@ struct healpix* hpix_new(int64 nside) {
 
     hpix->nside = nside;
     hpix->npix = hpix_npix(nside);
+    hpix->half_npix = hpix->npix/2;
     hpix->area = hpix_area(nside);
     hpix->ncap = 2*nside*(nside-1); // number of pixels in the north polar cap
 

@@ -97,9 +97,9 @@ void source_print(struct source* src) {
     wlog("    dc:     %lf\n", src->dc);
 #else
     size_t nzl = src->zlens->size;
-    wlog("    zlens[0]: %lf  szinv[0]: %lf\n", 
+    wlog("    zlens[0]: %lf  szinv[0]: %e\n", 
            src->zlens->data[0], src->scinv->data[0]);
-    wlog("    zlens[%ld]: %lf  szinv[%ld]: %lf\n", 
+    wlog("    zlens[%ld]: %lf  szinv[%ld]: %e\n", 
            nzl-1, src->zlens->data[nzl-1], nzl-1, src->scinv->data[nzl-1]);
 #endif
 }

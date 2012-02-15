@@ -26,7 +26,7 @@ struct shear {
     FILE* fptr;
 };
 
-struct shear* shear_init(const char* config_filename);
+struct shear* shear_init(const char* config_url, const char* lens_url);
 void shear_process_source(struct shear* self, struct source* src);
 struct shear* shear_delete(struct shear* self);
 

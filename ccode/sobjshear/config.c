@@ -10,16 +10,6 @@
 #endif
 
 
-const char* get_config_url(int argc, char** argv) {
-    const char* config_url=NULL;
-    if (argc >= 2) {
-        config_url=argv[1];
-    } else {
-        config_url=getenv("CONFIG_URL");
-    }
-
-    return config_url;
-}
 
 struct config* config_read(const char* url) {
 
@@ -42,7 +32,6 @@ struct config* config_read(const char* url) {
     c->zl=NULL;
 
     char key[CONFIG_KEYSZ];
-    fscanf(stream, "%s %s", key, c->lens_url);
     fscanf(stream, "%s %lf", key, &c->H0);
     fscanf(stream, "%s %lf", key, &c->omega_m);
     fscanf(stream, "%s %ld", key, &c->npts);
@@ -91,7 +80,6 @@ struct config* hdfs_config_read(const char* url) {
     c->zl=NULL;
 
     char key[CONFIG_KEYSZ];
-    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %s", key, c->lens_url);
 
     hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lf", key, &c->H0);
     hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lf", key, &c->omega_m);
@@ -153,7 +141,6 @@ struct config* config_delete(struct config* self) {
 }
 
 void config_print(struct config* c) {
-    wlog("    lens_url:     %s\n", c->lens_url);
     wlog("    H0:           %lf\n", c->H0);
     wlog("    omega_m:      %lf\n", c->omega_m);
     wlog("    npts:         %ld\n", c->npts);

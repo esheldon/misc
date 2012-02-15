@@ -40,10 +40,11 @@ void usage_and_exit(void) {
 
 int main(int argc, char** argv) {
     int64 counter=0;
-    const char* config_url=get_config_url(argc, argv);
-    if (config_url==NULL)
+    if (argc < 2) {
         usage_and_exit();
+    }
 
+    const char* config_url = argv[1];
     struct config* config=config_read(config_url);
 
     // this is the beginning of the table

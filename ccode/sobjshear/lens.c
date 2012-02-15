@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include "math.h"
 #include "lens.h"
-#include "config.h"
 #include "cosmo.h"
 #include "log.h"
 #include "healpix.h"
@@ -49,17 +48,17 @@ struct lcat* lcat_new(size_t n_lens) {
 }
 
 
-struct lcat* lcat_read(struct config* config) {
+struct lcat* lcat_read(const char* lens_url) {
 
 #ifdef HDFS
     // if compiled with hdfs, and begins with hdfs:// then read as an hdfs file
-    if (is_in_hdfs(config->lens_url)) {
-        return hdfs_lcat_read(config);
+    if (is_in_hdfs(lens_url)) {
+        return hdfs_lcat_read(lens_url);
     }
 #endif
 
-    wlog("Reading lenses from %s\n", config->lens_url);
-    FILE* stream=open_url(config->lens_url, "r");
+    wlog("Reading lenses from %s\n", lens_url);
+    FILE* stream=open_url(lens_url, "r");
     size_t nlens;
 
     fscanf(stream,"%lu", &nlens);
@@ -76,7 +75,7 @@ struct lcat* lcat_read(struct config* config) {
         int nread=fscanf(stream,"%ld %lf %lf %lf %ld",
                 &lens->zindex,&lens->ra,&lens->dec,&lens->z,&lens->maskflags);
         if (5 != nread) {
-            wlog("Failed to read row %lu from %s\n", i, config->lens_url);
+            wlog("Failed to read row %lu from %s\n", i, lens_url);
             exit(EXIT_FAILURE);
         }
 
@@ -109,16 +108,16 @@ struct lcat* lcat_read(struct config* config) {
 #ifdef HDFS
 
 
-struct lcat* hdfs_lcat_read(struct config* config) {
+struct lcat* hdfs_lcat_read(const char* lens_url) {
 
-    wlog("Reading lenses from hdfs %s\n", config->lens_url);
+    wlog("Reading lenses from hdfs %s\n", lens_url);
 
 
     hdfsFS fs;
     tSize file_buffsize=1024;
 
     fs = hdfs_connect();
-    hdfsFile hf = hdfs_open(fs, config->lens_url, O_RDONLY, file_buffsize);
+    hdfsFile hf = hdfs_open(fs, lens_url, O_RDONLY, file_buffsize);
     size_t nlens;
 
     size_t lbsz=255;
@@ -142,7 +141,7 @@ struct lcat* hdfs_lcat_read(struct config* config) {
                 &lens->zindex,&lens->ra,&lens->dec,&lens->z,&lens->maskflags);
 
         if (5 != nread) {
-            wlog("Failed to read row %lu from %s\n", i, config->lens_url);
+            wlog("Failed to read row %lu from %s\n", i, lens_url);
             exit(EXIT_FAILURE);
         }
 
@@ -220,14 +219,15 @@ void lcat_disc_intersect(struct lcat* lcat, struct healpix* hpix, double rmax) {
     }
 }
 
-void lcat_build_hpix_tree(struct lcat* lcat) {
+void lcat_build_hpix_tree(struct healpix* hpix, struct lcat* lcat) {
     int64* ptr=NULL;
+
     struct lens* lens = &lcat->data[0];
     for (size_t i=0; i<lcat->size; i++) {
         // add to the tree
         ptr = &lens->hpix->data[0];
         for (size_t j=0; j<lens->hpix->size; j++) {
-            tree_insert(&lcat->hpix_tree, *ptr, i);
+            tree_insert(&lcat->hpix_tree, (*ptr)-hpix->half_npix, i);
             ptr++;
         }
 

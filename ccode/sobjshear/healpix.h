@@ -10,6 +10,7 @@
 struct healpix {
     int64 nside;
     int64 npix;
+    int64 half_npix;
     int64 ncap;
     double area;
 };

@@ -5,11 +5,9 @@
 #include "shear.h"
 #include "log.h"
 #include "defs.h"
-//#include "shear.h"
 
 void usage_and_exit(void) {
-    wlog("usage: sobjshear [config_url]\n");
-    wlog("  If config_url is not sent as an argument, the CONFIG_URL env variable is used\n");
+    wlog("usage: sobjshear config_url lens_cat\n");
     exit(EXIT_FAILURE);
 }
 
@@ -17,10 +15,13 @@ void usage_and_exit(void) {
 int main(int argc, char** argv) {
     int64 counter=0;
 
-    const char* config_url=get_config_url(argc, argv);
-    if (config_url==NULL)
+    if (argc < 3) {
         usage_and_exit();
-    struct shear* shear=shear_init(config_url);
+    }
+
+    const char* config_url=argv[1];
+    const char* lens_url=argv[2];
+    struct shear* shear=shear_init(config_url, lens_url);
 
 #ifndef WITH_TRUEZ
     struct source* src=source_new(shear->config->nzl);
