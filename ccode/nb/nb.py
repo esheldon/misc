@@ -19,8 +19,8 @@ def read_output(filename):
     print("Found xmax:",data['xmax'])
     data['tstep']      = numpy.fromfile(fobj, dtype='f8', count=1)[0]
     print("Found tstep:",data['tstep'])
-    data['xsoft']      = numpy.fromfile(fobj, dtype='f8', count=1)[0]
-    print("Found xsoft:",data['xsoft'])
+    #data['xsoft']      = numpy.fromfile(fobj, dtype='f8', count=1)[0]
+    #print("Found xsoft:",data['xsoft'])
 
     steps = []
     dt = output_dtype()
