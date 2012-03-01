@@ -18,6 +18,8 @@ if [[ $check == "" ]]; then
 
     #module load wq
 
+    module load pymangle   # *
+
     # for oracle libraries
     module load libaio     # *
 

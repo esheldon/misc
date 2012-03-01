@@ -34,8 +34,8 @@ append_path CPATH /usr/java/jdk1.6.0_14/include
 append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include/linux
 append_path CPATH /usr/java/jdk1.6.0_14/include/linux
 
-export MAXBCG_CATDIR=/mount/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
-export MAXBCG_INPUT=/mount/tutti1/esheldon/maxbcg-input
+export MAXBCG_CATDIR=/astro/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
+export CLUSTERS_INPUT=/astro/tutti1/esheldon/clusters-input
 
 export PHOTOZ_DIR=~esheldon/photoz
 export SWEEP_REDUCE=~esheldon/sweep-reduce
@@ -53,3 +53,11 @@ export PIXEL_MASK_BASIC_PRINCETON=$MASK_DIR/pixel_mask_princeton_basic
 export REGAUSSIM_DIR=~esheldon/regauss-sim
 
 export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
+
+export MANGLEDIR=~/local/src/mangle2.2/
+export MANGLEBINDIR=$MANGLEDIR/bin
+export MANGLESCRIPTSDIR=$MANGLEDIR/scripts
+export MANGLEDATADIR=$MANGLEDIR/masks
+
+append_path PATH $MANGLEBINDIR
+append_path PATH $MANGLESCRIPTSDIR
