@@ -53,8 +53,26 @@ Pre-install rake
 To prepare for ncursesw
     aptitude install libncursesw5-dev
     gem install ncursesw
+if it doesn't show up in "gem list" it may have an error
+in the date listing, fix it so the day is two-digits.
+
+xapian won't install, you'll have to follow these instructions
+
+    gem fetch xapian-full
+    gem unpack xapian-full-1.2.3.gem
+    cd xapian-full-1.2.3
+    curl -O https://github.com/rlane/xapian-full/pull/4.patch
+    patch < 4.patch
+    gem build xapian-full.gemspec
+    gem install ./xapian-full-1.2.3.gem
+    cd ..
+    rm -rf xapian-full-1.2.3
+    rm xapian-full-1.2.3.gem
+
 Seems to work well in gnome terminal but not mrxvt
 
+Then you can 
+    sudo gem install sup
 
 also you'll need this to run:
   

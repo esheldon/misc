@@ -1,28 +1,50 @@
 Quick look Queue
 
+    - add carlos' new stuff
+
+    - put together stomp version of bosslss mangle mask for tycho
+        - 2048
+        - 8196
+    - re-run photozs, source catalog, and maxbcg input for this
+      new mask
+
+    - tmv+wl using intel, with openmp
+        - Mike says you can compile tmv with openmp and it won't
+        - mess up our method of using openmp in the outer loop
+
+    - shears
+        - propagate corrections into the covariance matrix
+            - could just get new diagonal errors and scale correlation matrix
+            - could correct each delta sigma individually and derive new
+              covariance matrices
+
+        - nan in corrected output file?
+        - how to correct the trends?  By camcol or on run basis?
+        - s/g sep in BOSS catalog.  Estimate contamination?
+
+    - catalog for peter
+    - sobjshear
+        - do we need the index-tab at beginning? Can we just use zindex-tab?
+        - would like to know *effective* p(z) for the sources used, in weighted
+          sense.  Difficult because we don't actually have p(z) only the sigma
+          crit as a function of zlens.
+
+    - get wood delivered
+    - get details on pre-matching in mangle
+    - add match structures and sorting to smatch
+    - do a r < 21.8 run (sample s06)
+
+    - new redmapper. stack multiple centers
+    - faster masking edge stuff
+
     - Default to fs='hdfs'?
 
     - Think about masking bias
     - Are our bright star masks aggressive enough?
 
-    - s/g sep in BOSS catalog
-    - stellar contamination for BOSS catalog
-
     - Try to make ctrl-c work for cxOracle
     - implement SessionPool on my wrapped oracle connection.
 
-redmapper
-
-    - telecon 2012-01-24
-
-        - put in some centering now and produce a catalog
-            - ready for proposals
-            - let people know cat exists and we'll iterate on it
-            - means slight punt on centering for v0.1
-                - I argue don't publish quickly obsolete paper
-
-        - chandra proposal?
-        - redshifts for high-z SPT clusters
 fitsio
 
     - practice with object arrays.
@@ -50,11 +72,6 @@ DES:
 
 objshear
     kathy romer, chris miller catalogs
-
-    RedMapper
-        - get first redmapper catalog
-        - apply 1Mpc cuts; need to do this for randoms too... ugly. 
-        - Look into new binning scheme on lambda.
 
     shears:
         - s/g sep

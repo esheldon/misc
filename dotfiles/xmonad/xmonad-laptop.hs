@@ -34,7 +34,7 @@ main = do
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
                    },
-                   terminal = "urxvt"
+                   terminal = "/home/esheldon/local/bin/urxvt"
     }`additionalKeys` myKeyBindings
 
 -- newer versions of dmenu are for some reason not recognized automatically,
