@@ -54,10 +54,4 @@ export REGAUSSIM_DIR=~esheldon/regauss-sim
 
 export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
 
-export MANGLEDIR=~/local/src/mangle2.2/
-export MANGLEBINDIR=$MANGLEDIR/bin
-export MANGLESCRIPTSDIR=$MANGLEDIR/scripts
-export MANGLEDATADIR=$MANGLEDIR/masks
 
-append_path PATH $MANGLEBINDIR
-append_path PATH $MANGLESCRIPTSDIR
