@@ -1,12 +1,21 @@
 Quick look Queue
 
-    - add carlos' new stuff
+    - look up primus numbers
 
-    - put together stomp version of bosslss mangle mask for tycho
-        - 2048
-        - 8196
-    - re-run photozs, source catalog, and maxbcg input for this
-      new mask
+    - unit test structured subarray for binary
+    - document the _method stuff too, where necessary
+
+    - can just use memmap for binary?  Extracting multiple columns using
+        memmap and looping over rows or reading in chunks (latter don't
+        even need memmap)?
+    - can optimize reading specified binary rows when they are *consecutive*.
+      Same with cols.
+    - fread style change?
+
+    - fix slice stuff in recfile
+    - incuse and decuse are not working with closing file externally?
+
+    - re-run photozs, source catalog, new masks
 
     - tmv+wl using intel, with openmp
         - Mike says you can compile tmv with openmp and it won't
