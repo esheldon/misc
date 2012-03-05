@@ -1,21 +1,19 @@
 Quick look Queue
 
-    - look up primus numbers
-
     - unit test structured subarray for binary
     - document the _method stuff too, where necessary
 
-    - can just use memmap for binary?  Extracting multiple columns using
-        memmap and looping over rows or reading in chunks (latter don't
-        even need memmap)?
+    - can just use memmap for binary (problem on OSX)?  Extracting multiple
+      columns using memmap and looping over rows or reading in chunks (latter
+      don't even need memmap)?
     - can optimize reading specified binary rows when they are *consecutive*.
       Same with cols.
     - fread style change?
 
-    - fix slice stuff in recfile
-    - incuse and decuse are not working with closing file externally?
-
-    - re-run photozs, source catalog, new masks
+    - re-run source catalog without masking, and just have masks in the
+      collated columns
+        - not crucial since currently aren't referencing that cut anywhere
+          else, e.g. randoms are "good" mask only
 
     - tmv+wl using intel, with openmp
         - Mike says you can compile tmv with openmp and it won't
@@ -27,7 +25,6 @@ Quick look Queue
             - could correct each delta sigma individually and derive new
               covariance matrices
 
-        - nan in corrected output file?
         - how to correct the trends?  By camcol or on run basis?
         - s/g sep in BOSS catalog.  Estimate contamination?
 
