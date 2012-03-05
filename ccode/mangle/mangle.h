@@ -304,8 +304,6 @@ public:
       polygons[ipoly].set_pixel_id(pixel);
       polygons[ipoly].setwt(weight);
 
-      //cerr <<"poly_id = " << polygons[ipoly].get_poly_id() << endl;
-
       if (pixel>maxpix) maxpix=pixel;
       // and read in the caps.
       for (int icap=0; icap<ncap; icap++) {
@@ -373,9 +371,14 @@ public:
   long polyid(double theta, double phi) {
       long	ii,pid=-1;
 
+      double stheta=sin(theta);
+      double x = stheta*cos(phi);
+      double y = stheta*sin(phi);
+      double z = cos(theta); 
+
       if (pixelres==-1) {	// Mask isn't pixelized.
           for (ii=0; ii<polygons.size(); ii++) {
-              if (polygons[ii].inpoly(theta,phi)) {
+              if (polygons[ii].inpoly(x,y,z)) {
                   pid=polygons[ii].get_poly_id();
                   break;
               }
@@ -395,7 +398,7 @@ public:
           if (ipix < pixels.size()) {
               for (std::list<int>::iterator ii=pixels[ipix].begin();
                       ii!=pixels[ipix].end(); ii++) {
-                  if (polygons[*ii].inpoly(theta,phi)) {
+                  if (polygons[*ii].inpoly(x,y,z)) {
                       pid = polygons[*ii].get_poly_id();
                       break;
                   }
