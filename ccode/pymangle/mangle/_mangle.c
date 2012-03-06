@@ -4,7 +4,7 @@
 #include <Python.h>
 #include "numpy/arrayobject.h" 
 
-#define _MANGLE_SMALL_BUFFSIZE 12
+#define _MANGLE_SMALL_BUFFSIZE 25
 
 struct Cap {
     double x;
@@ -53,6 +53,13 @@ struct PyMangleMask {
     int balkanized;
 
     int verbose;
+
+    char buff[_MANGLE_SMALL_BUFFSIZE];
+
+    FILE* fptr;
+
+    // for error messages
+    npy_intp current_poly_index;
 };
 
 
@@ -205,90 +212,82 @@ _get_pix_scheme_errout:
 }
 
 static int
-scan_expected_value(FILE* fptr, 
-                    char buff[_MANGLE_SMALL_BUFFSIZE], 
-                    const char* expected_value, 
-                    npy_intp poly_index)
+scan_expected_value(struct PyMangleMask* self, const char* expected_value)
 {
     int status=1, res=0;
 
-    res = fscanf(fptr, "%s", buff);
-    if (1 != res || strcmp(buff,expected_value) != 0) {
+    res = fscanf(self->fptr, "%s", self->buff);
+    if (1 != res || strcmp(self->buff,expected_value) != 0) {
         status=0;
         PyErr_Format(PyExc_IOError, 
-                     "Failed to read expected string '%s' for polygon %ld", expected_value, poly_index);
+                "Failed to read expected string '%s' for polygon %ld", 
+                expected_value, self->current_poly_index);
     }
     return status;
 }
 
 /* 
- * parse the polygon "header"
+ * parse the polygon "header" for the index poly_index
  *
  * this is after reading the initial 'polygon' token
  */
 static int
-read_polygon_header(struct PyMangleMask* self, 
-                    FILE* fptr, 
-                    npy_intp poly_index, 
-                    char buff[_MANGLE_SMALL_BUFFSIZE],
-                    npy_intp* ncaps)
+read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* ncaps)
 {
     int status=1;
-    struct Polygon* ply=NULL;
-    ply = &self->poly_vec->data[poly_index];
 
-    if (1 != fscanf(fptr, "%ld", &ply->poly_id)) {
+    if (1 != fscanf(self->fptr, "%ld", &ply->poly_id)) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read polygon id for polygon %ld", poly_index);
+        PyErr_Format(PyExc_IOError, "Failed to read polygon id for polygon %ld", self->current_poly_index);
         goto _read_polygon_header_errout;
     }
 
-    if (!scan_expected_value(fptr, buff, "(", poly_index)) {
+    if (!scan_expected_value(self, "(")) {
         status=0;
         goto _read_polygon_header_errout;
     }
 
-    if (1 != fscanf(fptr,"%ld",ncaps)) {
+    if (1 != fscanf(self->fptr,"%ld",ncaps)) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read ncaps for polygon %ld", poly_index);
+        PyErr_Format(PyExc_IOError, "Failed to read ncaps for polygon %ld", self->current_poly_index);
         goto _read_polygon_header_errout;
     }
 
 
-    if (!scan_expected_value(fptr, buff, "caps,", poly_index)) {
+    if (!scan_expected_value(self, "caps,")) {
         status=0;
         goto _read_polygon_header_errout;
     }
 
-    if (1 != fscanf(fptr,"%lf",&ply->weight)) {
+    if (1 != fscanf(self->fptr,"%lf",&ply->weight)) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read weight for polygon %ld", poly_index);
+        PyErr_Format(PyExc_IOError, "Failed to read weight for polygon %ld", self->current_poly_index);
         goto _read_polygon_header_errout;
     }
 
-    if (!scan_expected_value(fptr, buff, "weight,", poly_index)) {
-        status=0;
-        goto _read_polygon_header_errout;
-    }
-
-    if (1 != fscanf(fptr,"%ld",&ply->pixel_id)) {
-        status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read pixel id for polygon %ld", poly_index);
-        goto _read_polygon_header_errout;
-    }
-
-    if (!scan_expected_value(fptr, buff, "pixel,", poly_index)) {
+    if (!scan_expected_value(self, "weight,")) {
         status=0;
         goto _read_polygon_header_errout;
     }
 
-    if (1 != fscanf(fptr,"%lf",&ply->area)) {
+    if (1 != fscanf(self->fptr,"%ld",&ply->pixel_id)) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read area for polygon %ld", poly_index);
+        PyErr_Format(PyExc_IOError, "Failed to read pixel id for polygon %ld", self->current_poly_index);
         goto _read_polygon_header_errout;
     }
 
-    if (!scan_expected_value(fptr, buff, "str):", poly_index)) {
+    if (!scan_expected_value(self, "pixel,")) {
+        status=0;
+        goto _read_polygon_header_errout;
+    }
+
+    if (1 != fscanf(self->fptr,"%lf",&ply->area)) {
+        status=0;
+        PyErr_Format(PyExc_IOError, "Failed to read area for polygon %ld", self->current_poly_index);
+        goto _read_polygon_header_errout;
+    }
+
+    if (!scan_expected_value(self, "str):")) {
         status=0;
         goto _read_polygon_header_errout;
     }
@@ -296,7 +295,7 @@ read_polygon_header(struct PyMangleMask* self,
     if (self->verbose > 1) {
         fprintf(stderr,
           "polygon %ld: poly_id %ld ncaps: %ld weight: %g pixel: %ld area: %g\n", 
-          poly_index, ply->poly_id, *ncaps, ply->weight, ply->pixel_id, ply->area);
+          self->current_poly_index, ply->poly_id, *ncaps, ply->weight, ply->pixel_id, ply->area);
     }
 
 _read_polygon_header_errout:
@@ -308,15 +307,13 @@ _read_polygon_header_errout:
  * poly_index is the index into the PolygonVec
  */
 static int
-read_polygon(struct PyMangleMask* self, FILE* fptr, npy_intp poly_index, char buff[_MANGLE_SMALL_BUFFSIZE]) {
+read_polygon(struct PyMangleMask* self, struct Polygon* ply) {
     int status=1;
-    struct Polygon* ply=NULL;
     struct Cap* cap=NULL;
 
     npy_intp ncaps=0, i=0, nres=0;
-    ply = &self->poly_vec->data[poly_index];
 
-    if (!read_polygon_header(self, fptr, poly_index, buff, &ncaps)) {
+    if (!read_polygon_header(self, ply, &ncaps)) {
         status=0;
         goto _read_single_polygon_errout;
     }
@@ -330,15 +327,15 @@ read_polygon(struct PyMangleMask* self, FILE* fptr, npy_intp poly_index, char bu
     cap = &ply->cap_vec->data[0];
     for (i=0; i<ncaps; i++) {
         nres=0;
-        nres += fscanf(fptr,"%lf", &cap->x);
-        nres += fscanf(fptr,"%lf", &cap->y);
-        nres += fscanf(fptr,"%lf", &cap->z);
-        nres += fscanf(fptr,"%lf", &cap->cm);
+        nres += fscanf(self->fptr,"%lf", &cap->x);
+        nres += fscanf(self->fptr,"%lf", &cap->y);
+        nres += fscanf(self->fptr,"%lf", &cap->z);
+        nres += fscanf(self->fptr,"%lf", &cap->cm);
 
         if (nres != 4) {
             status=0;
             PyErr_Format(PyExc_IOError, 
-                         "Failed to read cap number %ld or polygon %ld", i, poly_index);
+                         "Failed to read cap number %ld for polygon %ld", i, self->current_poly_index);
             goto _read_single_polygon_errout;
         }
         if (self->verbose > 2) {
@@ -358,7 +355,7 @@ _read_single_polygon_errout:
  * poly_vec should be allocated now
  */
 static int
-_read_polygons(struct PyMangleMask* self, FILE* fptr, char buff[_MANGLE_SMALL_BUFFSIZE])
+_read_polygons(struct PyMangleMask* self)
 {
     int status=1;
 
@@ -370,12 +367,18 @@ _read_polygons(struct PyMangleMask* self, FILE* fptr, char buff[_MANGLE_SMALL_BU
         fprintf(stderr,"reading %ld polygons\n", npoly);
     for (i=0; i<npoly; i++) {
         // buff comes in with 'polygon'
-        if (strcmp(buff,"polygon") != 0) {
+        if (strcmp(self->buff,"polygon") != 0) {
             status=0;
-            PyErr_Format(PyExc_IOError, "Expected first token in poly to read 'polygon', got '%s'", buff);
+            PyErr_Format(PyExc_IOError, 
+                    "Expected first token in poly to read 'polygon', got '%s'", 
+                    self->buff);
             goto _read_some_polygons_errout;
         }
-        status = read_polygon(self, fptr, i, buff);
+
+        // just for error messages and verbosity
+        self->current_poly_index = i;
+
+        status = read_polygon(self, &self->poly_vec->data[i]);
         if (status != 1) {
             break;
         }
@@ -386,7 +389,7 @@ _read_polygons(struct PyMangleMask* self, FILE* fptr, char buff[_MANGLE_SMALL_BU
         }
 
         if (i != (npoly-1)) {
-            if (1 != fscanf(fptr,"%s",buff)) {
+            if (1 != fscanf(self->fptr,"%s",self->buff)) {
                 status=0;
                 PyErr_Format(PyExc_IOError, "Error reading token for polygon %ld", i);
                 goto _read_some_polygons_errout;
@@ -407,30 +410,27 @@ static int
 read_polygons(struct PyMangleMask* self)
 {
     int status=1;
-    FILE* fptr=NULL;
     npy_intp npoly;
-    char buff[_MANGLE_SMALL_BUFFSIZE];
 
-    memset(buff,0,_MANGLE_SMALL_BUFFSIZE);
     
     if (self->verbose)
         fprintf(stderr,"reading polygon file: %s\n", self->filename);
 
-    fptr = fopen(self->filename,"r");
-    if (fptr==NULL) {
+    self->fptr = fopen(self->filename,"r");
+    if (self->fptr==NULL) {
         status=0;
         PyErr_Format(PyExc_IOError, "Could open file: %s", self->filename);
         goto _read_polygons_errout;
     }
 
-    if (2 != fscanf(fptr,"%ld %s", &npoly, buff)) {
+    if (2 != fscanf(self->fptr,"%ld %s", &npoly, self->buff)) {
         status = 0;
         PyErr_Format(PyExc_IOError, "Could not read number of polygons");
         goto _read_polygons_errout;
     }
-    if (strcmp(buff,"polygons") != 0) {
+    if (strcmp(self->buff,"polygons") != 0) {
         status = 0;
-        PyErr_Format(PyExc_IOError, "Expected keyword 'polygons' but got '%s'", buff);
+        PyErr_Format(PyExc_IOError, "Expected keyword 'polygons' but got '%s'", self->buff);
         goto _read_polygons_errout;
     }
 
@@ -438,32 +438,32 @@ read_polygons(struct PyMangleMask* self)
         fprintf(stderr,"Expect %ld polygons\n", npoly);
 
     // get some metadata
-    if (1 != fscanf(fptr,"%s", buff) ) {
+    if (1 != fscanf(self->fptr,"%s", self->buff) ) {
         status=0;
         PyErr_Format(PyExc_IOError, "Error reading header keyword");
         goto _read_polygons_errout;
     }
-    while (strcmp(buff,"polygon") != 0) {
-        if (strcmp(buff,"snapped") == 0) {
+    while (strcmp(self->buff,"polygon") != 0) {
+        if (strcmp(self->buff,"snapped") == 0) {
             if (self->verbose) 
                 fprintf(stderr,"\tpolygons are snapped\n");
             self->snapped=1;
-        } else if (strcmp(buff,"balkanized") == 0) {
+        } else if (strcmp(self->buff,"balkanized") == 0) {
             if (self->verbose) 
                 fprintf(stderr,"\tpolygons are balkanized\n");
             self->balkanized=1;
-        } else if (strcmp(buff,"pixelization")==0) {
+        } else if (strcmp(self->buff,"pixelization")==0) {
             // read the pixelization description, e.g. 9s
-            if (1 != fscanf(fptr,"%s", buff)) {
+            if (1 != fscanf(self->fptr,"%s", self->buff)) {
                 status=0;
                 PyErr_Format(PyExc_IOError, "Error reading pixelization scheme");
                 goto _read_polygons_errout;
             }
             if (self->verbose) 
-                fprintf(stderr,"\tpixelization scheme: '%s'\n", buff);
+                fprintf(stderr,"\tpixelization scheme: '%s'\n", self->buff);
 
 
-            if (!get_pix_scheme(buff, &self->pixelres, &self->pixeltype)) {
+            if (!get_pix_scheme(self->buff, &self->pixelres, &self->pixeltype)) {
                 goto _read_polygons_errout;
             }
             if (self->verbose) {
@@ -472,10 +472,10 @@ read_polygons(struct PyMangleMask* self)
             }
         } else {
             status=0;
-            PyErr_Format(PyExc_IOError, "Got unexpected header keyword: '%s'", buff);
+            PyErr_Format(PyExc_IOError, "Got unexpected header keyword: '%s'", self->buff);
             goto _read_polygons_errout;
         }
-        if (1 != fscanf(fptr,"%s", buff) ) {
+        if (1 != fscanf(self->fptr,"%s", self->buff) ) {
             status=0;
             PyErr_Format(PyExc_IOError, "Error reading header keyword");
             goto _read_polygons_errout;
@@ -489,10 +489,11 @@ read_polygons(struct PyMangleMask* self)
         status=0;
         goto _read_polygons_errout;
     }
-    status = _read_polygons(self, fptr, buff);
+
+    status = _read_polygons(self);
 
 _read_polygons_errout:
-    fclose(fptr);
+    fclose(self->fptr);
     return status;
 }
 
@@ -517,6 +518,10 @@ set_defaults(struct PyMangleMask* self)
     self->balkanized=0;
 
     self->verbose=0;
+
+    memset(self->buff, 0, _MANGLE_SMALL_BUFFSIZE);
+
+    self->fptr=NULL;
 }
 
 
