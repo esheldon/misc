@@ -1,6 +1,8 @@
 Quick look Queue
 
+    - make combined mask, good excluding star, good excluding badfield.
     - don't allow not snapped masks
+    - snap the "good" mask
 
     - strings passed in might disappear!  Just do delim as char.
       and copy delim[0] from input
