@@ -59,6 +59,7 @@ struct PyMangleMask {
     char* filename;
     struct PolygonVec* poly_vec;
 
+    double total_area;
     npy_intp pixelres;
     npy_intp maxpix;
     char pixeltype;
@@ -391,6 +392,8 @@ read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* nc
         goto _read_polygon_header_errout;
     }
 
+    self->total_area += ply->area;
+
     if (!scan_expected_value(self, "str):")) {
         status=0;
         goto _read_polygon_header_errout;
@@ -609,6 +612,8 @@ set_defaults(struct PyMangleMask* self)
 {
     self->filename=NULL;
     self->poly_vec=NULL;
+
+    self->total_area=0.0;
     self->pixelres=-1;
     self->maxpix=-1;
     self->pixeltype='\0';
@@ -685,16 +690,30 @@ PyMangleMask_init(struct PyMangleMask* self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+/*
+ * we use sprintf since PyString_FromFormat doesn't accept floating point types
+ */
+
 static PyObject *
 PyMangleMask_repr(struct PyMangleMask* self) {
     npy_intp npoly;
     npy_intp npix;
+    char buff[255];
 
     npoly = (self->poly_vec != NULL) ? self->poly_vec->size : 0;
     npix = (self->pixel_list_vec != NULL) ? self->pixel_list_vec->size : 0;
-    return PyString_FromFormat(
-     "Mangle\n\tfile: %s\n\tnpoly: %ld\n\tpixeltype: '%c'\n\tpixelres: %ld\n\tnpix: %ld\n\tverbose: %d\n", 
-            self->filename, npoly, self->pixeltype, self->pixelres, npix, self->verbose);
+
+    sprintf(buff,
+            "Mangle\n\tfile: %s\n\tarea: %g sqdeg\n\tnpoly: %ld\n\t"
+            "pixeltype: '%c'\n\tpixelres: %ld\n\tnpix: %ld\n\tverbose: %d\n", 
+            self->filename, self->total_area*R2D*R2D, 
+            npoly, self->pixeltype, self->pixelres, npix, self->verbose);
+    /*
+       return PyString_FromFormat(
+       "Mangle\n\tfile: %s\n\tarea: %.16g\n\tnpoly: %ld\n\tpixeltype: '%c'\n\tpixelres: %ld\n\tnpix: %ld\n\tverbose: %d\n", 
+       self->filename, self->total_area, npoly, self->pixeltype, self->pixelres, npix, self->verbose);
+       */
+    return PyString_FromString(buff);
 }
 
 
@@ -752,13 +771,12 @@ is_in_poly(struct Polygon* ply, struct Point* pt)
 /*
  * check the point against the mask.  If found, will return the
  * id and weight.  These default to -1 and 0
+ *
+ * this version does not use pixelization
  */
 static int
-check_point(
-        struct PyMangleMask* self, 
-        struct Point* pt,
-        npy_intp* poly_id, 
-        double* weight)
+check_point(struct PyMangleMask* self, 
+            struct Point* pt, npy_intp* poly_id, double* weight)
 {
     int status=1;
     npy_intp i=0;
