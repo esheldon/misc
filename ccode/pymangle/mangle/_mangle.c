@@ -337,6 +337,8 @@ static int
 read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* ncaps)
 {
     int status=1;
+    int got_pixel=0;
+    char kwbuff[20];
 
     if (1 != fscanf(self->fptr, "%ld", &ply->poly_id)) {
         status=0;
@@ -372,32 +374,45 @@ read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* nc
         goto _read_polygon_header_errout;
     }
 
-    if (1 != fscanf(self->fptr,"%ld",&ply->pixel_id)) {
+    // pull in the value and keyword
+    if (2 != fscanf(self->fptr,"%s %s",self->buff, kwbuff)) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read pixel id for polygon %ld", self->current_poly_index);
+        PyErr_Format(PyExc_IOError, 
+                "Failed to read value and keyword (pixel,str) for polygon %ld", 
+                self->current_poly_index);
         goto _read_polygon_header_errout;
     }
+
+    if (0 == strcmp(kwbuff,"pixel,")) {
+        // we read a pixel value into self->buff
+        got_pixel=1;
+        sscanf(self->buff, "%ld", &ply->pixel_id);
+    } else {
+        // we probably read the area
+        if (0 != strcmp(kwbuff,"str):")) {
+            status=0;
+            PyErr_Format(PyExc_IOError, "Expected str): keyword at polygon %ld, got %s", 
+                    self->current_poly_index, kwbuff);
+            goto _read_polygon_header_errout;
+        }
+        sscanf(self->buff, "%lf", &ply->area);
+    }
+    if (got_pixel) {
+        if (1 != fscanf(self->fptr,"%lf",&ply->area)) {
+            status=0;
+            PyErr_Format(PyExc_IOError, "Failed to read area for polygon %ld", self->current_poly_index);
+            goto _read_polygon_header_errout;
+        }
+        if (!scan_expected_value(self, "str):")) {
+            status=0;
+            goto _read_polygon_header_errout;
+        }
+    }
+
     if (ply->pixel_id > self->maxpix) {
         self->maxpix = ply->pixel_id;
     }
-
-    if (!scan_expected_value(self, "pixel,")) {
-        status=0;
-        goto _read_polygon_header_errout;
-    }
-
-    if (1 != fscanf(self->fptr,"%lf",&ply->area)) {
-        status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read area for polygon %ld", self->current_poly_index);
-        goto _read_polygon_header_errout;
-    }
-
     self->total_area += ply->area;
-
-    if (!scan_expected_value(self, "str):")) {
-        status=0;
-        goto _read_polygon_header_errout;
-    }
 
     if (self->verbose > 1) {
         fprintf(stderr,
@@ -616,7 +631,7 @@ set_defaults(struct PyMangleMask* self)
     self->total_area=0.0;
     self->pixelres=-1;
     self->maxpix=-1;
-    self->pixeltype='\0';
+    self->pixeltype='u';
     self->pixel_list_vec=NULL;
 
     self->snapped=0;
@@ -708,11 +723,6 @@ PyMangleMask_repr(struct PyMangleMask* self) {
             "pixeltype: '%c'\n\tpixelres: %ld\n\tnpix: %ld\n\tverbose: %d\n", 
             self->filename, self->total_area*R2D*R2D, 
             npoly, self->pixeltype, self->pixelres, npix, self->verbose);
-    /*
-       return PyString_FromFormat(
-       "Mangle\n\tfile: %s\n\tarea: %.16g\n\tnpoly: %ld\n\tpixeltype: '%c'\n\tpixelres: %ld\n\tnpix: %ld\n\tverbose: %d\n", 
-       self->filename, self->total_area, npoly, self->pixeltype, self->pixelres, npix, self->verbose);
-       */
     return PyString_FromString(buff);
 }
 
