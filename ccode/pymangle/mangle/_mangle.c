@@ -311,7 +311,9 @@ static int
 read_polygon(struct PyMangleMask* self, FILE* fptr, npy_intp poly_index, char buff[_MANGLE_SMALL_BUFFSIZE]) {
     int status=1;
     struct Polygon* ply=NULL;
-    npy_intp ncaps=0;
+    struct Cap* cap=NULL;
+
+    npy_intp ncaps=0, i=0, nres=0;
     ply = &self->poly_vec->data[poly_index];
 
     if (!read_polygon_header(self, fptr, poly_index, buff, &ncaps)) {
@@ -319,6 +321,28 @@ read_polygon(struct PyMangleMask* self, FILE* fptr, npy_intp poly_index, char bu
         goto _read_single_polygon_errout;
     }
 
+    ply->cap_vec = CapVec_new(ncaps);
+    if (ply->cap_vec == NULL) {
+        status=0;
+        goto _read_single_polygon_errout;
+    }
+
+    cap = &ply->cap_vec->data[0];
+    for (i=0; i<ncaps; i++) {
+        nres=0;
+        nres += fscanf(fptr,"%lf", &cap->x);
+        nres += fscanf(fptr,"%lf", &cap->y);
+        nres += fscanf(fptr,"%lf", &cap->z);
+        nres += fscanf(fptr,"%lf", &cap->cm);
+
+        if (nres != 4) {
+            status=0;
+            PyErr_Format(PyExc_IOError, 
+                         "Failed to read cap number %ld or polygon %ld", i, poly_index);
+            goto _read_single_polygon_errout;
+        }
+        cap++;
+    }
 _read_single_polygon_errout:
     return status;
 }
