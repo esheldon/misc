@@ -341,6 +341,11 @@ read_polygon(struct PyMangleMask* self, FILE* fptr, npy_intp poly_index, char bu
                          "Failed to read cap number %ld or polygon %ld", i, poly_index);
             goto _read_single_polygon_errout;
         }
+        if (self->verbose > 2) {
+            fprintf(stderr, 
+               "    %.16g %.16g %.16g %.16g\n", cap->x, cap->y, cap->z, cap->cm);
+        }
+
         cap++;
     }
 _read_single_polygon_errout:
@@ -360,9 +365,11 @@ _read_polygons(struct PyMangleMask* self, FILE* fptr, char buff[_MANGLE_SMALL_BU
     npy_intp npoly=0, i=0;
 
     npoly=self->poly_vec->size;
-    // buff comes in with 'polygon'
 
+    if (self->verbose)
+        fprintf(stderr,"reading %ld polygons\n", npoly);
     for (i=0; i<npoly; i++) {
+        // buff comes in with 'polygon'
         if (strcmp(buff,"polygon") != 0) {
             status=0;
             PyErr_Format(PyExc_IOError, "Expected first token in poly to read 'polygon', got '%s'", buff);
@@ -372,7 +379,6 @@ _read_polygons(struct PyMangleMask* self, FILE* fptr, char buff[_MANGLE_SMALL_BU
         if (status != 1) {
             break;
         }
-        i++;
 
         // stop reading where expected
         if (i == npoly) {
