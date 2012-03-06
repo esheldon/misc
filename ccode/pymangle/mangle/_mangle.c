@@ -10,6 +10,8 @@
 #define R2D  57.295779513082323
 
 struct Point {
+    double theta;
+    double phi;
     double x;
     double y;
     double z;
@@ -78,6 +80,21 @@ struct PyMangleMask {
     npy_intp current_poly_index;
 };
 
+
+static void set_point_from_radec(struct Point* pt, double ra, double dec) {
+
+    double stheta=0;
+
+    if (pt != NULL) {
+        pt->phi = ra*D2R;
+        pt->theta = (90.0-dec)*D2R;
+
+        stheta = sin(pt->theta);
+        pt->x = stheta*cos(pt->phi);
+        pt->y = stheta*sin(pt->phi);
+        pt->z = cos(pt->theta); 
+    }
+}
 
 static struct CapVec* 
 CapVec_new(npy_intp n) 
@@ -778,6 +795,79 @@ is_in_poly(struct Polygon* ply, struct Point* pt)
     return inpoly;
 }
 
+
+/*
+ * Get the pixel number of the input point for the
+ * simple scheme
+ */
+
+static npy_intp
+get_pixel_simple(struct PyMangleMask* self, struct Point* pt)
+{
+    npy_intp pix=0;
+
+    npy_intp i=0;
+    npy_intp ps=0, p2=1;
+    double cth=0;
+    npy_intp n=0, m=0;
+    if (self->pixelres > 0) {
+        for (i=0; i<self->pixelres; i++) { // Work out # pixels/dim and start pix.
+            p2  = p2<<1;
+            ps += (p2/2)*(p2/2);
+        }
+      cth = cos(pt->theta);
+      n   = (cth==1.0) ? 0: (npy_intp) ( ceil( (1.0-cth)/2 * p2 )-1 );
+      m   = (npy_intp) ( floor( (pt->phi/2./M_PI)*p2 ) );
+      pix = p2*n+m + ps;
+
+    }
+    return pix;
+}
+/*
+ * check the point against a pixelized mask.  If found, will return the
+ * id and weight.  These default to -1 and 0
+ *
+ */
+static int
+check_point_pixelized(struct PyMangleMask* self, 
+                      struct Point* pt, npy_intp* poly_id, double* weight)
+{
+    int status=1;
+    npy_intp pix=0, i=0, ipoly=0;
+    npy_intp* iptr=NULL;
+    struct NpyIntpStack* pstack=NULL;
+    struct Polygon* ply=NULL;
+
+    *poly_id=-1;
+    *weight=0.0;
+
+    if (self->pixeltype == 's') {
+        fprintf(stderr,"getting pixel id\n");
+        pix = get_pixel_simple(self, pt);
+
+        fprintf(stderr,"setting stack\n");
+        // this is a stack holding indices into the polygon vector
+        pstack = self->pixel_list_vec->data[pix];
+
+        fprintf(stderr,"looping stack\n");
+        for (i=0; i<pstack->size; i++) {
+            ipoly = pstack->data[i];
+            ply = &self->poly_vec->data[ipoly];
+
+            if (is_in_poly(ply, pt)) {
+                *poly_id=ply->poly_id;
+                *weight=ply->weight;
+                break;
+            }
+        }
+    } else {
+        status=0;
+        PyErr_Format(PyExc_IOError, "Unsupported pixelization scheme: '%c'",self->pixeltype);
+    }
+
+    return status;
+}
+
 /*
  * check the point against the mask.  If found, will return the
  * id and weight.  These default to -1 and 0
@@ -790,49 +880,50 @@ check_point(struct PyMangleMask* self,
 {
     int status=1;
     npy_intp i=0;
+    struct Polygon* ply=NULL;
+
     *poly_id=-1;
     *weight=0.0;
 
-    if (self->pixelres == -1) {
-        // check every pixel until a match is found
-        // assuming snapped so no overlapping pixels.
-        struct Polygon* ply=NULL;
-        ply = &self->poly_vec->data[0];
-        for (i=0; i<self->poly_vec->size; i++) {
-            if (is_in_poly(ply, pt)) {
-                *poly_id=ply->poly_id;
-                *weight=ply->weight;
-                break;
-            }
-            ply++;
+    // check every pixel until a match is found
+    // assuming snapped so no overlapping polygons.
+    ply = &self->poly_vec->data[0];
+    for (i=0; i<self->poly_vec->size; i++) {
+        if (is_in_poly(ply, pt)) {
+            *poly_id=ply->poly_id;
+            *weight=ply->weight;
+            break;
         }
+        ply++;
     }
 
     return status;
 }
 
+
+
 static PyObject*
 PyMangleMask_test(struct PyMangleMask* self)
 {
+    int status=1;
     struct Point pt;
     double ra=200;
     double dec=0;
-    double stheta=0;
-    double theta=0;
-    double phi=0;
 
     npy_intp poly_id=0;
     double weight=0;
 
-    phi = ra*D2R;
-    theta = (90.0-dec)*D2R;
+    set_point_from_radec(&pt, ra, dec);
 
-    stheta = sin(theta);
-    pt.x = stheta*cos(phi);
-    pt.y = stheta*sin(phi);
-    pt.z = cos(theta); 
+    if (self->pixelres == -1) {
+        status=check_point(self, &pt, &poly_id, &weight);
+    } else {
+        status=check_point_pixelized(self, &pt, &poly_id, &weight);
+    }
 
-    check_point(self, &pt, &poly_id, &weight);
+    if (status != 1) {
+        return NULL;
+    }
 
     fprintf(stderr,"ra: %g dec: %g\n",ra,dec);
     fprintf(stderr,"x: %g y: %g z: %g\n",pt.x, pt.y, pt.z);
