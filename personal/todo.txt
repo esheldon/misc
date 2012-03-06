@@ -1,5 +1,7 @@
 Quick look Queue
 
+    - don't allow not snapped masks
+
     - strings passed in might disappear!  Just do delim as char.
       and copy delim[0] from input
 
