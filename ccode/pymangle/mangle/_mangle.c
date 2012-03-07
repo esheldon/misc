@@ -17,6 +17,7 @@ struct Point {
     double y;
     double z;
 };
+
 struct Cap {
     double x;
     double y;
@@ -45,7 +46,7 @@ struct PolygonVec {
     struct Polygon* data;
 };
 
-struct NpyIntpStack {
+struct IntpStack {
     npy_intp size;
     npy_intp allocated_size;
     npy_intp* data;
@@ -53,7 +54,7 @@ struct NpyIntpStack {
 
 struct PixelListVec {
     npy_intp size;
-    struct NpyIntpStack** data;
+    struct IntpStack** data;
 };
 
 struct PyMangleMask {
@@ -240,13 +241,13 @@ PolygonVec_free(struct PolygonVec* self)
 
 
 
-static struct NpyIntpStack* 
-NpyIntpStack_new(void) 
+static struct IntpStack* 
+IntpStack_new(void) 
 {
-    struct NpyIntpStack* self=NULL;
+    struct IntpStack* self=NULL;
     npy_intp start_size=1;
 
-    self=calloc(1, sizeof(struct NpyIntpStack));
+    self=calloc(1, sizeof(struct IntpStack));
     if (self == NULL) {
         PyErr_SetString(PyExc_MemoryError, "Could not allocate npy_intp stack");
         return NULL;
@@ -263,7 +264,7 @@ NpyIntpStack_new(void)
 }
 
 static void
-NpyIntpStack_realloc(struct NpyIntpStack* self, npy_intp newsize)
+IntpStack_realloc(struct IntpStack* self, npy_intp newsize)
 {
     npy_intp oldsize=0;
     npy_intp* newdata=NULL;
@@ -292,19 +293,19 @@ NpyIntpStack_realloc(struct NpyIntpStack* self, npy_intp newsize)
 
 }
 
-void NpyIntpStack_push(struct NpyIntpStack* self, npy_intp val) {
+void IntpStack_push(struct IntpStack* self, npy_intp val) {
     // see if we have already filled the available data vector
     // if so, reallocate to larger storage
     if (self->size == self->allocated_size) {
-        NpyIntpStack_realloc(self, self->size*2);
+        IntpStack_realloc(self, self->size*2);
     }
 
     self->size++;
     self->data[self->size-1] = val;
 }
 
-static struct NpyIntpStack* 
-NpyIntpStack_free(struct NpyIntpStack* self) 
+static struct IntpStack* 
+IntpStack_free(struct IntpStack* self) 
 {
     if (self != NULL) {
         free(self->data);
@@ -331,7 +332,7 @@ PixelListVec_new(npy_intp n)
         return NULL;
     }
     // array of pointers. The pointers will be NULL
-    self->data = calloc(n, sizeof(struct NpyIntpStack*));
+    self->data = calloc(n, sizeof(struct IntpStack*));
     if (self->data == NULL) {
         free(self);
         PyErr_Format(PyExc_MemoryError, 
@@ -340,7 +341,7 @@ PixelListVec_new(npy_intp n)
     }
 
     for (i=0; i<n; i++) {
-        self->data[i] = NpyIntpStack_new();
+        self->data[i] = IntpStack_new();
     }
     self->size=n;
     return self;
@@ -350,12 +351,12 @@ static struct PixelListVec*
 PixelListVec_free(struct PixelListVec* self)
 {
     npy_intp i=0;
-    struct NpyIntpStack* s=NULL;
+    struct IntpStack* s=NULL;
     if (self != NULL) {
         for (i=0; i<self->size; i++) {
             s = self->data[i];
             if (s != NULL) {
-                s=NpyIntpStack_free(s);
+                s=IntpStack_free(s);
             }
         }
         free(self);
@@ -776,7 +777,7 @@ set_pixel_map(struct PyMangleMask* self)
                 fprintf(stderr,"Filling pixel map\n");
             ply=&self->poly_vec->data[0];
             for (ipoly=0; ipoly<self->poly_vec->size; ipoly++) {
-                NpyIntpStack_push(self->pixel_list_vec->data[ply->pixel_id], ipoly);
+                IntpStack_push(self->pixel_list_vec->data[ply->pixel_id], ipoly);
                 if (self->verbose > 2) {
                     fprintf(stderr,
                             "Adding poly %ld to pixel map at %ld (%ld)\n",
@@ -932,7 +933,7 @@ polyid_and_weight_pixelized(struct PyMangleMask* self,
 {
     int status=1;
     npy_intp pix=0, i=0, ipoly=0;
-    struct NpyIntpStack* pstack=NULL;
+    struct IntpStack* pstack=NULL;
     struct Polygon* ply=NULL;
 
     *poly_id=-1;
