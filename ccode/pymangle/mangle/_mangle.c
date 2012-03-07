@@ -1363,7 +1363,7 @@ PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
         goto _genrand_cleanup;
     }
 
-    (void) seed_random();
+    seed_random();
 
     while (ngood < nrand) {
         genrand_theta_phi_allsky(&theta, &phi);
@@ -1459,7 +1459,7 @@ PyMangleMask_genrand_range(struct PyMangleMask* self, PyObject* args)
         goto _genrand_range_cleanup;
     }
 
-    (void) seed_random();
+    seed_random();
 
     while (ngood < nrand) {
         genrand_theta_phi(cthmin,cthmax,phimin,phimax,&theta, &phi);
@@ -1536,13 +1536,13 @@ PyMangleMask_test(struct PyMangleMask* self)
 
 
 static PyMethodDef PyMangleMask_methods[] = {
-    {"polyid_and_weight",     (PyCFunction)PyMangleMask_polyid_and_weight,     METH_VARARGS, "Check points against mask, returning (poly_id,weight)."},
-    {"polyid",     (PyCFunction)PyMangleMask_polyid,     METH_VARARGS, "Check points against mask, returning poly_id."},
-    {"weight",     (PyCFunction)PyMangleMask_weight,     METH_VARARGS, "Check points against mask, returning weight."},
-    {"contains",     (PyCFunction)PyMangleMask_contains,     METH_VARARGS, "Check points against mask, returning 1 if yes, 0 if no."},
-    {"genrand",     (PyCFunction)PyMangleMask_genrand,     METH_VARARGS, "Generate random points."},
+    {"polyid_and_weight", (PyCFunction)PyMangleMask_polyid_and_weight, METH_VARARGS, "Check points against mask, returning (poly_id,weight)."},
+    {"polyid",            (PyCFunction)PyMangleMask_polyid,            METH_VARARGS, "Check points against mask, returning poly_id."},
+    {"weight",            (PyCFunction)PyMangleMask_weight,            METH_VARARGS, "Check points against mask, returning weight."},
+    {"contains",          (PyCFunction)PyMangleMask_contains,          METH_VARARGS, "Check points against mask, returning 1 if yes, 0 if no."},
+    {"genrand",           (PyCFunction)PyMangleMask_genrand,           METH_VARARGS, "Generate random points."},
     {"genrand_range",     (PyCFunction)PyMangleMask_genrand_range,     METH_VARARGS, "Generate random points in the given ra/dec range."},
-    {"test",             (PyCFunction)PyMangleMask_test,             METH_NOARGS,  "run a test."},
+    {"test",              (PyCFunction)PyMangleMask_test,              METH_NOARGS,  "run a test."},
     {NULL}  /* Sentinel */
 };
 
