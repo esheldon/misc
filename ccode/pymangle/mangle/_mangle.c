@@ -971,6 +971,49 @@ polyid_and_weight(struct PyMangleMask* self,
     return status;
 }
 
+static PyObject*
+make_intp_array(npy_intp size, const char* name, npy_intp** ptr)
+{
+    PyObject* array=NULL;
+    npy_intp dims[1];
+    int ndims=1;
+    if (size <= 0) {
+        PyErr_Format(PyExc_ValueError, "size of %s array must be > 0",name);
+        return NULL;
+    }
+
+    dims[0] = size;
+    array = PyArray_ZEROS(ndims, dims, NPY_INTP, 0);
+    if (array==NULL) {
+        PyErr_Format(PyExc_MemoryError, "could not create %s array",name);
+        return NULL;
+    }
+
+    *ptr = PyArray_DATA((PyArrayObject*)array);
+    return array;
+}
+
+static PyObject*
+make_double_array(npy_intp size, const char* name, double** ptr)
+{
+    PyObject* array=NULL;
+    npy_intp dims[1];
+    int ndims=1;
+    if (size <= 0) {
+        PyErr_Format(PyExc_ValueError, "size of %s array must be > 0",name);
+        return NULL;
+    }
+
+    dims[0] = size;
+    array = PyArray_ZEROS(ndims, dims, NPY_FLOAT64, 0);
+    if (array==NULL) {
+        PyErr_Format(PyExc_MemoryError, "could not create %s array",name);
+        return NULL;
+    }
+
+    *ptr = PyArray_DATA((PyArrayObject*)array);
+    return array;
+}
 static double* 
 check_double_array(PyObject* array, const char* name, npy_intp* size)
 {
@@ -1023,7 +1066,6 @@ PyMangleMask_polyid_and_weight(struct PyMangleMask* self, PyObject* args)
     PyObject* dec_obj=NULL;
     PyObject* poly_id_obj=NULL;
     PyObject* weight_obj=NULL;
-
     double* ra_ptr=NULL;
     double* dec_ptr=NULL;
     double* weight_ptr=NULL;
@@ -1031,9 +1073,6 @@ PyMangleMask_polyid_and_weight(struct PyMangleMask* self, PyObject* args)
     npy_intp nra=0, ndec=0, i=0;
 
     PyObject* tuple=NULL;
-
-    int nd=1;
-    npy_intp dims[1];
 
     if (!PyArg_ParseTuple(args, (char*)"OO", &ra_obj, &dec_obj)) {
         return NULL;
@@ -1043,26 +1082,14 @@ PyMangleMask_polyid_and_weight(struct PyMangleMask* self, PyObject* args)
         return NULL;
     }
 
-    dims[0] = nra;
-    poly_id_obj = PyArray_ZEROS(nd, dims, NPY_INTP, 0);
-    if (poly_id_obj == NULL) {
-        PyErr_Format(PyExc_MemoryError, "Failed to create poly_id array (%ld)",nra);
+    if (!(poly_id_obj=make_intp_array(nra, "polyid", &poly_id_ptr))) {
         status=0;
         goto _poly_id_and_weight_cleanup;
     }
-    weight_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
-    if (weight_obj == NULL) {
-        PyErr_Format(PyExc_MemoryError, "Failed to create weight array (%ld)",nra);
+    if (!(weight_obj=make_double_array(nra, "weight", &weight_ptr))) {
         status=0;
         goto _poly_id_and_weight_cleanup;
     }
-    poly_id_ptr = PyArray_DATA((PyArrayObject*)poly_id_obj);
-    weight_ptr = PyArray_DATA((PyArrayObject*)weight_obj);
-
-    tuple=PyTuple_New(2);
-    PyTuple_SetItem(tuple, 0, poly_id_obj);
-    PyTuple_SetItem(tuple, 1, weight_obj);
-
 
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
@@ -1089,6 +1116,10 @@ _poly_id_and_weight_cleanup:
         Py_XDECREF(tuple);
         return NULL;
     }
+
+    tuple=PyTuple_New(2);
+    PyTuple_SetItem(tuple, 0, poly_id_obj);
+    PyTuple_SetItem(tuple, 1, weight_obj);
     return tuple;
 }
 
@@ -1111,9 +1142,6 @@ PyMangleMask_polyid(struct PyMangleMask* self, PyObject* args)
     npy_intp* poly_id_ptr=NULL;
     npy_intp nra=0, ndec=0, i=0;
 
-    int nd=1;
-    npy_intp dims[1];
-
     if (!PyArg_ParseTuple(args, (char*)"OO", &ra_obj, &dec_obj)) {
         return NULL;
     }
@@ -1121,16 +1149,9 @@ PyMangleMask_polyid(struct PyMangleMask* self, PyObject* args)
     if (!check_ra_dec_arrays(ra_obj,dec_obj,&ra_ptr,&nra,&dec_ptr,&ndec)) {
         return NULL;
     }
-
-
-    dims[0] = nra;
-    poly_id_obj = PyArray_ZEROS(nd, dims, NPY_INTP, 0);
-    if (poly_id_obj == NULL) {
-        PyErr_Format(PyExc_MemoryError, "Failed to create poly_id array (%ld)",nra);
-        status=0;
-        goto _poly_id_cleanup;
+    if (!(poly_id_obj=make_intp_array(nra, "polyid", &poly_id_ptr))) {
+        return NULL;
     }
-    poly_id_ptr = PyArray_DATA((PyArrayObject*)poly_id_obj);
 
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
@@ -1169,15 +1190,11 @@ PyMangleMask_weight(struct PyMangleMask* self, PyObject* args)
     PyObject* ra_obj=NULL;
     PyObject* dec_obj=NULL;
     PyObject* weight_obj=NULL;
-
     double* ra_ptr=NULL;
     double* dec_ptr=NULL;
     double* weight_ptr=NULL;
     npy_intp poly_id=0;
     npy_intp nra=0, ndec=0, i=0;
-
-    int nd=1;
-    npy_intp dims[1];
 
     if (!PyArg_ParseTuple(args, (char*)"OO", &ra_obj, &dec_obj)) {
         return NULL;
@@ -1186,17 +1203,9 @@ PyMangleMask_weight(struct PyMangleMask* self, PyObject* args)
     if (!check_ra_dec_arrays(ra_obj,dec_obj,&ra_ptr,&nra,&dec_ptr,&ndec)) {
         return NULL;
     }
-
-    dims[0] = nra;
-    weight_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
-    if (weight_obj == NULL) {
-        PyErr_Format(PyExc_MemoryError, "Failed to create weight array (%ld)",nra);
-        status=0;
-        goto _weight_cleanup;
+    if (!(weight_obj=make_double_array(nra, "weight", &weight_ptr))) {
+        return NULL;
     }
-
-    weight_ptr = PyArray_DATA((PyArrayObject*)weight_obj);
-
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
@@ -1235,48 +1244,22 @@ PyMangleMask_contains(struct PyMangleMask* self, PyObject* args)
     PyObject* dec_obj=NULL;
     PyObject* contained_obj=NULL;
     npy_intp* cont_ptr=NULL;
-
     double* ra_ptr=NULL;
     double* dec_ptr=NULL;
     double weight=0;
     npy_intp poly_id=0;
     npy_intp nra=0, ndec=0, i=0;
 
-    int nd=1;
-    npy_intp dims[1];
-
     if (!PyArg_ParseTuple(args, (char*)"OO", &ra_obj, &dec_obj)) {
         return NULL;
     }
 
-    if (!PyArray_Check((PyArrayObject*)ra_obj) 
-            || !PyArray_Check((PyArrayObject*)dec_obj) 
-            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)ra_obj)
-            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)dec_obj) ) {
-        PyErr_SetString(PyExc_ValueError,
-                "ra,dec must be numpy arrays of type 64-bit float");
+    if (!check_ra_dec_arrays(ra_obj,dec_obj,&ra_ptr,&nra,&dec_ptr,&ndec)) {
         return NULL;
     }
-
-    nra = PyArray_SIZE((PyArrayObject*)ra_obj);
-    ndec = PyArray_SIZE((PyArrayObject*)dec_obj);
-    if (nra != ndec) {
-        PyErr_Format(PyExc_ValueError,"ra,dec must same length, got (%ld,%ld)",nra,ndec);
+    if (!(contained_obj=make_intp_array(nra, "contained", &cont_ptr))) {
         return NULL;
-
     }
-
-    dims[0] = nra;
-    contained_obj = PyArray_ZEROS(nd, dims, NPY_INTP, 0);
-    if (contained_obj == NULL) {
-        PyErr_Format(PyExc_MemoryError, "Failed to create contained array (%ld)",nra);
-        status=0;
-        goto _weight_cleanup;
-    }
-
-    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
-    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
-    cont_ptr = PyArray_DATA((PyArrayObject*)contained_obj);
 
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
@@ -1352,48 +1335,33 @@ PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
     PyObject* ra_obj=NULL;
     PyObject* dec_obj=NULL;
     PyObject* tuple=NULL;
-
     double* ra_ptr=NULL;
     double* dec_ptr=NULL;
-
     double weight=0;
     npy_intp poly_id=0;
     npy_intp ngood=0;
     double theta=0, phi=0;
 
-    int nd=1;
-    npy_intp dims[1];
 
     if (!PyArg_ParseTuple(args, (char*)"L", &nrand)) {
         return NULL;
     }
 
     if (nrand <= 0) {
-        PyErr_Format(PyExc_ValueError, "nrand should be > 0, got (%ld)",(npy_intp)nrand);
+        PyErr_Format(PyExc_ValueError, 
+                "nrand should be > 0, got (%ld)",(npy_intp)nrand);
         status=0;
         goto _genrand_cleanup;
     }
 
-    dims[0] = nrand;
-    ra_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
-    if (ra_obj == NULL) {
-        PyErr_Format(PyExc_MemoryError, "Failed to create ra array (%ld)",(npy_intp)nrand);
+    if (!(ra_obj=make_double_array(nrand, "ra", &ra_ptr))) {
         status=0;
         goto _genrand_cleanup;
     }
-    dec_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
-    if (dec_obj == NULL) {
-        PyErr_Format(PyExc_MemoryError, "Failed to create dec array (%ld)",(npy_intp)nrand);
+    if (!(dec_obj=make_double_array(nrand, "dec", &dec_ptr))) {
         status=0;
         goto _genrand_cleanup;
     }
-
-    tuple=PyTuple_New(2);
-    PyTuple_SetItem(tuple, 0, ra_obj);
-    PyTuple_SetItem(tuple, 1, dec_obj);
-
-    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
-    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
 
     (void) seed_random();
 
@@ -1429,6 +1397,10 @@ _genrand_cleanup:
         Py_XDECREF(tuple);
         return NULL;
     }
+
+    tuple=PyTuple_New(2);
+    PyTuple_SetItem(tuple, 0, ra_obj);
+    PyTuple_SetItem(tuple, 1, dec_obj);
     return tuple;
 }
 
@@ -1453,17 +1425,13 @@ PyMangleMask_genrand_range(struct PyMangleMask* self, PyObject* args)
     PyObject* ra_obj=NULL;
     PyObject* dec_obj=NULL;
     PyObject* tuple=NULL;
-
     double* ra_ptr=NULL;
     double* dec_ptr=NULL;
-
     double weight=0;
     npy_intp poly_id=0;
     npy_intp ngood=0;
     double theta=0, phi=0;
 
-    int nd=1;
-    npy_intp dims[1];
 
     if (!PyArg_ParseTuple(args, (char*)"Ldddd", 
                           &nrand, &ramin, &ramax, &decmin, &decmax)) {
@@ -1471,7 +1439,8 @@ PyMangleMask_genrand_range(struct PyMangleMask* self, PyObject* args)
     }
 
     if (nrand <= 0) {
-        PyErr_Format(PyExc_ValueError, "nrand should be > 0, got (%ld)",(npy_intp)nrand);
+        PyErr_Format(PyExc_ValueError, 
+                "nrand should be > 0, got (%ld)",(npy_intp)nrand);
         status=0;
         goto _genrand_range_cleanup;
     }
@@ -1481,26 +1450,14 @@ PyMangleMask_genrand_range(struct PyMangleMask* self, PyObject* args)
         goto _genrand_range_cleanup;
     }
 
-    dims[0] = nrand;
-    ra_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
-    if (ra_obj == NULL) {
-        PyErr_Format(PyExc_MemoryError, "Failed to create ra array (%ld)",(npy_intp)nrand);
+    if (!(ra_obj=make_double_array(nrand, "ra", &ra_ptr))) {
         status=0;
         goto _genrand_range_cleanup;
     }
-    dec_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
-    if (dec_obj == NULL) {
-        PyErr_Format(PyExc_MemoryError, "Failed to create dec array (%ld)",(npy_intp)nrand);
+    if (!(dec_obj=make_double_array(nrand, "dec", &dec_ptr))) {
         status=0;
         goto _genrand_range_cleanup;
     }
-
-    tuple=PyTuple_New(2);
-    PyTuple_SetItem(tuple, 0, ra_obj);
-    PyTuple_SetItem(tuple, 1, dec_obj);
-
-    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
-    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
 
     (void) seed_random();
 
@@ -1536,6 +1493,10 @@ _genrand_range_cleanup:
         Py_XDECREF(tuple);
         return NULL;
     }
+
+    tuple=PyTuple_New(2);
+    PyTuple_SetItem(tuple, 0, ra_obj);
+    PyTuple_SetItem(tuple, 1, dec_obj);
     return tuple;
 }
 
