@@ -82,7 +82,7 @@ struct PyMangleMask {
 };
 
 
-static void set_point_from_radec(struct Point* pt, double ra, double dec) {
+static void point_set_from_radec(struct Point* pt, double ra, double dec) {
 
     double stheta=0;
 
@@ -96,7 +96,7 @@ static void set_point_from_radec(struct Point* pt, double ra, double dec) {
         pt->z = cos(pt->theta); 
     }
 }
-static void set_point_from_thetaphi(struct Point* pt, double theta, double phi) {
+static void point_set_from_thetaphi(struct Point* pt, double theta, double phi) {
 
     double stheta=0;
 
@@ -629,7 +629,8 @@ read_polygons(struct PyMangleMask* self)
     }
     if (0 != strcmp(self->buff,"polygons")) {
         status = 0;
-        PyErr_Format(PyExc_IOError, "Expected keyword 'polygons' but got '%s'", self->buff);
+        PyErr_Format(PyExc_IOError, 
+                "Expected keyword 'polygons' but got '%s'", self->buff);
         goto _read_polygons_errout;
     }
 
@@ -671,7 +672,8 @@ read_polygons(struct PyMangleMask* self)
             }
         } else {
             status=0;
-            PyErr_Format(PyExc_IOError, "Got unexpected header keyword: '%s'", self->buff);
+            PyErr_Format(PyExc_IOError, 
+                    "Got unexpected header keyword: '%s'", self->buff);
             goto _read_polygons_errout;
         }
         if (1 != fscanf(self->fptr,"%s", self->buff) ) {
@@ -867,8 +869,7 @@ is_in_poly(struct Polygon* ply, struct Point* pt)
 
 
 /*
- * Get the pixel number of the input point for the
- * simple scheme
+ * Get the pixel number of the input point for the simple scheme
  */
 
 static npy_intp
@@ -893,11 +894,12 @@ get_pixel_simple(struct PyMangleMask* self, struct Point* pt)
     }
     return pix;
 }
+
 /*
- * check the point against a pixelized mask.  If found, will return the
- * id and weight.  These default to -1 and 0
- *
+ * check the point against a pixelized mask.  If found, will return the id and
+ * weight.  These default to -1 and 0
  */
+
 static int
 polyid_and_weight_pixelized(struct PyMangleMask* self, 
                       struct Point* pt, npy_intp* poly_id, double* weight)
@@ -911,15 +913,12 @@ polyid_and_weight_pixelized(struct PyMangleMask* self,
     *weight=0.0;
 
     if (self->pixeltype == 's') {
-        //fprintf(stderr,"getting pixel id\n");
         pix = get_pixel_simple(self, pt);
 
         if (pix <= self->maxpix) {
-            //fprintf(stderr,"setting stack\n");
             // this is a stack holding indices into the polygon vector
             pstack = self->pixel_list_vec->data[pix];
 
-            //fprintf(stderr,"looping stack\n");
             for (i=0; i<pstack->size; i++) {
                 ipoly = pstack->data[i];
                 ply = &self->poly_vec->data[ipoly];
@@ -933,7 +932,8 @@ polyid_and_weight_pixelized(struct PyMangleMask* self,
         }
     } else {
         status=0;
-        PyErr_Format(PyExc_IOError, "Unsupported pixelization scheme: '%c'",self->pixeltype);
+        PyErr_Format(PyExc_IOError, 
+                     "Unsupported pixelization scheme: '%c'",self->pixeltype);
     }
 
     return status;
@@ -971,6 +971,44 @@ polyid_and_weight(struct PyMangleMask* self,
     return status;
 }
 
+static double* 
+check_double_array(PyObject* array, const char* name, npy_intp* size)
+{
+    double* ptr=NULL;
+    if (!PyArray_Check(array)) {
+        PyErr_Format(PyExc_ValueError,
+                "%s must be a numpy array of type 64-bit float",name);
+        return NULL;
+    }
+    if (NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)array)) {
+        PyErr_Format(PyExc_ValueError,
+                "%s must be a numpy array of type 64-bit float",name);
+        return NULL;
+    }
+
+    ptr = PyArray_DATA((PyArrayObject*)array);
+    *size = PyArray_SIZE((PyArrayObject*)array);
+
+    return ptr;
+}
+
+static int
+check_ra_dec_arrays(PyObject* ra_obj, PyObject* dec_obj,
+                    double** ra_ptr, npy_intp* nra, 
+                    double** dec_ptr, npy_intp*ndec)
+{
+    if (!(*ra_ptr=check_double_array(ra_obj,"ra",nra)))
+        return 0;
+    if (!(*dec_ptr=check_double_array(dec_obj,"dec",ndec)))
+        return 0;
+    if (*nra != *ndec) {
+        PyErr_Format(PyExc_ValueError,
+                "ra,dec must same length, got (%ld,%ld)",*nra,*ndec);
+        return 0;
+    }
+
+    return 1;
+}
 /*
  * check ra,dec points, returning both poly_id and weight
  * in a tuple
@@ -1001,21 +1039,8 @@ PyMangleMask_polyid_and_weight(struct PyMangleMask* self, PyObject* args)
         return NULL;
     }
 
-    if (!PyArray_Check((PyArrayObject*)ra_obj) 
-            || !PyArray_Check((PyArrayObject*)dec_obj) 
-            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)ra_obj)
-            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)dec_obj) ) {
-        PyErr_SetString(PyExc_ValueError,
-                "ra,dec must be numpy arrays of type 64-bit float");
+    if (!check_ra_dec_arrays(ra_obj,dec_obj,&ra_ptr,&nra,&dec_ptr,&ndec)) {
         return NULL;
-    }
-
-    nra = PyArray_SIZE((PyArrayObject*)ra_obj);
-    ndec = PyArray_SIZE((PyArrayObject*)dec_obj);
-    if (nra != ndec) {
-        PyErr_Format(PyExc_ValueError,"ra,dec must same length, got (%ld,%ld)",nra,ndec);
-        return NULL;
-
     }
 
     dims[0] = nra;
@@ -1031,18 +1056,16 @@ PyMangleMask_polyid_and_weight(struct PyMangleMask* self, PyObject* args)
         status=0;
         goto _poly_id_and_weight_cleanup;
     }
+    poly_id_ptr = PyArray_DATA((PyArrayObject*)poly_id_obj);
+    weight_ptr = PyArray_DATA((PyArrayObject*)weight_obj);
 
     tuple=PyTuple_New(2);
     PyTuple_SetItem(tuple, 0, poly_id_obj);
     PyTuple_SetItem(tuple, 1, weight_obj);
 
-    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
-    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
-    poly_id_ptr = PyArray_DATA((PyArrayObject*)poly_id_obj);
-    weight_ptr = PyArray_DATA((PyArrayObject*)weight_obj);
 
     for (i=0; i<nra; i++) {
-        set_point_from_radec(&pt, *ra_ptr, *dec_ptr);
+        point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
         if (self->pixelres == -1) {
             status=polyid_and_weight(self, &pt, poly_id_ptr, weight_ptr);
@@ -1095,22 +1118,10 @@ PyMangleMask_polyid(struct PyMangleMask* self, PyObject* args)
         return NULL;
     }
 
-    if (!PyArray_Check((PyArrayObject*)ra_obj) 
-            || !PyArray_Check((PyArrayObject*)dec_obj) 
-            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)ra_obj)
-            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)dec_obj) ) {
-        PyErr_SetString(PyExc_ValueError,
-                "ra,dec must be numpy arrays of type 64-bit float");
+    if (!check_ra_dec_arrays(ra_obj,dec_obj,&ra_ptr,&nra,&dec_ptr,&ndec)) {
         return NULL;
     }
 
-    nra = PyArray_SIZE((PyArrayObject*)ra_obj);
-    ndec = PyArray_SIZE((PyArrayObject*)dec_obj);
-    if (nra != ndec) {
-        PyErr_Format(PyExc_ValueError,"ra,dec must same length, got (%ld,%ld)",nra,ndec);
-        return NULL;
-
-    }
 
     dims[0] = nra;
     poly_id_obj = PyArray_ZEROS(nd, dims, NPY_INTP, 0);
@@ -1119,13 +1130,10 @@ PyMangleMask_polyid(struct PyMangleMask* self, PyObject* args)
         status=0;
         goto _poly_id_cleanup;
     }
-
-    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
-    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
     poly_id_ptr = PyArray_DATA((PyArrayObject*)poly_id_obj);
 
     for (i=0; i<nra; i++) {
-        set_point_from_radec(&pt, *ra_ptr, *dec_ptr);
+        point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
         if (self->pixelres == -1) {
             status=polyid_and_weight(self, &pt, poly_id_ptr, &weight);
@@ -1175,21 +1183,8 @@ PyMangleMask_weight(struct PyMangleMask* self, PyObject* args)
         return NULL;
     }
 
-    if (!PyArray_Check((PyArrayObject*)ra_obj) 
-            || !PyArray_Check((PyArrayObject*)dec_obj) 
-            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)ra_obj)
-            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)dec_obj) ) {
-        PyErr_SetString(PyExc_ValueError,
-                "ra,dec must be numpy arrays of type 64-bit float");
+    if (!check_ra_dec_arrays(ra_obj,dec_obj,&ra_ptr,&nra,&dec_ptr,&ndec)) {
         return NULL;
-    }
-
-    nra = PyArray_SIZE((PyArrayObject*)ra_obj);
-    ndec = PyArray_SIZE((PyArrayObject*)dec_obj);
-    if (nra != ndec) {
-        PyErr_Format(PyExc_ValueError,"ra,dec must same length, got (%ld,%ld)",nra,ndec);
-        return NULL;
-
     }
 
     dims[0] = nra;
@@ -1200,12 +1195,10 @@ PyMangleMask_weight(struct PyMangleMask* self, PyObject* args)
         goto _weight_cleanup;
     }
 
-    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
-    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
     weight_ptr = PyArray_DATA((PyArrayObject*)weight_obj);
 
     for (i=0; i<nra; i++) {
-        set_point_from_radec(&pt, *ra_ptr, *dec_ptr);
+        point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
         if (self->pixelres == -1) {
             status=polyid_and_weight(self, &pt, &poly_id, weight_ptr);
@@ -1286,7 +1279,7 @@ PyMangleMask_contains(struct PyMangleMask* self, PyObject* args)
     cont_ptr = PyArray_DATA((PyArrayObject*)contained_obj);
 
     for (i=0; i<nra; i++) {
-        set_point_from_radec(&pt, *ra_ptr, *dec_ptr);
+        point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
         if (self->pixelres == -1) {
             status=polyid_and_weight(self, &pt, &poly_id, &weight);
@@ -1406,7 +1399,7 @@ PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
 
     while (ngood < nrand) {
         genrand_theta_phi_allsky(&theta, &phi);
-        set_point_from_thetaphi(&pt, theta, phi);
+        point_set_from_thetaphi(&pt, theta, phi);
 
         if (self->pixelres == -1) {
             status=polyid_and_weight(self, &pt, &poly_id, &weight);
@@ -1513,7 +1506,7 @@ PyMangleMask_genrand_range(struct PyMangleMask* self, PyObject* args)
 
     while (ngood < nrand) {
         genrand_theta_phi(cthmin,cthmax,phimin,phimax,&theta, &phi);
-        set_point_from_thetaphi(&pt, theta, phi);
+        point_set_from_thetaphi(&pt, theta, phi);
 
         if (self->pixelres == -1) {
             status=polyid_and_weight(self, &pt, &poly_id, &weight);
@@ -1561,7 +1554,7 @@ PyMangleMask_test(struct PyMangleMask* self)
     npy_intp poly_id=0;
     double weight=0;
 
-    set_point_from_radec(&pt, ra, dec);
+    point_set_from_radec(&pt, ra, dec);
 
     if (self->pixelres == -1) {
         status=polyid_and_weight(self, &pt, &poly_id, &weight);
