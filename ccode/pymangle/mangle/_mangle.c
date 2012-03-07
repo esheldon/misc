@@ -1336,11 +1336,116 @@ radec_range_to_costhetaphi(double ramin, double ramax,
     return 1;
 }
 
+
 /*
- * Generate random points in the input ra,dec range.
+ * Generate random points.  This function draws randoms initially from the full
+ * sky, so can be inefficient for small masks.
+ *
+ * The reason to use this function is it does not require any knowledge of the
+ * domain covered by the mask.
  */
+
 static PyObject*
 PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
+{
+    int status=1;
+    PY_LONG_LONG nrand=0;
+    struct Point pt;
+    PyObject* ra_obj=NULL;
+    PyObject* dec_obj=NULL;
+    PyObject* tuple=NULL;
+
+    double* ra_ptr=NULL;
+    double* dec_ptr=NULL;
+
+    double weight=0;
+    npy_intp poly_id=0;
+    npy_intp ngood=0;
+    double theta=0, phi=0;
+
+    int nd=1;
+    npy_intp dims[1];
+
+    if (!PyArg_ParseTuple(args, (char*)"L", &nrand)) {
+        return NULL;
+    }
+
+    if (nrand <= 0) {
+        PyErr_Format(PyExc_ValueError, "nrand should be > 0, got (%ld)",(npy_intp)nrand);
+        status=0;
+        goto _genrand_cleanup;
+    }
+
+    dims[0] = nrand;
+    ra_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
+    if (ra_obj == NULL) {
+        PyErr_Format(PyExc_MemoryError, "Failed to create ra array (%ld)",(npy_intp)nrand);
+        status=0;
+        goto _genrand_cleanup;
+    }
+    dec_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
+    if (dec_obj == NULL) {
+        PyErr_Format(PyExc_MemoryError, "Failed to create dec array (%ld)",(npy_intp)nrand);
+        status=0;
+        goto _genrand_cleanup;
+    }
+
+    tuple=PyTuple_New(2);
+    PyTuple_SetItem(tuple, 0, ra_obj);
+    PyTuple_SetItem(tuple, 1, dec_obj);
+
+    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
+    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
+
+    (void) seed_random();
+
+    while (ngood < nrand) {
+        genrand_theta_phi_allsky(&theta, &phi);
+        set_point_from_thetaphi(&pt, theta, phi);
+
+        if (self->pixelres == -1) {
+            status=polyid_and_weight(self, &pt, &poly_id, &weight);
+        } else {
+            status=polyid_and_weight_pixelized(self, &pt, &poly_id, &weight);
+        }
+
+        if (status != 1) {
+            goto _genrand_cleanup;
+        }
+
+        if (poly_id >= 0) {
+            // rely on short circuiting
+            if (weight < 1.0 || drand48() < weight) {
+                ngood++;
+                radec_from_point(&pt, ra_ptr, dec_ptr);
+                ra_ptr++;
+                dec_ptr++;
+            }
+        }
+    }
+
+_genrand_cleanup:
+    if (status != 1) {
+        Py_XDECREF(ra_obj);
+        Py_XDECREF(dec_obj);
+        Py_XDECREF(tuple);
+        return NULL;
+    }
+    return tuple;
+}
+
+
+
+/*
+ * Generate random points in the input ra,dec range.
+ *
+ * Use this if you have a small mask, as choosing the range wisely can save a
+ * lot of time.  But be careful: if you choose your range poorly, it may never
+ * find the points!
+ */
+
+static PyObject*
+PyMangleMask_genrand_range(struct PyMangleMask* self, PyObject* args)
 {
     int status=1;
     PY_LONG_LONG nrand=0;
@@ -1370,12 +1475,12 @@ PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
     if (nrand <= 0) {
         PyErr_Format(PyExc_ValueError, "nrand should be > 0, got (%ld)",(npy_intp)nrand);
         status=0;
-        goto _genrand_cleanup;
+        goto _genrand_range_cleanup;
     }
     if (!radec_range_to_costhetaphi(ramin,ramax,decmin,decmax,
                                     &cthmin,&cthmax,&phimin,&phimax)) {
         status=0;
-        goto _genrand_cleanup;
+        goto _genrand_range_cleanup;
     }
 
     dims[0] = nrand;
@@ -1383,13 +1488,13 @@ PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
     if (ra_obj == NULL) {
         PyErr_Format(PyExc_MemoryError, "Failed to create ra array (%ld)",(npy_intp)nrand);
         status=0;
-        goto _genrand_cleanup;
+        goto _genrand_range_cleanup;
     }
     dec_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
     if (dec_obj == NULL) {
         PyErr_Format(PyExc_MemoryError, "Failed to create dec array (%ld)",(npy_intp)nrand);
         status=0;
-        goto _genrand_cleanup;
+        goto _genrand_range_cleanup;
     }
 
     tuple=PyTuple_New(2);
@@ -1412,7 +1517,7 @@ PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
         }
 
         if (status != 1) {
-            goto _genrand_cleanup;
+            goto _genrand_range_cleanup;
         }
 
         if (poly_id >= 0) {
@@ -1426,7 +1531,7 @@ PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
         }
     }
 
-_genrand_cleanup:
+_genrand_range_cleanup:
     if (status != 1) {
         Py_XDECREF(ra_obj);
         Py_XDECREF(dec_obj);
@@ -1477,6 +1582,7 @@ static PyMethodDef PyMangleMask_methods[] = {
     {"weight",     (PyCFunction)PyMangleMask_weight,     METH_VARARGS, "Check points against mask, returning weight."},
     {"contains",     (PyCFunction)PyMangleMask_contains,     METH_VARARGS, "Check points against mask, returning 1 if yes, 0 if no."},
     {"genrand",     (PyCFunction)PyMangleMask_genrand,     METH_VARARGS, "Generate random points."},
+    {"genrand_range",     (PyCFunction)PyMangleMask_genrand_range,     METH_VARARGS, "Generate random points in the given ra/dec range."},
     {"test",             (PyCFunction)PyMangleMask_test,             METH_NOARGS,  "run a test."},
     {NULL}  /* Sentinel */
 };
