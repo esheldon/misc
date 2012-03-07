@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <math.h>
+#include <sys/time.h>
 #include <Python.h>
 #include "numpy/arrayobject.h" 
 
@@ -95,6 +96,70 @@ static void set_point_from_radec(struct Point* pt, double ra, double dec) {
         pt->z = cos(pt->theta); 
     }
 }
+static void set_point_from_thetaphi(struct Point* pt, double theta, double phi) {
+
+    double stheta=0;
+
+    if (pt != NULL) {
+        pt->phi = phi;
+        pt->theta = theta;
+
+        stheta = sin(pt->theta);
+        pt->x = stheta*cos(pt->phi);
+        pt->y = stheta*sin(pt->phi);
+        pt->z = cos(pt->theta); 
+    }
+}
+static void radec_from_point(struct Point* pt, double *ra, double *dec) {
+    *ra = pt->phi*R2D;
+    *dec = 90.0 - pt->theta*R2D;
+}
+
+static void
+seed_random(void) {
+    struct timeval tm;
+    gettimeofday(&tm, NULL); 
+    srand48((long) (tm.tv_sec * 1000000 + tm.tv_usec));
+}
+/*
+ * constant in cos(theta)
+ */
+static void
+genrand_theta_phi_allsky(double* theta, double* phi)
+{
+    *phi = drand48()*2*M_PI;
+    // this is actually cos(theta) for now
+    *theta = 2*drand48()-1;
+    
+    if (*theta > 1) *theta=1;
+    if (*theta < -1) *theta=-1;
+
+    *theta = acos(*theta);
+}
+
+/*
+ * Generate random points in a range.  Inputs are
+ * min(cos(theta)), max(cos(theta)), min(phi), max(phi)
+ *
+ * constant in cos(theta)
+ */
+static void
+genrand_theta_phi(double cthmin, double cthmax, double phimin, double phimax,
+                  double* theta, double* phi)
+{
+
+    // at first, theta is cos(theta)
+    *phi = phimin + (phimax - phimin)*drand48();
+
+    // this is actually cos(theta) for now
+    *theta = cthmin + (cthmax-cthmin)*drand48();
+    
+    if (*theta > 1) *theta=1;
+    if (*theta < -1) *theta=-1;
+
+    *theta = acos(*theta);
+}
+
 
 static struct CapVec* 
 CapVec_new(npy_intp n) 
@@ -844,19 +909,21 @@ polyid_and_weight_pixelized(struct PyMangleMask* self,
         //fprintf(stderr,"getting pixel id\n");
         pix = get_pixel_simple(self, pt);
 
-        //fprintf(stderr,"setting stack\n");
-        // this is a stack holding indices into the polygon vector
-        pstack = self->pixel_list_vec->data[pix];
+        if (pix <= self->maxpix) {
+            //fprintf(stderr,"setting stack\n");
+            // this is a stack holding indices into the polygon vector
+            pstack = self->pixel_list_vec->data[pix];
 
-        //fprintf(stderr,"looping stack\n");
-        for (i=0; i<pstack->size; i++) {
-            ipoly = pstack->data[i];
-            ply = &self->poly_vec->data[ipoly];
+            //fprintf(stderr,"looping stack\n");
+            for (i=0; i<pstack->size; i++) {
+                ipoly = pstack->data[i];
+                ply = &self->poly_vec->data[ipoly];
 
-            if (is_in_poly(ply, pt)) {
-                *poly_id=ply->poly_id;
-                *weight=ply->weight;
-                break;
+                if (is_in_poly(ply, pt)) {
+                    *poly_id=ply->poly_id;
+                    *weight=ply->weight;
+                    break;
+                }
             }
         }
     } else {
@@ -1242,6 +1309,134 @@ _weight_cleanup:
     return contained_obj;
 }
 
+static int 
+radec_range_to_costhetaphi(double ramin, double ramax, 
+                           double decmin, double decmax,
+                           double* cthmin, double* cthmax, 
+                           double* phimin, double* phimax)
+{
+
+    if (ramin < 0.0 || ramax > 360.0) {
+        PyErr_Format(PyExc_ValueError,
+                     "ra range must be in [0,360] got [%.16g,%.16g]",
+                     ramin,ramax);
+        return 0;
+    }
+    if (decmin < -90.0 || decmax > 90.0) {
+        PyErr_Format(PyExc_ValueError,
+                     "dec range must be in [-90,90] got [%.16g,%.16g]",
+                     decmin,decmax);
+        return 0;
+    }
+
+    *cthmin = cos((90.0-decmin)*D2R);
+    *cthmax = cos((90.0-decmax)*D2R);
+    *phimin = ramin*D2R;
+    *phimax = ramax*D2R;
+    return 1;
+}
+
+/*
+ * Generate random points in the input ra,dec range.
+ */
+static PyObject*
+PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
+{
+    int status=1;
+    PY_LONG_LONG nrand=0;
+    double ramin=0,ramax=0,decmin=0,decmax=0;
+    double cthmin=0,cthmax=0,phimin=0,phimax=0;
+    struct Point pt;
+    PyObject* ra_obj=NULL;
+    PyObject* dec_obj=NULL;
+    PyObject* tuple=NULL;
+
+    double* ra_ptr=NULL;
+    double* dec_ptr=NULL;
+
+    double weight=0;
+    npy_intp poly_id=0;
+    npy_intp ngood=0;
+    double theta=0, phi=0;
+
+    int nd=1;
+    npy_intp dims[1];
+
+    if (!PyArg_ParseTuple(args, (char*)"Ldddd", 
+                          &nrand, &ramin, &ramax, &decmin, &decmax)) {
+        return NULL;
+    }
+
+    if (nrand <= 0) {
+        PyErr_Format(PyExc_ValueError, "nrand should be > 0, got (%ld)",(npy_intp)nrand);
+        status=0;
+        goto _genrand_cleanup;
+    }
+    if (!radec_range_to_costhetaphi(ramin,ramax,decmin,decmax,
+                                    &cthmin,&cthmax,&phimin,&phimax)) {
+        status=0;
+        goto _genrand_cleanup;
+    }
+
+    dims[0] = nrand;
+    ra_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
+    if (ra_obj == NULL) {
+        PyErr_Format(PyExc_MemoryError, "Failed to create ra array (%ld)",(npy_intp)nrand);
+        status=0;
+        goto _genrand_cleanup;
+    }
+    dec_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
+    if (dec_obj == NULL) {
+        PyErr_Format(PyExc_MemoryError, "Failed to create dec array (%ld)",(npy_intp)nrand);
+        status=0;
+        goto _genrand_cleanup;
+    }
+
+    tuple=PyTuple_New(2);
+    PyTuple_SetItem(tuple, 0, ra_obj);
+    PyTuple_SetItem(tuple, 1, dec_obj);
+
+    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
+    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
+
+    (void) seed_random();
+
+    while (ngood < nrand) {
+        genrand_theta_phi(cthmin,cthmax,phimin,phimax,&theta, &phi);
+        set_point_from_thetaphi(&pt, theta, phi);
+
+        if (self->pixelres == -1) {
+            status=polyid_and_weight(self, &pt, &poly_id, &weight);
+        } else {
+            status=polyid_and_weight_pixelized(self, &pt, &poly_id, &weight);
+        }
+
+        if (status != 1) {
+            goto _genrand_cleanup;
+        }
+
+        if (poly_id >= 0) {
+            // rely on short circuiting
+            if (weight < 1.0 || drand48() < weight) {
+                ngood++;
+                radec_from_point(&pt, ra_ptr, dec_ptr);
+                ra_ptr++;
+                dec_ptr++;
+            }
+        }
+    }
+
+_genrand_cleanup:
+    if (status != 1) {
+        Py_XDECREF(ra_obj);
+        Py_XDECREF(dec_obj);
+        Py_XDECREF(tuple);
+        return NULL;
+    }
+    return tuple;
+}
+
+
 
 
 
@@ -1281,6 +1476,7 @@ static PyMethodDef PyMangleMask_methods[] = {
     {"polyid",     (PyCFunction)PyMangleMask_polyid,     METH_VARARGS, "Check points against mask, returning poly_id."},
     {"weight",     (PyCFunction)PyMangleMask_weight,     METH_VARARGS, "Check points against mask, returning weight."},
     {"contains",     (PyCFunction)PyMangleMask_contains,     METH_VARARGS, "Check points against mask, returning 1 if yes, 0 if no."},
+    {"genrand",     (PyCFunction)PyMangleMask_genrand,     METH_VARARGS, "Generate random points."},
     {"test",             (PyCFunction)PyMangleMask_test,             METH_NOARGS,  "run a test."},
     {NULL}  /* Sentinel */
 };
