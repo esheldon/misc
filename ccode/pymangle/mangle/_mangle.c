@@ -618,7 +618,7 @@ read_polygons(struct PyMangleMask* self)
     self->fptr = fopen(self->filename,"r");
     if (self->fptr==NULL) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Could open file: %s", self->filename);
+        PyErr_Format(PyExc_IOError, "Could not open file: %s", self->filename);
         goto _read_polygons_errout;
     }
 
@@ -692,14 +692,20 @@ read_polygons(struct PyMangleMask* self)
     status = _read_polygons(self);
 
 _read_polygons_errout:
-    fclose(self->fptr);
+    // apparently, segfault when fptr NULL?
+    if (self->fptr != NULL)
+        fclose(self->fptr);
     return status;
 }
 
 static void
 cleanup(struct PyMangleMask* self)
 {
+    if (self->verbose > 2)
+        fprintf(stderr,"Freeing poly_vec\n");
     self->poly_vec  = PolygonVec_free(self->poly_vec);
+    if (self->verbose > 2)
+        fprintf(stderr,"Freeing pixel_list_vec\n");
     self->pixel_list_vec = PixelListVec_free(self->pixel_list_vec);
     free(self->filename);
     self->filename=NULL;
@@ -775,13 +781,12 @@ PyMangleMask_init(struct PyMangleMask* self, PyObject *args, PyObject *kwds)
     }
     self->filename = strdup(tmp_filename);
 
+    // no need to call cleanup; destructor gets called
     if (!read_polygons(self)) {
-        cleanup(self);
         return -1;
     }
 
     if (!set_pixel_map(self)) {
-        cleanup(self);
         return -1;
     }
     return 0;

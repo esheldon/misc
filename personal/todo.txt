@@ -1,8 +1,11 @@
 Quick look Queue
 
-    - make combined mask, good excluding star, good excluding badfield.
+    - make combined mask starting with "good", excluding star, good excluding
+      badfield or whatever is appropriate.
+
     - don't allow not snapped masks
-    - snap the "good" mask
+    - good mask is snapped, but doesn't say it because write_mangle_polygons
+      didn't write it
 
     - strings passed in might disappear!  Just do delim as char.
       and copy delim[0] from input
