@@ -82,7 +82,8 @@ struct PyMangleMask {
 };
 
 
-static void point_set_from_radec(struct Point* pt, double ra, double dec) {
+static void 
+point_set_from_radec(struct Point* pt, double ra, double dec) {
 
     double stheta=0;
 
@@ -96,7 +97,8 @@ static void point_set_from_radec(struct Point* pt, double ra, double dec) {
         pt->z = cos(pt->theta); 
     }
 }
-static void point_set_from_thetaphi(struct Point* pt, double theta, double phi) {
+static void 
+point_set_from_thetaphi(struct Point* pt, double theta, double phi) {
 
     double stheta=0;
 
@@ -110,7 +112,8 @@ static void point_set_from_thetaphi(struct Point* pt, double theta, double phi) 
         pt->z = cos(pt->theta); 
     }
 }
-static void radec_from_point(struct Point* pt, double *ra, double *dec) {
+static void 
+radec_from_point(struct Point* pt, double *ra, double *dec) {
     *ra = pt->phi*R2D;
     *dec = 90.0 - pt->theta*R2D;
 }
@@ -317,19 +320,22 @@ PixelListVec_new(npy_intp n)
     npy_intp i=0;
 
     if (n <= 0) {
-        PyErr_Format(PyExc_MemoryError, "Vectors must be size > 0, got %ld", n);
+        PyErr_Format(PyExc_MemoryError, 
+                "Vectors must be size > 0, got %ld", n);
         return NULL;
     }
     self=calloc(1, sizeof(struct PixelListVec));
     if (self == NULL) {
-        PyErr_SetString(PyExc_MemoryError, "Could not allocate pixel list vector");
+        PyErr_SetString(PyExc_MemoryError, 
+                "Could not allocate pixel list vector");
         return NULL;
     }
     // array of pointers. The pointers will be NULL
     self->data = calloc(n, sizeof(struct NpyIntpStack*));
     if (self->data == NULL) {
         free(self);
-        PyErr_Format(PyExc_MemoryError, "Could not allocate %ld pixel list pointers", n);
+        PyErr_Format(PyExc_MemoryError, 
+                "Could not allocate %ld pixel list pointers", n);
         return NULL;
     }
 
@@ -387,7 +393,8 @@ get_pix_scheme(char buff[_MANGLE_SMALL_BUFFSIZE], npy_intp* res, char* pixeltype
 
     if (1 != sscanf(pixres_buff, "%ld", res)) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Could not extract resolution from pix scheme: '%s'", buff);
+        PyErr_Format(PyExc_IOError, 
+                "Could not extract resolution from pix scheme: '%s'", buff);
         goto _get_pix_scheme_errout;
     }
 
@@ -416,7 +423,8 @@ scan_expected_value(struct PyMangleMask* self, const char* expected_value)
  * this is after reading the initial 'polygon' token
  */
 static int
-read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* ncaps)
+read_polygon_header(struct PyMangleMask* self, 
+                    struct Polygon* ply, npy_intp* ncaps)
 {
     int status=1;
     int got_pixel=0;
@@ -424,7 +432,9 @@ read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* nc
 
     if (1 != fscanf(self->fptr, "%ld", &ply->poly_id)) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read polygon id for polygon %ld", self->current_poly_index);
+        PyErr_Format(PyExc_IOError, 
+                "Failed to read polygon id for polygon %ld", 
+                self->current_poly_index);
         goto _read_polygon_header_errout;
     }
 
@@ -435,7 +445,9 @@ read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* nc
 
     if (1 != fscanf(self->fptr,"%ld",ncaps)) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read ncaps for polygon %ld", self->current_poly_index);
+        PyErr_Format(PyExc_IOError, 
+                "Failed to read ncaps for polygon %ld", 
+                self->current_poly_index);
         goto _read_polygon_header_errout;
     }
 
@@ -447,7 +459,9 @@ read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* nc
 
     if (1 != fscanf(self->fptr,"%lf",&ply->weight)) {
         status=0;
-        PyErr_Format(PyExc_IOError, "Failed to read weight for polygon %ld", self->current_poly_index);
+        PyErr_Format(PyExc_IOError, 
+                "Failed to read weight for polygon %ld", 
+                self->current_poly_index);
         goto _read_polygon_header_errout;
     }
 
@@ -473,7 +487,8 @@ read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* nc
         // we probably read the area
         if (0 != strcmp(kwbuff,"str):")) {
             status=0;
-            PyErr_Format(PyExc_IOError, "Expected str): keyword at polygon %ld, got %s", 
+            PyErr_Format(PyExc_IOError, 
+                    "Expected str): keyword at polygon %ld, got %s", 
                     self->current_poly_index, kwbuff);
             goto _read_polygon_header_errout;
         }
@@ -482,7 +497,9 @@ read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* nc
     if (got_pixel) {
         if (1 != fscanf(self->fptr,"%lf",&ply->area)) {
             status=0;
-            PyErr_Format(PyExc_IOError, "Failed to read area for polygon %ld", self->current_poly_index);
+            PyErr_Format(PyExc_IOError, 
+                    "Failed to read area for polygon %ld", 
+                    self->current_poly_index);
             goto _read_polygon_header_errout;
         }
         if (!scan_expected_value(self, "str):")) {
@@ -499,7 +516,8 @@ read_polygon_header(struct PyMangleMask* self, struct Polygon* ply, npy_intp* nc
     if (self->verbose > 1) {
         fprintf(stderr,
           "polygon %ld: poly_id %ld ncaps: %ld weight: %g pixel: %ld area: %g\n", 
-          self->current_poly_index, ply->poly_id, *ncaps, ply->weight, ply->pixel_id, ply->area);
+          self->current_poly_index, ply->poly_id, *ncaps, ply->weight, 
+          ply->pixel_id, ply->area);
     }
 
 _read_polygon_header_errout:
@@ -539,12 +557,14 @@ read_polygon(struct PyMangleMask* self, struct Polygon* ply) {
         if (nres != 4) {
             status=0;
             PyErr_Format(PyExc_IOError, 
-                         "Failed to read cap number %ld for polygon %ld", i, self->current_poly_index);
+                         "Failed to read cap number %ld for polygon %ld", 
+                         i, self->current_poly_index);
             goto _read_single_polygon_errout;
         }
         if (self->verbose > 2) {
             fprintf(stderr, 
-               "    %.16g %.16g %.16g %.16g\n", cap->x, cap->y, cap->z, cap->cm);
+               "    %.16g %.16g %.16g %.16g\n", 
+               cap->x, cap->y, cap->z, cap->cm);
         }
 
         cap++;
@@ -590,7 +610,8 @@ _read_polygons(struct PyMangleMask* self)
         if (i != (npoly-1)) {
             if (1 != fscanf(self->fptr,"%s",self->buff)) {
                 status=0;
-                PyErr_Format(PyExc_IOError, "Error reading token for polygon %ld", i);
+                PyErr_Format(PyExc_IOError, 
+                        "Error reading token for polygon %ld", i);
                 goto _read_some_polygons_errout;
             }
         }
@@ -756,9 +777,12 @@ set_pixel_map(struct PyMangleMask* self)
             ply=&self->poly_vec->data[0];
             for (ipoly=0; ipoly<self->poly_vec->size; ipoly++) {
                 NpyIntpStack_push(self->pixel_list_vec->data[ply->pixel_id], ipoly);
-                if (self->verbose > 2)
-                    fprintf(stderr,"Adding poly %ld to pixel map at %ld (%ld)\n",
-                            ipoly,ply->pixel_id,self->pixel_list_vec->data[ply->pixel_id]->size);
+                if (self->verbose > 2) {
+                    fprintf(stderr,
+                            "Adding poly %ld to pixel map at %ld (%ld)\n",
+                            ipoly,ply->pixel_id,
+                            self->pixel_list_vec->data[ply->pixel_id]->size);
+                }
                 ply++;
             }
         }
@@ -902,7 +926,9 @@ get_pixel_simple(struct PyMangleMask* self, struct Point* pt)
 
 static int
 polyid_and_weight_pixelized(struct PyMangleMask* self, 
-                      struct Point* pt, npy_intp* poly_id, double* weight)
+                            struct Point* pt, 
+                            npy_intp* poly_id, 
+                            double* weight)
 {
     int status=1;
     npy_intp pix=0, i=0, ipoly=0;
@@ -947,7 +973,9 @@ polyid_and_weight_pixelized(struct PyMangleMask* self,
  */
 static int
 polyid_and_weight(struct PyMangleMask* self, 
-            struct Point* pt, npy_intp* poly_id, double* weight)
+                  struct Point* pt, 
+                  npy_intp* poly_id, 
+                  double* weight)
 {
     int status=1;
     npy_intp i=0;
