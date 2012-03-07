@@ -829,12 +829,11 @@ get_pixel_simple(struct PyMangleMask* self, struct Point* pt)
  *
  */
 static int
-check_point_pixelized(struct PyMangleMask* self, 
+polyid_and_weight_pixelized(struct PyMangleMask* self, 
                       struct Point* pt, npy_intp* poly_id, double* weight)
 {
     int status=1;
     npy_intp pix=0, i=0, ipoly=0;
-    npy_intp* iptr=NULL;
     struct NpyIntpStack* pstack=NULL;
     struct Polygon* ply=NULL;
 
@@ -842,14 +841,14 @@ check_point_pixelized(struct PyMangleMask* self,
     *weight=0.0;
 
     if (self->pixeltype == 's') {
-        fprintf(stderr,"getting pixel id\n");
+        //fprintf(stderr,"getting pixel id\n");
         pix = get_pixel_simple(self, pt);
 
-        fprintf(stderr,"setting stack\n");
+        //fprintf(stderr,"setting stack\n");
         // this is a stack holding indices into the polygon vector
         pstack = self->pixel_list_vec->data[pix];
 
-        fprintf(stderr,"looping stack\n");
+        //fprintf(stderr,"looping stack\n");
         for (i=0; i<pstack->size; i++) {
             ipoly = pstack->data[i];
             ply = &self->poly_vec->data[ipoly];
@@ -875,7 +874,7 @@ check_point_pixelized(struct PyMangleMask* self,
  * this version does not use pixelization
  */
 static int
-check_point(struct PyMangleMask* self, 
+polyid_and_weight(struct PyMangleMask* self, 
             struct Point* pt, npy_intp* poly_id, double* weight)
 {
     int status=1;
@@ -900,6 +899,185 @@ check_point(struct PyMangleMask* self,
     return status;
 }
 
+/*
+ * check ra,dec points, returning both poly_id and weight
+ * in a tuple
+ */
+
+static PyObject*
+PyMangleMask_polyid_and_weight(struct PyMangleMask* self, PyObject* args)
+{
+    int status=1;
+    struct Point pt;
+    PyObject* ra_obj=NULL;
+    PyObject* dec_obj=NULL;
+    PyObject* poly_id_obj=NULL;
+    PyObject* weight_obj=NULL;
+
+    double* ra_ptr=NULL;
+    double* dec_ptr=NULL;
+    double* weight_ptr=NULL;
+    npy_intp* poly_id_ptr=NULL;
+    npy_intp nra=0, ndec=0, i=0;
+
+    PyObject* tuple=NULL;
+
+    int nd=1;
+    npy_intp dims[1];
+
+    if (!PyArg_ParseTuple(args, (char*)"OO", &ra_obj, &dec_obj)) {
+        return NULL;
+    }
+
+    if (!PyArray_Check((PyArrayObject*)ra_obj) 
+            || !PyArray_Check((PyArrayObject*)dec_obj) 
+            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)ra_obj)
+            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)dec_obj) ) {
+        PyErr_SetString(PyExc_ValueError,
+                "ra,dec must be numpy arrays of type 64-bit float");
+        return NULL;
+    }
+
+    nra = PyArray_SIZE((PyArrayObject*)ra_obj);
+    ndec = PyArray_SIZE((PyArrayObject*)dec_obj);
+    if (nra != ndec) {
+        PyErr_Format(PyExc_ValueError,"ra,dec must same length, got (%ld,%ld)",nra,ndec);
+        return NULL;
+
+    }
+
+    dims[0] = nra;
+    poly_id_obj = PyArray_ZEROS(nd, dims, NPY_INTP, 0);
+    if (poly_id_obj == NULL) {
+        PyErr_Format(PyExc_MemoryError, "Failed to create poly_id array (%ld)",nra);
+        status=0;
+        goto _poly_id_and_weight_cleanup;
+    }
+    weight_obj = PyArray_ZEROS(nd, dims, NPY_FLOAT64, 0);
+    if (weight_obj == NULL) {
+        PyErr_Format(PyExc_MemoryError, "Failed to create weight array (%ld)",nra);
+        status=0;
+        goto _poly_id_and_weight_cleanup;
+    }
+
+    tuple=PyTuple_New(2);
+    PyTuple_SetItem(tuple, 0, poly_id_obj);
+    PyTuple_SetItem(tuple, 1, weight_obj);
+
+    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
+    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
+    poly_id_ptr = PyArray_DATA((PyArrayObject*)poly_id_obj);
+    weight_ptr = PyArray_DATA((PyArrayObject*)weight_obj);
+
+    for (i=0; i<nra; i++) {
+        set_point_from_radec(&pt, *ra_ptr, *dec_ptr);
+
+        if (self->pixelres == -1) {
+            status=polyid_and_weight(self, &pt, poly_id_ptr, weight_ptr);
+        } else {
+            status=polyid_and_weight_pixelized(self, &pt, poly_id_ptr, weight_ptr);
+        }
+
+        if (status != 1) {
+            goto _poly_id_and_weight_cleanup;
+        }
+        ra_ptr++;
+        dec_ptr++;
+        poly_id_ptr++;
+        weight_ptr++;
+    }
+
+_poly_id_and_weight_cleanup:
+    if (status != 1) {
+        Py_XDECREF(poly_id_obj);
+        Py_XDECREF(weight_obj);
+        Py_XDECREF(tuple);
+        return NULL;
+    }
+    return tuple;
+}
+
+/*
+ * check ra,dec points, returning the polyid
+ */
+
+static PyObject*
+PyMangleMask_polyid(struct PyMangleMask* self, PyObject* args)
+{
+    int status=1;
+    struct Point pt;
+    PyObject* ra_obj=NULL;
+    PyObject* dec_obj=NULL;
+    PyObject* poly_id_obj=NULL;
+
+    double* ra_ptr=NULL;
+    double* dec_ptr=NULL;
+    double weight=0;
+    npy_intp* poly_id_ptr=NULL;
+    npy_intp nra=0, ndec=0, i=0;
+
+    int nd=1;
+    npy_intp dims[1];
+
+    if (!PyArg_ParseTuple(args, (char*)"OO", &ra_obj, &dec_obj)) {
+        return NULL;
+    }
+
+    if (!PyArray_Check((PyArrayObject*)ra_obj) 
+            || !PyArray_Check((PyArrayObject*)dec_obj) 
+            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)ra_obj)
+            || NPY_DOUBLE != PyArray_TYPE((PyArrayObject*)dec_obj) ) {
+        PyErr_SetString(PyExc_ValueError,
+                "ra,dec must be numpy arrays of type 64-bit float");
+        return NULL;
+    }
+
+    nra = PyArray_SIZE((PyArrayObject*)ra_obj);
+    ndec = PyArray_SIZE((PyArrayObject*)dec_obj);
+    if (nra != ndec) {
+        PyErr_Format(PyExc_ValueError,"ra,dec must same length, got (%ld,%ld)",nra,ndec);
+        return NULL;
+
+    }
+
+    dims[0] = nra;
+    poly_id_obj = PyArray_ZEROS(nd, dims, NPY_INTP, 0);
+    if (poly_id_obj == NULL) {
+        PyErr_Format(PyExc_MemoryError, "Failed to create poly_id array (%ld)",nra);
+        status=0;
+        goto _poly_id_cleanup;
+    }
+
+    ra_ptr = PyArray_DATA((PyArrayObject*)ra_obj);
+    dec_ptr = PyArray_DATA((PyArrayObject*)dec_obj);
+    poly_id_ptr = PyArray_DATA((PyArrayObject*)poly_id_obj);
+
+    for (i=0; i<nra; i++) {
+        set_point_from_radec(&pt, *ra_ptr, *dec_ptr);
+
+        if (self->pixelres == -1) {
+            status=polyid_and_weight(self, &pt, poly_id_ptr, &weight);
+        } else {
+            status=polyid_and_weight_pixelized(self, &pt, poly_id_ptr, &weight);
+        }
+
+        if (status != 1) {
+            goto _poly_id_cleanup;
+        }
+        ra_ptr++;
+        dec_ptr++;
+        poly_id_ptr++;
+    }
+
+_poly_id_cleanup:
+    if (status != 1) {
+        Py_XDECREF(poly_id_obj);
+        return NULL;
+    }
+    return poly_id_obj;
+}
+
+
 
 
 static PyObject*
@@ -916,9 +1094,9 @@ PyMangleMask_test(struct PyMangleMask* self)
     set_point_from_radec(&pt, ra, dec);
 
     if (self->pixelres == -1) {
-        status=check_point(self, &pt, &poly_id, &weight);
+        status=polyid_and_weight(self, &pt, &poly_id, &weight);
     } else {
-        status=check_point_pixelized(self, &pt, &poly_id, &weight);
+        status=polyid_and_weight_pixelized(self, &pt, &poly_id, &weight);
     }
 
     if (status != 1) {
@@ -932,7 +1110,10 @@ PyMangleMask_test(struct PyMangleMask* self)
     Py_RETURN_NONE;
 }
 
+
 static PyMethodDef PyMangleMask_methods[] = {
+    {"polyid_and_weight",     (PyCFunction)PyMangleMask_polyid_and_weight,     METH_VARARGS, "Check points against mask, returning (poly_id,weight)."},
+    {"polyid",     (PyCFunction)PyMangleMask_polyid,     METH_VARARGS, "Check points against mask, returning poly_id."},
     {"test",             (PyCFunction)PyMangleMask_test,             METH_NOARGS,  "run a test."},
     {NULL}  /* Sentinel */
 };
