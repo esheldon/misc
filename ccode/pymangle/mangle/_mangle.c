@@ -422,10 +422,9 @@ static int
 read_cap(struct PyMangleMask* self, struct Cap* cap) 
 {
     int status=1, nres=0;
-    nres += fscanf(self->fptr,"%lf", &cap->x);
-    nres += fscanf(self->fptr,"%lf", &cap->y);
-    nres += fscanf(self->fptr,"%lf", &cap->z);
-    nres += fscanf(self->fptr,"%lf", &cap->cm);
+
+    nres = fscanf(self->fptr,
+            "%lf %lf %lf %lf",&cap->x,&cap->y,&cap->z,&cap->cm);
 
     if (nres != 4) {
         status=0;
@@ -552,7 +551,7 @@ read_polygon(struct PyMangleMask* self, struct Polygon* ply) {
     int status=1;
     struct Cap* cap=NULL;
 
-    npy_intp ncaps=0, i=0, nres=0;
+    npy_intp ncaps=0, i=0;
 
     if (!read_polygon_header(self, ply, &ncaps)) {
         status=0;
