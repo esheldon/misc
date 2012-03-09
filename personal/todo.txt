@@ -1,5 +1,7 @@
 Quick look Queue
 
+    - memory leak in fitsio
+
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
 
