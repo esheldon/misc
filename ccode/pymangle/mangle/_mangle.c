@@ -418,6 +418,24 @@ scan_expected_value(struct PyMangleMask* self, const char* expected_value)
     return status;
 }
 
+static int
+read_cap(struct PyMangleMask* self, struct Cap* cap) 
+{
+    int status=1, nres=0;
+    nres += fscanf(self->fptr,"%lf", &cap->x);
+    nres += fscanf(self->fptr,"%lf", &cap->y);
+    nres += fscanf(self->fptr,"%lf", &cap->z);
+    nres += fscanf(self->fptr,"%lf", &cap->cm);
+
+    if (nres != 4) {
+        status=0;
+        PyErr_Format(PyExc_IOError, 
+                "Failed to read cap for polygon %ld", 
+                self->current_poly_index);
+    }
+
+    return status;
+}
 /* 
  * parse the polygon "header" for the index poly_index
  *
@@ -549,23 +567,14 @@ read_polygon(struct PyMangleMask* self, struct Polygon* ply) {
 
     cap = &ply->cap_vec->data[0];
     for (i=0; i<ncaps; i++) {
-        nres=0;
-        nres += fscanf(self->fptr,"%lf", &cap->x);
-        nres += fscanf(self->fptr,"%lf", &cap->y);
-        nres += fscanf(self->fptr,"%lf", &cap->z);
-        nres += fscanf(self->fptr,"%lf", &cap->cm);
-
-        if (nres != 4) {
-            status=0;
-            PyErr_Format(PyExc_IOError, 
-                         "Failed to read cap number %ld for polygon %ld", 
-                         i, self->current_poly_index);
+        status = read_cap(self, cap);
+        if (status != 1) {
             goto _read_single_polygon_errout;
         }
+
         if (self->verbose > 2) {
-            fprintf(stderr, 
-               "    %.16g %.16g %.16g %.16g\n", 
-               cap->x, cap->y, cap->z, cap->cm);
+            fprintf(stderr, "    %.16g %.16g %.16g %.16g\n", 
+                    cap->x, cap->y, cap->z, cap->cm);
         }
 
         cap++;
