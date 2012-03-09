@@ -2,65 +2,24 @@
 
 #include <string.h>
 #include <math.h>
-#include <sys/time.h>
+//#include <sys/time.h>
 #include <Python.h>
 #include "numpy/arrayobject.h" 
+#include "mangle.h"
+#include "point.h"
+#include "cap.h"
+#include "polygon.h"
+#include "stack.h"
+#include "pixel.h"
+#include "rand.h"
+//#include "array_util.h"
 
-#define _MANGLE_SMALL_BUFFSIZE 25
-#define D2R  0.017453292519943295
-#define R2D  57.295779513082323
-
-struct Point {
-    double theta;
-    double phi;
-    double x;
-    double y;
-    double z;
-};
-
-struct Cap {
-    double x;
-    double y;
-    double z;
-    double cm;
-};
-
-struct CapVec {
-    npy_intp size;
-    struct Cap* data;
-};
-
-struct Polygon {
-
-    npy_intp poly_id;
-    npy_intp pixel_id; // optional
-    double weight;
-    double area; // in str
-
-    struct CapVec* cap_vec;
-
-};
-
-struct PolygonVec {
-    npy_intp size;
-    struct Polygon* data;
-};
-
-struct IntpStack {
-    npy_intp size;
-    npy_intp allocated_size;
-    npy_intp* data;
-};
-
-struct PixelListVec {
-    npy_intp size;
-    struct IntpStack** data;
-};
 
 struct PyMangleMask {
     PyObject_HEAD
 
     char* filename;
+    npy_intp npoly;
     struct PolygonVec* poly_vec;
 
     double total_area;
@@ -83,325 +42,7 @@ struct PyMangleMask {
 };
 
 
-static void 
-point_set_from_radec(struct Point* pt, double ra, double dec) {
 
-    double stheta=0;
-
-    if (pt != NULL) {
-        pt->phi = ra*D2R;
-        pt->theta = (90.0-dec)*D2R;
-
-        stheta = sin(pt->theta);
-        pt->x = stheta*cos(pt->phi);
-        pt->y = stheta*sin(pt->phi);
-        pt->z = cos(pt->theta); 
-    }
-}
-static void 
-point_set_from_thetaphi(struct Point* pt, double theta, double phi) {
-
-    double stheta=0;
-
-    if (pt != NULL) {
-        pt->phi = phi;
-        pt->theta = theta;
-
-        stheta = sin(pt->theta);
-        pt->x = stheta*cos(pt->phi);
-        pt->y = stheta*sin(pt->phi);
-        pt->z = cos(pt->theta); 
-    }
-}
-static void 
-radec_from_point(struct Point* pt, double *ra, double *dec) {
-    *ra = pt->phi*R2D;
-    *dec = 90.0 - pt->theta*R2D;
-}
-
-static void
-seed_random(void) {
-    struct timeval tm;
-    gettimeofday(&tm, NULL); 
-    srand48((long) (tm.tv_sec * 1000000 + tm.tv_usec));
-}
-/*
- * constant in cos(theta)
- */
-static void
-genrand_theta_phi_allsky(double* theta, double* phi)
-{
-    *phi = drand48()*2*M_PI;
-    // this is actually cos(theta) for now
-    *theta = 2*drand48()-1;
-    
-    if (*theta > 1) *theta=1;
-    if (*theta < -1) *theta=-1;
-
-    *theta = acos(*theta);
-}
-
-/*
- * Generate random points in a range.  Inputs are
- * min(cos(theta)), max(cos(theta)), min(phi), max(phi)
- *
- * constant in cos(theta)
- */
-static void
-genrand_theta_phi(double cthmin, double cthmax, double phimin, double phimax,
-                  double* theta, double* phi)
-{
-
-    // at first, theta is cos(theta)
-    *phi = phimin + (phimax - phimin)*drand48();
-
-    // this is actually cos(theta) for now
-    *theta = cthmin + (cthmax-cthmin)*drand48();
-    
-    if (*theta > 1) *theta=1;
-    if (*theta < -1) *theta=-1;
-
-    *theta = acos(*theta);
-}
-
-
-static struct CapVec* 
-CapVec_new(npy_intp n) 
-{
-    struct CapVec* self=NULL;
-
-    self=calloc(1, sizeof(struct CapVec));
-    if (self == NULL) {
-        PyErr_SetString(PyExc_MemoryError, "Could not allocate Cap vector");
-        return NULL;
-    }
-    self->data = calloc(n, sizeof(struct Cap));
-    if (self->data == NULL) {
-        free(self);
-        PyErr_SetString(PyExc_MemoryError, "Could not allocate Cap vector");
-        return NULL;
-    }
-    self->size = n;
-    return self;
-}
-
-static struct CapVec* CapVec_free(struct CapVec* self)
-{
-    if (self != NULL) {
-        free(self->data);
-        free(self);
-        self=NULL;
-    }
-    return self;
-}
-
-static struct PolygonVec* 
-PolygonVec_new(npy_intp n) 
-{
-    struct PolygonVec* self=NULL;
-
-    self=calloc(1, sizeof(struct PolygonVec));
-    if (self == NULL) {
-        PyErr_SetString(PyExc_MemoryError, "Could not allocate Polygon vector");
-        return NULL;
-    }
-    // pointers will be NULL (0)
-    self->data = calloc(n, sizeof(struct Polygon));
-    if (self->data == NULL) {
-        free(self);
-        PyErr_Format(PyExc_MemoryError, "Could not allocate Polygon vector %ld", n);
-        return NULL;
-    }
-
-    self->size = n;
-    return self;
-}
-
-static struct PolygonVec*
-PolygonVec_free(struct PolygonVec* self)
-{
-    struct Polygon* ply=NULL;
-    npy_intp i=0;
-    if (self != NULL) {
-        if (self->data!= NULL) {
-
-            ply=self->data;
-            for (i=0; i<self->size; i++) {
-                ply->cap_vec = CapVec_free(ply->cap_vec);
-                ply++;
-            }
-            free(self->data);
-
-        }
-        free(self);
-        self=NULL;
-    }
-    return self;
-}
-
-
-
-static struct IntpStack* 
-IntpStack_new(void) 
-{
-    struct IntpStack* self=NULL;
-    npy_intp start_size=1;
-
-    self=calloc(1, sizeof(struct IntpStack));
-    if (self == NULL) {
-        PyErr_SetString(PyExc_MemoryError, "Could not allocate npy_intp stack");
-        return NULL;
-    }
-    self->data = calloc(start_size, sizeof(npy_intp));
-    if (self->data == NULL) {
-        free(self);
-        PyErr_SetString(PyExc_MemoryError, "Could not allocate npy_intp stack");
-        return NULL;
-    }
-    self->size = 0;
-    self->allocated_size=start_size;
-    return self;
-}
-
-static void
-IntpStack_realloc(struct IntpStack* self, npy_intp newsize)
-{
-    npy_intp oldsize=0;
-    npy_intp* newdata=NULL;
-    npy_intp elsize=0;
-    npy_intp num_new_bytes=0;
-
-    oldsize = self->allocated_size;
-    if (newsize > oldsize) {
-        elsize = sizeof(npy_intp);
-
-        newdata = realloc(self->data, newsize*elsize);
-        if (newdata == NULL) {
-            printf("failed to reallocate\n");
-            exit(EXIT_FAILURE);
-        }
-
-        // the allocated size is larger.  make sure to initialize the new
-        // memory region.  This is the area starting from index [oldsize]
-        num_new_bytes = (newsize-oldsize)*elsize;
-        memset(&newdata[oldsize], 0, num_new_bytes);
-
-        self->data = newdata;
-        self->allocated_size = newsize;
-    }
-
-
-}
-
-void IntpStack_push(struct IntpStack* self, npy_intp val) {
-    // see if we have already filled the available data vector
-    // if so, reallocate to larger storage
-    if (self->size == self->allocated_size) {
-        IntpStack_realloc(self, self->size*2);
-    }
-
-    self->size++;
-    self->data[self->size-1] = val;
-}
-
-static struct IntpStack* 
-IntpStack_free(struct IntpStack* self) 
-{
-    if (self != NULL) {
-        free(self->data);
-        free(self);
-    }
-    return self;
-}
-
-static struct PixelListVec* 
-PixelListVec_new(npy_intp n)
-{
-    struct PixelListVec* self=NULL;
-    npy_intp i=0;
-
-    if (n <= 0) {
-        PyErr_Format(PyExc_MemoryError, 
-                "Vectors must be size > 0, got %ld", n);
-        return NULL;
-    }
-    self=calloc(1, sizeof(struct PixelListVec));
-    if (self == NULL) {
-        PyErr_SetString(PyExc_MemoryError, 
-                "Could not allocate pixel list vector");
-        return NULL;
-    }
-    // array of pointers. The pointers will be NULL
-    self->data = calloc(n, sizeof(struct IntpStack*));
-    if (self->data == NULL) {
-        free(self);
-        PyErr_Format(PyExc_MemoryError, 
-                "Could not allocate %ld pixel list pointers", n);
-        return NULL;
-    }
-
-    for (i=0; i<n; i++) {
-        self->data[i] = IntpStack_new();
-    }
-    self->size=n;
-    return self;
-}
-
-static struct PixelListVec* 
-PixelListVec_free(struct PixelListVec* self)
-{
-    npy_intp i=0;
-    struct IntpStack* s=NULL;
-    if (self != NULL) {
-        for (i=0; i<self->size; i++) {
-            s = self->data[i];
-            if (s != NULL) {
-                s=IntpStack_free(s);
-            }
-        }
-        free(self);
-    }
-
-    return self;
-}
-
-
-static int
-get_pix_scheme(char buff[_MANGLE_SMALL_BUFFSIZE], npy_intp* res, char* pixeltype) {
-    int status=1;
-    char pixres_buff[_MANGLE_SMALL_BUFFSIZE];
-    char* ptr=NULL;
-    npy_intp res_bytes=0;
-
-    memset(pixres_buff, 0, _MANGLE_SMALL_BUFFSIZE);
-
-    ptr = strchr(buff, 's');
-    if (ptr == NULL) {
-        status=0;
-        PyErr_Format(PyExc_IOError, "Only support pix scheme s, got: '%s'", buff);
-        goto _get_pix_scheme_errout;
-    }
-    *pixeltype = 's';
-
-    // extract the numerical prefactor, which is the resolution
-    res_bytes = (ptr-buff);
-    if (res_bytes > 9) {
-        status=0;
-        PyErr_Format(PyExc_IOError, "pix scheme designation too big: '%s'", buff);
-        goto _get_pix_scheme_errout;
-    }
-    strncpy(pixres_buff, buff, res_bytes);
-
-    if (1 != sscanf(pixres_buff, "%ld", res)) {
-        status=0;
-        PyErr_Format(PyExc_IOError, 
-                "Could not extract resolution from pix scheme: '%s'", buff);
-        goto _get_pix_scheme_errout;
-    }
-
-_get_pix_scheme_errout:
-    return status;
-}
 
 static int
 scan_expected_value(struct PyMangleMask* self, const char* expected_value)
@@ -588,7 +229,7 @@ _read_single_polygon_errout:
  * poly_vec should be allocated now
  */
 static int
-_read_polygons(struct PyMangleMask* self)
+do_read_polygons(struct PyMangleMask* self)
 {
     int status=1;
 
@@ -630,48 +271,34 @@ _read_some_polygons_errout:
     return status;
 }
 
-/* 
- * read polygons from the file.  first parse the header and
- * then call the lower level routine _read_polygons to actuall
- * process the polygon specifications
+/*
+ * read the main header
  */
 static int
-read_polygons(struct PyMangleMask* self)
+read_main_header(struct PyMangleMask* self)
 {
     int status=1;
-    npy_intp npoly;
 
-    
-    if (self->verbose)
-        fprintf(stderr,"reading polygon file: %s\n", self->filename);
-
-    self->fptr = fopen(self->filename,"r");
-    if (self->fptr==NULL) {
-        status=0;
-        PyErr_Format(PyExc_IOError, "Could not open file: %s", self->filename);
-        goto _read_polygons_errout;
-    }
-
-    if (2 != fscanf(self->fptr,"%ld %s", &npoly, self->buff)) {
+    if (2 != fscanf(self->fptr,"%ld %s", &self->npoly, self->buff)) {
         status = 0;
         PyErr_Format(PyExc_IOError, "Could not read number of polygons");
-        goto _read_polygons_errout;
+        goto _read_main_header_errout;
     }
     if (0 != strcmp(self->buff,"polygons")) {
         status = 0;
         PyErr_Format(PyExc_IOError, 
                 "Expected keyword 'polygons' but got '%s'", self->buff);
-        goto _read_polygons_errout;
+        goto _read_main_header_errout;
     }
 
     if (self->verbose)
-        fprintf(stderr,"Expect %ld polygons\n", npoly);
+        fprintf(stderr,"Expect %ld polygons\n", self->npoly);
 
     // get some metadata
     if (1 != fscanf(self->fptr,"%s", self->buff) ) {
         status=0;
         PyErr_Format(PyExc_IOError, "Error reading header keyword");
-        goto _read_polygons_errout;
+        goto _read_main_header_errout;
     }
     while (0 != strcmp(self->buff,"polygon")) {
         if (0 == strcmp(self->buff,"snapped")) {
@@ -687,14 +314,14 @@ read_polygons(struct PyMangleMask* self)
             if (1 != fscanf(self->fptr,"%s", self->buff)) {
                 status=0;
                 PyErr_Format(PyExc_IOError, "Error reading pixelization scheme");
-                goto _read_polygons_errout;
+                goto _read_main_header_errout;
             }
             if (self->verbose) 
                 fprintf(stderr,"\tpixelization scheme: '%s'\n", self->buff);
 
 
-            if (!get_pix_scheme(self->buff, &self->pixelres, &self->pixeltype)) {
-                goto _read_polygons_errout;
+            if (!pixel_parse_scheme(self->buff, &self->pixelres, &self->pixeltype)) {
+                goto _read_main_header_errout;
             }
             if (self->verbose) {
                 fprintf(stderr,"\t\tscheme: '%c'\n", self->pixeltype);
@@ -704,65 +331,67 @@ read_polygons(struct PyMangleMask* self)
             status=0;
             PyErr_Format(PyExc_IOError, 
                     "Got unexpected header keyword: '%s'", self->buff);
-            goto _read_polygons_errout;
+            goto _read_main_header_errout;
         }
         if (1 != fscanf(self->fptr,"%s", self->buff) ) {
             status=0;
             PyErr_Format(PyExc_IOError, "Error reading header keyword");
-            goto _read_polygons_errout;
+            goto _read_main_header_errout;
         }
     }
 
+
+_read_main_header_errout:
+    return status;
+}
+
+
+
+/* 
+ * read polygons from the file.  first parse the header and
+ * then call the lower level routine do_read_polygons to actuall
+ * process the polygon specifications
+ */
+static int
+read_polygons(struct PyMangleMask* self)
+{
+    int status=1;
+
+    
     if (self->verbose)
-        fprintf(stderr,"Allocating %ld polygons\n", npoly);
-    self->poly_vec = PolygonVec_new(npoly);
+        fprintf(stderr,"reading polygon file: %s\n", self->filename);
+
+    self->fptr = fopen(self->filename,"r");
+    if (self->fptr==NULL) {
+        status=0;
+        PyErr_Format(PyExc_IOError, "Could not open file: %s", self->filename);
+        goto _read_polygons_errout;
+    }
+
+    status = read_main_header(self);
+    if (status != 1) {
+        goto _read_polygons_errout;
+    }
+
+    if (self->verbose)
+        fprintf(stderr,"Allocating %ld polygons\n", self->npoly);
+
+    self->poly_vec = PolygonVec_new(self->npoly);
     if (self->poly_vec == NULL) {
         status=0;
         goto _read_polygons_errout;
     }
 
-    status = _read_polygons(self);
+    status = do_read_polygons(self);
 
 _read_polygons_errout:
     // apparently, segfault when fptr NULL?
-    if (self->fptr != NULL)
+    if (self->fptr != NULL) {
         fclose(self->fptr);
+    }
     return status;
 }
 
-static void
-cleanup(struct PyMangleMask* self)
-{
-    if (self->verbose > 2)
-        fprintf(stderr,"Freeing poly_vec\n");
-    self->poly_vec  = PolygonVec_free(self->poly_vec);
-    if (self->verbose > 2)
-        fprintf(stderr,"Freeing pixel_list_vec\n");
-    self->pixel_list_vec = PixelListVec_free(self->pixel_list_vec);
-    free(self->filename);
-    self->filename=NULL;
-}
-static void
-set_defaults(struct PyMangleMask* self)
-{
-    self->filename=NULL;
-    self->poly_vec=NULL;
-
-    self->total_area=0.0;
-    self->pixelres=-1;
-    self->maxpix=-1;
-    self->pixeltype='u';
-    self->pixel_list_vec=NULL;
-
-    self->snapped=0;
-    self->balkanized=0;
-
-    self->verbose=0;
-
-    memset(self->buff, 0, _MANGLE_SMALL_BUFFSIZE);
-
-    self->fptr=NULL;
-}
 
 static int
 set_pixel_map(struct PyMangleMask* self)
@@ -799,6 +428,28 @@ set_pixel_map(struct PyMangleMask* self)
 _set_pixel_map_errout:
 
     return status;
+}
+
+static void
+set_defaults(struct PyMangleMask* self)
+{
+    self->filename=NULL;
+    self->poly_vec=NULL;
+
+    self->total_area=0.0;
+    self->pixelres=-1;
+    self->maxpix=-1;
+    self->pixeltype='u';
+    self->pixel_list_vec=NULL;
+
+    self->snapped=0;
+    self->balkanized=0;
+
+    self->verbose=0;
+
+    memset(self->buff, 0, _MANGLE_SMALL_BUFFSIZE);
+
+    self->fptr=NULL;
 }
 
 /*
@@ -849,6 +500,19 @@ PyMangleMask_repr(struct PyMangleMask* self) {
 }
 
 
+static void
+cleanup(struct PyMangleMask* self)
+{
+    if (self->verbose > 2)
+        fprintf(stderr,"Freeing poly_vec\n");
+    self->poly_vec  = PolygonVec_free(self->poly_vec);
+    if (self->verbose > 2)
+        fprintf(stderr,"Freeing pixel_list_vec\n");
+    self->pixel_list_vec = PixelListVec_free(self->pixel_list_vec);
+    free(self->filename);
+    self->filename=NULL;
+}
+
 
 
 static void
@@ -865,68 +529,11 @@ PyMangleMask_dealloc(struct PyMangleMask* self)
 #endif
 }
 
-static int
-is_in_cap(struct Cap* cap, struct Point* pt)
-{
-    int incap=0;
-    double cdot;
-
-    cdot = 1.0 - cap->x*pt->x - cap->y*pt->y - cap->z*pt->z;
-    if (cap->cm < 0.0) {
-        incap = cdot > (-cap->cm);
-    } else {
-        incap = cdot < cap->cm;
-    }
-
-    return incap;
-}
-static int
-is_in_poly(struct Polygon* ply, struct Point* pt)
-{
-    npy_intp i=0;
-    struct Cap* cap=NULL;
-
-    int inpoly=1;
-
-
-    cap = &ply->cap_vec->data[0];
-    for (i=0; i<ply->cap_vec->size; i++) {
-        inpoly = inpoly && is_in_cap(cap, pt);
-        if (!inpoly) {
-            break;
-        }
-        cap++;
-    }
-    return inpoly;
-}
 
 
 /*
  * Get the pixel number of the input point for the simple scheme
  */
-
-static npy_intp
-get_pixel_simple(struct PyMangleMask* self, struct Point* pt)
-{
-    npy_intp pix=0;
-
-    npy_intp i=0;
-    npy_intp ps=0, p2=1;
-    double cth=0;
-    npy_intp n=0, m=0;
-    if (self->pixelres > 0) {
-        for (i=0; i<self->pixelres; i++) { // Work out # pixels/dim and start pix.
-            p2  = p2<<1;
-            ps += (p2/2)*(p2/2);
-        }
-      cth = cos(pt->theta);
-      n   = (cth==1.0) ? 0: (npy_intp) ( ceil( (1.0-cth)/2 * p2 )-1 );
-      m   = (npy_intp) ( floor( (pt->phi/2./M_PI)*p2 ) );
-      pix = p2*n+m + ps;
-
-    }
-    return pix;
-}
 
 /*
  * check the point against a pixelized mask.  If found, will return the id and
@@ -948,9 +555,9 @@ polyid_and_weight_pixelized(struct PyMangleMask* self,
     *weight=0.0;
 
     if (self->pixeltype == 's') {
-        pix = get_pixel_simple(self, pt);
+        pix = get_pixel_simple(self->pixelres, pt);
 
-        if (pix <= self->maxpix) {
+        if (pix < self->pixel_list_vec->size) {
             // this is a stack holding indices into the polygon vector
             pstack = self->pixel_list_vec->data[pix];
 
@@ -1089,6 +696,7 @@ check_ra_dec_arrays(PyObject* ra_obj, PyObject* dec_obj,
 
     return 1;
 }
+
 /*
  * check ra,dec points, returning both poly_id and weight
  * in a tuple

@@ -5,7 +5,14 @@ import numpy
 
 data_files=[]
 
-ext=Extension("mangle._mangle", ["mangle/_mangle.c"])
+ext=Extension("mangle._mangle", ["mangle/_mangle.c",
+                                 "mangle/point.c",
+                                 "mangle/cap.c",
+                                 "mangle/polygon.c",
+                                 "mangle/stack.c",
+                                 "mangle/pixel.c",
+                                 "mangle/rand.c",
+                                 "mangle/array_util.c"])
 setup(name="mangle", 
       packages=['mangle'],
       version="0.1",
