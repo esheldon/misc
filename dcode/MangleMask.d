@@ -1,6 +1,8 @@
 import std.stdio;
 import std.string;
 import std.conv;
+import std.array;
+
 import Polygon;
 
 class MangleMask {
@@ -18,7 +20,9 @@ class MangleMask {
     long maxpix;
 
     // for each pixel number, an array of poly_ids contained
-    long[][] pixlist;
+    //long[][] pixlist;
+    // to access data for the stack use pixlist[i].data
+    Appender!(long[])[] pixlist;
 
     int verbose=0;
 
@@ -45,6 +49,8 @@ class MangleMask {
             stderr.write(cast(string)this);
         }
         this.read_polygons();
+
+        this.set_pixel_lists();
     }
 
     /*
@@ -58,11 +64,16 @@ class MangleMask {
                   "Expected polygon keyword for poly %s, got %s", 
                   i, this.lsplit[0]));
             }
-            this.polygons[i].read(this.file, this.lsplit);
+            auto polygon = &this.polygons[i];
+            //this.polygons[i].read(this.file, this.lsplit);
+            polygon.read(this.file, this.lsplit);
+            if (polygon.pixel_id > this.maxpix) {
+                this.maxpix = polygon.pixel_id;
+            }
             if (this.verbose > 1) {
-                stderr.writeln(cast(string)this.polygons[i]);
+                stderr.writeln(cast(string)*polygon);
                 if (this.verbose > 2) {
-                    this.polygons[i].print_caps();
+                    polygon.print_caps();
                 }
             }
 
@@ -79,12 +90,12 @@ class MangleMask {
      * We leave last split line in this.split, which should be the first polygon
      * line
      *
-        207684 polygons
-        pixelization 9s
-        snapped
-        balkanized
-        polygon 0 ( 4 caps, 1 weight, 87381 pixel, 0.000000000129178 str):
-    */
+     *   207684 polygons
+     *   pixelization 9s
+     *   snapped
+     *   balkanized
+     *   polygon 0 ( 4 caps, 1 weight, 87381 pixel, 0.000000000129178 str):
+     */
     private void process_header() {
         //long pos;
         string mess;
@@ -147,6 +158,27 @@ class MangleMask {
         return npoly;
     }
 
+    private void set_pixel_lists() {
+        if (this.pixelres >= 0) {
+            if (this.verbose)
+                stderr.writefln("Allocating %s in pixlist",this.maxpix+1);
+
+            this.pixlist.length = this.maxpix+1;
+
+            if (this.verbose)
+                stderr.writeln("Filling pixlist");
+
+            for (long ipoly=0; ipoly<this.polygons.length; ipoly++) {
+                auto ply=&this.polygons[ipoly];
+
+                pixlist[ply.pixel_id].put(ipoly);
+                if (this.verbose > 2) {
+                    stderr.writefln("Added poly %s to pixmap at %s (%s)",
+                       ipoly,ply.pixel_id,pixlist[ply.pixel_id].data.length);
+                }
+            }
+        }
+    }
     string opCast() {
         string rep;
         rep = format(q"EOS
