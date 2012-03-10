@@ -5,16 +5,16 @@ Quick look Queue
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
 
+    pymangle
     - don't allow not snapped masks
     - good mask is snapped, but doesn't say it because write_mangle_polygons
       didn't write it
 
+    recfile
     - strings passed in might disappear!  Just do delim as char.
       and copy delim[0] from input
-
     - unit test structured subarray for binary
     - document the _method stuff too, where necessary
-
     - can just use memmap for binary (problem on OSX)?  Extracting multiple
       columns using memmap and looping over rows or reading in chunks (latter
       don't even need memmap)?
@@ -22,16 +22,18 @@ Quick look Queue
       Same with cols.
     - fread style change?
 
-    - re-run source catalog without masking, and just have masks in the
-      collated columns
-        - not crucial since currently aren't referencing that cut anywhere
-          else, e.g. randoms are "good" mask only
 
     - tmv+wl using intel, with openmp
         - Mike says you can compile tmv with openmp and it won't
         - mess up our method of using openmp in the outer loop
 
     - shears
+        - re-run create input with detrends
+        - re-run source catalog without masking, and just have masks in the
+          collated columns
+            - not crucial since currently aren't referencing that cut anywhere
+              else, e.g. randoms are "good" mask only
+
         - propagate corrections into the covariance matrix
             - could just get new diagonal errors and scale correlation matrix
             - could correct each delta sigma individually and derive new

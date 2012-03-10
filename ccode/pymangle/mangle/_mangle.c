@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include <math.h>
-//#include <sys/time.h>
 #include <Python.h>
 #include "numpy/arrayobject.h" 
 #include "mangle.h"
@@ -12,7 +11,6 @@
 #include "stack.h"
 #include "pixel.h"
 #include "rand.h"
-//#include "array_util.h"
 
 
 struct PyMangleMask {

@@ -1,14 +1,15 @@
 import std.math;
+import Typedef;
 
 class Point {
-    real x;
-    real y;
-    real z;
-    real ra;
-    real dec;
+    ftype x;
+    ftype y;
+    ftype z;
+    ftype ra;
+    ftype dec;
 
-    this(real ra, real dec) {
-        real cdec;
+    this(ftype ra, ftype dec) {
+        ftype cdec;
 
         this.ra = ra;
         this.dec = dec;
@@ -21,7 +22,7 @@ class Point {
         this.y = cdec*sin(ra);
         this.z = sin(dec);
     }
-    this(real x, real y, real z) {
+    this(ftype x, ftype y, ftype z) {
         this.x=x;
         this.y=y;
         this.z=z;
@@ -36,7 +37,7 @@ class Point {
             this.ra -= 360.;
         }
     }
-    real dot(Point p) {
+    ftype dot(in Point p) {
         return this.x*p.x + this.y*p.y + this.z*p.z;
     }
 
