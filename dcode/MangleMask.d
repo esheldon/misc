@@ -2,8 +2,11 @@ import std.stdio;
 import std.string;
 import std.conv;
 import std.array;
+import std.math;
 
+import Typedef;
 import Polygon;
+
 
 class MangleMask {
     string filename;
@@ -19,10 +22,13 @@ class MangleMask {
     char pixeltype='u';
     long maxpix;
 
+    // appender is faster, but not a big deal compared to reading in current
+    // implementation
+
     // for each pixel number, an array of poly_ids contained
-    //long[][] pixlist;
+    long[][] pixlist;
     // to access data for the stack use pixlist[i].data
-    Appender!(long[])[] pixlist;
+    //Appender!(long[])[] pixlist;
 
     int verbose=0;
 
@@ -35,6 +41,66 @@ class MangleMask {
     }
     this(in string filename) {
         this.load_mask(filename);
+    }
+
+    // only works for snapped and balkanized masks
+    void polyid_and_weight(in Point p, long* poly_id, ftype* weight) {
+        if (this.pixelres == -1) {
+            this.polyid_and_weight_nopix(p, poly_id, weight);
+        } else {
+            throw new Exception("implement pixel based search");
+        }
+    }
+    // only works for snapped and balkanized masks
+    long polyid(in Point p) {
+        long poly_id;
+        ftype weight;
+        if (this.pixelres == -1) {
+            this.polyid_and_weight_nopix(p, &poly_id, &weight);
+        } else {
+            this.polyid_and_weight_simplepix(p, &poly_id, &weight);
+        }
+
+        return poly_id;
+    }
+
+    // only works for snapped and balkanized masks
+    private void polyid_and_weight_nopix(in Point p, long* poly_id, ftype* weight) {
+        *poly_id=-1;
+        *weight=0.0;
+        for (long i=0; i<this.polygons.length; i++) {
+            auto ply = &this.polygons[i];
+            if (ply.contains(p)) {
+                *poly_id = ply.poly_id;
+                *weight = ply.weight;
+            }
+        }
+    }
+    // only works for snapped and balkanized masks
+    private void polyid_and_weight_simplepix(
+            in Point p, long* poly_id, ftype* weight) {
+        *poly_id=-1;
+        *weight=0.0;
+
+        if (this.pixeltype != 's') {
+            throw new Exception(format("wrong pixeltype: '%s'",
+                                this.pixeltype));
+        }
+
+        long pix=get_pixel_id_simple(p);
+        if (pix < this.pixlist.length) {
+            // is a reference not a copy
+            long[] plist = this.pixlist[pix];
+
+            foreach (ipoly;plist) {
+                auto ply = &this.polygons[ipoly];
+                if (ply.contains(p)) {
+                    *poly_id = ply.poly_id;
+                    *weight = ply.weight;
+                    break;
+                }
+            }
+        }
     }
 
     void load_mask(in string filename) {
@@ -108,7 +174,7 @@ class MangleMask {
                 if (this.lsplit[1] == "polygons") {
                     this.npoly = this.extract_npoly(this.lsplit[0]);
                 } else if (this.lsplit[0] == "pixelization") {
-                    this.extract_pixelization(this.lsplit[1]);
+                    this.extract_pix_scheme(this.lsplit[1]);
                 }
             } else if (this.lsplit.length == 1) {
                 if (this.lsplit[0] == "snapped") {
@@ -136,7 +202,7 @@ class MangleMask {
     }
 
 
-    private void extract_pixelization(char[] pixspec) {
+    private void extract_pix_scheme(char[] pixspec) {
         char ptype = pixspec[$-1];
         if (ptype == 's' || ptype == 'u') {
             this.pixeltype = ptype;
@@ -171,14 +237,44 @@ class MangleMask {
             for (long ipoly=0; ipoly<this.polygons.length; ipoly++) {
                 auto ply=&this.polygons[ipoly];
 
-                pixlist[ply.pixel_id].put(ipoly);
+                // appender is measureably faster, but not important here
+                //pixlist[ply.pixel_id].put(ipoly);
+                pixlist[ply.pixel_id] ~= ipoly;
                 if (this.verbose > 2) {
                     stderr.writefln("Added poly %s to pixmap at %s (%s)",
-                       ipoly,ply.pixel_id,pixlist[ply.pixel_id].data.length);
+                       ipoly,ply.pixel_id,pixlist[ply.pixel_id].length);
+                       //ipoly,ply.pixel_id,pixlist[ply.pixel_id].data.length);
                 }
             }
         }
     }
+
+    long get_pixel_id_simple(in Point p) {
+
+        long pix=0;
+
+        if (pixelres > 0) {
+            ftype phi=p.ra*PI/180.0;
+            ftype theta=(90.0-p.dec)*PI/180.0;
+            long i=0;
+            long ps=0, p2=1;
+            ftype cth=0;
+            long n=0, m=0;
+
+            for (i=0; i<this.pixelres; i++) { // Work out # pixels/dim and start pix.
+                p2  = p2<<1;
+                ps += (p2/2)*(p2/2);
+            }
+            cth = cos(theta);
+            n   = (cth==1.0) ? 0: cast(long) ( ceil( (1.0-cth)/2 * p2 )-1 );
+            m   = cast(long) ( floor( (phi/2./PI)*p2 ) );
+            pix = p2*n+m + ps;
+
+        }
+        return pix;
+
+    }
+
     string opCast() {
         string rep;
         rep = format(q"EOS

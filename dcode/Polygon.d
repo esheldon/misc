@@ -83,7 +83,6 @@ struct Polygon {
         return inpoly;
     }
 
-
     string opCast() {
         string rep;
         rep = format(
