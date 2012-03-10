@@ -1,2 +1,2 @@
-//alias real ftype;
-alias double ftype;
+alias real ftype;
+//alias double ftype;
