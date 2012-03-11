@@ -14,9 +14,6 @@ struct Polygon {
     long ncaps;
     Cap[] caps;
 
-    // only for classes
-    //this() { }
-
     this(File* file, char[][] header) {
         this.read(file,header);
     }
@@ -38,7 +35,7 @@ struct Polygon {
     void process_header(char[][] header) {
         if (header.length < 9) {
             throw new Exception(format(
-                "Expected at least 9 header tokens, got %s",header.length));
+              "Expected at least 9 header tokens, got %s",header.length));
         }
         if (header[0] != "polygon") {
             throw new Exception(format(
@@ -47,7 +44,6 @@ struct Polygon {
         if (header[2] != "(" || header[$-1] != "str):") {
             throw new Exception(format(
               "Malformed polygon header: %s", header.join(" ")));
-
         }
         this.poly_id = header[1].to!long();
 

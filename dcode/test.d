@@ -1,20 +1,30 @@
 import std.stdio;
 
+class Blah {
+    int i=0;
+    this (int i) {
+        this.i=i;
+    }
+    void say() {
+        writeln("my val is ",this.i);
+    }
+}
 int main (char[][] args) 
 {
-    double x=0;
-    double[] a;
-    ptrdiff_t i=0;
 
-    a.length = 100000000;
+    Blah[] b;
+    b.length = 10;
+    b[1]=new Blah(1);
+    b[5]=new Blah(5);
 
-    for (i=0; i<a.length; i++) {
-        a[i] = i*2 + 5;
+    foreach (bb; b) {
+        if (bb) {
+            bb.say();
+        }
+        if (!bb) {
+            writeln("bad");
+        }
     }
-    foreach (val; a) {
-        x += val;
-    }
-    writefln("sum: %.16g", x);
 
     return 0;
 }
