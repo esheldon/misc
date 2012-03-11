@@ -48,7 +48,7 @@ class MangleMask {
         if (this.pixelres == -1) {
             this.polyid_and_weight_nopix(p, poly_id, weight);
         } else {
-            throw new Exception("implement pixel based search");
+            this.polyid_and_weight_simplepix(p, poly_id, weight);
         }
     }
     // only works for snapped and balkanized masks
@@ -62,6 +62,33 @@ class MangleMask {
         }
 
         return poly_id;
+    }
+    // only works for snapped and balkanized masks
+    ftype weight(in Point p) {
+        long poly_id;
+        ftype weight;
+        if (this.pixelres == -1) {
+            this.polyid_and_weight_nopix(p, &poly_id, &weight);
+        } else {
+            this.polyid_and_weight_simplepix(p, &poly_id, &weight);
+        }
+
+        return weight;
+    }
+
+    bool contains(in Point p) {
+        long poly_id;
+        ftype weight;
+        if (this.pixelres == -1) {
+            this.polyid_and_weight_nopix(p, &poly_id, &weight);
+        } else {
+            this.polyid_and_weight_simplepix(p, &poly_id, &weight);
+        }
+        if (poly_id == -1) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     // only works for snapped and balkanized masks
@@ -237,13 +264,10 @@ class MangleMask {
             for (long ipoly=0; ipoly<this.polygons.length; ipoly++) {
                 auto ply=&this.polygons[ipoly];
 
-                // appender is measureably faster, but not important here
-                //pixlist[ply.pixel_id].put(ipoly);
                 pixlist[ply.pixel_id] ~= ipoly;
                 if (this.verbose > 2) {
                     stderr.writefln("Added poly %s to pixmap at %s (%s)",
                        ipoly,ply.pixel_id,pixlist[ply.pixel_id].length);
-                       //ipoly,ply.pixel_id,pixlist[ply.pixel_id].data.length);
                 }
             }
         }
@@ -261,7 +285,8 @@ class MangleMask {
             ftype cth=0;
             long n=0, m=0;
 
-            for (i=0; i<this.pixelres; i++) { // Work out # pixels/dim and start pix.
+            // Work out # pixels/dim and start pix.
+            for (i=0; i<this.pixelres; i++) { 
                 p2  = p2<<1;
                 ps += (p2/2)*(p2/2);
             }
