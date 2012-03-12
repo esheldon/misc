@@ -1,0 +1,28 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"impyp imcat pipeline"
+conflict impyp
+
+eval set  [ array get env HOME ]
+
+set IMHOME $HOME/local/src/impyp-versions/impyp_v0.01.03
+set IMCAT_DIR $IMHOME/imcat
+set SCRIPTUTILS_DIR $IMCAT_DIR/perlscripts
+set OSTYPE Linux
+
+setenv IMHOME $IMHOME
+setenv IMCAT_DIR $IMCAT_DIR
+setenv SCRIPTUTILS_DIR $SCRIPTUTILS_DIR 
+setenv IMCATDIR $IMCAT_DIR 
+
+append-path PATH $IMCAT_DIR/bin/
+append-path PATH $IMCAT_DIR/bin/scripts
+append-path PATH $IMCAT_DIR/bin/$OSTYPE
+append-path PATH $SCRIPTUTILS_DIR
+append-path PATH $SCRIPTUTILS_DIR/perl
+append-path PATH $SCRIPTUTILS_DIR/bin
+append-path PATH $SCRIPTUTILS_DIR/csh
+
+setenv ARCH Linux
+setenv OSTYPE $OSTYPE
