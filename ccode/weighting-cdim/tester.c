@@ -8,16 +8,18 @@
 #include "PhotoCatalog.h"
 #include "TrainCatalog.h"
 
+#include "util.h"
+
 #include "params.h"
 
 void test_nnear_ndim5() {
 
-    printf("\nTesting nearest neighbors\n");
-    printf("Testing Read PhotoCatalog\n");
+    wlog("\nTesting nearest neighbors\n");
+    wlog("Testing Read PhotoCatalog\n");
     const char pfilename[]="data/photo.dat";
     struct PhotoCatalog* pcat=PhotoCatalogRead(pfilename);
 
-    printf("Creating KDTree for pcat\n");
+    wlog("Creating KDTree for pcat\n");
     struct KDTree* kd_photo = KDTreeCreate(pcat->pts);
 
 
@@ -31,84 +33,84 @@ void test_nnear_ndim5() {
     indices = malloc(nnear*sizeof(int));
     assert( (dist != NULL) && (indices != NULL) );
 
-    printf("Getting %d nearest neighbors of point %d\n", nnear, index);
+    wlog("Getting %d nearest neighbors of point %d\n", nnear, index);
     KDTreeNNeighOfIndex(kd_photo, nnear, index, dist, indices);
-    printf("Writing results\n");
+    wlog("Writing results\n");
     for (int i=0; i<nnear; i++) {
-        printf("    %d    %lf\n", indices[i], dist[i]);
+        wlog("    %d    %lf\n", indices[i], dist[i]);
     }
 
     double point[NDIM] = {22.50043, 20.96843, 20.30887, 19.65721, 19.95109};
 
-    printf("Getting %d nearest neighbors of point\n    { ",nnear);
-    for (int i=0; i<nnear; i++) printf("%lf ",point[i]);
-    printf("}\n");
+    wlog("Getting %d nearest neighbors of point\n    { ",nnear);
+    for (int i=0; i<nnear; i++) wlog("%lf ",point[i]);
+    wlog("}\n");
 
     KDTreeNNeighOfPoint(kd_photo, nnear, point, dist, indices);
-    printf("Writing results\n");
+    wlog("Writing results\n");
     for (int i=0; i<nnear; i++) {
-        printf("    %d    %lf\n", indices[i], dist[i]);
+        wlog("    %d    %lf\n", indices[i], dist[i]);
     }
 
     double radius=0.1;
     struct I4Vector* matchind = I4VectorZeros(MAX_RADMATCH);
 
-    printf("Getting matches within radius %lf\n", radius);
+    wlog("Getting matches within radius %lf\n", radius);
     int nmatch = KDTreePointRadMatch(kd_photo,point,radius,matchind);
-    printf("    Found %d matches\n", nmatch);
+    wlog("    Found %d matches\n", nmatch);
     for (int i=0; i<nmatch; i++) {
-        printf("        %d\n", matchind->data[i]);
+        wlog("        %d\n", matchind->data[i]);
     }
 
-    //printf("Freeing KDTree\n");
+    //wlog("Freeing KDTree\n");
     KDTreeFree(kd_photo);
 
-    //printf("Freeing PhotoCatalog\n");
+    //wlog("Freeing PhotoCatalog\n");
     PhotoCatalogFree(pcat);
 
 }
 
 void test_read_catalog_ndim5() {
-    printf("NDIM = %d\n", NDIM);
+    wlog("NDIM = %d\n", NDIM);
     if (5 != NDIM) {
-        fprintf(stderr,"Compile with NDIM=5 for this test\n");
+        wlog("Compile with NDIM=5 for this test\n");
         exit(1);
     }
 
 
-    printf("Testing Read PhotoCatalog\n");
+    wlog("Testing Read PhotoCatalog\n");
     const char pfilename[]="data/photo.dat";
     struct PhotoCatalog* pcat=PhotoCatalogRead(pfilename);
 
     size_t nprint = 10;
     //size_t nprint = pcat->size;
-    printf("Printing %ld rows from pcat\n", nprint);
+    wlog("Printing %ld rows from pcat\n", nprint);
 
     PhotoCatalogWriteSome(stdout, pcat, nprint);
 
-    printf("Creating KDTree for pcat\n");
+    wlog("Creating KDTree for pcat\n");
     struct KDTree* kd_photo = KDTreeCreate(pcat->pts);
 
 
-    printf("Freeing KDTree\n");
+    wlog("Freeing KDTree\n");
     KDTreeFree(kd_photo);
 
-    printf("Freeing PhotoCatalog\n");
+    wlog("Freeing PhotoCatalog\n");
     PhotoCatalogFree(pcat);
 
-    printf("Testing Read TrainCatalog\n");
+    wlog("Testing Read TrainCatalog\n");
     const char tfilename[]="data/train.dat";
     struct TrainCatalog* tcat=TrainCatalogRead(tfilename);
 
     nprint = 10;
     //nprint = tcat->size;
-    printf("Printing %ld rows from tcat\n", nprint);
+    wlog("Printing %ld rows from tcat\n", nprint);
     struct KDTree* kd_train = KDTreeCreate(tcat->pts);
     KDTreeFree(kd_train);
 
     TrainCatalogWriteSome(stdout, tcat, nprint);
 
-    printf("Freeing TrainCatalog\n");
+    wlog("Freeing TrainCatalog\n");
     TrainCatalogFree(tcat);
 
 
@@ -116,14 +118,14 @@ void test_read_catalog_ndim5() {
 
 void test_kdtree_ndim2() {
 
-    printf("Testing KDTree\n");
-    printf("NDIM = %d\n", NDIM);
+    wlog("Testing KDTree\n");
+    wlog("NDIM = %d\n", NDIM);
     if (2 != NDIM) {
-        fprintf(stderr,"Compile with NDIM=2 for this test\n");
+        wlog("Compile with NDIM=2 for this test\n");
         exit(1);
     }
 
-    printf("    Allocating PointVector 3\n");
+    wlog("    Allocating PointVector 3\n");
     size_t npts=3;
     struct Points* pts = PointsAlloc(npts);
 
@@ -134,25 +136,25 @@ void test_kdtree_ndim2() {
             int index = i + j*npts;
 
             pts->data[index] = i+j;
-            printf("pts[%d] = %lf\n", index, pts->data[index]);
+            wlog("pts[%d] = %lf\n", index, pts->data[index]);
         }
     }
 
-    printf("    Creating KDTree\n");
+    wlog("    Creating KDTree\n");
     struct KDTree* kdtree = KDTreeCreate((const struct Points*)pts);
 
-    printf("Freeing KDTree\n");
+    wlog("Freeing KDTree\n");
     KDTreeFree(kdtree);
-    printf("Freeing PointVector\n");
+    wlog("Freeing PointVector\n");
     PointsFree(pts);
 }
 
 
 void test_treenode_ndim2() {
-    printf("\nTesting TreeNode\n");
-    printf("NDIM = %d\n", NDIM);
+    wlog("\nTesting TreeNode\n");
+    wlog("NDIM = %d\n", NDIM);
     if (2 != NDIM) {
-        fprintf(stderr,"Compile with NDIM=2 for this test\n");
+        wlog("Compile with NDIM=2 for this test\n");
         exit(1);
     }
 
@@ -177,9 +179,9 @@ void test_treenode_ndim2() {
     inside[1] = 0.5;
 
     if (TreeNodeContains(node, inside)) {
-        printf("inside point correctly found to be contained\n");
+        wlog("inside point correctly found to be contained\n");
     } else {
-        printf("inside point incorrectly found to be outside\n");
+        wlog("inside point incorrectly found to be outside\n");
     }
 
     double outside[NDIM];
@@ -187,31 +189,31 @@ void test_treenode_ndim2() {
     outside[1] = 1.5;
 
     if (TreeNodeContains(node, outside)) {
-        printf("outside point incorrectly found to be inside\n");
+        wlog("outside point incorrectly found to be inside\n");
     } else {
-        printf("outside point correctly found to be outside\n");
+        wlog("outside point correctly found to be outside\n");
     }
 
     TreeNodeFree(node);
 
 
-    printf("Making a TreeNodeVector\n");
+    wlog("Making a TreeNodeVector\n");
     struct TreeNodeVector* node_vector = TreeNodeVectorAlloc(35);
     for (int i=0; i<node_vector->size; i++) {
         node_vector->nodes[i].parent = i+1;
     }
-    printf("  node_vector->size: %ld\n", node_vector->size);
-    printf("  node_vector->nodes[20].parent: %d\n", node_vector->nodes[20].parent);
+    wlog("  node_vector->size: %ld\n", node_vector->size);
+    wlog("  node_vector->nodes[20].parent: %d\n", node_vector->nodes[20].parent);
 
     TreeNodeVectorFree(node_vector);
 
 }
 
 void test_hcube_ndim2() {
-    printf("\nTesting hypercube\n");
-    printf("NDIM = %d\n", NDIM);
+    wlog("\nTesting hypercube\n");
+    wlog("NDIM = %d\n", NDIM);
     if (2 != NDIM) {
-        fprintf(stderr,"Compile with NDIM=2 for this test\n");
+        wlog("Compile with NDIM=2 for this test\n");
         exit(1);
     }
 
@@ -231,9 +233,9 @@ void test_hcube_ndim2() {
     inside[1] = 0.5;
 
     if (HCubeContains(h, inside)) {
-        printf("inside point correctly found to be contained\n");
+        wlog("inside point correctly found to be contained\n");
     } else {
-        printf("inside point incorrectly found to be outside\n");
+        wlog("inside point incorrectly found to be outside\n");
     }
 
     double outside[NDIM];
@@ -241,9 +243,9 @@ void test_hcube_ndim2() {
     outside[1] = 1.5;
 
     if (HCubeContains(h, outside)) {
-        printf("outside point incorrectly found to be inside\n");
+        wlog("outside point incorrectly found to be inside\n");
     } else {
-        printf("outside point correctly found to be outside\n");
+        wlog("outside point correctly found to be outside\n");
     }
 
     HCubeFree(h);
@@ -259,7 +261,7 @@ int main(int argc, char** argv) {
         //test_read_catalog_ndim5();
         test_nnear_ndim5();
     } else {
-        fprintf(stderr,"No test for NDIM = %d\n", NDIM);
+        wlog("No test for NDIM = %d\n", NDIM);
     }
     return 0;
 }

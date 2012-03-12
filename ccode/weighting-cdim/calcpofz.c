@@ -15,14 +15,14 @@ void PofZWriteOne(FILE* fptr, int64_t id, struct WHist* wh);
 
 int main(int argc, char **argv) {
     if (argc < 9) {
-        printf("Usage: \n");
-        printf("  calcpofz%d weightsfile photofile nnear nz ", NDIM);
-        printf(                            " zmin zmax pzfile zfile\n\n");
+        wlog("Usage: \n");
+        wlog("  calcpofz%d weightsfile photofile nnear nz ", NDIM);
+        wlog(                            " zmin zmax pzfile zfile\n\n");
 
-        printf("    NDIM: %d\n", NDIM);
-        printf("    weightsfile is the output from calcweights. \n");
-        printf("    nnear should be about 100\n");
-        printf("    nz is the number of z points in the p(z), e.g. 20 or 30\n");
+        wlog("    NDIM: %d\n", NDIM);
+        wlog("    weightsfile is the output from calcweights. \n");
+        wlog("    nnear should be about 100\n");
+        wlog("    nz is the number of z points in the p(z), e.g. 20 or 30\n");
         return(1);
     }
 
@@ -37,17 +37,17 @@ int main(int argc, char **argv) {
     const char* zfile      = argv[8];
 
 
-    pflush("NDIM: %d\n", NDIM);
-    pflush("number of nearest neighbors: %d\n",nnear);
-    pflush("nz:   %d\n",nz);
-    pflush("zmin: %lf\n",zmin);
-    pflush("zmax: %lf\n",zmax);
+    wlog("NDIM: %d\n", NDIM);
+    wlog("number of nearest neighbors: %d\n",nnear);
+    wlog("nz:   %d\n",nz);
+    wlog("zmin: %lf\n",zmin);
+    wlog("zmax: %lf\n",zmax);
 
     struct TrainCatalog* tcat=TrainCatalogRead(wtrainfile);
 
     calcpofz(tcat, photofile, nnear, nz, zmin, zmax, pzfile, zfile);
 
-    pflush("Done\n");
+    wlog("Done\n");
 }
 
 void calcpofz(
@@ -60,27 +60,27 @@ void calcpofz(
         const char* pzfile, 
         const char* zfile) {
 
-    pflush("Creating KDTree for training catalog\n");
+    wlog("Creating KDTree for training catalog\n");
     struct KDTree* kd_train = KDTreeCreate(tcat->pts);
 
-    pflush("Opening PhotoCatalog file: '%s'\n", photofile);
+    wlog("Opening PhotoCatalog file: '%s'\n", photofile);
     FILE* phot_fptr = open_or_exit(photofile, "r");
 
     // fixed size arrays to hold results
-    pflush("Allocating dist,indices,zvals,weights\n");
+    wlog("Allocating dist,indices,zvals,weights\n");
     double* dist  = malloc(nnear*sizeof(double));
     int* indices  = malloc(nnear*sizeof(int));
     double* zvals = malloc(nnear*sizeof(double));
     double* weights = malloc(nnear*sizeof(double));
 
-    pflush("Allocating WHist\n");
+    wlog("Allocating WHist\n");
     struct WHist* wh = WHistAlloc(nz, zmin, zmax);
 
     int64_t id;
     double point[NDIM];
 
     // Output file
-    pflush("Opening pofz file for output: '%s'\n", pzfile);
+    wlog("Opening pofz file for output: '%s'\n", pzfile);
     FILE* pz_fptr = open_or_exit(pzfile,"w");
 
     int step=10000; size_t i=1;
@@ -95,11 +95,11 @@ void calcpofz(
         PofZWriteOne(pz_fptr, id, wh);
 
         if ( (i % step) == 0 ) {
-            pflush(".");
+            wlog(".");
         }
         i++;
     }
-    pflush("\n");
+    wlog("\n");
 
 
     fclose(phot_fptr);
@@ -107,7 +107,7 @@ void calcpofz(
 
 
     // Output z file
-    pflush("Opening z file for output: '%s'\n", zfile);
+    wlog("Opening z file for output: '%s'\n", zfile);
     FILE* z_fptr = open_or_exit(zfile,"w");
     for (int i=0; i<wh->nbin; i++) {
         fprintf(z_fptr,"%g %g\n", wh->binmin[i], wh->binmax[i]);
