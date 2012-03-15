@@ -74,15 +74,14 @@ T getJsonVal(T)(JSONValue jval) {
 int main(string[] args)
 {
     //string json_file=args[1];
-    //string json_file="/home/esheldon/tmp/decam--25--39-i-4-35-check.json";
-    string json_file="/home/esheldon/tmp/impyp001i-goodlist.json";
+    string json_file="/home/esheldon/tmp/decam--25--39-i-4-35-check.json";
+    //string json_file="/home/esheldon/tmp/impyp001i-goodlist.json";
     string json_text=readText(json_file);
 
     auto root = parseJSON(json_text);
 
-    auto array = root.getArray();
+    //auto array = root.getArray();
 
-    return 0;
     auto dict = root.getDict();
 
 

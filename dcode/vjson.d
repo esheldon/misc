@@ -563,4 +563,34 @@ unittest {
         assert(toJSON(&val) == "\"\&Alpha;\&Beta;\&Gamma;\"");
         val = parseJSON(`"\u2660\u2666"`);
         assert(toJSON(&val) == "\"\&spades;\&diams;\"");
+
+        // type safe methods for getting data
+        val = parseJSON("3452");
+        assert(3452 == val.getLong());
+        val = parseJSON("3.14");
+        assert(3.14 == val.getReal());
+        val = parseJSON(`"stuff"`);
+        assert("stuff" == val.getString());
+        val = parseJSON("true");
+        assert(true == val.getBool());
+        val = parseJSON("false");
+        assert(false == val.getBool());
+
+        val = parseJSON("34");
+        assert(34 == val.coerce!int());
+        assert("34" == val.coerce!string());
+        val = parseJSON("3.14");
+        assert(3 == val.coerce!long());
+
+        val = parseJSON(`[3,"stuff",5.772]`);
+        auto tarr = val.getArray();
+        assert(3 == tarr[0].getLong());
+        assert("stuff" == tarr[1].getString());
+        assert(5.772 == tarr[2].getReal());
+
+        val = parseJSON(`{"a": 66, "hey":"there", "flt":3.14}`);
+        auto tdict = val.getDict();
+        assert(66 == tdict["a"].getLong());
+        assert("there" == tdict["hey"].getString());
+        assert(3.14 == tdict["flt"].getReal());
 }
