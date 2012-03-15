@@ -42,14 +42,14 @@ void PhotoCatalogFree(struct PhotoCatalog* cat) {
 
 
 struct PhotoCatalog* PhotoCatalogRead(const char* filename) {
-    pflush("Reading PhotoCatalog, NDIM=%d, from file: '%s'\n", NDIM, filename);
+    wlog("Reading PhotoCatalog, NDIM=%d, from file: '%s'\n", NDIM, filename);
 
-    pflush("    Counting lines\n");
+    wlog("    Counting lines\n");
     size_t nlines = count_lines(filename);
 
     struct PhotoCatalog* cat = PhotoCatalogAlloc(nlines);
 
-    pflush("    Reading %ld lines\n", nlines);
+    wlog("    Reading %ld lines\n", nlines);
     FILE* fptr=fopen(filename,"r");
 
     double* pdata = cat->pts->data;
@@ -132,7 +132,7 @@ void PhotoCatalogWriteNum(const char* filename, struct PhotoCatalog* cat) {
     assert(cat != NULL);
 
     if (cat->num == NULL) {
-        fprintf(stderr,"Num was not allocated\n");
+        wlog("Num was not allocated\n");
         exit(1);
     }
 
