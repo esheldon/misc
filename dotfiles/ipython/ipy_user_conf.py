@@ -58,13 +58,6 @@ def main():
         print "Could not import zphot"
 
     try:
-        ip.ex("import maxbcg")
-    except:
-        print "Could not import maxbcg"
-
-
-
-    try:
         ip.ex("import cosmology")
     except:
         print "Could not import cosmology"
