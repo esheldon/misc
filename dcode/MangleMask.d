@@ -302,7 +302,7 @@ class MangleMask {
 
     string opCast() {
         string rep;
-        rep = format(q"EOS
+        rep = format("
 MangleMask:
     file: %s
     npoly:         %s
@@ -310,7 +310,7 @@ MangleMask:
     balkanized     %s
     pixelization: '%s'
     pixelres:      %s
-EOS", this.filename, npoly, this.snapped, this.balkanized, 
+", this.filename, npoly, this.snapped, this.balkanized, 
             this.pixeltype, this.pixelres);
 
         return rep;
