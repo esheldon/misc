@@ -414,7 +414,7 @@ string toJSON(in JSONValue* root) {
                         switch(c) {
                         case '"':       json.put("\\\"");       break;
                         case '\\':      json.put("\\\\");       break;
-                        case '/':       json.put("\\/");        break;
+                        //case '/':       json.put("\\/");        break;
                         case '\b':      json.put("\\b");        break;
                         case '\f':      json.put("\\f");        break;
                         case '\n':      json.put("\\n");        break;
