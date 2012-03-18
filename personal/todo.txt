@@ -1,5 +1,11 @@
 Quick look Queue
 
+    - shopping
+        - ground thyme
+        - ground cloves
+        - ground coriander
+
+    - think about my TS paper, and kyle's overview
     - memory leak in fitsio
 
     - make combined mask starting with "good", excluding star, good excluding
