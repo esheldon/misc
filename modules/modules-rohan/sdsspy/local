@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"sdsspy install straight from hg repo"
+conflict sdsspy
+
+eval set  [ array get env HOME ]
+
+set SDSSPY_DIR $HOME/exports/sdsspy-local
+
+prepend-path PYTHONPATH $SDSSPY_DIR/lib/python2.7/site-packages/
+
+setenv SDSSPY_DIR $SDSSPY_DIR
+
