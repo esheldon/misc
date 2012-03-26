@@ -116,7 +116,7 @@ class MangleMask {
 
         long pix=get_pixel_id_simple(p);
         if (pix < this.pixlist.length) {
-            // is a reference not a copy
+            // reference or copy?
             long[] plist = this.pixlist[pix];
 
             foreach (ipoly;plist) {
