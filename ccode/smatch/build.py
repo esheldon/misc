@@ -7,8 +7,10 @@ import glob
 
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
-optlist=[optparse.Option('-p','--prefix',default=sys.exec_prefix,help="where to install"),
-         optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)")]
+optlist=[optparse.Option('-p','--prefix',default=sys.exec_prefix,
+                         help="where to install"),
+         optparse.Option('-d','--debug',action="store_true",
+                         help="turn on debugging (assert)")]
 parser.add_options(optlist)
 
 options,args = parser.parse_args()
@@ -25,7 +27,7 @@ if not options.debug:
 
 
 
-sources = ['healpix','tree','stack','smatch']
+sources = ['healpix','tree','stack','smatch','match']
 
 
 programs = [{'name':'smatch', 'sources':sources}]

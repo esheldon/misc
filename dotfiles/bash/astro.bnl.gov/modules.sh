@@ -49,7 +49,7 @@ if [[ $check == "" ]]; then
     # this is currently just the python extension
     module load stomp      # *
 
-    module load esutil/local     # *
+    module unload esutil && module load esutil/local     # *
     module load recfile    # *
 
     module load cosmology  # *
@@ -67,12 +67,12 @@ if [[ $check == "" ]]; then
     module load columns
 
 
-
-    module load tmv        # *
+    # these get loaded in other scripts, be careful
+    module unload tmv && module load tmv        # *
 
     # prereq: ccfits, tmv, desfiles, esutil
     # also numpy if not using system
-    module load wl/local   # *
+    module unload wl && module load wl/local   # *
 
 fi
 
