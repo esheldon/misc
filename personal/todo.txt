@@ -1,6 +1,6 @@
 Quick look Queue
 
-    - memory leak in fitsio
+    - think about my TS paper, and kyle's overview
 
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
@@ -28,7 +28,6 @@ Quick look Queue
         - mess up our method of using openmp in the outer loop
 
     - shears
-        - re-run create input with detrends
         - re-run source catalog without masking, and just have masks in the
           collated columns
             - not crucial since currently aren't referencing that cut anywhere
@@ -39,7 +38,6 @@ Quick look Queue
             - could correct each delta sigma individually and derive new
               covariance matrices
 
-        - how to correct the trends?  By camcol or on run basis?
         - s/g sep in BOSS catalog.  Estimate contamination?
 
     - catalog for peter
