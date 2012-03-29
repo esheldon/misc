@@ -10,7 +10,7 @@ conflict impyp
 
 eval set  [ array get env HOME ]
 
-set IMHOME $HOME/local/src/impyp-versions/impyp_v0.01.03
+set IMHOME $HOME/local/src/impyp-versions/impyp_v0.01.08
 set IMCAT_DIR $IMHOME/imcat
 set SCRIPTUTILS_DIR $IMCAT_DIR/perlscripts
 set OSTYPE Linux
