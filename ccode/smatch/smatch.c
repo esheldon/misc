@@ -26,6 +26,7 @@
 #include <math.h>
 #include <unistd.h>
 #include "healpix.h"
+#include "match.h"
 #include "tree.h"
 
 struct point {
@@ -191,16 +192,18 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
     return cat;
 }
 
-void process_radec(struct cat* cat, double ra, double dec, int64 maxmatch, size_t index) {
+void process_radec(struct cat* cat, double ra, double dec, 
+                   struct matchstack* matches) {
 
     double x=0,y=0,z=0;
     double cos_radius=0;
-    int64 nmatch=0;
+    //int64 nmatch=0;
 
     int64 hpixid = hpix_eq2pix(cat->hpix, ra, dec) - cat->hpix->npix/2;
 
     struct tree_node* node = tree_find(cat->tree, hpixid);
 
+    matchstack_resize(matches,0);
 
     if (!cat->radius_in_file) {
         cos_radius = cat->cos_radius[0];
@@ -222,13 +225,7 @@ void process_radec(struct cat* cat, double ra, double dec, int64 maxmatch, size_
             double cos_angle = pt->x*x + pt->y*y + pt->z*z;
 
             if (cos_angle > cos_radius) {
-                printf("%lu %lu\n", index, cat_ind);
-                nmatch++;
-
-                // maxmatch <= 0 means return all
-                if (maxmatch > 0 && nmatch >= maxmatch) {
-                    break;
-                }
+                matchstack_push(matches, cat_ind, cos_angle);
             }
         }
 
@@ -237,13 +234,43 @@ void process_radec(struct cat* cat, double ra, double dec, int64 maxmatch, size_
     return;
 }
 
+void print_matches(size_t index, struct matchstack* matches, int64 maxmatch, 
+                   int64 print_dist) {
+
+    struct match* match=NULL;
+
+    if (matches->size > 0) {
+        if (maxmatch > 0) {
+            if (maxmatch < matches->size) {
+                // not keeping all, sort and keep the closest matches
+                matchstack_sort(matches);
+                matchstack_resize(matches, maxmatch);
+            }
+        }
+        match=&matches->data[0];
+        for (size_t i=0; i<matches->size; i++) {
+            printf("%ld %ld", index, match->index);
+            if (print_dist) {
+                printf(" %.16g", cos(match->cosdist)*R2D);
+            }
+            printf("\n");
+            match++;
+        }
+    }
+
+}
 /* need -std=gnu99 since c99 doesn't have getopt */
 const char* process_args(
         int argc, char** argv, 
-        int64* nside, double* radius_arcsec, int64* maxmatch, int* verbose) {
+        int64* nside, 
+        double* radius_arcsec, 
+        int64* maxmatch, 
+        int* print_dist,
+        int* verbose) {
+
     int c;
 
-    while ((c = getopt(argc, argv, "n:r:m:v")) != -1) {
+    while ((c = getopt(argc, argv, "n:r:m:dv")) != -1) {
         switch (c) {
             case 'n':
                 *nside = (int64) atoi(optarg);
@@ -253,6 +280,9 @@ const char* process_args(
                 break;
             case 'm':
                 *maxmatch = (int64) atoi(optarg);
+                break;
+            case 'd':
+                *print_dist=1;
                 break;
             case 'v':
                 *verbose=1;
@@ -268,6 +298,8 @@ const char* process_args(
         "    cat file1 | smatch [options] file2 > result\n\n"
         "use smaller list as file2 and stream the larger\n"
         "each line of output is index1 index2\n\n"
+        "Also, if there are dups in one list, send that on stdin\n\n"
+        "Note currently only works for keeping all matches\n\n"
         "options:\n"
         "  -r rad   search radius in arcsec. If not sent, must be third \n"
         "           column in file2, in which case it can be different \n"
@@ -277,6 +309,7 @@ const char* process_args(
         "  -m maxmatch\n"
         "           maximum number of matches.  Default is 1.  \n"
         "           maxmatch=0 means return all matches\n"
+        "  -d       print out the distance in degrees in the third column\n"
         "  -v       print out info and progress in stderr\n");
 
         exit(EXIT_FAILURE);
@@ -289,9 +322,11 @@ int main(int argc, char** argv) {
     int64 nside = 4096;
     double radius_arcsec = -1;
     int64 maxmatch=1;
+    int print_dist=0;
     int verbose=0;
 
-    const char* file = process_args(argc, argv, &nside, &radius_arcsec, &maxmatch, &verbose);
+    const char* file = process_args(argc, argv, &nside, &radius_arcsec, 
+                                    &maxmatch, &print_dist, &verbose);
 
     if (verbose) {
         if (radius_arcsec > 0)
@@ -305,14 +340,14 @@ int main(int argc, char** argv) {
 
     if (verbose) wlog("processing stream\n");
 
+    struct matchstack* matches = matchstack_new();
     size_t index=0;
     double ra=0, dec=0;
     while (2 == fscanf(stdin,"%lf %lf", &ra, &dec)) {
-        process_radec(cat, ra, dec, maxmatch, index);
+        process_radec(cat, ra, dec, matches);
+        print_matches(index, matches, maxmatch, print_dist);
         index++;
     }
 
-    if (verbose) wlog("processed %lu from stream.\nCleaning up.\n", index);
-    cat = cat_delete(cat);
-    if (verbose) wlog("done.\n");
+    if (verbose) wlog("processed %lu from stream.\n", index);
 }
