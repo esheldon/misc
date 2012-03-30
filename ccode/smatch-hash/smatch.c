@@ -25,179 +25,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
-#include "uthash.h"
-#include "point.h"
-#include "point_hash.h"
-#include "healpix.h"
 #include "matchstack.h"
-#include "stack.h"
-#include "alloc.h"
+#include "cat.h"
 
 
-struct cat {
-    size_t size;
-    struct point* pts;
-    struct healpix* hpix;
-    struct point_hash* pthash;
-};
-
-
-FILE* open_file(const char* fname) {
-    FILE* fptr=fopen(fname, "r");
-    if (fptr==NULL) {
-        wlog("Could not open file: %s\n", fname);
-        exit(EXIT_FAILURE);
-    }
-    return fptr;
-}
-
-
-#define _COUNTLINES_BUFFSIZE 64
-size_t countlines(FILE* fptr) {
-
-    char buff[_COUNTLINES_BUFFSIZE];
-    size_t count = 0;
-         
-    while(fgets(buff,_COUNTLINES_BUFFSIZE,fptr) != NULL) {
-        count++;
-    }
-    return count;
-}
-
-void repeat_char(char c, int n) {
-    for (int i=0; i<n; i++) {
-        fputc(c,stderr);
-    }
-}
-static inline void incr_bar(size_t this_index, size_t ntot, size_t ntoprint, char c)
-{
-    if ( this_index % (ntot/ntoprint) != 0 ) 
-        return;
-    fputc(c,stderr);
-}
-
-
-struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int verbose) {
-
-    int barsize=70;
-    int radius_in_file=0;
-    double cos_radius_global=0;
-    double radius_radians=0;
-
-    FILE* fptr=open_file(fname);
-
-    size_t nlines=countlines(fptr);
-    if (verbose) wlog("    found %lu lines\n", nlines);
-    rewind(fptr);
-
-    struct cat* cat = alloc_or_die(sizeof(struct cat), "catalog struct");
-
-    if (radius_arcsec <= 0) {
-        radius_in_file=1;
-    } else {
-        radius_in_file=0;
-        radius_radians = radius_arcsec/3600.*D2R;
-        cos_radius_global = cos(radius_radians);
-    }
-
-    cat->hpix=NULL;
-    cat->pthash=NULL;
-
-    cat->pts = alloc_or_die(nlines*sizeof(struct point),"points");
-    cat->size = nlines;
-
-    if (verbose) wlog("    creating hpix\n");
-    cat->hpix = hpix_new(nside);
-
-    if (verbose) {
-        wlog("    reading and building hash table\n");
-        repeat_char('.', barsize); wlog("\n");
-    }
-
-    double ra=0, dec=0;
-    struct i64stack* listpix = i64stack_new(0);
-
-    size_t index=0;
-    struct point* pt = &cat->pts[0];
-    struct point_hash* pthash = NULL;
-
-    for (size_t i=0; i<cat->size; i++) {
-        pt->index=index;
-        if (2 != fscanf(fptr, "%lf %lf", &ra, &dec)) {
-            wlog("expected to read point at line %lu\n", i);
-            exit(EXIT_FAILURE);
-        }
-        if (radius_in_file) {
-            if (1 != fscanf(fptr, "%lf", &radius_arcsec)) {
-                wlog("expected to read radius at line %lu\n", i);
-                exit(EXIT_FAILURE);
-            }
-            radius_radians = radius_arcsec/3600.*D2R;
-            pt->cos_radius = cos(radius_radians);
-        } else {
-            pt->cos_radius = cos_radius_global;
-        }
-
-        hpix_eq2xyz(ra,dec,&pt->x,&pt->y,&pt->z);
-        hpix_disc_intersect(cat->hpix, pt->x, pt->y, pt->z, radius_radians, 
-                            listpix);
-
-        int64* pix_ptr=listpix->data;
-
-        // insert a pointer to this point for each pixel it intersected
-        while (pix_ptr < listpix->data + listpix->size) {
-            pthash=point_hash_insert(pthash, (*pix_ptr), pt);
-            pix_ptr++;
-        }
-
-        pt++;
-        index++;
-        if (verbose) incr_bar(i+1, cat->size, barsize, '=');
-    }
-
-    cat->pthash=pthash;
-
-    listpix=i64stack_delete(listpix);
-
-    if (verbose) wlog("\n");
-
-    if (index != nlines) {
-        wlog("expected %lu lines but read %lu\n", nlines, index);
-        exit(EXIT_FAILURE);
-    }
-
-    fclose(fptr);
-    return cat;
-}
-
-void process_radec(struct cat* cat, double ra, double dec, 
-                   struct matchstack* matches) {
-
-    double x=0,y=0,z=0;
-
-    int64 hpixid = hpix_eq2pix(cat->hpix, ra, dec);
-
-    matchstack_resize(matches,0);
-
-    struct point_hash* pthash = point_hash_find(cat->pthash, hpixid);
-    if (pthash != NULL) {
-
-        hpix_eq2xyz(ra,dec,&x,&y,&z);
-
-        for (size_t i=0; i<pthash->points->size; i++) {
-            struct point* pt = pthash->points->data[i];
-
-            double cos_angle = pt->x*x + pt->y*y + pt->z*z;
-
-            if (cos_angle > pt->cos_radius) {
-                matchstack_push(matches, pt->index, cos_angle);
-            }
-        }
-
-    }
-
-    return;
-}
 
 void print_matches(size_t index, struct matchstack* matches, int64 maxmatch, 
                    int64 print_dist) {
@@ -309,7 +140,7 @@ int main(int argc, char** argv) {
     size_t index=0;
     double ra=0, dec=0;
     while (2 == fscanf(stdin,"%lf %lf", &ra, &dec)) {
-        process_radec(cat, ra, dec, matches);
+        cat_match(cat, ra, dec, matches);
         print_matches(index, matches, maxmatch, print_dist);
         index++;
     }
