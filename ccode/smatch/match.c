@@ -8,14 +8,11 @@
 struct matchstack* matchstack_new(void) {
     struct matchstack* ms=NULL;
 
-    ms=malloc(sizeof(struct matchstack));
+    ms=calloc(1,sizeof(struct matchstack));
     if (ms==NULL) {
-        fprintf(stderr,"Error allocating match\n");
+        fprintf(stderr,"Error allocating matchstack\n");
         return NULL;
     }
-
-    ms->size=0;
-    ms->data=NULL;
     return ms;
 }
 

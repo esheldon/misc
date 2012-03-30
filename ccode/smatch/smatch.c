@@ -60,7 +60,7 @@ struct cat* cat_delete(struct cat* cat) {
 }
 
 void* alloc_or_die(size_t nbytes, const char* description) {
-    void* data = malloc(nbytes);
+    void* data = calloc(nbytes,sizeof(char));
     if (data == NULL) {
         wlog("could not allocate %s\n", description);
         exit(EXIT_FAILURE);
@@ -166,7 +166,8 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
 
         hpix_eq2xyz(ra,dec,&pt->x,&pt->y,&pt->z);
 
-        hpix_disc_intersect(cat->hpix, pt->x, pt->y, pt->z, radius_radians, listpix);
+        hpix_disc_intersect(cat->hpix, pt->x, pt->y, pt->z, radius_radians, 
+                            listpix);
 
         int64* ptr=listpix->data;
         while (ptr < listpix->data + listpix->size) {
@@ -187,6 +188,8 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
         exit(EXIT_FAILURE);
     }
 
+    if (verbose)
+        wlog("fullest node has %lu members\n", tree_most_members(cat->tree));
 
     fclose(fptr);
     return cat;

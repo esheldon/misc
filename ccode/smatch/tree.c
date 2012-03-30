@@ -69,6 +69,21 @@ void tree_print( struct tree_node *self, int level )
 }
 
 
+size_t tree_most_members( struct tree_node *self )
+{
+    size_t max_ind=0, max_ind_left=0, max_ind_right=0;
+    if (self != NULL) {
+        max_ind = self->indices->size;
+
+        max_ind_left = tree_most_members( self->left );
+        max_ind_right = tree_most_members( self->right );
+
+        max_ind = (max_ind > max_ind_left) ? max_ind : max_ind_left;
+        max_ind = (max_ind > max_ind_right) ? max_ind : max_ind_right;
+    }
+    return max_ind;
+}
+
 
 
 
