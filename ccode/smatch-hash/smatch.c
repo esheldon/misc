@@ -166,9 +166,6 @@ struct cat* read_cat(const char* fname, int64 nside, double radius_arcsec, int v
         exit(EXIT_FAILURE);
     }
 
-    if (verbose)
-        wlog("fullest node has %lu members\n", tree_most_members(cat->tree));
-
     fclose(fptr);
     return cat;
 }
