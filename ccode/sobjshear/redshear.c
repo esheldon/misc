@@ -8,9 +8,9 @@
 
 #include "uthash.h"
 
-#define HASH_FIND_INT64(head,findint64,out)                                          \
+#define HASH_FIND_INT64(head,findint64,out)        \
     HASH_FIND(hh,head,findint64,sizeof(int64),out)
-#define HASH_ADD_INT64(head,int64field,add)                                          \
+#define HASH_ADD_INT64(head,int64field,add)        \
     HASH_ADD(hh,head,int64field,sizeof(int64),add)
 
 
@@ -56,7 +56,8 @@ int main(int argc, char** argv) {
         counter++;
         if (counter == 1) {
             wlog("first lensum: %ld %ld %.8g %ld %.8g\n", 
-                 lensum->index, lensum->zindex, lensum->weight, lensum->totpairs, lensum->sshsum);
+                 lensum->index, lensum->zindex, lensum->weight, 
+                 lensum->totpairs, lensum->sshsum);
         }
         if ((counter % 1000) == 0) {
             wlog(".");
@@ -66,6 +67,7 @@ int main(int argc, char** argv) {
         if (this_lens == NULL) {
             // copy of lensum made inside
             struct lensum_hash* lh = lensum_hash_fromlensum(lensum);
+            // this gets expanded to lh->lensum->zindex
             HASH_ADD_INT64(hash, lensum->zindex, lh);
         } else {
             lensum_add(this_lens->lensum, lensum);
