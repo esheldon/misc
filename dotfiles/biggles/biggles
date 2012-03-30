@@ -11,3 +11,6 @@ kw_defaults		= {linewidth:1.5}
 [screen]
 width = 800
 height = 800
+
+[PlotKey]
+key_width = 7.0
