@@ -28,7 +28,7 @@ if not options.debug:
 
 
 sources = ['alloc','healpix','matchstack','point_hash','ptrstack','stack',
-           'smatch']
+           'cat','files','smatch']
 
 
 programs = [{'name':'smatch', 'sources':sources}]
