@@ -16,7 +16,7 @@ function print_imageline {
         n=$(basename $f)
         echo "        $n<p>"
     fi
-	echo "        <img src=\"$f\"><br>"
+	echo "        <img src=\"$f\">"
 	echo "        <p>"
 }
 

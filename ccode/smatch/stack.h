@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #define STACK_PUSH_REALLOC_MULT 1
-#define STACK_PUSH_REALLOC_MULTVAL 1.5
-#define STACK_PUSH_INITSIZE 50
+#define STACK_PUSH_REALLOC_MULTVAL 2
+#define STACK_PUSH_INITSIZE 1
 
 #ifndef float64
 #define float64 double
