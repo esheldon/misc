@@ -4,6 +4,7 @@
 #include "config.h"
 
 struct config* config_read(const char* filename) {
+    int nread=0, expect=22;
     printf("Reading config from %s\n", filename);
     FILE* fptr=fopen(filename,"r");
     if (fptr==NULL) {
@@ -14,18 +15,22 @@ struct config* config_read(const char* filename) {
     struct config* c=calloc(1, sizeof(struct config));
 
     char key[255];
-    fscanf(fptr, "%s %s", key, c->lens_file);
-    fscanf(fptr, "%s %s", key, c->source_file);
-    fscanf(fptr, "%s %s", key, c->output_file);
-    fscanf(fptr, "%s %lf", key, &c->H0);
-    fscanf(fptr, "%s %lf", key, &c->omega_m);
-    fscanf(fptr, "%s %ld", key, &c->npts);
-    fscanf(fptr, "%s %ld", key, &c->nside);
-    fscanf(fptr, "%s %ld", key, &c->sigmacrit_style);
-    fscanf(fptr, "%s %ld", key, &c->nbin);
-    fscanf(fptr, "%s %lf", key, &c->rmin);
-    fscanf(fptr, "%s %lf", key, &c->rmax);
+    nread += fscanf(fptr, "%s %s", key, c->lens_file);
+    nread += fscanf(fptr, "%s %s", key, c->source_file);
+    nread += fscanf(fptr, "%s %s", key, c->output_file);
+    nread += fscanf(fptr, "%s %lf", key, &c->H0);
+    nread += fscanf(fptr, "%s %lf", key, &c->omega_m);
+    nread += fscanf(fptr, "%s %ld", key, &c->npts);
+    nread += fscanf(fptr, "%s %ld", key, &c->nside);
+    nread += fscanf(fptr, "%s %ld", key, &c->sigmacrit_style);
+    nread += fscanf(fptr, "%s %ld", key, &c->nbin);
+    nread += fscanf(fptr, "%s %lf", key, &c->rmin);
+    nread += fscanf(fptr, "%s %lf", key, &c->rmax);
 
+    if (nread != expect) {
+        fprintf(stderr,"expected to read %d got %d\n", expect, nread);
+        exit(EXIT_FAILURE);
+    }
     c->log_rmin = log10(c->rmin);
     c->log_rmax = log10(c->rmax);
     c->log_binsize = (c->log_rmax - c->log_rmin)/c->nbin;
