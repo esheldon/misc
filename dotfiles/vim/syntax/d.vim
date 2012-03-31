@@ -2,16 +2,18 @@
 "
 " Language:     D
 " Maintainer:   Jesse Phillips <Jesse.K.Phillips+D@gmail.com>
-" Last Change:  2010 Aug 17
-" Version:      0.20
+" Last Change:  2010 Sep 21
+" Version:      0.22
 "
 " Contributors:
 "   - Jason Mills <jasonmills@nf.sympatico.ca>: original Maintainer
-"   - Shougo Matsushita <Shougo.Matsu@gmail.com>: updates for latest 2.047 highlighting
 "   - Kirk McDonald: version 0.17 updates, with minor modifications
 "     (http://paste.dprogramming.com/dplmb7qx?view=hidelines)
 "   - Tim Keating: patch to fix a bug in highlighting the `\` literal
 "   - Frank Benoit: Fixed a bug that caused some identifiers and numbers to highlight as octal number errors.
+"   - Shougo Matsushita <Shougo.Matsu@gmail.com>: updates for latest 2.047 highlighting
+"   - Ellery Newcomer: Fixed some highlighting bugs.
+"   - Steven N. Oliver: #! highlighting
 "
 " Please email me with bugs, comments, and suggestions.
 "
@@ -85,7 +87,10 @@ syn keyword dType                  byte ubyte double bit char wchar ucent cent
 syn keyword dType                  short bool dchar wstring dstring
 syn keyword dType                  real ireal ifloat idouble
 syn keyword dType                  creal cfloat cdouble
-syn keyword dDebug                 deprecated unittest
+syn keyword dType                  float32 float64
+syn keyword dType                  int8 int16 int32 int64
+syn keyword dType                  uint8 uint16 uint32 uint64
+syn keyword dDebug                 deprecated unittest invariant
 syn keyword dExceptions            throw try catch finally
 syn keyword dScopeDecl             public protected private export
 syn keyword dStatement             debug return with
@@ -108,20 +113,26 @@ syn keyword dVersionIdentifier     contained D_Ddoc D_InlineAsm_X86
 syn keyword dVersionIdentifier     contained D_InlineAsm_X86_64 D_LP64 D_PIC
 syn keyword dVersionIdentifier     contained unittest D_Version2 none all
 
+" Highlight the sharpbang
+syn match dSharpBang "\%^#!.*"     display
+
 " Attributes/annotations
 syn match dAnnotation	"@[_$a-zA-Z][_$a-zA-Z0-9_]*\>" contains=dAttribute
 
 " Version Identifiers
-syn match dVersion	"version\s*([_a-zA-Z][_a-zA-Z0-9]*\>"he=s+7 contains=dVersionIdentifier
-syn match dVersion	"[^.]\s*\<version\>"
-syn match dVersion	"^\<version\>"
+syn match dVersion   "[^.]version" nextgroup=dVersionInside
+syn match dVersion   "^version" nextgroup=dVersionInside
+syn match dVersionInside  "([_a-zA-Z][_a-zA-Z0-9]*\>" transparent contained contains=dVersionIdentifier
+
+" Scope StorageClass
+syn match dStorageClass   "scope"
 
 " Scope Identifiers
 syn match dScope	"scope\s*([_a-zA-Z][_a-zA-Z0-9]*\>"he=s+5 contains=dScopeIdentifier
 
 " String is a statement and a module name.
-syn match dAssert "^string"
-syn match dAssert "[^.]\s*\<string\>"ms=s+1
+syn match dType "^string"
+syn match dType "[^.]\s*\<string\>"ms=s+1
 
 " Assert is a statement and a module name.
 syn match dAssert "^assert"
@@ -319,6 +330,7 @@ hi def link dNestedComment       Comment
 hi def link dExternal            Include
 hi def link dPragma              PreProc
 hi def link dAnnotation          PreProc
+hi def link dSharpBang           PreProc
 hi def link dAttribute           StorageClass
 hi def link dIdentifier          Identifier
 hi def link dVersionIdentifier   Identifier
