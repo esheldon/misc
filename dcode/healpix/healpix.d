@@ -2,6 +2,8 @@ module healpix;
 import std.stdio;
 import std.math;
 import hpoint;
+import point; // for some constants
+import stack;
 
 enum real M_TWO_PI = 6.28318530717958647693; /* 2*pi */
 enum real M_TWOTHIRD = 0.66666666666666666666;
@@ -72,6 +74,204 @@ class Healpix {
 
         return ipix;
     }
+
+    /**
+     * radius in radians
+     */
+    long disc_intersect(double ra, 
+                        double dec, 
+                        double radius, 
+                        Stack!(long)* listpix) {
+        auto p = new HPoint(ra,dec);
+        return disc_intersect(p, radius, listpix);
+    }
+    long disc_intersect(HPoint p, double radius, Stack!(long)* listpix) {
+
+        // this is from the f90 code
+        // this number is acos(2/3)
+        double fudge = 0.84106867056793033/this.nside; // 1.071* half pixel size
+
+        // this is from the c++ code
+        //double fudge = 1.362*M_PI/(4*hpix->nside);
+
+        radius += fudge;
+        disc_contains(p, radius, listpix);
+        return listpix.length;
+    }
+
+
+    /**
+     * radius in radians
+     */
+    void disc_contains(HPoint p, double radius, Stack!(long)* listpix) {
+
+        long tmp1,tmp2;
+        double cosang = cos(radius);
+
+        // this does not alter the storage
+        listpix.resize(0);
+
+        double dth1 = 1. / (3.0*nside*nside);
+        double dth2 = 2. / (3.0*nside);
+
+        double phi0=0.0;
+        if ((p.x != 0.) || (p.y != 0.)) {
+            // in (-Pi, Pi]
+            phi0 = p.phi - PI;
+        }
+        double cosphi0 = cos(phi0);
+        double a = p.x*p.x + p.y*p.y;
+
+        //     --- coordinate z of highest and lowest points in the disc ---
+        double rlat0  = asin(p.z);    // latitude in RAD of the center
+        double rlat1  = rlat0 + radius;
+        double rlat2  = rlat0 - radius;
+        double zmax;
+        if (rlat1 >=  PI_2) {
+            zmax =  1.0;
+        } else {
+            zmax = sin(rlat1);
+        }
+        long irmin = ring_num(zmax);
+        tmp1 = irmin-1;
+        irmin = (1 > tmp1) ? 1 : tmp1;
+        //irmin = max(1, irmin-1); // start from a higher point, to be safe
+
+        double zmin;
+        if (rlat2 <= -PI_2) {
+            zmin = -1.;
+        } else {
+            zmin = sin(rlat2);
+        }
+        long irmax = ring_num(zmin);
+        tmp1 = 4*nside-1;
+        tmp2 = irmax+1;
+        irmax = (tmp1 > tmp2) ? tmp1 : tmp2;
+        //irmax = min(4*nside-1, irmax + 1); // go down to a lower point
+
+        //double z, tmp=0;
+        double tmp=0;
+        for (long iz=irmin; iz<= irmax; iz++) {
+
+            double z;
+            if (iz <= nside-1) { // north polar cap
+                z = 1.  - iz*iz*dth1;
+            } else if (iz <= 3*nside) { // tropical band + equat.
+                z = (2*nside-iz) * dth2;
+            } else {
+                tmp = 4*nside-iz;
+                z = - 1. + tmp*tmp*dth1;
+            }
+            double b = cosang - z*p.z;
+            double c = 1. - z*z;
+
+            double dphi;
+            if ((p.x==0.) && (p.y==0.)) {
+                dphi=PI;
+                if (b > 0.) {
+                    goto SKIP2; // out of the disc, 2008-03-30
+                }
+                goto SKIP1;
+            } 
+
+            double cosdphi = b / sqrt(a*c);
+            if (fabs(cosdphi) <= 1.) {
+                dphi = acos(cosdphi); // in [0,Pi]
+            } else {
+                if (cosphi0 < cosdphi) {
+                    goto SKIP2; // out of the disc
+                }
+                dphi = PI; // all the pixels at this elevation are in the disc
+            }
+SKIP1:
+            in_ring(iz, phi0, dphi, listpix);
+
+SKIP2:
+            // we have to put something here
+            continue;
+
+        }
+
+
+    }
+
+    long ring_num(double z) {
+
+        // rounds double to nearest long long int
+        long iring = lrint( nside*(2.-1.5*z) );
+
+        // north cap
+        if (z > M_TWOTHIRD) {
+            iring = lrint( nside* sqrt(3.*(1.-z)) );
+            if (iring == 0) {
+                iring = 1;
+            }
+        } else if (z < -M_TWOTHIRD) {
+            iring = lrint( nside* sqrt(3.*(1.+z)) );
+
+            if (iring == 0) {
+                iring = 1;
+            }
+            iring = 4*nside - iring;
+        }
+
+        return iring;
+    }
+
+
+
+    void in_ring(long iz, 
+                 double phi0, 
+                 double dphi, 
+                 Stack!(long)* plist) {
+
+        long nr, ir, ipix1;
+        double shift=0.5;
+
+        if (iz<this.nside) {
+            // north pole
+            ir = iz;
+            nr = ir*4;
+            ipix1 = 2*ir*(ir-1);        //    lowest pixel number in the ring
+        } else if (iz>(3*this.nside)) {
+            // south pole
+            ir = 4*this.nside - iz;
+            nr = ir*4;
+            ipix1 = this.npix - 2*ir*(ir+1); // lowest pixel number in the ring
+        } else {
+            // equatorial region
+            ir = iz - this.nside + 1;           //    within {1, 2*nside + 1}
+            nr = this.nside*4;
+            if ((ir&1)==0) shift = 0;
+            ipix1 = this.ncap + (ir-1)*nr; // lowest pixel number in the ring
+        }
+
+        long ipix2 = ipix1 + nr - 1;  //    highest pixel number in the ring
+
+
+        if (dphi > (PI-1e-7)) {
+            for (long i=ipix1; i<=ipix2; ++i) {
+                plist.push(i);
+            }
+        } else {
+
+            // M_1_PI is 1/pi
+            long ip_lo = cast(long)( floor(nr*.5*M_1_PI*(phi0-dphi) - shift) )+1;
+            long ip_hi = cast(long)( floor(nr*.5*M_1_PI*(phi0+dphi) - shift) );
+            long pixnum = ip_lo+ipix1;
+            if (pixnum<ipix1) {
+                pixnum += nr;
+            }
+            for (long i=ip_lo; i<=ip_hi; ++i, ++pixnum) {
+                if (pixnum>ipix2) {
+                    pixnum -= nr;
+                }
+                plist.push(pixnum);
+            }
+        }
+
+    }
+
 
 }
 unittest 
@@ -211,4 +411,158 @@ unittest
     assert(hpix.pixelof(360.00000000,65.00000000)== 9430824);
     assert(hpix.pixelof(360.00000000,85.00000000)== 382812);
     assert(hpix.pixelof(360.00000000,90.00000000)== 0);
+
+}
+unittest
+{
+    long nside = 4096;
+    auto hpix = new Healpix(nside);
+
+    assert(hpix.ring_num(-0.75) == 12837);
+    assert(hpix.ring_num(-0.2) == 9421);
+    assert(hpix.ring_num(0.2) == 6963);
+    assert(hpix.ring_num(0.75) == 3547);
+
+}
+unittest
+{
+    long nside = 4096;
+    auto hpix = new Healpix(nside);
+
+    Stack!(long) pixlist;
+
+    double rad_arcmin=40.0/60.;
+    double rad = rad_arcmin/60.*D2R;
+
+    assert(hpix.disc_intersect(0.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(0.000000,-85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,-65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,-45.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,-5.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,5.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,45.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(0.000000,90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(40.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(40.000000,-85.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(40.000000,-65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(40.000000,-45.000000,rad,&pixlist)==10);
+    assert(hpix.disc_intersect(40.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(40.000000,-5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(40.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(40.000000,5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(40.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(40.000000,45.000000,rad,&pixlist)==10);
+    assert(hpix.disc_intersect(40.000000,65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(40.000000,85.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(40.000000,90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(80.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(80.000000,-85.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(80.000000,-65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(80.000000,-45.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(80.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(80.000000,-5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(80.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(80.000000,5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(80.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(80.000000,45.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(80.000000,65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(80.000000,85.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(80.000000,90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(120.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(120.000000,-85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(120.000000,-65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(120.000000,-45.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(120.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(120.000000,-5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(120.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(120.000000,5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(120.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(120.000000,45.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(120.000000,65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(120.000000,85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(120.000000,90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(160.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(160.000000,-85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(160.000000,-65.000000,rad,&pixlist)==10);
+    assert(hpix.disc_intersect(160.000000,-45.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(160.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(160.000000,-5.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(160.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(160.000000,5.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(160.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(160.000000,45.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(160.000000,65.000000,rad,&pixlist)==10);
+    assert(hpix.disc_intersect(160.000000,85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(160.000000,90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(200.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(200.000000,-85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(200.000000,-65.000000,rad,&pixlist)==10);
+    assert(hpix.disc_intersect(200.000000,-45.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(200.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(200.000000,-5.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(200.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(200.000000,5.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(200.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(200.000000,45.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(200.000000,65.000000,rad,&pixlist)==10);
+    assert(hpix.disc_intersect(200.000000,85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(200.000000,90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(240.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(240.000000,-85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(240.000000,-65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(240.000000,-45.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(240.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(240.000000,-5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(240.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(240.000000,5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(240.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(240.000000,45.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(240.000000,65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(240.000000,85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(240.000000,90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(280.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(280.000000,-85.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(280.000000,-65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(280.000000,-45.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(280.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(280.000000,-5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(280.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(280.000000,5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(280.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(280.000000,45.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(280.000000,65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(280.000000,85.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(280.000000,90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(320.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(320.000000,-85.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(320.000000,-65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(320.000000,-45.000000,rad,&pixlist)==10);
+    assert(hpix.disc_intersect(320.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(320.000000,-5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(320.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(320.000000,5.000000,rad,&pixlist)==7);
+    assert(hpix.disc_intersect(320.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(320.000000,45.000000,rad,&pixlist)==10);
+    assert(hpix.disc_intersect(320.000000,65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(320.000000,85.000000,rad,&pixlist)==9);
+    assert(hpix.disc_intersect(320.000000,90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(360.000000,-90.000000,rad,&pixlist)==12);
+    assert(hpix.disc_intersect(360.000000,-85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,-65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,-45.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,-25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,-5.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,0.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,5.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,25.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,45.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,65.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,85.000000,rad,&pixlist)==8);
+    assert(hpix.disc_intersect(360.000000,90.000000,rad,&pixlist)==12);
+
 }
