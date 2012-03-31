@@ -1,13 +1,3 @@
-To compile the test program
-----------------------------
-
-python build.py
-
-To clean up
-
-python build.py clean
-
-
 Typical usage
 -------------
 
@@ -53,4 +43,18 @@ Usage for getting and setting values
 
 
 
+To compile the test program
+------------------------------------------------
+
+    python build.py
+
+To clean up
+
+    python build.py clean
+
+Or if the fabricate.py won't work for you on OS X, just
+do it by hand
+
+    g++ -c ConfigFile.cpp 
+    g++ -o test ConfigFile.o test.cpp 
 

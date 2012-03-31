@@ -157,7 +157,7 @@ if exists("c_gnu")
 endif
 syn keyword	cType		int long short char void
 syn keyword	cType		signed unsigned float double
-" My typedefs E.S.S. plus some C++ classes
+" My typedefs ESS plus some C++ classes
 syn keyword     cType           int8 uint8 int16 uint16 int32 uint32 int64 uint64 float32 float64
 syn keyword     cType           string vector
 if !exists("c_no_ansi") || exists("c_ansi_typedefs")
