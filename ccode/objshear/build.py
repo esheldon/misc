@@ -84,7 +84,7 @@ def compile():
 def link():
     for prog in programs:
         objects = [s+'.o' for s in prog['sources']]
-        run(CC,LINKFLAGS,'-o', prog['name'], objects)
+        run(CC,'-o', prog['name'], objects,LINKFLAGS)
 
 def clean():
     autoclean()

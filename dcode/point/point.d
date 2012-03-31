@@ -1,9 +1,8 @@
 module point;
-
 import std.math;
 
-enum real R2D = PI/180.;
-enum real D2R = 180.0/PI;
+enum real D2R = PI/180.;
+enum real R2D = 180.0/PI;
 
 class Point {
     double x;
@@ -36,6 +35,11 @@ class Point {
 
     double dot(in Point p) {
         return this.x*p.x + this.y*p.y + this.z*p.z;
+    }
+
+    @property double phi() {
+        double t = atan2(y,x) - PI;
+        return t;
     }
 }
 

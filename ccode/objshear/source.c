@@ -74,6 +74,7 @@ struct scat* scat_new(size_t n_source) {
 }
 
 struct scat* scat_read(const char* filename) {
+    size_t nread=0;
     printf("Reading sources from %s\n", filename);
     FILE* fptr=fopen(filename,"r");
     if (fptr==NULL) {
@@ -83,7 +84,7 @@ struct scat* scat_read(const char* filename) {
 
 
     int64 sigmacrit_style;
-    fread(&sigmacrit_style, sizeof(int64), 1, fptr);
+    nread=fread(&sigmacrit_style, sizeof(int64), 1, fptr);
 
 #ifndef WITH_TRUEZ
     if (sigmacrit_style != 2) {
@@ -92,12 +93,12 @@ struct scat* scat_read(const char* filename) {
     }
 
     int64 n_zlens;
-    fread(&n_zlens, sizeof(int64), 1, fptr);
+    nread=fread(&n_zlens, sizeof(int64), 1, fptr);
     printf("    Reading %ld zlens values: ", n_zlens);
 
     // using a temporary variable since scat is not yet allocated
     struct f64vector* zlens = f64vector_new(n_zlens);
-    fread(&zlens->data[0], sizeof(double), n_zlens, fptr);
+    nread=fread(&zlens->data[0], sizeof(double), n_zlens, fptr);
 
     printf(" %lf %lf\n", zlens->data[0], zlens->data[n_zlens-1]);
 
@@ -111,7 +112,7 @@ struct scat* scat_read(const char* filename) {
 
 
     int64 nsource;
-    fread(&nsource, sizeof(int64), 1, fptr);
+    nread=fread(&nsource, sizeof(int64), 1, fptr);
     printf("Reading %ld sources\n", nsource);
     printf("    creating scat...");
 
@@ -132,11 +133,11 @@ struct scat* scat_read(const char* filename) {
     struct source* src = &scat->data[0];
     double ra_rad,dec_rad;
     for (size_t i=0; i<scat->size; i++) {
-        fread(&src->ra, sizeof(double), 1, fptr);
-        fread(&src->dec, sizeof(double), 1, fptr);
-        fread(&src->g1, sizeof(double), 1, fptr);
-        fread(&src->g2, sizeof(double), 1, fptr);
-        fread(&src->err, sizeof(double), 1, fptr);
+        nread=fread(&src->ra, sizeof(double), 1, fptr);
+        nread=fread(&src->dec, sizeof(double), 1, fptr);
+        nread=fread(&src->g1, sizeof(double), 1, fptr);
+        nread=fread(&src->g2, sizeof(double), 1, fptr);
+        nread=fread(&src->err, sizeof(double), 1, fptr);
 
         //src->g1 = -src->g1;
 
@@ -144,10 +145,10 @@ struct scat* scat_read(const char* filename) {
 
         // read the full inverse critical density for
         // interpolation.  Note these are already allocated
-        fread(&src->scinv->data[0], sizeof(double), n_zlens, fptr);
+        nread=fread(&src->scinv->data[0], sizeof(double), n_zlens, fptr);
 
 #else
-        fread(&src->z, sizeof(double), 1, fptr);
+        nread=fread(&src->z, sizeof(double), 1, fptr);
 
 #endif
 
@@ -167,6 +168,7 @@ struct scat* scat_read(const char* filename) {
 
         src++;
     }
+    printf("total reads: %lu\n", nread);
     printf("OK\n");
 
     return scat;
