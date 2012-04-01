@@ -82,10 +82,10 @@ class Healpix {
                         double dec, 
                         double radius, 
                         Stack!(long)* listpix) {
-        auto p = new HPoint(ra,dec);
+        auto p = new Point(ra,dec);
         return disc_intersect(p, radius, listpix);
     }
-    long disc_intersect(HPoint p, double radius, Stack!(long)* listpix) {
+    long disc_intersect(Point p, double radius, Stack!(long)* listpix) {
 
         // this is from the f90 code
         // this number is acos(2/3)
@@ -103,7 +103,7 @@ class Healpix {
     /**
      * radius in radians
      */
-    void disc_contains(HPoint p, double radius, Stack!(long)* listpix) {
+    void disc_contains(Point p, double radius, Stack!(long)* listpix) {
 
         long tmp1,tmp2;
         double cosang = cos(radius);
@@ -274,6 +274,12 @@ SKIP2:
 
 
 }
+
+
+
+
+
+
 unittest 
 {
     long nside = 4096;
