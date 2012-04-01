@@ -12,4 +12,6 @@ fi
 if [[ $todo == "pixelof" || $todo == "all" ]]; then 
     rdmd --build-only -w -I../point -I../stack pixelof.d healpix.d
 fi
-
+if [[ $todo == "intersect" || $todo == "all" ]]; then 
+    rdmd --build-only -w -I../point -I../stack intersect.d
+fi
