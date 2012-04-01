@@ -119,7 +119,8 @@ class Healpix {
         double phi0=0.0;
         if ((p.x != 0.) || (p.y != 0.)) {
             // in (-Pi, Pi]
-            phi0 = p.phi - PI;
+            phi0 = p.phi;
+            //phi0 = atan2(p.y,p.x);
         }
         double cosphi0 = cos(phi0);
         double a = p.x*p.x + p.y*p.y;

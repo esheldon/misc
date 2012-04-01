@@ -46,9 +46,9 @@ class Cat {
 
         Stack!(long) pixlist;
         hpix = new Healpix(nside);
-        writefln("area: %.10g linscale(arcsec): %.10g", 
+        stderr.writefln("area: %.10g linscale(arcsec): %.10g", 
                  hpix.area,sqrt(hpix.area)*R2D*3600.);
-        writefln("rad(arcsec): %s rad(radians): %s",rad_arcsec,rad_radians);
+        stderr.writefln("rad(arcsec): %s rad(radians): %s",rad_arcsec,rad_radians);
         long index=0;
         while (2 == std.c.stdio.fscanf(file.getFP(),"%lf %lf\n", &ra, &dec)) {
 
@@ -58,17 +58,11 @@ class Cat {
                 cos_radius = cos(rad_radians);
             }
 
-            auto this_pix = hpix.pixelof(ra,dec);
             auto p = new CatPoint(ra,dec,index,cos_radius);
             hpix.disc_intersect(p, rad_radians, &pixlist);
 
-            stderr.writeln("pixlist size: ",pixlist.length);
-            bool this_found=false;
             for (size_t i=0; i<pixlist.length; i++) {
                 long pix=pixlist[i];
-                if (pix == this_pix) {
-                    this_found=true;
-                }
 
                 auto cps = (pix in pdict);
                 if (cps) {
@@ -78,13 +72,6 @@ class Cat {
                     pdict[pix] = Stack!CatPoint();
                     pdict[pix].push(p);
                 }
-            }
-            if (!this_found) {
-                stderr.writefln("didn't find my own pixel (%s)", this_pix);
-                foreach (tpix; pixlist) {
-                    stderr.writefln("    %s", tpix);
-                }
-                throw new Exception("halting");
             }
             index++;
         }
@@ -99,7 +86,6 @@ class Cat {
         if (idstack) {
             foreach (cat_point; *idstack) {
                 double cos_angle = cat_point.dot(pt);
-                writefln("%.16g %.16g", cos_angle, cat_point.cos_radius);
                 if (cos_angle > cat_point.cos_radius) {
                     matches.push(cat_point.index);
                 }

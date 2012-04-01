@@ -30,31 +30,6 @@
 
 
 
-void print_matches(size_t index, struct matchstack* matches, int64 maxmatch, 
-                   int64 print_dist) {
-
-    struct match* match=NULL;
-
-    if (matches->size > 0) {
-        if (maxmatch > 0) {
-            if (maxmatch < matches->size) {
-                // not keeping all, sort and keep the closest matches
-                matchstack_sort(matches);
-                matchstack_resize(matches, maxmatch);
-            }
-        }
-        match=&matches->data[0];
-        for (size_t i=0; i<matches->size; i++) {
-            printf("%ld %ld", index, match->index);
-            if (print_dist) {
-                printf(" %.16g", cos(match->cosdist)*R2D);
-            }
-            printf("\n");
-            match++;
-        }
-    }
-
-}
 /* need -std=gnu99 since c99 doesn't have getopt */
 const char* process_args(
         int argc, char** argv, 
@@ -109,6 +84,32 @@ const char* process_args(
         exit(EXIT_FAILURE);
     }
     return argv[optind];
+}
+
+void print_matches(size_t index, struct matchstack* matches, int64 maxmatch, 
+                   int64 print_dist) {
+
+    struct match* match=NULL;
+
+    if (matches->size > 0) {
+        if (maxmatch > 0) {
+            if (maxmatch < matches->size) {
+                // not keeping all, sort and keep the closest matches
+                matchstack_sort(matches);
+                matchstack_resize(matches, maxmatch);
+            }
+        }
+        match=&matches->data[0];
+        for (size_t i=0; i<matches->size; i++) {
+            printf("%lu %ld", index, match->index);
+            if (print_dist) {
+                printf(" %.16g", acos(match->cosdist)*R2D);
+            }
+            printf("\n");
+            match++;
+        }
+    }
+
 }
 
 int main(int argc, char** argv) {
