@@ -6,6 +6,7 @@ import point;
 import stack;
 import healpix;
 import hpoint;
+import match;
 
 class CatPoint : Point {
     // we inherit x,y,z from Point
@@ -16,17 +17,6 @@ class CatPoint : Point {
         this.index=index;
         this.cos_radius = cos_radius;
         super(ra,dec);
-
-        // note this gives the same x,y,z as for the superclass Point
-        /*
-        double phi = ra*D2R;
-        double theta = PI_2 -dec*D2R;
-
-        double sintheta = sin(theta);
-        x = sintheta * cos(phi);
-        y = sintheta * sin(phi);
-        z = cos(theta);
-        */
     }
 }
 
@@ -78,7 +68,7 @@ class Cat {
     }
 
 
-    void match(HPoint pt, Stack!long* matches) {
+    void match(HPoint pt, Stack!(Match)* matches) {
         matches.resize(0);
         auto hpixid = hpix.pixelof(pt);
 
@@ -87,7 +77,7 @@ class Cat {
             foreach (cat_point; *idstack) {
                 double cos_angle = cat_point.dot(pt);
                 if (cos_angle > cat_point.cos_radius) {
-                    matches.push(cat_point.index);
+                    matches.push(Match(cat_point.index,cos_angle));
                 }
             }
         }

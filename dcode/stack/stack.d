@@ -46,30 +46,6 @@ struct Stack(T) {
         return ret;
     }
 
-    int opApply(int delegate(ref T) dg)
-    {
-        int result = 0;
-
-        for (size_t i = 0; i < _size; i++)
-        {
-            result = dg(_data[i]);
-            if (result)
-                break;
-        }
-        return result;
-    }
-    int opApplyReverse(int delegate(ref T) dg)
-    {
-        int result = 0;
-
-        for (size_t i = (_size-1); i >= 0; i--)
-        {
-            result = dg(_data[i]);
-            if (result)
-                break;
-        }
-        return result;
-    }
 
     size_t push(T el) {
         if (this._size == this._capacity) {
@@ -128,6 +104,40 @@ struct Stack(T) {
             _size=n;
         }
         return _size;
+    }
+
+    void sort() {
+        // only sort the visible objects
+        if (_size > 0) {
+            this._data[0.._size].sort;
+        }
+    }
+
+
+
+    int opApply(int delegate(ref T) dg)
+    {
+        int result = 0;
+
+        for (size_t i = 0; i < _size; i++)
+        {
+            result = dg(_data[i]);
+            if (result)
+                break;
+        }
+        return result;
+    }
+    int opApplyReverse(int delegate(ref T) dg)
+    {
+        int result = 0;
+
+        for (size_t i = (_size-1); i >= 0; i--)
+        {
+            result = dg(_data[i]);
+            if (result)
+                break;
+        }
+        return result;
     }
 
 }

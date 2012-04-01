@@ -87,6 +87,8 @@ syn keyword dType                  byte ubyte double bit char wchar ucent cent
 syn keyword dType                  short bool dchar wstring dstring
 syn keyword dType                  real ireal ifloat idouble
 syn keyword dType                  creal cfloat cdouble
+" ESS
+syn keyword dType                  size_t ptrdiff_t
 syn keyword dType                  float32 float64
 syn keyword dType                  int8 int16 int32 int64
 syn keyword dType                  uint8 uint16 uint32 uint64
