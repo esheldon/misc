@@ -10,7 +10,9 @@ parser = optparse.OptionParser()
 optlist=[optparse.Option('-p','--prefix',default=sys.exec_prefix,
                          help="where to install"),
          optparse.Option('-d','--debug',action="store_true",
-                         help="turn on debugging (assert)")]
+                         help="turn on debugging (assert)"),
+         optparse.Option('--pixelof',action="store_true",
+                         help="make the pixelof executable")]
 parser.add_options(optlist)
 
 options,args = parser.parse_args()
@@ -30,8 +32,11 @@ if not options.debug:
 sources = ['alloc','healpix','matchstack','point_hash','ptrstack','stack',
            'cat','files','smatch']
 
-
 programs = [{'name':'smatch', 'sources':sources}]
+
+if options.pixelof:
+    p_sources = ['alloc','healpix','stack', 'pixelof']
+    programs.append({'name':'pixelof','sources':p_sources})
 
 install_targets = [(prog['name'],'bin') for prog in programs]
 
@@ -47,7 +52,7 @@ def compile():
 def link():
     for prog in programs:
         objects = [s+'.o' for s in prog['sources']]
-        run(CC,LINKFLAGS,'-o', prog['name'], objects)
+        run(CC,'-o', prog['name'], objects,LINKFLAGS)
 
 def clean():
     autoclean()

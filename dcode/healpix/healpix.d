@@ -92,7 +92,9 @@ class Healpix {
         double fudge = 0.84106867056793033/this.nside; // 1.071* half pixel size
 
         // this is from the c++ code
-        //double fudge = 1.362*M_PI/(4*hpix->nside);
+        //double fudge = 1.362*PI/(4*nside);
+
+        //double fudge = sqrt(area);
 
         radius += fudge;
         disc_contains(p, radius, listpix);
@@ -285,6 +287,7 @@ unittest
     long nside = 4096;
     auto hpix = new Healpix(nside);
 
+    writeln("hpix: doing pixelof unit test");
     assert(hpix.pixelof(0.00000000,-90.00000000)== 201326588);
     assert(hpix.pixelof(0.00000000,-85.00000000)== 200942028);
     assert(hpix.pixelof(0.00000000,-65.00000000)== 191887080);
@@ -424,6 +427,7 @@ unittest
     long nside = 4096;
     auto hpix = new Healpix(nside);
 
+    writeln("hpix: doing ring num unit test");
     assert(hpix.ring_num(-0.75) == 12837);
     assert(hpix.ring_num(-0.2) == 9421);
     assert(hpix.ring_num(0.2) == 6963);
@@ -440,6 +444,7 @@ unittest
     double rad_arcmin=40.0/60.;
     double rad = rad_arcmin/60.*D2R;
 
+    writeln("hpix: doing intersect unit test");
     assert(hpix.disc_intersect(0.000000,-90.000000,rad,&pixlist)==12);
     assert(hpix.disc_intersect(0.000000,-85.000000,rad,&pixlist)==8);
     assert(hpix.disc_intersect(0.000000,-65.000000,rad,&pixlist)==8);

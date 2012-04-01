@@ -7,6 +7,7 @@ class HPoint : Point {
     double phi;
     double theta;
 
+    this() {}
     this(double ra, double dec) {
         set(ra,dec);
     }
