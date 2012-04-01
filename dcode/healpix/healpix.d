@@ -414,8 +414,9 @@ unittest
     assert(hpix.pixelof(360.00000000,-5.00000000)== 109420544);
 
     // precision issues make this not exactly same as the C code
-    //assert(hpix.pixelof(360.00000000,5.00000000)== 91889664);
+    //assert(hpix.pixelof(360.00000000,0.00000000)== 100638720);
 
+    assert(hpix.pixelof(360.00000000,5.00000000)== 91889664);
     assert(hpix.pixelof(360.00000000,25.00000000)== 58105856);
     assert(hpix.pixelof(360.00000000,45.00000000)== 29483520);
     assert(hpix.pixelof(360.00000000,65.00000000)== 9430824);
