@@ -1,0 +1,11 @@
+action=build
+if [[ $# -eq 1 ]]; then
+    action=$1
+fi
+
+if [[ $action == "test" ]]; then
+    rdmd --main -unittest -w -I../healpix -I../point -I../stack cat.d
+else
+    # is this right?
+    rdmd --build-only -w -I../healpix -I../point -I../stack cat.d smatch.d
+fi
