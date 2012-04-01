@@ -5,6 +5,7 @@ if [[ $# -eq 1 ]]; then
 fi
 
 if [[ $todo == "test" || $todo == "all" ]]; then
+    # this also runst test in match.d
     rdmd --main -unittest -w -I../healpix -I../point -I../stack cat.d
 fi
 if [[ $todo == "pixelof" || $todo == "all" ]]; then 
