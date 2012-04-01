@@ -48,6 +48,16 @@ struct healpix* hpix_delete(struct healpix* hpix) {
 
 // ra,dec in degrees
 // radius in radians
+void hpix_disc_intersect_radec(
+        const struct healpix* hpix,
+        double ra, double dec, double radius, 
+        struct i64stack* listpix) {
+
+    double x,y,z;
+    hpix_eq2xyz(ra, dec, &x, &y, &z);
+    hpix_disc_intersect(hpix, x, y, z, radius, listpix);
+}
+
 void hpix_disc_intersect(
         const struct healpix* hpix,
         double x0, double y0, double z0, double radius, 

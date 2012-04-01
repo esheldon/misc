@@ -40,6 +40,10 @@ int64 hpix_eq2pix(const struct healpix* hpix, double ra, double dec);
    ra,dec - degrees
    radius - radians
  */
+void hpix_disc_intersect_radec(
+        const struct healpix* hpix,
+        double ra, double dec, double radius, 
+        struct i64stack* listpix);
 void hpix_disc_intersect(
         const struct healpix* hpix,
         double x, double y, double z, double radius, 

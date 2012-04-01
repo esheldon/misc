@@ -12,7 +12,9 @@ optlist=[optparse.Option('-p','--prefix',default=sys.exec_prefix,
          optparse.Option('-d','--debug',action="store_true",
                          help="turn on debugging (assert)"),
          optparse.Option('--pixelof',action="store_true",
-                         help="make the pixelof executable")]
+                         help="make the pixelof executable"),
+         optparse.Option('--intersect',action="store_true",
+                         help="make the intersect executable")]
 parser.add_options(optlist)
 
 options,args = parser.parse_args()
@@ -37,6 +39,10 @@ programs = [{'name':'smatch', 'sources':sources}]
 if options.pixelof:
     p_sources = ['alloc','healpix','stack', 'pixelof']
     programs.append({'name':'pixelof','sources':p_sources})
+if options.intersect:
+    p_sources = ['alloc','healpix','stack', 'intersect']
+    programs.append({'name':'intersect','sources':p_sources})
+
 
 install_targets = [(prog['name'],'bin') for prog in programs]
 
