@@ -95,8 +95,6 @@ const char* process_args(
         "use smaller list as file2 and stream the larger\n"
         "each line of output is index1 index2\n\n"
         "Also, if there are dups in one list, send that on stdin\n\n"
-        "Note currently only works for keeping all matches\n\n"
-        "options:\n"
         "  -r rad   search radius in arcsec. If not sent, must be third \n"
         "           column in file2, in which case it can be different \n"
         "           for each point.\n"

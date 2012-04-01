@@ -36,8 +36,8 @@ int _cat_get_radius(double radius_arcsec,
                     double* cos_radius_global);
 
 void repeat_char(char c, int n);
-inline void incr_bar(size_t this_index, 
-                     size_t ntot, 
-                     size_t ntoprint, 
-                     char c);
+void incr_bar(size_t this_index, 
+              size_t ntot, 
+              size_t ntoprint, 
+              char c);
 #endif

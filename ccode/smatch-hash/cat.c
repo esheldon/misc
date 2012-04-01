@@ -165,10 +165,10 @@ void repeat_char(char c, int n) {
         fputc(c,stderr);
     }
 }
-inline void incr_bar(size_t this_index, 
-                     size_t ntot, 
-                     size_t ntoprint, 
-                     char c)
+void incr_bar(size_t this_index, 
+              size_t ntot, 
+              size_t ntoprint, 
+              char c)
 {
     if ( this_index % (ntot/ntoprint) != 0 ) 
         return;
