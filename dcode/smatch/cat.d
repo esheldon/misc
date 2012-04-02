@@ -20,7 +20,6 @@ class CatPoint : Point {
     }
 }
 
-
 class Cat {
 
     // a dictionary keyed by longs (htmid) and with values a stack of Points
@@ -36,10 +35,8 @@ class Cat {
 
         Stack!(long) pixlist;
         hpix = new Healpix(nside);
-        stderr.writefln("area: %.10g linscale(arcsec): %.10g", 
-                 hpix.area,sqrt(hpix.area)*R2D*3600.);
-        stderr.writefln("rad(arcsec): %s rad(radians): %s",rad_arcsec,rad_radians);
         long index=0;
+
         while (2 == std.c.stdio.fscanf(file.getFP(),"%lf %lf\n", &ra, &dec)) {
 
             if (rad_in_file) {
@@ -49,29 +46,34 @@ class Cat {
             }
 
             auto p = new CatPoint(ra,dec,index,cos_radius);
+
             hpix.disc_intersect(p, rad_radians, &pixlist);
 
             for (size_t i=0; i<pixlist.length; i++) {
                 long pix=pixlist[i];
-
                 auto cps = (pix in pdict);
                 if (cps) {
                     cps.push(p);
-                    //pdict[pix].push(p);
                 } else {
-                    pdict[pix] = Stack!CatPoint();
-                    pdict[pix].push(p);
+                    // all the time is spent here
+                    // creation of the stack is about 400ms out of 4s, so
+                    // factor of 8 quicker.  Insertion is the slow part
+                    // docs say insertion may invoke the garbage collector
+                    // I tried implementing a tree but it was even slower
+                    // also because of GC
+                    // maybe we could use a had table from C, but then what's
+                    // the point?
+                    pdict[pix] = Stack!(CatPoint)(p);
                 }
             }
             index++;
         }
     }
 
-
     void match(HPoint pt, Stack!(Match)* matches) {
         matches.resize(0);
         auto hpixid = hpix.pixelof(pt);
-
+        writeln(hpixid);
         auto idstack = (hpixid in pdict);
         if (idstack) {
             foreach (cat_point; *idstack) {

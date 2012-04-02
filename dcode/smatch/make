@@ -12,5 +12,8 @@ if [[ $todo == "pixelof" || $todo == "all" ]]; then
     rdmd --build-only -w -I../healpix -I../point -I../stack pixelof.d
 fi
 if [[ $todo == "smatch" || $todo == "all" ]]; then 
-    rdmd --build-only -w -I../healpix -I../point -I../stack smatch.d cat.d
+    rdmd --build-only -O -w -noboundscheck \
+        -I../healpix -I../point -I../stack smatch.d
+    #rdmd --build-only -O -w \
+    #    -I../healpix -I../point -I../stack smatch.d
 fi

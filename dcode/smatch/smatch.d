@@ -52,7 +52,7 @@ int procargs(string[] args,
            "help|h", &help,
            "nside|n", nside, 
            "maxmatch|m", maxmatch,
-           "rad|r", rad_arcsec,
+           "radius|r", rad_arcsec,
            "printdist|d",print_dist,
            "verbose|v",verbose);
 
@@ -115,6 +115,7 @@ int main(string[] args)
     auto point = new HPoint();
     double ra,dec;
 
+    stderr.writeln("processing stream");
     while (2 == std.c.stdio.scanf("%lf %lf", &ra, &dec)) {
         point.set(ra,dec);
         cat.match(point, &matches);
