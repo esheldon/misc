@@ -2,8 +2,6 @@ Quick look Queue
 
     - matching DES shear catalogs
         - coadd with SE. save index into coadd columns db
-        - done: truth with SE. save index into truth files
-
 
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
@@ -46,21 +44,15 @@ Quick look Queue
 
 
     - catalog for peter
-    - sobjshear
+    - sobjshear hadoop
         - do we need the index-tab at beginning? Can we just use zindex-tab?
-        - would like to know *effective* p(z) for the sources used, in weighted
-          sense.  Difficult because we don't actually have p(z) only the sigma
-          crit as a function of zlens.
 
     - get wood delivered
     - get details on pre-matching in mangle
     - add match structures and sorting to smatch
     - do a r < 21.8 run (sample s06)
 
-    - new redmapper. stack multiple centers
     - faster masking edge stuff
-
-    - Default to fs='hdfs'?
 
     - Think about masking bias
     - Are our bright star masks aggressive enough?

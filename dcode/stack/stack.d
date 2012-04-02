@@ -11,7 +11,10 @@ struct Stack(T) {
     this(size_t n) {
         _data.length = n;
     }
-
+    this (T el) {
+        _data.length = 1;
+        _data[0] = el;
+    }
     @property size_t length() {
         return _size;
     }

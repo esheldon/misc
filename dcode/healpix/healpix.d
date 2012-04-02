@@ -5,6 +5,7 @@ import hpoint;
 import point; // for some constants
 import stack;
 
+
 enum real M_TWO_PI = 6.28318530717958647693; /* 2*pi */
 enum real M_TWOTHIRD = 0.66666666666666666666;
 
@@ -149,7 +150,7 @@ class Healpix {
         long irmax = ring_num(zmin);
         tmp1 = 4*nside-1;
         tmp2 = irmax+1;
-        irmax = (tmp1 > tmp2) ? tmp1 : tmp2;
+        irmax = (tmp1 < tmp2) ? tmp1 : tmp2;
         //irmax = min(4*nside-1, irmax + 1); // go down to a lower point
 
         //double z, tmp=0;
@@ -167,7 +168,6 @@ class Healpix {
             }
             double b = cosang - z*p.z;
             double c = 1. - z*z;
-
             double dphi;
             if ((p.x==0.) && (p.y==0.)) {
                 dphi=PI;
@@ -176,7 +176,6 @@ class Healpix {
                 }
                 goto SKIP1;
             } 
-
             double cosdphi = b / sqrt(a*c);
             if (fabs(cosdphi) <= 1.) {
                 dphi = acos(cosdphi); // in [0,Pi]
@@ -195,7 +194,13 @@ SKIP2:
 
         }
 
-
+        /*
+        writeln("t1: ", t1);
+        writeln("t2: ", t2);
+        writeln("t3: ", t3);
+        writeln("t4: ", t4);
+        writeln("--------------");
+        */
     }
 
     long ring_num(double z) {
