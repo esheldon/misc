@@ -5,7 +5,7 @@ using Math;
 const double D2R = PI/180.0;
 const double R2D = 180.0/PI;
 
-class Point : GLib.Object {
+public class Point : GLib.Object {
     public double x;
     public double y;
     public double z;
