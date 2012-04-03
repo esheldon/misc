@@ -1,0 +1,7 @@
+#!/bin/bash
+valac -X -lm --pkg gee-1.0 \
+    -o test \
+    test.vala \
+    cat.vala \
+    ../healpix/healpix.vala \
+    ../point/point.vala

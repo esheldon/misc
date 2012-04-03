@@ -6,54 +6,11 @@ using Gee;
 // 2^28 : largest nside available
 const long NS_MAX = 268435456;
 
-const double D2R = PI/180.0;
-const double R2D = 180.0/PI;
 const double M_TWO_PI   = 6.28318530717958647693; /* 2*pi */
 const double M_TWOTHIRD = 0.66666666666666666666;
 const double M_1_PI     = 0.31830988618379067154; /* 1/pi */
 
 
-
-class Point : GLib.Object {
-    public double x;
-    public double y;
-    public double z;
-
-    public Point() {}
-    public Point.from_xyz(double x, double y, double z) {
-        this.x=x;
-        this.y=y;
-        this.z=z;
-    }
-    public Point.from_radec(double ra, double dec) {
-        set_radec(ra,dec);
-    }
-    public void set_xyz(double x, double y, double z) {
-        this.x=x;
-        this.y=y;
-        this.z=z;
-    }
-    public void set_radec(double ra, double dec) {
-        double cdec;
-
-        ra *= D2R;
-        dec *= D2R;
-
-        cdec = cos(dec);
-        x = cdec*cos(ra);
-        y = cdec*sin(ra);
-        z = sin(dec);
-    }
-
-    public double dot(Point p) {
-        return this.x*p.x + this.y*p.y + this.z*p.z;
-    }
-
-    /* Property */
-    public double phi {
-        get { return atan2(y,x); }
-    }
-}
 class HPoint : Point {
     public new double phi;
     public double theta;
@@ -267,13 +224,6 @@ class Healpix : GLib.Object {
 
         }
 
-        /*
-        writeln("t1: ", t1);
-        writeln("t2: ", t2);
-        writeln("t3: ", t3);
-        writeln("t4: ", t4);
-        writeln("--------------");
-        */
     }
 
 
