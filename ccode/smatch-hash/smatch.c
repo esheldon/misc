@@ -78,7 +78,8 @@ const char* process_args(
         "  -m maxmatch\n"
         "           maximum number of matches.  Default is 1.  \n"
         "           maxmatch=0 means return all matches\n"
-        "  -d       print out the distance in degrees in the third column\n"
+        "  -d       print out 1-cos(d) where d is the separation \n"
+        "           in the third column\n"
         "  -v       print out info and progress in stderr\n");
 
         exit(EXIT_FAILURE);
@@ -103,7 +104,7 @@ void print_matches(size_t index, struct matchstack* matches, int64 maxmatch,
         for (size_t i=0; i<matches->size; i++) {
             printf("%lu %ld", index, match->index);
             if (print_dist) {
-                printf(" %.16g", acos(match->cosdist)*R2D);
+                printf(" %.16g", 1.0-match->cosdist);
             }
             printf("\n");
             match++;

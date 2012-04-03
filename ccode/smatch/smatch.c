@@ -254,7 +254,7 @@ void print_matches(size_t index, struct matchstack* matches, int64 maxmatch,
         for (size_t i=0; i<matches->size; i++) {
             printf("%ld %ld", index, match->index);
             if (print_dist) {
-                printf(" %.16g", cos(match->cosdist)*R2D);
+                printf(" %.16g", 1.0-match->cosdist);
             }
             printf("\n");
             match++;
