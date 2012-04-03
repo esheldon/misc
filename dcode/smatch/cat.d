@@ -57,11 +57,11 @@ class Cat {
                 } else {
                     // all the time is spent here
                     // creation of the stack is about 400ms out of 4s, so
-                    // factor of 8 quicker.  Insertion is the slow part
+                    // factor of 10 quicker.  Insertion is the slow part
                     // docs say insertion may invoke the garbage collector
                     // I tried implementing a tree but it was even slower
                     // also because of GC
-                    // maybe we could use a had table from C, but then what's
+                    // maybe we could use a hash from C, but then what's
                     // the point?
                     pdict[pix] = Stack!(CatPoint)(p);
                 }
