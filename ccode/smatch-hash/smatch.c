@@ -20,6 +20,9 @@
  * But note memory usage grows with nside, especially
  * when fairly large match radii are used
  *
+ * Note this is about 20% faster than the tree version
+ *
+ *
  */
 #include <stdio.h>
 #include <stdlib.h>
