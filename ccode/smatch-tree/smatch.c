@@ -240,6 +240,7 @@ void process_radec(struct cat* cat, double ra, double dec,
 void print_matches(size_t index, struct matchstack* matches, int64 maxmatch, 
                    int64 print_dist) {
 
+    double cdistmod=0;
     struct match* match=NULL;
 
     if (matches->size > 0) {
@@ -254,7 +255,9 @@ void print_matches(size_t index, struct matchstack* matches, int64 maxmatch,
         for (size_t i=0; i<matches->size; i++) {
             printf("%ld %ld", index, match->index);
             if (print_dist) {
-                printf(" %.16g", 1.0-match->cosdist);
+                cdistmod = 1.0-match->cosdist;
+                if (cdistmod < 0.) cdistmod=0.;
+                printf(" %.16g", cdistmod);
             }
             printf("\n");
             match++;
