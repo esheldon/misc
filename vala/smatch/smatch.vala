@@ -21,7 +21,7 @@ void print_matches(size_t index,
             match = matches[(int)i];
             stdout.printf("%lu %ld", index, match.index);
             if (print_dist) {
-                stdout.printf(" %.16g", acos(match.cos_dist)*R2D);
+                stdout.printf(" %.16g", 1.0-match.cos_dist);
             }
             stdout.printf("\n");
         }
@@ -38,10 +38,11 @@ void print_matches(size_t index,
 
 }
 void main() {
-    bool print_dist=false;
+    bool print_dist=true;
     long nside=4096;
-    double rad_arcsec=10.0;
-    long maxmatch=1;
+    double rad_arcsec=20.0;
+    //long maxmatch=1;
+    long maxmatch=-1;
 
     //string fname="/home/esheldon/tmp/rand-radec-10000.dat";
     string fname="/home/esheldon/tmp/scat-05-007-radec-only.dat";
