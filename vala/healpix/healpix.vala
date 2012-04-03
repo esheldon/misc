@@ -11,7 +11,7 @@ const double M_TWOTHIRD = 0.66666666666666666666;
 const double M_1_PI     = 0.31830988618379067154; /* 1/pi */
 
 
-class HPoint : Point {
+public class HPoint : Point {
     public new double phi;
     public double theta;
 
@@ -25,24 +25,36 @@ class HPoint : Point {
         y = sintheta * sin(phi);
         z = cos(theta);
     }
+
+    public new void set_radec(double ra, double dec) {
+        phi = ra*D2R;
+        theta = PI_2 -dec*D2R;
+        double sintheta = sin(theta);
+        x = sintheta * cos(phi);
+        y = sintheta * sin(phi);
+        z = cos(theta);
+
+    }
 }
 
-class Healpix : GLib.Object {
+public class Healpix : GLib.Object {
     public long nside;
     public long npix;
     public long ncap; // number of pixels in the north polar cap
     public double area;
 
 
-    public Healpix(long nside) 
+    public Healpix(long nside=4096) 
         requires (nside > 0 && nside <= NS_MAX) // yay contracts
     {
+        set_nside(nside);
+    }
+    public void set_nside(long nside) {
         this.nside = nside;
         npix = 12*nside*nside;
         area = 4.0*PI/npix;
         ncap = 2*nside*(nside-1); 
     }
-
     public long pixelof_eq(double ra, double dec) {
         var p = new HPoint.from_radec(ra,dec);
         return pixelof(p);
