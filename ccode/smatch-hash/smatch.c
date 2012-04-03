@@ -21,6 +21,7 @@
  * when fairly large match radii are used
  *
  * Note this is about 20% faster than the tree version
+ * in the worst cases I've tried.
  *
  *
  */
@@ -93,8 +94,8 @@ const char* process_args(
 void print_matches(size_t index, struct matchstack* matches, int64 maxmatch, 
                    int64 print_dist) {
 
+    double cdistmod=0;
     struct match* match=NULL;
-
     if (matches->size > 0) {
         if (maxmatch > 0) {
             if (maxmatch < matches->size) {
@@ -107,7 +108,9 @@ void print_matches(size_t index, struct matchstack* matches, int64 maxmatch,
         for (size_t i=0; i<matches->size; i++) {
             printf("%lu %ld", index, match->index);
             if (print_dist) {
-                printf(" %.16g", 1.0-match->cosdist);
+                cdistmod = 1.0-match->cosdist;
+                if (cdistmod < 0.) cdistmod=0.;
+                printf(" %.16g", cdistmod);
             }
             printf("\n");
             match++;
