@@ -60,7 +60,8 @@ size_t _vector_new_push_capacity(struct vector* self);
 void* vector_pop(struct vector* self);
 
 // sort according to the input comparison function
-void vector_sort(struct vector* self, int (*cmp)(const void *, const void *));
+void vector_sort(struct vector* self, 
+                 int (*cmp)(const void *, const void *));
 
 
 // bounds checked access

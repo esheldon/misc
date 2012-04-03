@@ -10,6 +10,50 @@ struct test {
     double x;
 };
 
+int compare_test(const void* t1, const void* t2) {
+    int temp = 
+        ((struct test*) t1)->id 
+        -
+        ((struct test*) t2)->id ;
+
+    if (temp > 0)
+        return 1;
+    else if (temp < 0)
+        return -1;
+    else
+        return 0;
+}
+
+void test_sort() {
+    struct vector* v = vector_new(7, sizeof(struct test));
+
+    struct test* t = NULL;
+
+    t = vector_get(v,0);
+    t->id = 4;
+    t = vector_get(v,1);
+    t->id = 1;
+    t = vector_get(v,2);
+    t->id = 2;
+    t = vector_get(v,3);
+    t->id = 0;
+    t = vector_get(v,4);
+    t->id = 3;
+    t = vector_get(v,5);
+    t->id = 6;
+    t = vector_get(v,6);
+    t->id = 5;
+
+    vector_sort(v, &compare_test);
+
+    size_t i=0;
+    struct test* iter  = vector_front(v);
+    while (iter != vector_end(v)) {
+        assert(iter->id == i);
+        iter++;
+        i++;
+    }
+}
 
 void test_create_and_access() {
     size_t n=10;
@@ -143,7 +187,12 @@ void test_extend() {
 
 
 int main(int argc, char** argv) {
+    wlog("testing creating access and iteration\n");
     test_create_and_access();
+    wlog("testing realloc resize clear and freedata\n");
     test_realloc_resize();
+    wlog("testing push pop and extend\n");
     test_pushpop();
+    wlog("testing sort\n");
+    test_sort();
 }

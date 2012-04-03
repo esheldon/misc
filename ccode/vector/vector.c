@@ -193,3 +193,9 @@ void* vector_pop(struct vector* self) {
 }
 
 
+void vector_sort(struct vector* self,
+                 int (*cmp)(const void *, const void *))
+{
+    qsort(self->d, self->size, self->elsize, cmp);
+}
+
