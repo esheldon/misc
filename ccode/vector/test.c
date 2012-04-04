@@ -47,7 +47,7 @@ void test_sort() {
     vector_sort(v, &compare_test);
 
     size_t i=0;
-    struct test* iter  = vector_front(v);
+    struct test* iter = vector_front(v);
     struct test* end  = vector_end(v);
     while (iter != end) {
         assert(iter->id == i);
@@ -64,8 +64,8 @@ void test_create_and_access() {
     assert(n == vector_size(v));
     assert(v->capacity == n);
 
-    struct test* iter  = vector_front(v);
-    struct test* end = vector_end(v);
+    struct test* iter = vector_front(v);
+    struct test* end  = vector_end(v);
     size_t i=0;
     while (iter != end) {
         iter->id = i;
@@ -201,7 +201,7 @@ void test_long() {
     }
 
     long* iter = vector_front(v);
-    long* end = vector_end(v);
+    long* end  = vector_end(v);
     i=0;
     while (iter != end) {
         assert(i == *iter);
@@ -244,7 +244,7 @@ void test_ptr() {
     }
 
     i=0;
-    struct test **iter  = vector_front(v);
+    struct test **iter = vector_front(v);
     struct test **end  = vector_end(v);
     while (iter != end) {
         assert((*iter)->id == i);
