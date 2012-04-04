@@ -213,8 +213,37 @@ void test_long() {
     lptr = vector_pop(v);
     assert((n-1) == *lptr);
 
+    v=vector_delete(v);
+    assert(v==NULL);
 }
 
+void test_ptr() {
+    struct vector* v = vector_new(0, sizeof(struct test*));
+
+    size_t i=0, n=10;
+    for (i=0; i<n; i++) {
+        struct test *t = calloc(1, sizeof(struct test));
+        t->id = i;
+        t->x = 2*i;
+
+        vector_push(v, &t);
+    }
+
+    // two different ways
+    for (i=0; i<n; i++) {
+        struct test **t = vector_get(v, i);
+        assert((*t)->id == i);
+        assert((*t)->x == 2*i);
+    }
+    for (i=0; i<n; i++) {
+        struct test *t = *(struct test**) vector_get(v, i);
+        assert(t->id == i);
+        assert(t->x == 2*i);
+    }
+
+    v=vector_delete(v);
+    assert(v==NULL);
+}
 int main(int argc, char** argv) {
     wlog("testing creating, get, set and iteration\n");
     test_create_and_access();
@@ -226,4 +255,6 @@ int main(int argc, char** argv) {
     test_sort();
     wlog("testing basic type long\n");
     test_long();
+    wlog("testing pointer\n");
+    test_ptr();
 }
