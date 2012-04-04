@@ -91,6 +91,10 @@
     vector_sort(v, &compare_test);
 
 
+    // testing
+    // to compile the test suite
+    python build.py
+    ./test
 
   Copyright (C) 2012  Erin Scott Sheldon, 
                              erin dot sheldon at gmail dot com
