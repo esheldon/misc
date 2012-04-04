@@ -97,6 +97,10 @@ struct vector* vector_delete(struct vector* self)
     return self;
 }
 
+size_t vector_size(struct vector* self)
+{
+    return self->size;
+}
 void* vector_get(struct vector* self, size_t i)
 {
     void* p=NULL;
@@ -111,6 +115,20 @@ void* vector_get(struct vector* self, size_t i)
     }
     return p;
 }
+void vector_set(struct vector* self, size_t i, void* val)
+{
+    if (i > self->size) {
+        fprintf(stderr,
+         "VectorError: Attempt to access element %lu is out "
+         " of bounds [0,%lu]\n", i, self->size-1);
+        exit(EXIT_FAILURE);
+    }
+
+    memcpy(self->d + i*self->elsize,
+           val, 
+           self->elsize);
+}
+
 
 void* vector_front(struct vector* self)
 {
