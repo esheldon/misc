@@ -68,7 +68,7 @@ const char* process_args(
     }
 
     if (optind == argc) {
-        wlog(
+        printf(
         "usage:\n"
         "    cat file1 | smatch [options] file2 > result\n\n"
         "use smaller list as file2 and stream the larger\n"
