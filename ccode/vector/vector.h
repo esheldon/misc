@@ -1,9 +1,8 @@
 /*
   vector - A generic vector container.
  
-  Best to give some examples.  The container can hold basic
-  data types like int or double, but it is more interesting
-  to work with a struct
+  Best to give some examples.  The container can hold basic data types like int
+  or double, but it is more interesting to work with a struct
  
     #include "vector.h"
     struct test {
@@ -12,8 +11,10 @@
     };
  
  
-    // push a value
+    // create an empty vector of test structures
     struct vector* v = vector_new(0,sizeof(struct test));
+
+    // push a value
     struct test t;
     t.id = 3;
     t.x = 3.14;
@@ -48,12 +49,15 @@
         iter++;
     }
 
-    // resize
+    // resize.  If new size is smaller, storage is unchanged.
+    // If new size is larger, and also larger than the
+    // underlying capacity, reallocation occurs
     vector_resize(25);
     assert(v->size == 25);
     assert(vector_size(v) == 25);
  
     // clear sets the visible size to zero, storage remains
+    // equivalent to vector_resize(v,0);
     vector_clear(v);
 
     // reallocate the underlying vector.  If the new capacity
@@ -114,8 +118,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef _VECTOR_H
-#define _VECTOR_H
+#ifndef _GENERIC_VECTOR_H_TOKEN
+#define _GENERIC_VECTOR_H_TOKEN
 #include <stdint.h>
 
 struct vector {

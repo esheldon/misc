@@ -24,8 +24,13 @@ CC='gcc'
 
 LINKFLAGS=['-lm']
 
-#CFLAGS=['-std=c99','-Wall','-Werror','-O2']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
+#CFLAGS=['-std=gnu99','-Wall','-Werror','-O2','-DHASH_FUNCTION=HASH_FNV']
+# use this when testing hash functions
+#CFLAGS=['-std=gnu99','-Wall','-O2','-DHASH_EMIT_KEYS=3']
+# redirect ./smatch .. 3> keystats.bin
+# then run the keystats program in the /tests subdir of the uthash distro
+
 if not options.debug:
     CFLAGS += ['-DNDEBUG']
 

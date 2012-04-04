@@ -5,6 +5,9 @@
 #include "alloc.h"
 #include "uthash.h"
 
+// for when testing hash
+#include <unistd.h>
+
 struct point_hash* point_hash_new(int64 hpixid) {
     struct point_hash* pth = 
         alloc_or_die(sizeof(struct point_hash),"hash entry");
