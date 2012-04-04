@@ -21,7 +21,7 @@ def build():
 def compile():
     for prog in programs:
         for source in prog['sources']:
-            run(CC, '-c', '-o',source+'.o', CFLAGS, source+'.c')
+            run(CC,'-c','-o',source+'.o', CFLAGS, source+'.c')
 
 def link():
     for prog in programs:
