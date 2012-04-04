@@ -241,6 +241,14 @@ void test_ptr() {
         assert(t->x == 2*i);
     }
 
+    i=0;
+    struct test **iter  = vector_front(v);
+    while (iter != vector_end(v)) {
+        assert((*iter)->id == i);
+        iter++;
+        i++;
+    }
+
     v=vector_delete(v);
     assert(v==NULL);
 }
