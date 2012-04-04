@@ -190,6 +190,30 @@ void test_extend() {
     assert(v == NULL);
 }
 
+void test_long() {
+
+    struct vector* v = vector_new(0, sizeof(long));
+    long n=10;
+    long i=0;
+    for (i=0; i<n; i++) {
+        vector_push(v, &i);
+    }
+
+    long* iter = vector_front(v);
+    i=0;
+    while (iter != vector_end(v)) {
+        assert(i == *iter);
+        iter++;
+        i++;
+    }
+
+    long* lptr = vector_get(v,3);
+    assert(3 == *lptr);
+
+    lptr = vector_pop(v);
+    assert((n-1) == *lptr);
+
+}
 
 int main(int argc, char** argv) {
     wlog("testing creating, get, set and iteration\n");
@@ -200,4 +224,6 @@ int main(int argc, char** argv) {
     test_pushpop();
     wlog("testing sort\n");
     test_sort();
+    wlog("testing basic type long\n");
+    test_long();
 }
