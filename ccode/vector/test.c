@@ -60,6 +60,7 @@ void test_create_and_access() {
     struct vector* v = vector_new(n, sizeof(struct test));
 
     assert(v->size == n);
+    assert(n == vector_size(v));
     assert(v->capacity == n);
 
     struct test* iter  = vector_front(v);
@@ -84,9 +85,13 @@ void test_create_and_access() {
 
 
     i=7;
+    struct test t;
+    t.id = 57;
+    t.x = -8.2457;
+    vector_set(v, i, &t);
     struct test* el = vector_get(v, i);
-    assert(el->id == i);
-    assert(el->x == 2*i);
+    assert(el->id == t.id);
+    assert(el->x == t.x);
 
     v = vector_delete(v);
     assert(v == NULL);
@@ -187,7 +192,7 @@ void test_extend() {
 
 
 int main(int argc, char** argv) {
-    wlog("testing creating access and iteration\n");
+    wlog("testing creating, get, set and iteration\n");
     test_create_and_access();
     wlog("testing realloc resize clear and freedata\n");
     test_realloc_resize();
