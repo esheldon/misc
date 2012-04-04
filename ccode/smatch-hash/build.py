@@ -25,7 +25,7 @@ CC='gcc'
 LINKFLAGS=['-lm']
 
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
-#CFLAGS=['-std=gnu99','-Wall','-Werror','-O2','-DHASH_FUNCTION=HASH_FNV']
+#CFLAGS=['-std=gnu99','-Wall','-Werror','-O2','-DHASH_FUNCTION=HASH_SFH']
 # use this when testing hash functions
 #CFLAGS=['-std=gnu99','-Wall','-O2','-DHASH_EMIT_KEYS=3']
 # redirect ./smatch .. 3> keystats.bin
