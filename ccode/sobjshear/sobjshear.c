@@ -23,12 +23,8 @@ int main(int argc, char** argv) {
     const char* lens_url=argv[2];
     struct shear* shear=shear_init(config_url, lens_url);
 
-#ifndef WITH_TRUEZ
-    struct source* src=source_new(shear->config->nzl);
+    struct source* src=source_new(shear->config);
     src->zlens = shear->config->zl;
-#else
-    struct source* src=source_new();
-#endif
 
     while (source_read(stdin, src)) {
         counter++;
@@ -40,9 +36,9 @@ int main(int argc, char** argv) {
             wlog(".");
         }
 
-#ifdef WITH_TRUEZ
-        src->dc = Dc(shear->cosmo, 0.0, src->z);
-#endif
+        if (src->scstyle == SCSTYLE_TRUE) {
+            src->dc = Dc(shear->cosmo, 0.0, src->z);
+        }
 
         shear_process_source(shear, src);
     }

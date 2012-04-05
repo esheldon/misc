@@ -3,6 +3,8 @@
 
 #include "Vector.h"
 #include "defs.h"
+#include "config.h"
+
 /* 
   We can work in two modes:
     - we have an inverse critical density; in this case the 
@@ -24,16 +26,18 @@ struct source {
 
     int64 hpixid;
 
-#ifndef WITH_TRUEZ
+    int mask_style;
+    int scstyle;
+
+    // only used when scstyle == SCSTYLE_INTERP
     struct f64vector* scinv; // note this is same size as zlens kept in 
                              // catalog structure.
     struct f64vector* zlens; // For convenience; this should just point 
                              // to memory owned by config->zlens; don't 
                              // allocate or free!
-#else
+    // only used when sigmacrit style == SCSTYLE_TRUE
     double z;
     double dc; // for speed
-#endif
 
     // calculate these for speed
     double sinra; 
@@ -41,20 +45,16 @@ struct source {
     double sindec;
     double cosdec;
 
-#ifdef SDSSMASK
+    // only used for mask_style==MASK_STYLE_SDSS
     double sinlam;
     double coslam;
     double sineta;
     double coseta;
-#endif
 };
 
 
-#ifdef WITH_TRUEZ
-struct source* source_new(void);
-#else
-struct source* source_new(size_t n_zlens);
-#endif
+// n_zlens == 0 indicates we are using "true z" style
+struct source* source_new(struct config* config);
 
 int source_read(FILE* stream, struct source* src);
 

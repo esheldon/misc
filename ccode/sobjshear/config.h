@@ -9,7 +9,6 @@
 #endif
 
 #define CONFIG_KEYSZ 50
-#define CONFIG_STRSZ 256
 
 struct config {
     double H0;
@@ -18,9 +17,14 @@ struct config {
 
     int64 nside; // hpix
 
-    int64 sigmacrit_style;
-    int64 nzl;      // will be zero unless sigmacrit_style==2
-    struct f64vector* zl;  // only fill in for sigmacrit_style==2
+    int64 mask_style;
+
+    int64 scstyle;
+
+    // will be zero unless scstyle==SCSTYLE_INTERP
+    int64 nzl;
+    // only fill in for scstyle==SCSTYLE_INTERP
+    struct f64vector* zl;  
 
     int64 nbin;
     double rmin; // mpc/h

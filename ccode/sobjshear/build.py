@@ -8,13 +8,9 @@ import glob
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
 optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix,help="where to install"),
-         optparse.Option('--with-truez',action="store_true",default=False,help="use true z for sources"),
-         optparse.Option('--sdssmask',action="store_true",default=False,help="check quadrants from sdss mask"),
          optparse.Option('--hdfs',action="store_true",default=False,help="Files are in hdfs"),
-         optparse.Option('--no-cache-output',action="store_true",default=False,help="keep outputs in memory"),
          optparse.Option('--noopt',action="store_true",help="turn off compiler optimizations"),
          optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)"),
-         optparse.Option('--stream',action="store_true",help="take sources from stdin as text"),
          optparse.Option('--test',action="store_true",help="compile tests")]
 parser.add_options(optlist)
 
@@ -31,14 +27,7 @@ if not options.noopt:
 if not options.debug:
     CFLAGS += ['-DNDEBUG']
 
-if options.with_truez:
-    CFLAGS += ['-DWITH_TRUEZ']
 
-if options.sdssmask:
-    CFLAGS += ['-DSDSSMASK']
-
-if options.no_cache_output:
-    CFLAGS += ['-DNO_CACHE_OUTPUT']
 
 test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/test-healpix']},
                  {'name':'test/test-healpix-brute',
@@ -59,14 +48,11 @@ test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/
 
 sobjshear_sources = ['config', 'stack', 'Vector','source','lens','cosmo','healpix',
                      'shear','lensum','histogram','tree','interp','urls',
-                     'sobjshear']
+                     'sobjshear','sdss-survey']
 redshear_sources = ['healpix','cosmo','tree','stack','lens','lensum','config','urls','Vector',
-                    'redshear']
+                    'redshear','sdss-survey']
 
 
-if options.sdssmask:
-    sobjshear_sources += ['sdss-survey']
-    redshear_sources += ['sdss-survey']
 
 if options.hdfs:
     sobjshear_sources += ['hdfs_lines']

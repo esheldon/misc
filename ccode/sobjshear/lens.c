@@ -7,7 +7,9 @@
 #include "log.h"
 #include "healpix.h"
 #include "stack.h"
+#include "config.h"
 #include "urls.h"
+#include "sdss-survey.h"
 
 #ifdef HDFS
 #include "hdfs_lines.h"
@@ -15,9 +17,6 @@
 
 //#include "histogram.h"
 
-#ifdef SDSSMASK
-#include "sdss-survey.h"
-#endif
 
 struct lcat* lcat_new(size_t n_lens) {
 
@@ -87,16 +86,12 @@ struct lcat* lcat_read(const char* lens_url) {
         lens->sindec = sin(dec_rad);
         lens->cosdec = cos(dec_rad);
 
-#ifdef SDSSMASK
         // add sin(lam),cos(lam),sin(eta),cos(eta)
         eq2sdss_sincos(lens->ra,lens->dec,
                        &lens->sinlam, &lens->coslam,
                        &lens->sineta, &lens->coseta);
-#endif
-
 
         lens++;
-
     }
     fclose(stream);
     wlog("OK\n");
@@ -153,13 +148,10 @@ struct lcat* hdfs_lcat_read(const char* lens_url) {
         lens->sindec = sin(dec_rad);
         lens->cosdec = cos(dec_rad);
 
-#ifdef SDSSMASK
         // add sin(lam),cos(lam),sin(eta),cos(eta)
         eq2sdss_sincos(lens->ra,lens->dec,
                        &lens->sinlam, &lens->coslam,
                        &lens->sineta, &lens->coseta);
-#endif
-
 
         lens++;
 
@@ -244,12 +236,10 @@ void lcat_print_one(struct lcat* lcat, size_t el) {
     wlog("    z:         %lf\n", lens->z);
     wlog("    da:        %lf\n", lens->da);
     wlog("    maskflags: %ld\n", lens->maskflags);
-#ifdef SDSSMASK
     wlog("    sinlam:    %lf\n", lens->sinlam);
     wlog("    coslam:    %lf\n", lens->coslam);
     wlog("    sineta:    %lf\n", lens->sineta);
     wlog("    coseta:    %lf\n", lens->coseta);
-#endif
     wlog("    n(hpix):   %lu", lens->hpix->size);
     wlog(" hpix[0]: %ld hpix[%lu]: %ld\n", 
             lens->hpix->data[0],

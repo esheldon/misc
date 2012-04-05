@@ -39,9 +39,7 @@ void shear_procpair(struct shear* self,
                     struct lens* lens, 
                     struct lensum* lensum);
 
-#ifdef SDSSMASK
 int shear_test_quad(struct lens* l, struct source* s);
-#endif
 
 #endif
 

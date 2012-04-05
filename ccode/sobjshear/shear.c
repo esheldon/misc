@@ -14,11 +14,9 @@
 #include "source.h"
 #include "interp.h"
 #include "tree.h"
+#include "sdss-survey.h"
 #include "log.h"
 
-#ifdef SDSSMASK
-#include "sdss-survey.h"
-#endif
 
 struct shear* shear_init(const char* config_url, const char* lens_url) {
 
@@ -69,17 +67,17 @@ struct shear* shear_init(const char* config_url, const char* lens_url) {
         shear->lensums->data[i].zindex = shear->lcat->data[i].zindex;
     }
 
-#ifndef WITH_TRUEZ
-    // interpolation region
-    double* zl=config->zl->data;
-    int64 nzl=config->nzl;
-    shear->min_zlens = zl[0];
-    shear->max_zlens = zl[nzl-1];
-    shear->min_zlens = fmax(shear->min_zlens, MIN_ZLENS);
-#else
-    shear->min_zlens = 0;
-    shear->max_zlens = 9999;
-#endif
+    if (config->scstyle == SCSTYLE_INTERP) {
+        // interpolation region
+        double* zl=config->zl->data;
+        int64 nzl=config->nzl;
+        shear->min_zlens = zl[0];
+        shear->max_zlens = zl[nzl-1];
+        shear->min_zlens = fmax(shear->min_zlens, MIN_ZLENS);
+    } else {
+        shear->min_zlens = 0;
+        shear->max_zlens = 9999;
+    }
 
     wlog("min_zlens: %lf  max_zlens: %lf\n", shear->min_zlens, shear->max_zlens);
 
@@ -126,12 +124,12 @@ void shear_procpair(struct shear* self,
     double phi, arg, cos2theta, sin2theta;
     double scinv;
 
-#ifdef SDSSMASK
-    // make sure object is in a pair of unmasked adjacent quadrants
-    if (!shear_test_quad(lens, src)) {
+    // for sdss mask make sure object is in a pair of unmasked adjacent
+    // quadrants.  Using short-circuiting in if statement
+    if (self->config->mask_style == MASK_STYLE_SDSS 
+            && !shear_test_quad(lens, src)) {
         return;
     }
-#endif
 
     cosradiff = src->cosra*lens->cosra + src->sinra*lens->sinra;
     cosphi = lens->sindec*src->sindec + lens->cosdec*src->cosdec*cosradiff;
@@ -155,12 +153,12 @@ void shear_procpair(struct shear* self,
         sin2theta = sin(2*theta);
 
         // note we already checked if lens z was in our interpolation range
-#ifndef WITH_TRUEZ
-        scinv = f64interplin(src->zlens, src->scinv, lens->z);
-#else
-        double dcl = lens->da*(1.+lens->z);
-        scinv = scinv_pre(lens->z, dcl, src->dc);
-#endif
+        if (src->scstyle == SCSTYLE_INTERP) {
+            scinv = f64interplin(src->zlens, src->scinv, lens->z);
+        } else {
+            double dcl = lens->da*(1.+lens->z);
+            scinv = scinv_pre(lens->z, dcl, src->dc);
+        }
 
         if (scinv > 0) {
             double r, logr;
@@ -222,7 +220,6 @@ void shear_procpair(struct shear* self,
 /*
  * Make sure the source is in an acceptable quadrant for this lens
  */
-#ifdef SDSSMASK
 int shear_test_quad(struct lens* l, struct source* s) {
     return test_quad_sincos(l->maskflags,
                             l->sinlam, l->coslam,
@@ -230,7 +227,6 @@ int shear_test_quad(struct lens* l, struct source* s) {
                             s->sinlam, s->coslam,
                             s->sineta, s->coseta);
 }
-#endif
 
 
 
