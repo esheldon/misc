@@ -201,8 +201,9 @@ void shear_procpair(struct shear* self,
                 // coefficients (p 596 Bern02) 
                 // there is a k1*e^2/2 in Bern02 because
                 // its the total ellipticity he is using
-
-                double k0 = f_e*GSN2*4;  // factor of (1/2)^2 does not cancel here, 4 converts to shapenoise
+                //
+                // factor of (1/2)^2 does not cancel here, 4 converts to shapenoise
+                double k0 = f_e*GSN2*4;
                 double k1 = f_sn*f_sn;
 
                 // Factors of two don't cancel, need 2*2 for gamma instead of shape
