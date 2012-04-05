@@ -4,6 +4,7 @@
 #include "config.h"
 #include "Vector.h"
 #include "log.h"
+#include "defs.h"
 
 #ifdef HDFS
 #include "hdfs_lines.h"
@@ -36,11 +37,12 @@ struct config* config_read(const char* url) {
     fscanf(stream, "%s %lf", key, &c->omega_m);
     fscanf(stream, "%s %ld", key, &c->npts);
     fscanf(stream, "%s %ld", key, &c->nside);
-    fscanf(stream, "%s %ld", key, &c->sigmacrit_style);
+    fscanf(stream, "%s %ld", key, &c->mask_style);
+    fscanf(stream, "%s %ld", key, &c->scstyle);
     fscanf(stream, "%s %ld", key, &c->nbin);
     fscanf(stream, "%s %lf", key, &c->rmin);
     fscanf(stream, "%s %lf", key, &c->rmax);
-    if (c->sigmacrit_style == 2) {
+    if (c->scstyle == SCSTYLE_INTERP) {
         size_t i;
         fscanf(stream, "%s %lu", key, &c->nzl);
         c->zl = f64vector_new(c->nzl);
@@ -85,12 +87,13 @@ struct config* hdfs_config_read(const char* url) {
     hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lf", key, &c->omega_m);
     hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->npts);
     hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->nside);
-    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->sigmacrit_style);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->mask_style);
+    hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->scstyle);
     hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %ld", key, &c->nbin);
     hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lf", key, &c->rmin);
     hdfs_getline(hf, &lbuf, &lbsz); sscanf(lbuf, "%s %lf", key, &c->rmax);
 
-    if (c->sigmacrit_style == 2) {
+    if (c->scstyle == 2) {
         int nread=0;
         char* lptr;
 
@@ -145,7 +148,8 @@ void config_print(struct config* c) {
     wlog("    omega_m:      %lf\n", c->omega_m);
     wlog("    npts:         %ld\n", c->npts);
     wlog("    nside:        %ld\n", c->nside);
-    wlog("    scrit style:  %ld\n", c->sigmacrit_style);
+    wlog("    mask style:   %ld\n", c->mask_style);
+    wlog("    scrit style:  %ld\n", c->scstyle);
     wlog("    nbin:         %ld\n", c->nbin);
     wlog("    rmin:         %lf\n", c->rmin);
     wlog("    rmax:         %lf\n", c->rmax);

@@ -29,12 +29,10 @@ struct lens {
 
     double cos_search_angle;
 
-#ifdef SDSSMASK
     double sinlam;
     double coslam;
     double sineta;
     double coseta;
-#endif
 
 };
 
