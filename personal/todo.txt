@@ -1,10 +1,8 @@
 Quick look Queue
 
-    - matching DES shear catalogs
-        - coadd with SE. save index into coadd columns db
-
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
+    - optionally mask around bright galaxies?
 
     pymangle
     - don't allow not snapped masks; problem is IDL code doesn't write it.
