@@ -50,7 +50,8 @@ export PIXEL_MASK_SIMPLE=pixel_mask_dr4_simple
 export PIXEL_MASK_BASIC_PRINCETON=$MASK_DIR/pixel_mask_princeton_basic
 
 # location we keep simulations of the regauss algorithm
-export REGAUSSIM_DIR=~esheldon/regauss-sim
+export REGAUSSIM_DIR=~esheldon/lensing/regauss-sim
+export REGAUSSIM_HDFS_DIR=hdfs:///user/esheldon/lensing/regauss-sim
 
 export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
 
