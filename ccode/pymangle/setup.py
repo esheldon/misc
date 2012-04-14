@@ -11,8 +11,7 @@ ext=Extension("mangle._mangle", ["mangle/_mangle.c",
                                  "mangle/polygon.c",
                                  "mangle/stack.c",
                                  "mangle/pixel.c",
-                                 "mangle/rand.c",
-                                 "mangle/array_util.c"])
+                                 "mangle/rand.c"])
 setup(name="mangle", 
       packages=['mangle'],
       version="0.1",
