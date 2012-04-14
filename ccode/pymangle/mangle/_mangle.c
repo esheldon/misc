@@ -1145,47 +1145,77 @@ _genrand_range_cleanup:
 
 
 
-
-
-static PyObject*
-PyMangleMask_test(struct PyMangleMask* self)
-{
-    int status=1;
-    struct Point pt;
-    double ra=200;
-    double dec=0;
-
-    npy_intp poly_id=0;
-    double weight=0;
-
-    point_set_from_radec(&pt, ra, dec);
-
-    if (self->pixelres == -1) {
-        status=polyid_and_weight(self, &pt, &poly_id, &weight);
-    } else {
-        status=polyid_and_weight_pixelized(self, &pt, &poly_id, &weight);
-    }
-
-    if (status != 1) {
-        return NULL;
-    }
-
-    fprintf(stderr,"ra: %g dec: %g\n",ra,dec);
-    fprintf(stderr,"x: %g y: %g z: %g\n",pt.x, pt.y, pt.z);
-    fprintf(stderr,"poly_id: %ld weight: %g\n", poly_id, weight);
-
-    Py_RETURN_NONE;
-}
-
-
 static PyMethodDef PyMangleMask_methods[] = {
-    {"polyid_and_weight", (PyCFunction)PyMangleMask_polyid_and_weight, METH_VARARGS, "Check points against mask, returning (poly_id,weight)."},
-    {"polyid",            (PyCFunction)PyMangleMask_polyid,            METH_VARARGS, "Check points against mask, returning poly_id."},
-    {"weight",            (PyCFunction)PyMangleMask_weight,            METH_VARARGS, "Check points against mask, returning weight."},
-    {"contains",          (PyCFunction)PyMangleMask_contains,          METH_VARARGS, "Check points against mask, returning 1 if yes, 0 if no."},
-    {"genrand",           (PyCFunction)PyMangleMask_genrand,           METH_VARARGS, "Generate random points."},
-    {"genrand_range",     (PyCFunction)PyMangleMask_genrand_range,     METH_VARARGS, "Generate random points in the given ra/dec range."},
-    {"test",              (PyCFunction)PyMangleMask_test,              METH_NOARGS,  "run a test."},
+    {"polyid_and_weight", (PyCFunction)PyMangleMask_polyid_and_weight, METH_VARARGS, 
+        "polyid_and_weight(ra,dec)\n"
+        "\n"
+        "Check points against mask, returning (poly_id,weight).\n"
+        "\n"
+        "parameters\n"
+        "----------\n"
+        "ra:  array\n"
+        "    A numpy array of type 'f8'\n"
+        "dec: array\n"
+        "    A numpy array of type 'f8'\n"},
+    {"polyid",            (PyCFunction)PyMangleMask_polyid,            METH_VARARGS, 
+        "polyid(ra,dec)\n"
+        "\n"
+        "Check points against mask, returning the polygon id or -1.\n"
+        "\n"
+        "parameters\n"
+        "----------\n"
+        "ra:  array\n"
+        "    A numpy array of type 'f8'\n"
+        "dec: array\n"
+        "    A numpy array of type 'f8'\n"},
+    {"weight",            (PyCFunction)PyMangleMask_weight,            METH_VARARGS, 
+        "weight(ra,dec)\n"
+        "\n"
+        "Check points against mask, returning the weight or 0.0\n"
+        "\n"
+        "parameters\n"
+        "----------\n"
+        "ra:  array\n"
+        "    A numpy array of type 'f8'\n"
+        "dec: array\n"
+        "    A numpy array of type 'f8'\n"},
+    {"contains",          (PyCFunction)PyMangleMask_contains,          METH_VARARGS, 
+        "contains(ra,dec)\n"
+        "\n"
+        "Check points against mask, returning 1 if contained 0 if not\n"
+        "\n"
+        "parameters\n"
+        "----------\n"
+        "ra:  array\n"
+        "    A numpy array of type 'f8'\n"
+        "dec: array\n"
+        "    A numpy array of type 'f8'\n"},
+    {"genrand",           (PyCFunction)PyMangleMask_genrand,           METH_VARARGS, 
+        "genrand(nrand)\n"
+        "\n"
+        "Generate random points that are within the mask.\n"
+        "\n"
+        "parameters\n"
+        "----------\n"
+        "nrand: number\n"
+        "    The number of random points to generate\n"},
+    {"genrand_range",     (PyCFunction)PyMangleMask_genrand_range,     METH_VARARGS, 
+        "genrand_range(nrand,ramin,ramax,decmin,decmax)\n"
+        "\n"
+        "Generate random points inside the input range and the mask.\n"
+        "\n"
+        "parameters\n"
+        "----------\n"
+        "nrand: number\n"
+        "    The number of random points to generate\n"
+        "ramin: double\n"
+        "    The minimum ra\n"
+        "ramax: double\n"
+        "    The maximum ra\n"
+        "decmin: double\n"
+        "    The minimum dec\n"
+        "decmax: double\n"
+        "    The maximum dec\n"},
     {NULL}  /* Sentinel */
 };
 
@@ -1217,7 +1247,22 @@ static PyTypeObject PyMangleMaskType = {
     0,                         /*tp_setattro*/
     0,                         /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-    "Mangle Class",           /* tp_doc */
+    "A class to work with Mangle masks.\n"
+        "\n"
+        "construction\n"
+        "    import mangle\n"
+        "    m=mangle.Mangle(mask_file)\n"
+        "\n"
+        "methods\n"
+        "-------\n"
+        "polyid(ra,dec)\n"
+        "weight(ra,dec)\n"
+        "polyid_and_weight(ra,dec)\n"
+        "contains(ra,dec)\n"
+        "genrand(nrand)\n"
+        "genrand_range(nrand,ramin,ramax,decmin,decmax)\n"
+        "\n"
+        "See docs for each method for more detailed info\n",
     0,                     /* tp_traverse */
     0,                     /* tp_clear */
     0,                     /* tp_richcompare */
@@ -1281,7 +1326,23 @@ init_mangle(void)
     if (PyType_Ready(&PyMangleMaskType) < 0) {
         return;
     }
-    m = Py_InitModule3("_mangle", mangle_methods, "Define Mangle type and methods.");
+    m = Py_InitModule3("_mangle", mangle_methods, 
+            "This module defines a class to work with Mangle masks.\n"
+            "\n"
+            "construction\n"
+            "    import mangle\n"
+            "    m=mangle.Mangle(mask_file)\n"
+            "\n"
+            "methods\n"
+            "-------\n"
+            "polyid(ra,dec)\n"
+            "weight(ra,dec)\n"
+            "polyid_and_weight(ra,dec)\n"
+            "contains(ra,dec)\n"
+            "genrand(nrand)\n"
+            "genrand_range(nrand,ramin,ramax,decmin,decmax)\n"
+            "\n"
+            "See docs for each method for more detailed info\n");
     if (m==NULL) {
         return;
     }
