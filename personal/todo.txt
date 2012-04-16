@@ -1,7 +1,5 @@
 Quick look Queue
 
-    - add area, printouts to mask *after* reading
-
     - make install script for espy
     - add modules load for "work" version
     - make script to actually run admom on des

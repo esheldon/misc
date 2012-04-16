@@ -231,8 +231,8 @@ void test_ptr() {
 
     size_t i=0, n=10;
 
-    // note we never own the pointers in the vector! So we must allocated and
-    // free it separately
+    // note we never own the pointers in the vector! So we must allocat and
+    // free them separately
     struct test* tvec = calloc(n, sizeof(struct test));
 
     for (i=0; i<n; i++) {
@@ -240,6 +240,7 @@ void test_ptr() {
         t->id = i;
         t->x = 2*i;
 
+        // this copies the pointer to t
         vector_push(v, &t);
     }
 
