@@ -71,6 +71,25 @@ PyMangleMask_repr(struct PyMangleMask* self) {
     return PyString_FromString(buff);
 }
 
+static PyObject *
+PyMangleMask_is_snapped(struct PyMangleMask* self) {
+    if (self->mask->snapped) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+static PyObject *
+PyMangleMask_is_balkanized(struct PyMangleMask* self) {
+    if (self->mask->balkanized) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+
+
+
 
 static void
 cleanup(struct PyMangleMask* self)
@@ -666,6 +685,15 @@ static PyMethodDef PyMangleMask_methods[] = {
         "    The minimum dec\n"
         "decmax: double\n"
         "    The maximum dec\n"},
+    {"is_snapped",       (PyCFunction)PyMangleMask_is_snapped,         METH_VARARGS, 
+        "is_snapped()\n"
+        "\n"
+        "Return True if the snapped keyword was found in the header.\n"},
+    {"is_balkanized",       (PyCFunction)PyMangleMask_is_balkanized,         METH_VARARGS, 
+        "is_balkanized()\n"
+        "\n"
+        "Return True if the balkanized keyword was found in the header.\n"},
+
     {NULL}  /* Sentinel */
 };
 
@@ -701,7 +729,7 @@ static PyTypeObject PyMangleMaskType = {
         "\n"
         "construction\n"
         "    import mangle\n"
-        "    m=mangle.Mangle(mask_file)\n"
+        "    m=mangle.Mangle(mask_file, verbose=False)\n"
         "\n"
         "methods\n"
         "-------\n"
@@ -711,6 +739,8 @@ static PyTypeObject PyMangleMaskType = {
         "contains(ra,dec)\n"
         "genrand(nrand)\n"
         "genrand_range(nrand,ramin,ramax,decmin,decmax)\n"
+        "is_snapped()\n"
+        "is_balkanized()\n"
         "\n"
         "See docs for each method for more detailed info\n",
     0,                     /* tp_traverse */
@@ -781,7 +811,7 @@ init_mangle(void)
             "\n"
             "construction\n"
             "    import mangle\n"
-            "    m=mangle.Mangle(mask_file)\n"
+            "    m=mangle.Mangle(mask_file, verbose=False)\n"
             "\n"
             "methods\n"
             "-------\n"
@@ -791,6 +821,8 @@ init_mangle(void)
             "contains(ra,dec)\n"
             "genrand(nrand)\n"
             "genrand_range(nrand,ramin,ramax,decmin,decmax)\n"
+            "is_snapped()\n"
+            "is_balkanized()\n"
             "\n"
             "See docs for each method for more detailed info\n");
     if (m==NULL) {
