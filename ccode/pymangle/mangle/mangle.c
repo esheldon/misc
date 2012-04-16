@@ -84,17 +84,6 @@ void mangle_print(FILE* fptr, struct MangleMask* self, int verbosity)
             self->snapped, self->balkanized,
             self->verbose);
 
-    /*
-    fprintf(fptr,
-            "Mangle\n"
-            "\tfile:      %s\n", self->filename);
-    "\tarea:      %g sq deg\n", self->total_area*R2D*R2D);
-    "\tnpoly:     %lu\n", npoly);
-    "\tpixeltype: '%c'\n", self->pixeltype);
-    "\tpixelres:  %ld\n", self->pixelres);
-    "\tnpix:      %ld\n", npix);
-    "\tverbose:   %d\n", self->verbose);
-    */
     if (verbosity > 1) {
         print_polygons(fptr,self->poly_vec);
     }
