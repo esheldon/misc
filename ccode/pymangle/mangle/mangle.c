@@ -68,15 +68,33 @@ void mangle_print(FILE* fptr, struct MangleMask* self, int verbosity)
     npoly = (self->poly_vec != NULL) ? self->poly_vec->size : 0;
     npix = (self->pixel_list_vec != NULL) ? self->pixel_list_vec->size : 0;
 
-    fprintf(fptr,"Mangle\n");
-    fprintf(fptr,"\tfile:      %s\n", self->filename);
-    fprintf(fptr,"\tarea:      %g sq deg\n", self->total_area*R2D*R2D);
-    fprintf(fptr,"\tnpoly:     %lu\n", npoly);
-    fprintf(fptr,"\tpixeltype: '%c'\n", self->pixeltype);
-    fprintf(fptr,"\tpixelres:  %ld\n", self->pixelres);
-    fprintf(fptr,"\tnpix:      %ld\n", npix);
-    fprintf(fptr,"\tverbose:   %d\n", self->verbose);
+    fprintf(fptr,
+            "Mangle\n"
+            "\tfile:       %s\n"
+            "\tarea:       %g sqdeg\n"
+            "\tnpoly:      %ld\n"
+            "\tpixeltype:  '%c'\n"
+            "\tpixelres:   %ld\n"
+            "\tnpix:       %ld\n"
+            "\tsnapped:    %d\n"
+            "\tbalkanized: %d\n"
+            "\tverbose:    %d\n", 
+            self->filename, self->total_area*R2D*R2D, 
+            npoly, self->pixeltype, self->pixelres, npix, 
+            self->snapped, self->balkanized,
+            self->verbose);
 
+    /*
+    fprintf(fptr,
+            "Mangle\n"
+            "\tfile:      %s\n", self->filename);
+    "\tarea:      %g sq deg\n", self->total_area*R2D*R2D);
+    "\tnpoly:     %lu\n", npoly);
+    "\tpixeltype: '%c'\n", self->pixeltype);
+    "\tpixelres:  %ld\n", self->pixelres);
+    "\tnpix:      %ld\n", npix);
+    "\tverbose:   %d\n", self->verbose);
+    */
     if (verbosity > 1) {
         print_polygons(fptr,self->poly_vec);
     }

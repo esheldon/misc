@@ -64,10 +64,20 @@ PyMangleMask_repr(struct PyMangleMask* self) {
     npix = (mask->pixel_list_vec != NULL) ? mask->pixel_list_vec->size : 0;
 
     sprintf(buff,
-            "Mangle\n\tfile: %s\n\tarea: %g sqdeg\n\tnpoly: %ld\n\t"
-            "pixeltype: '%c'\n\tpixelres: %ld\n\tnpix: %ld\n\tverbose: %d\n", 
+            "Mangle\n"
+            "\tfile:       %s\n"
+            "\tarea:       %g sqdeg\n"
+            "\tnpoly:      %ld\n"
+            "\tpixeltype:  '%c'\n"
+            "\tpixelres:   %ld\n"
+            "\tnpix:       %ld\n"
+            "\tsnapped:    %d\n"
+            "\tbalkanized: %d\n"
+            "\tverbose:    %d\n", 
             mask->filename, mask->total_area*R2D*R2D, 
-            npoly, mask->pixeltype, mask->pixelres, npix, mask->verbose);
+            npoly, mask->pixeltype, mask->pixelres, npix, 
+            mask->snapped, mask->balkanized,
+            mask->verbose);
     return PyString_FromString(buff);
 }
 
