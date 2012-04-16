@@ -1,10 +1,11 @@
-# we over-ride the init class to deal with verbose
+# we over-ride the init to deal with verbose
 # we over-ride point checking codes force inputs to be arrays
 #
 # note we do *not* over-ride the genrand* functions,
 # as they perform conversions as needed
 #
-# we also grab the doc strings from the C code as needed
+# we also grab the doc strings from the C code as needed, 
+# only writing new ones in the over-ridden methods
 
 import numpy
 from numpy import array
