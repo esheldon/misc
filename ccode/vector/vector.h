@@ -153,7 +153,9 @@ void vector_freedata(struct vector* self);
 // than the viewed size
 void vector_realloc(struct vector* self, size_t num);
 
-// clears all memory and sets pointer to NULL
+// clears all memory and sets pointer to NULL note if this is a pointer vector,
+// the pointers are *not* freed.
+//
 // usage: v=vector_delete(v);
 
 struct vector* vector_delete(struct vector* self);

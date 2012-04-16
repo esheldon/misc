@@ -223,15 +223,19 @@ void test_ptr() {
     struct vector* v = vector_new(0, sizeof(struct test*));
 
     size_t i=0, n=10;
+
+    // note we never own the pointers in the vector! So we must allocated and
+    // free it separately
+    struct test* tvec = calloc(n, sizeof(struct test));
     for (i=0; i<n; i++) {
-        struct test *t = calloc(1, sizeof(struct test));
+        struct test *t = &tvec[i];
         t->id = i;
         t->x = 2*i;
 
         vector_push(v, &t);
     }
 
-    // two different ways
+    // two different ways to use vector_get for pointers
     for (i=0; i<n; i++) {
         struct test **t = vector_get(v, i);
         assert((*t)->id == i);
@@ -243,6 +247,7 @@ void test_ptr() {
         assert(t->x == 2*i);
     }
 
+    // iteration
     i=0;
     struct test **iter = vector_front(v);
     struct test **end  = vector_end(v);
@@ -252,6 +257,7 @@ void test_ptr() {
         i++;
     }
 
+    free(tvec);
     v=vector_delete(v);
     assert(v==NULL);
 }
