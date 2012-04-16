@@ -1,8 +1,10 @@
 /*
   vector - A generic vector container.
  
-  Best to give some examples.  The container can hold basic data types like int
-  or double, but it is more interesting to work with a struct
+  Best to give some examples.  See test.c for more examples.
+  
+  The container can hold basic data types like int or double, but it is more
+  interesting to work with a struct
  
     #include "vector.h"
     struct test {
