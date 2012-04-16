@@ -56,7 +56,7 @@ static PyObject *
 PyMangleMask_repr(struct PyMangleMask* self) {
     npy_intp npoly;
     npy_intp npix;
-    char buff[255];
+    char buff[1024];
     struct MangleMask* mask=NULL;
 
     mask = self->mask;
