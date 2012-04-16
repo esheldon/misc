@@ -16,439 +16,10 @@
 struct PyMangleMask {
     PyObject_HEAD
 
-    char* filename;
-    npy_intp npoly;
-    struct PolygonVec* poly_vec;
-
-    double total_area;
-    npy_intp pixelres;
-    npy_intp maxpix;
-    char pixeltype;
-    struct PixelListVec* pixel_list_vec;
-
-    int snapped;
-    int balkanized;
-
-    int verbose;
-
-    char buff[_MANGLE_SMALL_BUFFSIZE];
-
-    FILE* fptr;
-
-    // for error messages
-    npy_intp current_poly_index;
+    struct MangleMask* mask;
 };
 
 
-
-
-static int
-scan_expected_value(struct PyMangleMask* self, const char* expected_value)
-{
-    int status=1, res=0;
-
-    res = fscanf(self->fptr, "%s", self->buff);
-    if (1 != res || 0 != strcmp(self->buff,expected_value)) {
-        status=0;
-        PyErr_Format(PyExc_IOError, 
-                "Failed to read expected string '%s' for polygon %ld", 
-                expected_value, self->current_poly_index);
-    }
-    return status;
-}
-
-static int
-read_cap(struct PyMangleMask* self, struct Cap* cap) 
-{
-    int status=1, nres=0;
-
-    nres = fscanf(self->fptr,
-            "%lf %lf %lf %lf",&cap->x,&cap->y,&cap->z,&cap->cm);
-
-    if (nres != 4) {
-        status=0;
-        PyErr_Format(PyExc_IOError, 
-                "Failed to read cap for polygon %ld", 
-                self->current_poly_index);
-    }
-
-    return status;
-}
-/* 
- * parse the polygon "header" for the index poly_index
- *
- * this is after reading the initial 'polygon' token
- */
-static int
-read_polygon_header(struct PyMangleMask* self, 
-                    struct Polygon* ply, npy_intp* ncaps)
-{
-    int status=1;
-    int got_pixel=0;
-    char kwbuff[20];
-
-    if (1 != fscanf(self->fptr, "%ld", &ply->poly_id)) {
-        status=0;
-        PyErr_Format(PyExc_IOError, 
-                "Failed to read polygon id for polygon %ld", 
-                self->current_poly_index);
-        goto _read_polygon_header_errout;
-    }
-
-    if (!scan_expected_value(self, "(")) {
-        status=0;
-        goto _read_polygon_header_errout;
-    }
-
-    if (1 != fscanf(self->fptr,"%ld",ncaps)) {
-        status=0;
-        PyErr_Format(PyExc_IOError, 
-                "Failed to read ncaps for polygon %ld", 
-                self->current_poly_index);
-        goto _read_polygon_header_errout;
-    }
-
-
-    if (!scan_expected_value(self, "caps,")) {
-        status=0;
-        goto _read_polygon_header_errout;
-    }
-
-    if (1 != fscanf(self->fptr,"%lf",&ply->weight)) {
-        status=0;
-        PyErr_Format(PyExc_IOError, 
-                "Failed to read weight for polygon %ld", 
-                self->current_poly_index);
-        goto _read_polygon_header_errout;
-    }
-
-    if (!scan_expected_value(self, "weight,")) {
-        status=0;
-        goto _read_polygon_header_errout;
-    }
-
-    // pull in the value and keyword
-    if (2 != fscanf(self->fptr,"%s %s",self->buff, kwbuff)) {
-        status=0;
-        PyErr_Format(PyExc_IOError, 
-                "Failed to read value and keyword (pixel,str) for polygon %ld", 
-                self->current_poly_index);
-        goto _read_polygon_header_errout;
-    }
-
-    if (0 == strcmp(kwbuff,"pixel,")) {
-        // we read a pixel value into self->buff
-        got_pixel=1;
-        sscanf(self->buff, "%ld", &ply->pixel_id);
-    } else {
-        // we probably read the area
-        if (0 != strcmp(kwbuff,"str):")) {
-            status=0;
-            PyErr_Format(PyExc_IOError, 
-                    "Expected str): keyword at polygon %ld, got %s", 
-                    self->current_poly_index, kwbuff);
-            goto _read_polygon_header_errout;
-        }
-        sscanf(self->buff, "%lf", &ply->area);
-    }
-    if (got_pixel) {
-        if (1 != fscanf(self->fptr,"%lf",&ply->area)) {
-            status=0;
-            PyErr_Format(PyExc_IOError, 
-                    "Failed to read area for polygon %ld", 
-                    self->current_poly_index);
-            goto _read_polygon_header_errout;
-        }
-        if (!scan_expected_value(self, "str):")) {
-            status=0;
-            goto _read_polygon_header_errout;
-        }
-    }
-
-    if (ply->pixel_id > self->maxpix) {
-        self->maxpix = ply->pixel_id;
-    }
-    self->total_area += ply->area;
-
-    if (self->verbose > 1) {
-        fprintf(stderr,
-          "polygon %ld: poly_id %ld ncaps: %ld weight: %g pixel: %ld area: %g\n", 
-          self->current_poly_index, ply->poly_id, *ncaps, ply->weight, 
-          ply->pixel_id, ply->area);
-    }
-
-_read_polygon_header_errout:
-    return status;
-}
-/*
- * this is after reading the initial 'polygon' token
- *
- * poly_index is the index into the PolygonVec
- */
-static int
-read_polygon(struct PyMangleMask* self, struct Polygon* ply) {
-    int status=1;
-    struct Cap* cap=NULL;
-
-    npy_intp ncaps=0, i=0;
-
-    if (!read_polygon_header(self, ply, &ncaps)) {
-        status=0;
-        goto _read_single_polygon_errout;
-    }
-
-    ply->cap_vec = CapVec_new(ncaps);
-    if (ply->cap_vec == NULL) {
-        status=0;
-        goto _read_single_polygon_errout;
-    }
-
-    cap = &ply->cap_vec->data[0];
-    for (i=0; i<ncaps; i++) {
-        status = read_cap(self, cap);
-        if (status != 1) {
-            goto _read_single_polygon_errout;
-        }
-
-        if (self->verbose > 2) {
-            fprintf(stderr, "    %.16g %.16g %.16g %.16g\n", 
-                    cap->x, cap->y, cap->z, cap->cm);
-        }
-
-        cap++;
-    }
-_read_single_polygon_errout:
-    return status;
-}
-/*
- * Should be passed FILE* right after reading the first
- * 'polygon' token, which should be stored in buff
- *
- * poly_vec should be allocated now
- */
-static int
-do_read_polygons(struct PyMangleMask* self)
-{
-    int status=1;
-
-    npy_intp npoly=0, i=0;
-
-    npoly=self->poly_vec->size;
-
-    if (self->verbose)
-        fprintf(stderr,"reading %ld polygons\n", npoly);
-    for (i=0; i<npoly; i++) {
-        // buff comes in with 'polygon'
-        if (0 != strcmp(self->buff,"polygon")) {
-            status=0;
-            PyErr_Format(PyExc_IOError, 
-                    "Expected first token in poly to read 'polygon', got '%s'", 
-                    self->buff);
-            goto _read_some_polygons_errout;
-        }
-
-        // just for error messages and verbosity
-        self->current_poly_index = i;
-
-        status = read_polygon(self, &self->poly_vec->data[i]);
-        if (status != 1) {
-            break;
-        }
-
-        if (i != (npoly-1)) {
-            if (1 != fscanf(self->fptr,"%s",self->buff)) {
-                status=0;
-                PyErr_Format(PyExc_IOError, 
-                        "Error reading token for polygon %ld", i);
-                goto _read_some_polygons_errout;
-            }
-        }
-    }
-
-_read_some_polygons_errout:
-    return status;
-}
-
-/*
- * read the main header
- */
-static int
-read_main_header(struct PyMangleMask* self)
-{
-    int status=1;
-
-    if (2 != fscanf(self->fptr,"%ld %s", &self->npoly, self->buff)) {
-        status = 0;
-        PyErr_Format(PyExc_IOError, "Could not read number of polygons");
-        goto _read_main_header_errout;
-    }
-    if (0 != strcmp(self->buff,"polygons")) {
-        status = 0;
-        PyErr_Format(PyExc_IOError, 
-                "Expected keyword 'polygons' but got '%s'", self->buff);
-        goto _read_main_header_errout;
-    }
-
-    if (self->verbose)
-        fprintf(stderr,"Expect %ld polygons\n", self->npoly);
-
-    // get some metadata
-    if (1 != fscanf(self->fptr,"%s", self->buff) ) {
-        status=0;
-        PyErr_Format(PyExc_IOError, "Error reading header keyword");
-        goto _read_main_header_errout;
-    }
-    while (0 != strcmp(self->buff,"polygon")) {
-        if (0 == strcmp(self->buff,"snapped")) {
-            if (self->verbose) 
-                fprintf(stderr,"\tpolygons are snapped\n");
-            self->snapped=1;
-        } else if (0 == strcmp(self->buff,"balkanized")) {
-            if (self->verbose) 
-                fprintf(stderr,"\tpolygons are balkanized\n");
-            self->balkanized=1;
-        } else if (0 == strcmp(self->buff,"pixelization")) {
-            // read the pixelization description, e.g. 9s
-            if (1 != fscanf(self->fptr,"%s", self->buff)) {
-                status=0;
-                PyErr_Format(PyExc_IOError, "Error reading pixelization scheme");
-                goto _read_main_header_errout;
-            }
-            if (self->verbose) 
-                fprintf(stderr,"\tpixelization scheme: '%s'\n", self->buff);
-
-
-            if (!pixel_parse_scheme(self->buff, &self->pixelres, &self->pixeltype)) {
-                goto _read_main_header_errout;
-            }
-            if (self->verbose) {
-                fprintf(stderr,"\t\tscheme: '%c'\n", self->pixeltype);
-                fprintf(stderr,"\t\tres:     %ld\n", self->pixelres);
-            }
-        } else {
-            status=0;
-            PyErr_Format(PyExc_IOError, 
-                    "Got unexpected header keyword: '%s'", self->buff);
-            goto _read_main_header_errout;
-        }
-        if (1 != fscanf(self->fptr,"%s", self->buff) ) {
-            status=0;
-            PyErr_Format(PyExc_IOError, "Error reading header keyword");
-            goto _read_main_header_errout;
-        }
-    }
-
-
-_read_main_header_errout:
-    return status;
-}
-
-
-
-/* 
- * read polygons from the file.  first parse the header and
- * then call the lower level routine do_read_polygons to actuall
- * process the polygon specifications
- */
-static int
-read_polygons(struct PyMangleMask* self)
-{
-    int status=1;
-
-    
-    if (self->verbose)
-        fprintf(stderr,"reading polygon file: %s\n", self->filename);
-
-    self->fptr = fopen(self->filename,"r");
-    if (self->fptr==NULL) {
-        status=0;
-        PyErr_Format(PyExc_IOError, "Could not open file: %s", self->filename);
-        goto _read_polygons_errout;
-    }
-
-    status = read_main_header(self);
-    if (status != 1) {
-        goto _read_polygons_errout;
-    }
-
-    if (self->verbose)
-        fprintf(stderr,"Allocating %ld polygons\n", self->npoly);
-
-    self->poly_vec = PolygonVec_new(self->npoly);
-    if (self->poly_vec == NULL) {
-        status=0;
-        goto _read_polygons_errout;
-    }
-
-    status = do_read_polygons(self);
-
-_read_polygons_errout:
-    // apparently, segfault when fptr NULL?
-    if (self->fptr != NULL) {
-        fclose(self->fptr);
-    }
-    return status;
-}
-
-
-static int
-set_pixel_map(struct PyMangleMask* self)
-{
-    int status=1;
-    struct Polygon* ply=NULL;
-    npy_intp ipoly=0;
-
-    if (self->pixelres >= 0) {
-        if (self->verbose) {
-            fprintf(stderr,"Allocating %ld in PixelListVec\n", 
-                    self->maxpix+1);
-        }
-        self->pixel_list_vec = PixelListVec_new(self->maxpix+1);
-        if (self->pixel_list_vec == NULL) {
-            status = 0;
-            goto _set_pixel_map_errout;
-        } else {
-            if (self->verbose)
-                fprintf(stderr,"Filling pixel map\n");
-            ply=&self->poly_vec->data[0];
-            for (ipoly=0; ipoly<self->poly_vec->size; ipoly++) {
-                IntpStack_push(self->pixel_list_vec->data[ply->pixel_id], ipoly);
-                if (self->verbose > 2) {
-                    fprintf(stderr,
-                            "Adding poly %ld to pixel map at %ld (%ld)\n",
-                            ipoly,ply->pixel_id,
-                            self->pixel_list_vec->data[ply->pixel_id]->size);
-                }
-                ply++;
-            }
-        }
-    }
-_set_pixel_map_errout:
-
-    return status;
-}
-
-static void
-set_defaults(struct PyMangleMask* self)
-{
-    self->filename=NULL;
-    self->poly_vec=NULL;
-
-    self->total_area=0.0;
-    self->pixelres=-1;
-    self->maxpix=-1;
-    self->pixeltype='u';
-    self->pixel_list_vec=NULL;
-
-    self->snapped=0;
-    self->balkanized=0;
-
-    self->verbose=0;
-
-    memset(self->buff, 0, _MANGLE_SMALL_BUFFSIZE);
-
-    self->fptr=NULL;
-}
 
 /*
  * Initalize the mangle mask.  Read the file and, if pixelized, 
@@ -458,19 +29,20 @@ set_defaults(struct PyMangleMask* self)
 static int
 PyMangleMask_init(struct PyMangleMask* self, PyObject *args, PyObject *kwds)
 {
-    set_defaults(self);
-    char* tmp_filename=NULL;
-    if (!PyArg_ParseTuple(args, (char*)"si", &tmp_filename, &self->verbose)) {
-        return -1;
-    }
-    self->filename = strdup(tmp_filename);
-
-    // no need to call cleanup; destructor gets called
-    if (!read_polygons(self)) {
+    char* filename=NULL;
+    int verbose=0;
+    if (!PyArg_ParseTuple(args, (char*)"si", &filename, &verbose)) {
         return -1;
     }
 
-    if (!set_pixel_map(self)) {
+    self->mask = mangle_new();
+    if (!self->mask) {
+        PyErr_SetString(PyExc_MemoryError, "Error creating mangle mask struct");
+        return -1;
+    }
+    mangle_set_verbosity(self->mask, verbose);
+    if (!mangle_read(self->mask, filename)) {
+        PyErr_Format(PyExc_IOError, "Error reading mangle mask %s",filename);
         return -1;
     }
     return 0;
@@ -485,15 +57,17 @@ PyMangleMask_repr(struct PyMangleMask* self) {
     npy_intp npoly;
     npy_intp npix;
     char buff[255];
+    struct MangleMask* mask=NULL;
 
-    npoly = (self->poly_vec != NULL) ? self->poly_vec->size : 0;
-    npix = (self->pixel_list_vec != NULL) ? self->pixel_list_vec->size : 0;
+    mask = self->mask;
+    npoly = (mask->poly_vec != NULL) ? mask->poly_vec->size : 0;
+    npix = (mask->pixel_list_vec != NULL) ? mask->pixel_list_vec->size : 0;
 
     sprintf(buff,
             "Mangle\n\tfile: %s\n\tarea: %g sqdeg\n\tnpoly: %ld\n\t"
             "pixeltype: '%c'\n\tpixelres: %ld\n\tnpix: %ld\n\tverbose: %d\n", 
-            self->filename, self->total_area*R2D*R2D, 
-            npoly, self->pixeltype, self->pixelres, npix, self->verbose);
+            mask->filename, mask->total_area*R2D*R2D, 
+            npoly, mask->pixeltype, mask->pixelres, npix, mask->verbose);
     return PyString_FromString(buff);
 }
 
@@ -501,14 +75,9 @@ PyMangleMask_repr(struct PyMangleMask* self) {
 static void
 cleanup(struct PyMangleMask* self)
 {
-    if (self->verbose > 2)
-        fprintf(stderr,"Freeing poly_vec\n");
-    self->poly_vec  = PolygonVec_free(self->poly_vec);
-    if (self->verbose > 2)
-        fprintf(stderr,"Freeing pixel_list_vec\n");
-    self->pixel_list_vec = PixelListVec_free(self->pixel_list_vec);
-    free(self->filename);
-    self->filename=NULL;
+    if (self->mask->verbose > 2)
+        fprintf(stderr,"mask struct\n");
+    self->mask = mangle_free(self->mask);
 }
 
 
@@ -529,89 +98,6 @@ PyMangleMask_dealloc(struct PyMangleMask* self)
 
 
 
-/*
- * Get the pixel number of the input point for the simple scheme
- */
-
-/*
- * check the point against a pixelized mask.  If found, will return the id and
- * weight.  These default to -1 and 0
- */
-
-static int
-polyid_and_weight_pixelized(struct PyMangleMask* self, 
-                            struct Point* pt, 
-                            npy_intp* poly_id, 
-                            double* weight)
-{
-    int status=1;
-    npy_intp pix=0, i=0, ipoly=0;
-    struct IntpStack* pstack=NULL;
-    struct Polygon* ply=NULL;
-
-    *poly_id=-1;
-    *weight=0.0;
-
-    if (self->pixeltype == 's') {
-        pix = get_pixel_simple(self->pixelres, pt);
-
-        if (pix < self->pixel_list_vec->size) {
-            // this is a stack holding indices into the polygon vector
-            pstack = self->pixel_list_vec->data[pix];
-
-            for (i=0; i<pstack->size; i++) {
-                ipoly = pstack->data[i];
-                ply = &self->poly_vec->data[ipoly];
-
-                if (is_in_poly(ply, pt)) {
-                    *poly_id=ply->poly_id;
-                    *weight=ply->weight;
-                    break;
-                }
-            }
-        }
-    } else {
-        status=0;
-        PyErr_Format(PyExc_IOError, 
-                     "Unsupported pixelization scheme: '%c'",self->pixeltype);
-    }
-
-    return status;
-}
-
-/*
- * check the point against the mask.  If found, will return the
- * id and weight.  These default to -1 and 0
- *
- * this version does not use pixelization
- */
-static int
-polyid_and_weight(struct PyMangleMask* self, 
-                  struct Point* pt, 
-                  npy_intp* poly_id, 
-                  double* weight)
-{
-    int status=1;
-    npy_intp i=0;
-    struct Polygon* ply=NULL;
-
-    *poly_id=-1;
-    *weight=0.0;
-
-    // check every pixel until a match is found
-    // assuming snapped so no overlapping polygons.
-    ply = &self->poly_vec->data[0];
-    for (i=0; i<self->poly_vec->size; i++) {
-        if (is_in_poly(ply, pt)) {
-            *poly_id=ply->poly_id;
-            *weight=ply->weight;
-            break;
-        }
-        ply++;
-    }
-
-    return status;
-}
 
 static PyObject*
 make_intp_array(npy_intp size, const char* name, npy_intp** ptr)
@@ -737,11 +223,10 @@ PyMangleMask_polyid_and_weight(struct PyMangleMask* self, PyObject* args)
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
-        if (self->pixelres == -1) {
-            status=polyid_and_weight(self, &pt, poly_id_ptr, weight_ptr);
-        } else {
-            status=polyid_and_weight_pixelized(self, &pt, poly_id_ptr, weight_ptr);
-        }
+        status=mangle_polyid_and_weight_nopix(self->mask, 
+                                              &pt, 
+                                              poly_id_ptr, 
+                                              weight_ptr);
 
         if (status != 1) {
             goto _poly_id_and_weight_cleanup;
@@ -799,11 +284,10 @@ PyMangleMask_polyid(struct PyMangleMask* self, PyObject* args)
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
-        if (self->pixelres == -1) {
-            status=polyid_and_weight(self, &pt, poly_id_ptr, &weight);
-        } else {
-            status=polyid_and_weight_pixelized(self, &pt, poly_id_ptr, &weight);
-        }
+        status=mangle_polyid_and_weight(self->mask, 
+                                        &pt, 
+                                        poly_id_ptr, 
+                                        &weight);
 
         if (status != 1) {
             goto _poly_id_cleanup;
@@ -852,11 +336,10 @@ PyMangleMask_weight(struct PyMangleMask* self, PyObject* args)
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
-        if (self->pixelres == -1) {
-            status=polyid_and_weight(self, &pt, &poly_id, weight_ptr);
-        } else {
-            status=polyid_and_weight_pixelized(self, &pt, &poly_id, weight_ptr);
-        }
+        status=mangle_polyid_and_weight(self->mask, 
+                                        &pt, 
+                                        &poly_id, 
+                                        weight_ptr);
 
         if (status != 1) {
             goto _weight_cleanup;
@@ -907,11 +390,10 @@ PyMangleMask_contains(struct PyMangleMask* self, PyObject* args)
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
-        if (self->pixelres == -1) {
-            status=polyid_and_weight(self, &pt, &poly_id, &weight);
-        } else {
-            status=polyid_and_weight_pixelized(self, &pt, &poly_id, &weight);
-        }
+        status=mangle_polyid_and_weight(self->mask, 
+                                        &pt, 
+                                        &poly_id, 
+                                        &weight);
 
         if (status != 1) {
             goto _weight_cleanup;
@@ -931,33 +413,6 @@ _weight_cleanup:
         return NULL;
     }
     return contained_obj;
-}
-
-static int 
-radec_range_to_costhetaphi(double ramin, double ramax, 
-                           double decmin, double decmax,
-                           double* cthmin, double* cthmax, 
-                           double* phimin, double* phimax)
-{
-
-    if (ramin < 0.0 || ramax > 360.0) {
-        PyErr_Format(PyExc_ValueError,
-                     "ra range must be in [0,360] got [%.16g,%.16g]",
-                     ramin,ramax);
-        return 0;
-    }
-    if (decmin < -90.0 || decmax > 90.0) {
-        PyErr_Format(PyExc_ValueError,
-                     "dec range must be in [-90,90] got [%.16g,%.16g]",
-                     decmin,decmax);
-        return 0;
-    }
-
-    *cthmin = cos((90.0-decmin)*D2R);
-    *cthmax = cos((90.0-decmax)*D2R);
-    *phimin = ramin*D2R;
-    *phimax = ramax*D2R;
-    return 1;
 }
 
 
@@ -1012,11 +467,10 @@ PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
         genrand_theta_phi_allsky(&theta, &phi);
         point_set_from_thetaphi(&pt, theta, phi);
 
-        if (self->pixelres == -1) {
-            status=polyid_and_weight(self, &pt, &poly_id, &weight);
-        } else {
-            status=polyid_and_weight_pixelized(self, &pt, &poly_id, &weight);
-        }
+        status=mangle_polyid_and_weight(self->mask, 
+                                        &pt, 
+                                        &poly_id, 
+                                        &weight);
 
         if (status != 1) {
             goto _genrand_cleanup;
@@ -1108,11 +562,7 @@ PyMangleMask_genrand_range(struct PyMangleMask* self, PyObject* args)
         genrand_theta_phi(cthmin,cthmax,phimin,phimax,&theta, &phi);
         point_set_from_thetaphi(&pt, theta, phi);
 
-        if (self->pixelres == -1) {
-            status=polyid_and_weight(self, &pt, &poly_id, &weight);
-        } else {
-            status=polyid_and_weight_pixelized(self, &pt, &poly_id, &weight);
-        }
+        status=mangle_polyid_and_weight(self->mask, &pt, &poly_id, &weight);
 
         if (status != 1) {
             goto _genrand_range_cleanup;

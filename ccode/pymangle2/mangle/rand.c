@@ -1,8 +1,10 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <math.h>
 #include "rand.h"
 #include "point.h"
+#include "defs.h"
 
 void
 seed_random(void) {
@@ -29,6 +31,31 @@ void genrand_range(double cthmin, double cthmax,
 
     point_set_from_thetaphi(pt, theta, phi);
 }
+int 
+radec_range_to_costhetaphi(double ramin, double ramax, 
+                           double decmin, double decmax,
+                           double* cthmin, double* cthmax, 
+                           double* phimin, double* phimax)
+{
+
+    if (ramin < 0.0 || ramax > 360.0) {
+        wlog("ra range must be in [0,360] got [%.16g,%.16g]",
+                ramin,ramax);
+        return 0;
+    }
+    if (decmin < -90.0 || decmax > 90.0) {
+        wlog("dec range must be in [-90,90] got [%.16g,%.16g]",
+             decmin,decmax);
+        return 0;
+    }
+
+    *cthmin = cos((90.0-decmin)*D2R);
+    *cthmax = cos((90.0-decmax)*D2R);
+    *phimin = ramin*D2R;
+    *phimax = ramax*D2R;
+    return 1;
+}
+
 
 
 /*
