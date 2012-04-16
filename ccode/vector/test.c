@@ -219,6 +219,13 @@ void test_long() {
     assert(v==NULL);
 }
 
+/*
+ * A test using a vector to hold pointers.  Note the vector does not "own" the
+ * pointers, so allocation and free must happen separately
+ *
+ * If you want a vector of pointer that owns the data, use a pvector
+ */
+
 void test_ptr() {
     struct vector* v = vector_new(0, sizeof(struct test*));
 
@@ -227,6 +234,7 @@ void test_ptr() {
     // note we never own the pointers in the vector! So we must allocated and
     // free it separately
     struct test* tvec = calloc(n, sizeof(struct test));
+
     for (i=0; i<n; i++) {
         struct test *t = &tvec[i];
         t->id = i;
@@ -257,9 +265,9 @@ void test_ptr() {
         i++;
     }
 
-    free(tvec);
     v=vector_delete(v);
     assert(v==NULL);
+    free(tvec);
 }
 int main(int argc, char** argv) {
     wlog("testing creating, get, set and iteration\n");

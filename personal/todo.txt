@@ -1,5 +1,11 @@
 Quick look Queue
 
+    - add area, printouts to mask *after* reading
+
+    - make install script for espy
+    - add modules load for "work" version
+    - make script to actually run admom on des
+
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
     - optionally mask around bright galaxies?
