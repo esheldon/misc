@@ -6,11 +6,12 @@ import numpy
 data_files=[]
 
 ext=Extension("mangle._mangle", ["mangle/_mangle.c",
-                                 "mangle/point.c",
+                                 "mangle/mangle.c",
                                  "mangle/cap.c",
                                  "mangle/polygon.c",
-                                 "mangle/stack.c",
                                  "mangle/pixel.c",
+                                 "mangle/point.c",
+                                 "mangle/stack.c",
                                  "mangle/rand.c"])
 setup(name="mangle", 
       packages=['mangle'],

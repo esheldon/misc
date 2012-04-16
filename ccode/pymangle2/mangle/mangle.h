@@ -31,7 +31,7 @@ struct MangleMask {
 
 };
 
-struct MangleMask* mangle_new();
+struct MangleMask* mangle_new(void);
 struct MangleMask* mangle_free(struct MangleMask* self);
 void mangle_clear(struct MangleMask* self);
 void mangle_set_verbosity(struct MangleMask* self, int verbosity);
