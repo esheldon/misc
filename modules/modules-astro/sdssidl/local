@@ -1,0 +1,26 @@
+#%Module
+# vim: set filetype=tcl :
+##
+## sdssidl modulefile
+##
+proc ModulesHelp { } {
+    global version
+
+    puts stderr "	My collection of python scripts, packages and modules."
+    puts stderr "
+	Version $version
+"
+}
+
+# for Tcl script use only
+set     version      local
+
+module-whatis	"sdss idl code"
+conflict sdssidl
+
+eval set  [ array get env HOME ]
+
+set SDSSIDL_DIR $HOME/sdssidl
+
+append-path IDL_PATH +$SDSSIDL_DIR/pro
+setenv SDSSIDL_DIR $SDSSIDL_DIR
