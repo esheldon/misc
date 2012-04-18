@@ -20,7 +20,8 @@ if [ "$(echo $IDL_PATH | grep IDL_DEFAULT)" == "" ]; then
 	IDL_PATH=${IDL_PATH}:"<IDL_DEFAULT>"
 fi
 
-export IDL_PATH=$IDL_PATH:+~/exports/scranton
+#prepend_path '<IDL_DEFAULT>' IDL_PATH
+#export IDL_PATH=$IDL_PATH:+~/exports/scranton
 
 export IDL_PATH
 export IDL_STARTUP=$dotfileDir/idl_startup
