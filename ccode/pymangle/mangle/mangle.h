@@ -46,14 +46,6 @@ void mangle_calc_area_and_maxpix(struct MangleMask* self);
 
 int set_pixel_map(struct MangleMask* self);
 
-/*
- * this chooses the right function based on pixeltype
- */
-
-int mangle_polyid_and_weight(struct MangleMask *self, 
-                             struct Point *pt, 
-                             int64 *poly_id,
-                             double *weight);
 
 
 /*
@@ -78,5 +70,27 @@ int mangle_polyid_and_weight_pix(struct MangleMask *self,
                                  double *weight);
 
 
+/*
+ * this chooses the right function based on pixeltype
+ */
 
+inline int mangle_polyid_and_weight(struct MangleMask *self, 
+                             struct Point *pt, 
+                             int64 *poly_id,
+                             double *weight)
+{
+    if (self->pixeltype == 'u') {
+        return mangle_polyid_and_weight_nopix(self,pt,poly_id,weight);
+    } else {
+        return mangle_polyid_and_weight_pix(self,pt,poly_id,weight);
+    }
+}
+
+
+/*
+int mangle_polyid_and_weight(struct MangleMask *self, 
+                             struct Point *pt, 
+                             int64 *poly_id,
+                             double *weight);
+*/
 #endif

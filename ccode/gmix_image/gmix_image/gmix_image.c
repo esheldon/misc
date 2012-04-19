@@ -4,8 +4,7 @@
 
     Start with a guess for the N gaussians.
 
-    Render the gaussians on the pixel grid.  Then the new estimate
-    for the gaussian weight "p" are for gaussian i is
+    Then the new estimate for the gaussian weight "p" for gaussian gi is
 
         pnew[gi] = sum_pix( gi[pix]/gtot[pix]*imnorm[pix] )
 
