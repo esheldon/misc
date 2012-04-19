@@ -53,7 +53,8 @@ int main(int argc, char** argv)
     gvec = gvec_copy(ginit);
 
     clock_gettime(CLOCK_MONOTONIC, &ts_start);
-    int flags = gmix_image(&gmix, image, gvec, &niter);
+    //int flags = gmix_image(&gmix, image, gvec, &niter);
+    int flags = gmix_image_malloc(&gmix, image, gvec, &niter);
     clock_gettime(CLOCK_MONOTONIC, &ts_end);
     double sec = 
         ((double)ts_end.tv_sec-ts_start.tv_sec)
