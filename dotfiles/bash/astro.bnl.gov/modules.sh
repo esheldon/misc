@@ -40,7 +40,7 @@ if [[ $check == "" ]]; then
 
     module load perllib
     module load shell_scripts
-    module load espy
+    module load espy/local
 
     module load desfiles
 
@@ -74,6 +74,10 @@ if [[ $check == "" ]]; then
     # also numpy if not using system
     module unload wl && module load wl/local   # *
 
+
+    module load esidl
+    module load sdssidl
+    module load idlastron
 fi
 
 
