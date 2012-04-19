@@ -1,5 +1,7 @@
 Quick look Queue
 
+    - read ying's draft
+
     - make install script for espy
     - add modules load for "work" version
     - make script to actually run admom on des
