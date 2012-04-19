@@ -1,3 +1,38 @@
+/*
+ 
+    Algorithm is simple:
+
+    Start with a guess for the N gaussians.
+
+    Render the gaussians on the pixel grid.  Then the new estimate
+    for the gaussian weight "p" are for gaussian i is
+
+        pnew[gi] = sum_pix( gi[pix]/gtot[pix]*imnorm[pix] )
+
+    where imnorm is image/sum(image) and gtot[pix] is
+        
+        gtot[pix] = sum_gi(gi[pix]) + nsky
+
+    and nsky is the sky/sum(image)
+    
+    These new p[gi] can then be used to update the mean and covariance
+    as well.  To update the mean in coordinate x
+
+        mx[gi] = sum_pix( gi[pix]/gtot[pix]*imnorm[pix]*x )/pnew[gi]
+ 
+    where x is the pixel value in either row or column.
+
+    Similarly for the covariance for coord x and coord y.
+
+        cxy = sum_pix(  gi[pix]/gtot[pix]*imnorm[pix]*(x-xc)*(y-yc) )/pcen[gi]
+
+    setting x==y gives the diagonal terms.
+
+    Then repeat until some tolerance in the moments is achieved.
+
+    These calculations can be done very efficiently within a single loop.
+    
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -6,6 +41,11 @@
 #include "image.h"
 #include "gvec.h"
 #include "defs.h"
+
+/*
+ * This function is way too long, but we care about speed and there are a lot
+ * of variables.  Better to get them on the stack once and be done with it
+ */
 
 int gmix_image(struct gmix* self,
                struct image *image, 
@@ -29,20 +69,22 @@ int gmix_image(struct gmix* self,
     double nsky = sky/counts;
     double psky = sky/(counts/npoints);
 
-    double *pnew = alloca(gvec->size);
+    // these are all stack allocated
+
     double *gi = alloca(gvec->size);
-    double *rowsum = alloca(gvec->size);
     double *trowsum = alloca(gvec->size);
-    double *colsum = alloca(gvec->size);
     double *tcolsum = alloca(gvec->size);
-
     double *tu2sum = alloca(gvec->size);
-    double *u2sum = alloca(gvec->size);
     double *tuvsum = alloca(gvec->size);
-    double *uvsum = alloca(gvec->size);
     double *tv2sum = alloca(gvec->size);
-    double *v2sum = alloca(gvec->size);
 
+    // these need to be zeroed on each iteration
+    double *pnew = alloca(gvec->size);
+    double *rowsum = alloca(gvec->size);
+    double *colsum = alloca(gvec->size);
+    double *u2sum = alloca(gvec->size);
+    double *uvsum = alloca(gvec->size);
+    double *v2sum = alloca(gvec->size);
 
     wmomlast=-9999;
     *iter=0;
@@ -69,7 +111,6 @@ int gmix_image(struct gmix* self,
                     det = gauss->irr*gauss->icc - gauss->irc*gauss->irc;
                     det = fabs(det);
                     if (det == 0) {
-                        wlog("det == 0\n");
                         flags+=GMIX_ERROR_NEGATIVE_DET;
                         goto _gmix_image_bail;
                     }
@@ -89,25 +130,24 @@ int gmix_image(struct gmix* self,
 
                     trowsum[i] = row*gi[i];
                     tcolsum[i] = col*gi[i];
-
-                    tu2sum[i] = u2*gi[i];
-                    tuvsum[i] = uv*gi[i];
-                    tv2sum[i] = v2*gi[i];
+                    tu2sum[i]  = u2*gi[i];
+                    tuvsum[i]  = uv*gi[i];
+                    tv2sum[i]  = v2*gi[i];
 
                     gauss++;
                 }
                 gtot += nsky;
+                igrat = imnorm/gtot;
                 for (i=0; i<gvec->size; i++) {
-                    igrat = imnorm/gtot;
                     tau = gi[i]*igrat;  // Dave's tau*imnorm
                     pnew[i] += tau;
                     psum += tau;
 
                     rowsum[i] += trowsum[i]*igrat;
                     colsum[i] += tcolsum[i]*igrat;
-                    u2sum[i] += tu2sum[i]*igrat;
-                    uvsum[i] += tuvsum[i]*igrat;
-                    v2sum[i] += tv2sum[i]*igrat;
+                    u2sum[i]  += tu2sum[i]*igrat;
+                    uvsum[i]  += tuvsum[i]*igrat;
+                    v2sum[i]  += tv2sum[i]*igrat;
                 }
                 skysum += nsky*imnorm/gtot;
 
@@ -117,32 +157,21 @@ int gmix_image(struct gmix* self,
         wmom=0;
         gauss=gvec->data;
         for (i=0; i<gvec->size; i++) {
-            gauss->p = pnew[i];
+            gauss->p   = pnew[i];
             gauss->row = rowsum[i]/pnew[i];
             gauss->col = colsum[i]/pnew[i];
             gauss->irr = u2sum[i]/pnew[i];
             gauss->irc = uvsum[i]/pnew[i];
             gauss->icc = v2sum[i]/pnew[i];
-
             wmom += gauss->p*gauss->irr + gauss->p*gauss->icc;
-            if (self->verbose) {
-                wlog("gauss[%lu] pnew: %.16g row: %.16g col: %.16g " 
-                     "irr: %.16g irc: %.16g icc: %.16g\n",
-                     i, gauss->p, gauss->row, gauss->col,
-                     gauss->irr,gauss->irc, gauss->icc);
-            }
-           gauss++;
+
+            gauss++;
         }
         psky = skysum;
-        if (self->verbose)
-            wlog("psky: %.16g\n", psky);
 
         wmom /= psum;
-        if (self->verbose)
-            wlog("wmom: %.16g\n", wmom);
         wmomdiff = fabs(wmom-wmomlast);
         if (wmomdiff/wmom < self->tol) {
-        //if (wmomdiff < self->tol) {
             break;
         }
         wmomlast = wmom;
