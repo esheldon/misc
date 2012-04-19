@@ -55,9 +55,9 @@ void gvec_print(FILE* fptr, struct gvec *self)
 {
     struct gauss *gptr = self->data;
     for (size_t i=0; i<self->size; i++) {
-        wlog("p: %9.6lf row: %9.6lf col: %9.6lf " 
+        wlog("%lu p: %9.6lf row: %9.6lf col: %9.6lf " 
              "irr: %9.6lf irc: %9.6lf icc: %9.6lf\n",
-             gptr->p, gptr->row, gptr->col,
+             i, gptr->p, gptr->row, gptr->col,
              gptr->irr,gptr->irc, gptr->icc);
         gptr++;
     }

@@ -22,6 +22,7 @@ int main(int argc, char** argv)
     gmix.tol = 1.e-6;
     //gmix.tol = 1.e-5;
     gmix.fixsky = 1;
+    gmix.verbose=0;
 
     ginit = gvec_new(ngauss);
     gptr = ginit->data;
