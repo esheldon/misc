@@ -44,9 +44,10 @@
 #include "defs.h"
 
 /*
- * This function is way too long and we put everything on the stack. A worry
- * if many gaussians, or linked to python?  There is a malloc one also and
- * it appears to be just as fast for a few gaussians.
+ * This function is way too long and we put everything on the stack. A worry if
+ * many gaussians, or linked to python?  Stack is 10Mb by default, so not a big
+ * worry.  There is a malloc one also and it appears to be just as fast for a
+ * few gaussians.
  */
 
 int gmix_image(struct gmix* self,
@@ -122,9 +123,7 @@ int gmix_image(struct gmix* self,
                     u = (row-gauss->row);
                     v = (col-gauss->col);
 
-                    u2 = u*u;
-                    v2 = v*v;
-                    uv = u*v;
+                    u2 = u*u; v2 = v*v; uv = u*v;
 
                     chi2=gauss->icc*u2 + gauss->irr*v2 - 2.0*gauss->irc*uv;
                     chi2 /= det;
