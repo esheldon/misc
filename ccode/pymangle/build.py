@@ -19,7 +19,10 @@ CC='gcc'
 
 LINKFLAGS=['-lm']
 
-CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
+CFLAGS=['-std=gnu99','-Wall','-Werror','-Winline','-O2','-S','-masm=intel']
+oext='.s'
+#CFLAGS=['-std=gnu99','-Wall','-Werror','-Winline','-O2']
+#oext='.o'
 
 gr_sources = ['genrand','mangle','cap','polygon','pixel','point','stack','rand']
 pi_sources = ['polyid','mangle','cap','polygon','pixel','point','stack']
@@ -39,7 +42,7 @@ def build():
 def compile():
     for prog in programs:
         for source in prog['sources']:
-            run(CC, '-c', '-o',source+'.o', CFLAGS, source+'.c')
+            run(CC, '-c', '-o',source+oext, CFLAGS, source+'.c')
 
 def link():
     for prog in programs:

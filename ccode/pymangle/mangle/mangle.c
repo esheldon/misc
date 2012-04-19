@@ -5,6 +5,7 @@
 #include "polygon.h"
 #include "defs.h"
 
+
 // we have an inline def in the header
 extern int mangle_polyid_and_weight(struct MangleMask *self, 
                                     struct Point *pt, 
@@ -259,6 +260,7 @@ _set_pixel_map_errout:
 
 }
 
+/*
 int mangle_polyid_and_weight(struct MangleMask *self, 
                              struct Point *pt, 
                              int64 *poly_id,
@@ -270,7 +272,7 @@ int mangle_polyid_and_weight(struct MangleMask *self,
         return mangle_polyid_and_weight_pix(self,pt,poly_id,weight);
     }
 }
-
+*/
 
 int mangle_polyid_and_weight_nopix(struct MangleMask *self, 
                                    struct Point *pt, 
