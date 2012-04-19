@@ -30,7 +30,8 @@
 
     Then repeat until some tolerance in the moments is achieved.
 
-    These calculations can be done very efficiently within a single loop.
+    These calculations can be done very efficiently within a single loop,
+    with a pixel lookup only once per loop.
     
  */
 #include <stdlib.h>
