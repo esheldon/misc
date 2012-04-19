@@ -41,7 +41,8 @@ int main(int argc, char** argv)
     gptr[1].row = 10;
     gptr[1].col = 8;
  
- 
+    // set the deteminants
+    gvec_set_dets(ginit);
     //image = image_new(31,31);
     image = image_read_text("/astro/u/esheldon/tmp/timage-sky-noisy.dat");
     //image = image_read_text("/astro/u/esheldon/tmp/timage-sky.dat");
@@ -50,11 +51,12 @@ int main(int argc, char** argv)
     wlog("image[7,9]: %.16g\n", IMGET(image, 7, 9));
     wlog("image[9,7]: %.16g\n", IMGET(image, 9, 7));
 
-    gvec = gvec_copy(ginit);
+    gvec = gvec_new(ginit->size);
+    gvec_copy(ginit, gvec);
 
     clock_gettime(CLOCK_MONOTONIC, &ts_start);
     //int flags = gmix_image(&gmix, image, gvec, &niter);
-    int flags = gmix_image_malloc(&gmix, image, gvec, &niter);
+    int flags = gmix_image(&gmix, image, gvec, &niter);
     clock_gettime(CLOCK_MONOTONIC, &ts_end);
     double sec = 
         ((double)ts_end.tv_sec-ts_start.tv_sec)
@@ -70,9 +72,9 @@ int main(int argc, char** argv)
 
         gptr = ginit->data;
         wlog("input\n");
-        gvec_print(stderr,ginit);
+        gvec_print(ginit,stderr);
 
         wlog("meas\n");
-        gvec_print(stderr,gvec);
+        gvec_print(gvec,stderr);
     }
 }
