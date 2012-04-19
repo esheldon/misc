@@ -54,7 +54,8 @@ int gmix_image(struct gmix* self,
 {
     int flags=0;
     size_t i=0;
-
+    size_t ngauss = gvec->size;
+    size_t nbytes = gvec->size*sizeof(double);
     double det=0, chi2=0, b=0;
     double u=0, v=0, uv=0, u2=0, v2=0, igrat=0;
     double gtot=0, imnorm=0, skysum=0.0, tau=0;
@@ -71,33 +72,35 @@ int gmix_image(struct gmix* self,
 
     // these are all stack allocated
 
-    double *gi = alloca(gvec->size);
-    double *trowsum = alloca(gvec->size);
-    double *tcolsum = alloca(gvec->size);
-    double *tu2sum = alloca(gvec->size);
-    double *tuvsum = alloca(gvec->size);
-    double *tv2sum = alloca(gvec->size);
+    double *gi = alloca(ngauss);
+    double *trowsum = alloca(ngauss);
+    double *tcolsum = alloca(ngauss);
+    double *tu2sum = alloca(ngauss);
+    double *tuvsum = alloca(ngauss);
+    double *tv2sum = alloca(ngauss);
 
     // these need to be zeroed on each iteration
-    double *pnew = alloca(gvec->size);
-    double *rowsum = alloca(gvec->size);
-    double *colsum = alloca(gvec->size);
-    double *u2sum = alloca(gvec->size);
-    double *uvsum = alloca(gvec->size);
-    double *v2sum = alloca(gvec->size);
+    double *pnew = alloca(ngauss);
+    double *rowsum = alloca(ngauss);
+    double *colsum = alloca(ngauss);
+    double *u2sum = alloca(ngauss);
+    double *uvsum = alloca(ngauss);
+    double *v2sum = alloca(ngauss);
 
     wmomlast=-9999;
     *iter=0;
     while (*iter < self->maxiter) {
+        if (self->verbose)
+            gvec_print(stderr,gvec);
 
         skysum=0;
         psum=0;
-        memset(pnew,0,gvec->size*sizeof(double));
-        memset(rowsum,0,gvec->size*sizeof(double));
-        memset(colsum,0,gvec->size*sizeof(double));
-        memset(u2sum,0,gvec->size*sizeof(double));
-        memset(uvsum,0,gvec->size*sizeof(double));
-        memset(v2sum,0,gvec->size*sizeof(double));
+        memset(pnew,0,nbytes);
+        memset(rowsum,0,nbytes);
+        memset(colsum,0,nbytes);
+        memset(u2sum,0,nbytes);
+        memset(uvsum,0,nbytes);
+        memset(v2sum,0,nbytes);
 
         for (size_t col=0; col<image->ncols; col++) {
             for (size_t row=0; row<image->nrows; row++) {
@@ -107,7 +110,7 @@ int gmix_image(struct gmix* self,
 
                 gtot=0;
                 gauss = &gvec->data[0];
-                for (i=0; i<gvec->size; i++) {
+                for (i=0; i<ngauss; i++) {
                     det = gauss->irr*gauss->icc - gauss->irc*gauss->irc;
                     det = fabs(det);
                     if (det == 0) {
@@ -138,7 +141,7 @@ int gmix_image(struct gmix* self,
                 }
                 gtot += nsky;
                 igrat = imnorm/gtot;
-                for (i=0; i<gvec->size; i++) {
+                for (i=0; i<ngauss; i++) {
                     tau = gi[i]*igrat;  // Dave's tau*imnorm
                     pnew[i] += tau;
                     psum += tau;
@@ -156,7 +159,7 @@ int gmix_image(struct gmix* self,
 
         wmom=0;
         gauss=gvec->data;
-        for (i=0; i<gvec->size; i++) {
+        for (i=0; i<ngauss; i++) {
             gauss->p   = pnew[i];
             gauss->row = rowsum[i]/pnew[i];
             gauss->col = colsum[i]/pnew[i];
