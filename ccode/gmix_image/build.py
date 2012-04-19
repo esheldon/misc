@@ -17,6 +17,7 @@ sdir='gmix_image/'
 
 CC='gcc'
 
+# -lrt is only needed for the timing stuff
 LINKFLAGS=['-lm','-lrt']
 
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
