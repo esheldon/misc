@@ -18,5 +18,10 @@ int gmix_image(struct gmix* self,
                struct image *image, 
                struct gvec *gvec,
                size_t *niter);
+int gmix_image_malloc(struct gmix* self,
+               struct image *image, 
+               struct gvec *gvec,
+               size_t *niter);
+
 
 #endif
