@@ -44,6 +44,7 @@ int main(int argc, char** argv)
  
     //image = image_new(31,31);
     image = image_read_text("/astro/u/esheldon/tmp/timage-sky-noisy.dat");
+    //image = image_read_text("/astro/u/esheldon/tmp/timage-sky.dat");
     if (image==NULL)
         exit(EXIT_FAILURE);
     wlog("image[7,9]: %.16g\n", IMGET(image, 7, 9));
