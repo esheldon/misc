@@ -44,6 +44,10 @@ void gauss_set(struct gauss* self,
 int gvec_copy(struct gvec *self, struct gvec* dest);
 void gvec_print(struct gvec *self, FILE* fptr);
 
+// calculate the weighted sum of the moments
+//  sum_gi( p*(irr + icc )
+double gvec_wmomsum(struct gvec* gvec);
+
 // 0 returned if a zero determinant is found somewhere, else 1
 int gvec_wmean_center(const struct gvec* gvec, struct vec2* mu_new);
 #endif
