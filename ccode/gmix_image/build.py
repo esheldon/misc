@@ -23,7 +23,8 @@ LINKFLAGS=['-lm','-lrt']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
 test_sources = ['test','gvec','image','gmix_image','matrix']
-test_cen_sources = ['test-samecen','gvec','image','gmix_image','matrix']
+test_cen_sources = ['test-samecen','gvec','image',
+                    'gmix_image','gmix_samecen','matrix']
 
 test_mat_sources = ['test-matrix','matrix']
 

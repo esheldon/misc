@@ -89,6 +89,18 @@ void gvec_print(struct gvec *self, FILE* fptr)
         gptr++;
     }
 }
+
+double gvec_wmomsum(struct gvec* gvec)
+{
+    double wmom=0;
+    struct gauss* gauss=gvec->data;
+    for (size_t i=0; i<gvec->size; i++) {
+        wmom += gauss->p*(gauss->irr + gauss->icc);
+        gauss++;
+    }
+    return wmom;
+}
+
 /*
  
  Find the weighted average center and set all centers
