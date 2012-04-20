@@ -157,6 +157,7 @@ int gmix_image(struct gmix* self,
         } // cols
 
         psky = skysum;
+        nsky = psky/npoints;
 
         gmix_set_gvec(gvec,pnew,rowsum,colsum,u2sum,uvsum,v2sum);
 
@@ -186,15 +187,20 @@ _gmix_image_bail:
 
 
 /* 
- * in this version we force the centers to coincide.  This requires
- * two separate passes over the pixels, one for getting the new centeroid
- * and then another calculating the covariance matrix using the mean
- * centroid
+ * in this version we force the centers to coincide.  This requires two
+ * separate passes over the pixels, one for getting the new centers (and
+ * setting the centroid to the mean) and then another calculating the
+ * covariance matrix using the mean centroid
+ *
+ * This usually takes lots more iterations to converge compared to letting the
+ * means float, but the answers are quite close...
+ *
  */
-int gmix_image_fixcen(struct gmix* self,
-                      struct image *image, 
-                      struct gvec *gvec,
-                      size_t *iter)
+
+int gmix_image_samecen(struct gmix* self,
+                       struct image *image, 
+                       struct gvec *gvec,
+                       size_t *iter)
 {
     int flags=0;
     size_t i=0;
@@ -246,12 +252,12 @@ int gmix_image_fixcen(struct gmix* self,
         memset(u2sum,0,nbytes);
         memset(uvsum,0,nbytes);
         memset(v2sum,0,nbytes);
+        memset(pnew,0,nbytes);
+        psum=0;
+        skysum=0;
 
         // first to get centroid info
         for (int pass=1; pass<=2; pass++) {
-            skysum=0;
-            psum=0;
-            memset(pnew,0,nbytes);
             for (size_t col=0; col<image->ncols; col++) {
                 for (size_t row=0; row<image->nrows; row++) {
 
@@ -264,7 +270,7 @@ int gmix_image_fixcen(struct gmix* self,
                         if (gauss->det <= 0) {
                             wlog("found det: %.16g\n", gauss->det);
                             flags+=GMIX_ERROR_NEGATIVE_DET;
-                            goto _gmix_image_fixcen_bail;
+                            goto _gmix_image_samecen_bail;
                         }
 
                         // gi always evaluated using the center
@@ -302,10 +308,10 @@ int gmix_image_fixcen(struct gmix* self,
                     for (i=0; i<ngauss; i++) {
                         // tau are same both passes
                         tau = gi[i]*igrat;  // Dave's tau*imnorm
-                        pnew[i] += tau;
-                        psum += tau;
 
                         if (1==pass) {
+                            pnew[i] += tau;
+                            psum += tau;
                             rowsum[i] += trowsum[i]*igrat;
                             colsum[i] += tcolsum[i]*igrat;
                         } else {
@@ -314,7 +320,9 @@ int gmix_image_fixcen(struct gmix* self,
                             v2sum[i]  += tv2sum[i]*igrat;
                         }
                     }
-                    skysum += nsky*imnorm/gtot;
+                    if (1==pass) {
+                        skysum += nsky*imnorm/gtot;
+                    }
 
                 } // rows
             } // cols
@@ -327,16 +335,18 @@ int gmix_image_fixcen(struct gmix* self,
                 gmix_set_p_and_cen(gcopy, pnew, rowsum, colsum);
                 // now calculate mean of new centers
                 if (!gvec_wmean_center(gcopy, &cen_new)) {
-                    flags += GMIX_ERROR_NEGATIVE_DET_FIXCEN;
-                    goto _gmix_image_fixcen_bail;
+                    flags += GMIX_ERROR_NEGATIVE_DET_SAMECEN;
+                    goto _gmix_image_samecen_bail;
                 }
-                wlog("newcen: %.16g %.16g\n", cen_new.v1, cen_new.v2);
+                if (self->verbose)
+                    wlog("newcen: %.16g %.16g\n", cen_new.v1, cen_new.v2);
             } else {
                 gmix_set_mean_cen(gvec, &cen_new);
                 gmix_set_p_and_mom(gvec,pnew,u2sum,uvsum,v2sum);
             }
         }
         psky = skysum;
+        nsky = psky/npoints;
 
         wmom=0;
         gauss=gvec->data;
@@ -347,7 +357,9 @@ int gmix_image_fixcen(struct gmix* self,
 
         wmom /= psum;
         wmomdiff = fabs(wmom-wmomlast);
-        wlog("iter: %lu  wmom: %.16g diffrat: %.16g\n", *iter, wmom, wmomdiff/wmom);
+        if (self->verbose)
+            wlog("iter: %lu  wmom: %.16g diffrat: %.16g\n", 
+                    *iter, wmom, wmomdiff/wmom);
         if (wmomdiff/wmom < self->tol) {
             break;
         }
@@ -355,7 +367,7 @@ int gmix_image_fixcen(struct gmix* self,
         (*iter)++;
     }
 
-_gmix_image_fixcen_bail:
+_gmix_image_samecen_bail:
     if (self->maxiter == (*iter)) {
         flags += GMIX_ERROR_MAXIT;
     }
@@ -387,20 +399,6 @@ void gmix_set_gvec(struct gvec* gvec,
 
 }
 
-void gmix_set_p_and_cen(struct gvec* gvec, 
-                        double* pnew,
-                        double* rowsum,
-                        double* colsum)
-{
-    struct gauss *gauss=gvec->data;
-    for (size_t i=0; i<gvec->size; i++) {
-        gauss->p = pnew[i];
-        gauss->row = rowsum[i]/pnew[i];
-        gauss->col = colsum[i]/pnew[i];
-        gauss++;
-    }
-
-}
 void gmix_set_mean_cen(struct gvec* gvec, struct vec2 *cen_mean)
 {
     struct gauss *gauss=gvec->data;
@@ -422,6 +420,20 @@ void gmix_set_p(struct gvec* gvec, double* pnew)
 
 }
 
+void gmix_set_p_and_cen(struct gvec* gvec, 
+                        double* pnew,
+                        double* rowsum,
+                        double* colsum)
+{
+    struct gauss *gauss=gvec->data;
+    for (size_t i=0; i<gvec->size; i++) {
+        gauss->p = pnew[i];
+        gauss->row = rowsum[i]/pnew[i];
+        gauss->col = colsum[i]/pnew[i];
+        gauss++;
+    }
+
+}
 
 void gmix_set_p_and_mom(struct gvec* gvec, 
                         double* pnew,

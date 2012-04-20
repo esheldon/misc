@@ -7,7 +7,7 @@
 
 #define GMIX_ERROR_NEGATIVE_DET 0x1
 #define GMIX_ERROR_MAXIT 0x2
-#define GMIX_ERROR_NEGATIVE_DET_FIXCEN 0x4
+#define GMIX_ERROR_NEGATIVE_DET_SAMECEN 0x4
 
 struct gmix {
     size_t maxiter;
@@ -47,10 +47,10 @@ void gmix_set_p(struct gvec* gvec, double* pnew);
  * and then another calculating the covariance matrix using the mean
  * centroid
  */
-int gmix_image_fixcen(struct gmix* self,
-                      struct image *image, 
-                      struct gvec *gvec,
-                      size_t *iter);
+int gmix_image_samecen(struct gmix* self,
+                       struct image *image, 
+                       struct gvec *gvec,
+                       size_t *iter);
 
 
 #endif
