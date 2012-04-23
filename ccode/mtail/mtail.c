@@ -343,6 +343,12 @@ void draw_borders(struct mtail* mtst) {
     wrefresh(mtst->stdscr);
 }
 
+char *get_basename(char *path)
+{
+    char *base = strrchr(path, '/');
+    return base ? base+1 : path;
+}
+
 void print_filenames(struct mtail* mtst) {
     int i, x, y;
     int maxlen, len;
@@ -351,18 +357,24 @@ void print_filenames(struct mtail* mtst) {
     struct tail* tst;
 
     tst = mtst->tst;
+    char *bname;
 
     for (i=0; i<mtst->numfiles; i++) {
 
-        len = strlen(tst[i].fname);
+        // not a copy, just pointer
+        bname = get_basename(tst[i].fname);
+        //len = strlen(tst[i].fname);
+        len = strlen(bname);
         maxlen = tst[i].numcols-2;
 
         if (len > maxlen) {
-            strncpy(name, &tst[i].fname[len-maxlen], MAXFILELEN);
+            //strncpy(name, &tst[i].fname[len-maxlen], MAXFILELEN);
+            strncpy(name, &bname[len-maxlen], MAXFILELEN);
             memcpy(name, ellipses, 3);
             len = maxlen;
         } else {
-            strncpy(name, tst[i].fname, MAXFILELEN);
+            //strncpy(name, tst[i].fname, MAXFILELEN);
+            strncpy(name, bname, MAXFILELEN);
         }
 
         y = tst[i].startrow-1;
