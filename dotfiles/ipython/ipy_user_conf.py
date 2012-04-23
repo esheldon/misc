@@ -43,6 +43,7 @@ def main():
         ip.ex("from numpy import sin")
         ip.ex("from numpy import log")
         ip.ex("from numpy import log10")
+        ip.ex("from numpy import median")
     except:
         print "Could not import numpy"
 
