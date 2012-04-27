@@ -18,8 +18,11 @@ if [[ $check == "" ]]; then
 
     #module load wq
 
+    module load pylint
+
     module load mangle     # *
     module load pymangle   # *
+    module load gmix_image # *
 
     # for oracle libraries
     module load libaio     # *
