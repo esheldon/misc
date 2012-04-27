@@ -41,6 +41,8 @@ def main():
         ip.ex("from numpy import exp")
         ip.ex("from numpy import cos")
         ip.ex("from numpy import sin")
+        ip.ex("from numpy import tanh")
+        ip.ex("from numpy import arctanh")
         ip.ex("from numpy import log")
         ip.ex("from numpy import log10")
         ip.ex("from numpy import median")
