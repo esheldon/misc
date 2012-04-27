@@ -46,7 +46,8 @@
 int gmix_image(struct gmix* self,
                struct image *image, 
                struct gvec *gvec,
-               size_t *iter)
+               size_t *iter,
+               double *fdiff)
 {
     int flags=0;
     size_t ngauss = gvec->size;
@@ -81,7 +82,8 @@ int gmix_image(struct gmix* self,
 
         wmom /= iter_struct->psum;
         wmomdiff = fabs(wmom-wmomlast);
-        if (wmomdiff/wmom < self->tol) {
+        *fdiff = wmomdiff/wmom;
+        if (*fdiff < self->tol) {
             break;
         }
         wmomlast = wmom;
@@ -92,6 +94,8 @@ _gmix_image_new_bail:
     if (self->maxiter == (*iter)) {
         flags += GMIX_ERROR_MAXIT;
     }
+    iter_struct = iter_free(iter_struct);
+
     return flags;
 }
 
@@ -229,156 +233,3 @@ void iter_clear(struct iter *self)
     self->psum=0;
     memset(self->sums,0,self->ngauss*sizeof(struct sums));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-int gmix_image_old(struct gmix* self,
-               struct image *image, 
-               struct gvec *gvec,
-               size_t *iter)
-{
-    int flags=0;
-    size_t i=0;
-    size_t ngauss = gvec->size;
-    size_t nbytes = gvec->size*sizeof(double);
-    double chi2=0, b=0;
-    double u=0, v=0, uv=0, u2=0, v2=0, igrat=0;
-    double gtot=0, imnorm=0, skysum=0.0, tau=0;
-    double wmomlast=0, wmom=0, wmomdiff=0, psum=0;
-
-    struct gauss* gauss=NULL;
-
-    double sky=image_sky(image);
-    double counts=image_counts(image);
-    size_t npoints = IMSIZE(image);
-
-    double nsky = sky/counts;
-    double psky = sky/(counts/npoints);
-
-    // these are all stack allocated
-
-    double *gi = alloca(nbytes);
-    double *trowsum = alloca(nbytes);
-    double *tcolsum = alloca(nbytes);
-    double *tu2sum = alloca(nbytes);
-    double *tuvsum = alloca(nbytes);
-    double *tv2sum = alloca(nbytes);
-
-    // these need to be zeroed on each iteration
-    double *pnew = alloca(nbytes);
-    double *rowsum = alloca(nbytes);
-    double *colsum = alloca(nbytes);
-    double *u2sum = alloca(nbytes);
-    double *uvsum = alloca(nbytes);
-    double *v2sum = alloca(nbytes);
-
-    wmomlast=-9999;
-    *iter=0;
-    while (*iter < self->maxiter) {
-        if (self->verbose)
-            gvec_print(gvec,stderr);
-
-        skysum=0;
-        psum=0;
-        memset(pnew,0,nbytes);
-        memset(rowsum,0,nbytes);
-        memset(colsum,0,nbytes);
-        memset(u2sum,0,nbytes);
-        memset(uvsum,0,nbytes);
-        memset(v2sum,0,nbytes);
-
-        for (size_t col=0; col<image->ncols; col++) {
-            for (size_t row=0; row<image->nrows; row++) {
-
-                imnorm=IMGET(image,row,col);
-                imnorm /= counts;
-
-                gtot=0;
-                gauss = &gvec->data[0];
-                for (i=0; i<ngauss; i++) {
-                    if (gauss->det <= 0) {
-                        wlog("found det: %.16g\n", gauss->det);
-                        flags+=GMIX_ERROR_NEGATIVE_DET;
-                        goto _gmix_image_bail;
-                    }
-                    u = (row-gauss->row);
-                    v = (col-gauss->col);
-
-                    u2 = u*u; v2 = v*v; uv = u*v;
-
-                    chi2=gauss->icc*u2 + gauss->irr*v2 - 2.0*gauss->irc*uv;
-                    chi2 /= gauss->det;
-                    b = M_TWO_PI*sqrt(gauss->det);
-
-                    gi[i] = gauss->p*exp( -0.5*chi2 )/b;
-                    gtot += gi[i];
-
-                    trowsum[i] = row*gi[i];
-                    tcolsum[i] = col*gi[i];
-                    tu2sum[i]  = u2*gi[i];
-                    tuvsum[i]  = uv*gi[i];
-                    tv2sum[i]  = v2*gi[i];
-
-                    gauss++;
-                }
-                gtot += nsky;
-                igrat = imnorm/gtot;
-                for (i=0; i<ngauss; i++) {
-                    tau = gi[i]*igrat;  // Dave's tau*imnorm
-                    pnew[i] += tau;
-                    psum += tau;
-
-                    rowsum[i] += trowsum[i]*igrat;
-                    colsum[i] += tcolsum[i]*igrat;
-                    u2sum[i]  += tu2sum[i]*igrat;
-                    uvsum[i]  += tuvsum[i]*igrat;
-                    v2sum[i]  += tv2sum[i]*igrat;
-                }
-                skysum += nsky*imnorm/gtot;
-
-            } // rows
-        } // cols
-
-        psky = skysum;
-        nsky = psky/npoints;
-
-        gmix_set_gvec(gvec,pnew,rowsum,colsum,u2sum,uvsum,v2sum);
-
-        wmom=0;
-        gauss=gvec->data;
-        for (i=0; i<ngauss; i++) {
-            wmom += gauss->p*gauss->irr + gauss->p*gauss->icc;
-            gauss++;
-        }
-
-        wmom /= psum;
-        wmomdiff = fabs(wmom-wmomlast);
-        //wlog("iter: %lu  diffrat: %.16g\n", *iter, wmomdiff/wmom);
-        if (wmomdiff/wmom < self->tol) {
-            break;
-        }
-        wmomlast = wmom;
-        (*iter)++;
-    }
-
-_gmix_image_bail:
-    if (self->maxiter == (*iter)) {
-        flags += GMIX_ERROR_MAXIT;
-    }
-    return flags;
-}
-*/
-
-
