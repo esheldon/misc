@@ -57,7 +57,7 @@ if [[ $check == "" ]]; then
 
     module load cosmology  # *
     module load admom      # *
-    module load fimage     # *
+    module load fimage/local     # *
     module load fitsio
 
     module load numpydb    # *
