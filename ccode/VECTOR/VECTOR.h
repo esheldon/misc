@@ -3,14 +3,16 @@
  
   This approach is generally more appealing for generic types than a compiled
   library because the code is more type safe. At the very least one gets
-  compiler warnings about incompatible pointers etc.  It is impossible to get
-  that with a compiled library.
+  compiler warnings about incompatible pointers.  It is impossible to get that
+  with a compiled library.
   
+  Examples
+  --------
   The container can hold basic data types like int or double, but it is more
-  interesting to work with a struct.  Note to work with structs or pointers,
-  you must use a typedef. I'm sorry about this, as I think typedefs make the
-  code less 'local' and thus harder to reason about, but I don't see any other
-  way to achieve this.
+  interesting to work with a struct.  (Note to work with structs or pointers,
+  you must use a typedef. I think typedefs actually make the code less 'local'
+  and thus harder to reason about, but I don't see a better way to do it).
+
  
     #include "VECTOR.h"
     struct test {
@@ -185,6 +187,7 @@
     //   https://github.com/wmorgan/whistlepig/blob/master/rarray.h
     //   Which had he copyright (c) 2011 William Morgan
     //
+
 
   Copyright (C) 2012  Erin Scott Sheldon, 
                              erin dot sheldon at gmail dot com
