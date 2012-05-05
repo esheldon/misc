@@ -87,6 +87,11 @@ void test_struct() {
     assert(cap == VECTOR_CAPACITY(v));
     assert(n == VECTOR_SIZE(v));
 
+
+    struct_test val = VECTOR_POP(struct_test,v);
+    assert((n-1) == val.id);
+    assert((n-1) == VECTOR_SIZE(v));
+
     struct test *iter = VECTOR_ITER(v);
     struct test *end  = VECTOR_END(v);
     i=0;
@@ -107,13 +112,13 @@ void test_struct() {
     assert(tmp.id == 5);
     assert(tmp.x == 2*5);
 
-    tmp = VECTOR_FRONT(v);
+    tmp = VECTOR_GETFRONT(v);
     assert(tmp.id == 0);
     assert(tmp.x == 0);
 
-    tmp = VECTOR_BACK(v);
-    assert(tmp.id == (n-1));
-    assert(tmp.x == 2*(n-1));
+    tmp = VECTOR_GETBACK(v);
+    assert(tmp.id == (n-2));
+    assert(tmp.x == 2*(n-2));
 
     wlog("  testing pass vector of structs\n");
     test_pass_struct(v);
@@ -138,6 +143,11 @@ void test_struct() {
     assert(1 == VECTOR_CAPACITY(v));
     assert(0 == VECTOR_SIZE(v));
 
+    // nothing left, so popping should give a zeroed struct
+    val = VECTOR_POP(struct_test,v);
+    assert(0 == val.id);
+    assert(0 == val.x);
+    assert(0 == VECTOR_SIZE(v));
 
     VECTOR_DELETE(struct_test,v);
     assert(NULL==v);
@@ -167,9 +177,10 @@ void test_long() {
     }
 
 
-    VECTOR_RESIZE(long, v, 10);
+    size_t newsize=10;
+    VECTOR_RESIZE(long, v, newsize);
     assert(cap == VECTOR_CAPACITY(v));
-    assert(10 == VECTOR_SIZE(v));
+    assert(newsize == VECTOR_SIZE(v));
 
 
     VECTOR_SET(v,3,12);
@@ -177,6 +188,10 @@ void test_long() {
 
     long *p = VECTOR_GETPTR(v,3);
     assert(12 == *p);
+
+    long val = VECTOR_POP(long,v);
+    assert((newsize-1) == val);
+    assert((newsize-1) == VECTOR_SIZE(v));
 
     VECTOR_RESIZE(long, v, 3);
     assert(cap == VECTOR_CAPACITY(v));
