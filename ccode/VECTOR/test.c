@@ -36,7 +36,7 @@ void test_sort() {
     VECTOR(MyStruct) v=NULL;
     VECTOR_INIT(MyStruct, v);
 
-    struct mystruct t;
+    MyStruct t;
 
     t.id = 4;
     VECTOR_PUSH(MyStruct, v, t);
@@ -56,11 +56,10 @@ void test_sort() {
     VECTOR_SORT(MyStruct, v, &compare_test);
 
     size_t i=0;
-    struct mystruct* iter = VECTOR_ITER(v);
-    struct mystruct* end  = VECTOR_END(v);
-    while (iter != end) {
+    MyStruct* iter = VECTOR_ITER(v);
+    MyStruct* end  = VECTOR_END(v);
+    for (; iter != end; iter++) {
         assert(iter->id == i);
-        iter++;
         i++;
     }
 }
