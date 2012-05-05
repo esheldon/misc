@@ -5,42 +5,44 @@
   
   The container can hold basic data types like int or double, but it is more
   interesting to work with a struct.  Note to work with structs or pointers,
-  you must use a typedef (sorry!)
+  you must use a typedef. I'm sorry about this, as I think typedefs make the
+  code less 'local' and thus harder to reason about, but I don't see any other
+  way to achieve this.
  
     #include "vector.h"
     struct test {
         int id;
         double x;
     };
-    typedef struct test mystruct;
-    typedef struct test* mystructp;
+    typedef struct test MyStruct;
+    typedef struct test* MyStructp;
 
-    // This declares the underlying structures
-    VECTOR_DECLARE(mystruct);
-    VECTOR_DECLARE(mystructp);
+    // This declares the underlying structures as types
+    VECTOR_DECLARE(MyStruct);
+    VECTOR_DECLARE(MyStructp);
 
-    // declare a vector variable to hold the structs
-    VECTOR(mystruct) v=NULL;
+    // Now create an actual variable of this type.
+    VECTOR(MyStruct) v=NULL;
 
-    // initialize zero size, capacity 1 inside
-    VECTOR_INIT(mystruct, v);
+    // initialize zero visible size. The capacity is 1 internally.
+    VECTOR_INIT(MyStruct, v);
  
 
     //
-    // Push a value.  Always safe. Makes a copy
+    // Push a value.  Always safe.
     //
-    mystruct t;
+    MyStruct t;
     t.id = 3;
     t.x = 3.14;
-    VECTOR_PUSH(mystruct,v,t);
-    VECTOR_PUSH(mystruct,v,t);
+    VECTOR_PUSH(MyStruct,v,t);
+    VECTOR_PUSH(MyStruct,v,t);
     assert(2 == VECTOR_SIZE(v)); 
 
     //
     // safe iteration
     //
-    mystruct *iter = VECTOR_ITER(v);
-    mystruct *end  = VECTOR_END(v);
+    MyStruct *iter = VECTOR_ITER(v);
+    MyStruct *end  = VECTOR_END(v);
 
     for (; iter != end; iter++) {
         // just don't modify the vector size!
@@ -53,18 +55,18 @@
     //
 
     // get a copy of data at the specified index
-    mystruct t = VECTOR_GET(v,5);
+    MyStruct t = VECTOR_GET(v,5);
 
     // pointer to data at the specified index
-    mystruct* tp = VECTOR_GETPTR(v,5);
+    MyStruct *tp = VECTOR_GETPTR(v,5);
 
     // set value at an index
-    mystruct tnew;
+    MyStruct tnew;
     tnew.id = 57;
     tnew.x = -2.7341;
 
     VECTOR_SET(v, 5, tnew);
-    t = VECTOR_GET(v, 5);
+    MyStruct t = VECTOR_GET(v, 5);
 
     assert(t.id == tnew.id);
     assert(t.x == tnew.x);
@@ -73,44 +75,48 @@
     // Modifying the visible size or internal capacity
     //
 
-    // resize.  If new size is smaller, storage is unchanged.
-    // If new size is larger, and also larger than the
-    // underlying capacity, reallocation occurs
+    // resize.  If new size is smaller, storage is unchanged.  If new size is
+    // larger, and also larger than the underlying capacity, reallocation
+    // occurs
 
-    VECTOR_RESIZE(mystruct, v, 10);
+    VECTOR_RESIZE(MyStruct, v, 25);
     assert(25 == VECTOR_SIZE(v));
  
-    // clear sets the visible size to zero, storage remains
-    // equivalent to VECTOR_RESIZE(mystruct,v,0);
+    // clear sets the visible size to zero, but the underlying storage is
+    // unchanged.
+    //
+    // This is equivalent to VECTOR_RESIZE(MyStruct,v,0);
 
-    VECTOR_CLEAR(mystruct,v);
+    VECTOR_CLEAR(MyStruct,v);
 
-    // reallocate the underlying vector.  If the new capacity
-    // is smaller than the visible "size", size is also changed,
-    // otherwise size stays the same.  Be careful if you have
-    // pointers to the underlying data got from VECTOR_GETPTR()
+    // reallocate the underlying storage capacity.  If the new capacity is
+    // smaller than the visible "size", size is also changed, otherwise size
+    // stays the same.  Be careful if you have pointers to the underlying data
+    // got from VECTOR_GETPTR()
 
-    VECTOR_REALLOC(mystruct,v,newsize);
+    VECTOR_REALLOC(MyStruct,v,newsize);
 
-    // drop actually freeds the underlying storage and sets the
-    // size to zero and capacity to one
+    // drop actually reallocates the underlying storage to size 1 and sets the
+    // visible size to zero
 
     VECTOR_DROP(v);
 
-    // free the vector and the underlying array.  Sets the
-    // vector to NULL
+    // free the vector and the underlying array.  Sets the vector to NULL
 
-    VECTOR_DELETE(mystruct,v);
+    VECTOR_DELETE(MyStruct,v);
+    assert(NULL==v);
 
-
+    //
     // sorting
+    //
+
     // you need a function to sort your structure or type
     // for our struct we can sort by the "id" field
-    int compare_mystruct(const void* t1, const void* t2) {
+    int MyStruct_compare(const void* t1, const void* t2) {
         int temp = 
-            ((mystruct*) t1)->id 
+            ((MyStruct*) t1)->id 
             -
-            ((mystruct*) t2)->id ;
+            ((MyStruct*) t2)->id ;
 
         if (temp > 0)
             return 1;
@@ -121,52 +127,48 @@
     }
 
     // note only elements [0,size) are sorted
-    VECTOR_SORT(mystruct, v, &compare_mystruct);
+    VECTOR_SORT(MyStruct, v, &MyStruct_compare);
 
 
     //
     // storing pointers in the vector
     //
 
-    VECTOR(mystructp) v=NULL;
-    VECTOR_INIT(mystructp, v);
+    VECTOR(MyStructp) v=NULL;
+    VECTOR_INIT(MyStructp, v);
 
-    // note we never own the pointers in the vector! So we must allocat and
+    // note we never own the pointers in the vector! So we must allocate and
     // free them separately
+
     struct test* tvec = calloc(n, sizeof(struct test));
 
     for (i=0; i<n; i++) {
-        mystruct *t = &tvec[i];
+        MyStruct *t = &tvec[i];
         t->id = i;
         t->x = 2*i;
 
-        // this copies the pointer to t
-        VECTOR_PUSH(mystructp, v, t);
+        // this copies the pointer, not the data
+        VECTOR_PUSH(MyStructp, v, t);
     }
 
-    for (i=0; i<n; i++) {
-        mystruct *t = VECTOR_GET(v, i);
-        assert(t->id == i);
-        assert(t->x == 2*i);
-    }
-
-    // iteration
-    // could simplify with mystructp types
+    // iteration over a vector of pointers
     i=0;
-    mystruct **iter = VECTOR_ITER(v);
-    mystruct **end  = VECTOR_END(v);
+    MyStruct **iter = VECTOR_ITER(v);
+    MyStruct **end  = VECTOR_END(v);
     for (; iter != end; iter++) {
         assert((*iter)->id == i);
         i++;
     }
-    // this does not free the data pointed to!
+
+    // this does not free the data
     VECTOR_DELETE(struct_testp, v);
+
     // still need to free original vector
     free(tvec);
 
 
     //
-    // testing
+    // unit tests
     //
 
     // to compile the test suite
