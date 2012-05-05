@@ -5,24 +5,24 @@
 
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 
-struct test {
+struct mystruct {
     int id;
     double x;
 };
 
 // we need these for structs and pointers to work
-typedef struct test struct_test;
-typedef struct test* struct_testp;
+typedef struct mystruct MyStruct;
+typedef struct mystruct* MyStruct_p;
 
 VECTOR_DECLARE(long);
-VECTOR_DECLARE(struct_test);
-VECTOR_DECLARE(struct_testp);
+VECTOR_DECLARE(MyStruct);
+VECTOR_DECLARE(MyStruct_p);
 
 int compare_test(const void* t1, const void* t2) {
     int temp = 
-        ((struct test*) t1)->id 
+        ((struct mystruct*) t1)->id 
         -
-        ((struct test*) t2)->id ;
+        ((struct mystruct*) t2)->id ;
 
     if (temp > 0)
         return 1;
@@ -33,31 +33,31 @@ int compare_test(const void* t1, const void* t2) {
 }
 
 void test_sort() {
-    VECTOR(struct_test) v=NULL;
-    VECTOR_INIT(struct_test, v);
+    VECTOR(MyStruct) v=NULL;
+    VECTOR_INIT(MyStruct, v);
 
-    struct test t;
+    struct mystruct t;
 
     t.id = 4;
-    VECTOR_PUSH(struct_test, v, t);
+    VECTOR_PUSH(MyStruct, v, t);
     t.id = 1;
-    VECTOR_PUSH(struct_test, v, t);
+    VECTOR_PUSH(MyStruct, v, t);
     t.id = 2;
-    VECTOR_PUSH(struct_test, v, t);
+    VECTOR_PUSH(MyStruct, v, t);
     t.id = 0;
-    VECTOR_PUSH(struct_test, v, t);
+    VECTOR_PUSH(MyStruct, v, t);
     t.id = 3;
-    VECTOR_PUSH(struct_test, v, t);
+    VECTOR_PUSH(MyStruct, v, t);
     t.id = 6;
-    VECTOR_PUSH(struct_test, v, t);
+    VECTOR_PUSH(MyStruct, v, t);
     t.id = 5;
-    VECTOR_PUSH(struct_test, v, t);
+    VECTOR_PUSH(MyStruct, v, t);
 
-    VECTOR_SORT(struct_test, v, &compare_test);
+    VECTOR_SORT(MyStruct, v, &compare_test);
 
     size_t i=0;
-    struct test* iter = VECTOR_ITER(v);
-    struct test* end  = VECTOR_END(v);
+    struct mystruct* iter = VECTOR_ITER(v);
+    struct mystruct* end  = VECTOR_END(v);
     while (iter != end) {
         assert(iter->id == i);
         iter++;
@@ -65,22 +65,22 @@ void test_sort() {
     }
 }
 
-void test_pass_struct(VECTOR(struct_test) v) {
-    struct test *t=VECTOR_GETPTR(v,2);
+void test_pass_struct(VECTOR(MyStruct) v) {
+    struct mystruct *t=VECTOR_GETPTR(v,2);
     assert(2 == t->id);
     assert(2*2 == t->x);
 }
 void test_struct() {
     size_t n=10, cap=16, i=0;
 
-    VECTOR(struct_test) v=NULL;
-    VECTOR_INIT(struct_test, v);
+    VECTOR(MyStruct) v=NULL;
+    VECTOR_INIT(MyStruct, v);
 
-    struct test tmp;
+    struct mystruct tmp;
     for (i=0; i<n; i++) {
         tmp.id = i;
         tmp.x = 2*i;
-        VECTOR_PUSH(struct_test,v,tmp);
+        VECTOR_PUSH(MyStruct,v,tmp);
         assert((i+1) == VECTOR_SIZE(v));
     }
 
@@ -88,12 +88,12 @@ void test_struct() {
     assert(n == VECTOR_SIZE(v));
 
 
-    struct_test val = VECTOR_POP(struct_test,v);
+    MyStruct val = VECTOR_POP(MyStruct,v);
     assert((n-1) == val.id);
     assert((n-1) == VECTOR_SIZE(v));
 
-    struct test *iter = VECTOR_ITER(v);
-    struct test *end  = VECTOR_END(v);
+    struct mystruct *iter = VECTOR_ITER(v);
+    struct mystruct *end  = VECTOR_END(v);
     i=0;
     //while (iter != end) {
     for (; iter != end; iter++) {
@@ -103,7 +103,7 @@ void test_struct() {
     }
 
     // no copy
-    struct test *tp = VECTOR_GETPTR(v,5);
+    struct mystruct *tp = VECTOR_GETPTR(v,5);
     assert(tp->id == 5);
     assert(tp->x == 2*5);
 
@@ -131,25 +131,25 @@ void test_struct() {
     assert(tp->x == tmp.x);
 
 
-    VECTOR_RESIZE(struct_test, v, 10);
+    VECTOR_RESIZE(MyStruct, v, 10);
     assert(cap == VECTOR_CAPACITY(v));
     assert(10 == VECTOR_SIZE(v));
 
-    VECTOR_CLEAR(struct_test, v);
+    VECTOR_CLEAR(MyStruct, v);
     assert(cap == VECTOR_CAPACITY(v));
     assert(0 == VECTOR_SIZE(v));
 
-    VECTOR_DROP(struct_test, v);
+    VECTOR_DROP(MyStruct, v);
     assert(1 == VECTOR_CAPACITY(v));
     assert(0 == VECTOR_SIZE(v));
 
     // nothing left, so popping should give a zeroed struct
-    val = VECTOR_POP(struct_test,v);
+    val = VECTOR_POP(MyStruct,v);
     assert(0 == val.id);
     assert(0 == val.x);
     assert(0 == VECTOR_SIZE(v));
 
-    VECTOR_DELETE(struct_test,v);
+    VECTOR_DELETE(MyStruct,v);
     assert(NULL==v);
 }
 
@@ -219,24 +219,24 @@ void test_long() {
 void test_ptr() {
     size_t i=0, n=10;
 
-    VECTOR(struct_testp) v=NULL;
-    VECTOR_INIT(struct_testp, v);
+    VECTOR(MyStruct_p) v=NULL;
+    VECTOR_INIT(MyStruct_p, v);
 
     // note we never own the pointers in the vector! So we must allocat and
     // free them separately
-    struct test* tvec = calloc(n, sizeof(struct test));
+    struct mystruct* tvec = calloc(n, sizeof(struct mystruct));
 
     for (i=0; i<n; i++) {
-        struct test *t = &tvec[i];
+        struct mystruct *t = &tvec[i];
         t->id = i;
         t->x = 2*i;
 
         // this copies the pointer to t
-        VECTOR_PUSH(struct_testp, v, t);
+        VECTOR_PUSH(MyStruct_p, v, t);
     }
 
     for (i=0; i<n; i++) {
-        struct test *t = VECTOR_GET(v, i);
+        struct mystruct *t = VECTOR_GET(v, i);
         assert(t->id == i);
         assert(t->x == 2*i);
     }
@@ -244,14 +244,14 @@ void test_ptr() {
     // iteration
     // note different pointer declarations
     i=0;
-    struct_testp *iter = VECTOR_ITER(v);
-    struct_test **end  = VECTOR_END(v);
+    MyStruct_p *iter = VECTOR_ITER(v);
+    MyStruct **end  = VECTOR_END(v);
     while (iter != end) {
         assert((*iter)->id == i);
         iter++;
         i++;
     }
-    VECTOR_DELETE(struct_testp, v);
+    VECTOR_DELETE(MyStruct_p, v);
 
     // make sure the data still exist!
     assert(3 == tvec[3].id);
