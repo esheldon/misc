@@ -20,7 +20,7 @@
     struct test t;
     t.id = 3;
     t.x = 3.14;
-    vector_push(&v);
+    vector_push(v,&t);
  
     // push zeroed element on and then fill the value
     struct test* tptr;
@@ -54,7 +54,7 @@
     // resize.  If new size is smaller, storage is unchanged.
     // If new size is larger, and also larger than the
     // underlying capacity, reallocation occurs
-    vector_resize(25);
+    vector_resize(v,25);
     assert(v->size == 25);
     assert(vector_size(v) == 25);
  
