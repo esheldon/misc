@@ -244,9 +244,8 @@ struct ppvector_##type {                                                     \
 } while(0)
 
 //
-// metadata
+// metadata access
 //
-// Safe
 #define VECTOR_SIZE(name) (name)->size
 #define VECTOR_CAPACITY(name) (name)->capacity
 
@@ -269,8 +268,9 @@ struct ppvector_##type {                                                     \
     __v->data[__v->size-1] = val;                                            \
 } while(0)
 
-// pop a value off the vector.  If the vector is empty,
-// you just get a zeroed object of the type
+// safely pop a value off the vector.  If the vector is empty,
+// you just get a zeroed object of the type.  Unfortunately
+// this requires two copies.
 //
 // using some magic: leaving val at the end of this
 // block lets it become the value in an expression,
@@ -300,6 +300,15 @@ struct ppvector_##type {                                                     \
     (name)->data[index] = val;           \
 } while(0)
 
+// unsafe pop, but fast.  One way to safely use it is something
+// like
+// while (VECTOR_SIZE(v) > 0)
+//   data = VECTOR_POPFAST(V);
+#define VECTOR_POPFAST(name) (name)->data[(name)->size-- -1]
+
+//
+// Modifying the size or capacity
+//
 
 // Completely destroy the data and container
 // The container is set to NULL
@@ -363,6 +372,10 @@ struct ppvector_##type {                                                     \
         __v->capacity = newsize;                                             \
     }                                                                        \
 } while (0)
+
+//
+// sorting
+//
 
 // convenience function to sort the data.  The compare_func
 // must work on your data type!

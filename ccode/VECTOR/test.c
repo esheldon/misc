@@ -92,6 +92,12 @@ void test_struct() {
     assert((n-1) == val.id);
     assert((n-1) == VECTOR_SIZE(v));
 
+    // faster but unsafe
+    val = VECTOR_POPFAST(v);
+    assert((n-2) == val.id);
+    assert((n-2) == VECTOR_SIZE(v));
+
+
     struct mystruct *iter = VECTOR_ITER(v);
     struct mystruct *end  = VECTOR_END(v);
     i=0;
@@ -117,8 +123,8 @@ void test_struct() {
     assert(tmp.x == 0);
 
     tmp = VECTOR_GETBACK(v);
-    assert(tmp.id == (n-2));
-    assert(tmp.x == 2*(n-2));
+    assert(tmp.id == (n-3));
+    assert(tmp.x == 2*(n-3));
 
     wlog("  testing pass vector of structs\n");
     test_pass_struct(v);
