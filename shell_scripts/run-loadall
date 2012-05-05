@@ -4,7 +4,7 @@ tmpfile=~/www/cluster/loadall-tmp.txt
 file=~/www/cluster/loadall.txt
 while [ 1 ]; do
 
-    loadall > $tmpfile
+    loadall -d > $tmpfile
 
     mv -f $tmpfile $file 
 
