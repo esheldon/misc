@@ -303,8 +303,9 @@ struct ppvector_##type {                                                     \
 // unsafe pop, but fast.  One way to safely use it is something
 // like
 // while (VECTOR_SIZE(v) > 0)
-//   data = VECTOR_POPFAST(V);
-#define VECTOR_POPFAST(name) (name)->data[(name)->size-- -1]
+//     data = VECTOR_POPFAST(V);
+//
+#define VECTOR_POPFAST(name) (name)->data[-1 + (name)->size--]
 
 //
 // Modifying the size or capacity
