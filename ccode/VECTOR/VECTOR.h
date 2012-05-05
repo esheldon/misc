@@ -1,3 +1,198 @@
+/*
+  VECTOR - A generic vector container written using the C preprocessor.
+ 
+  Best to give some examples.  See test.c for more examples.
+  
+  The container can hold basic data types like int or double, but it is more
+  interesting to work with a struct.  Note to work with structs or pointers,
+  you must use a typedef. I'm sorry about this, as I think typedefs make the
+  code less 'local' and thus harder to reason about, but I don't see any other
+  way to achieve this.
+ 
+    #include "vector.h"
+    struct test {
+        int id;
+        double x;
+    };
+    typedef struct test MyStruct;
+    typedef struct test* MyStructp;
+
+    // This declares the underlying structures as types
+    VECTOR_DECLARE(MyStruct);
+    VECTOR_DECLARE(MyStructp);
+
+    // Now create an actual variable of this type.
+    VECTOR(MyStruct) v=NULL;
+
+    // initialize zero visible size. The capacity is 1 internally.
+    VECTOR_INIT(MyStruct, v);
+ 
+
+    //
+    // Push a value.  Always safe.
+    //
+    MyStruct t;
+    t.id = 3;
+    t.x = 3.14;
+    VECTOR_PUSH(MyStruct,v,t);
+    VECTOR_PUSH(MyStruct,v,t);
+    assert(2 == VECTOR_SIZE(v)); 
+
+    //
+    // safe iteration
+    //
+    MyStruct *iter = VECTOR_ITER(v);
+    MyStruct *end  = VECTOR_END(v);
+
+    for (; iter != end; iter++) {
+        // just don't modify the vector size!
+        iter->i = someval;
+        iter->x = otherval;
+    }
+
+    //
+    // Direct access.  Bounds not checked
+    //
+
+    // get a copy of data at the specified index
+    MyStruct t = VECTOR_GET(v,5);
+
+    // pointer to data at the specified index
+    MyStruct *tp = VECTOR_GETPTR(v,5);
+
+    // set value at an index
+    MyStruct tnew;
+    tnew.id = 57;
+    tnew.x = -2.7341;
+
+    VECTOR_SET(v, 5, tnew);
+    MyStruct t = VECTOR_GET(v, 5);
+
+    assert(t.id == tnew.id);
+    assert(t.x == tnew.x);
+ 
+    //
+    // Modifying the visible size or internal capacity
+    //
+
+    // resize.  If new size is smaller, storage is unchanged.  If new size is
+    // larger, and also larger than the underlying capacity, reallocation
+    // occurs
+
+    VECTOR_RESIZE(MyStruct, v, 25);
+    assert(25 == VECTOR_SIZE(v));
+ 
+    // clear sets the visible size to zero, but the underlying storage is
+    // unchanged.
+    //
+    // This is equivalent to VECTOR_RESIZE(MyStruct,v,0);
+
+    VECTOR_CLEAR(MyStruct,v);
+
+    // reallocate the underlying storage capacity.  If the new capacity is
+    // smaller than the visible "size", size is also changed, otherwise size
+    // stays the same.  Be careful if you have pointers to the underlying data
+    // got from VECTOR_GETPTR()
+
+    VECTOR_REALLOC(MyStruct,v,newsize);
+
+    // drop actually reallocates the underlying storage to size 1 and sets the
+    // visible size to zero
+
+    VECTOR_DROP(v);
+
+    // free the vector and the underlying array.  Sets the vector to NULL
+
+    VECTOR_DELETE(MyStruct,v);
+    assert(NULL==v);
+
+    //
+    // sorting
+    //
+
+    // you need a function to sort your structure or type
+    // for our struct we can sort by the "id" field
+    int MyStruct_compare(const void* t1, const void* t2) {
+        int temp = 
+            ((MyStruct*) t1)->id 
+            -
+            ((MyStruct*) t2)->id ;
+
+        if (temp > 0)
+            return 1;
+        else if (temp < 0)
+            return -1;
+        else
+            return 0;
+    }
+
+    // note only elements [0,size) are sorted
+    VECTOR_SORT(MyStruct, v, &MyStruct_compare);
+
+
+    //
+    // storing pointers in the vector
+    //
+
+    VECTOR(MyStructp) v=NULL;
+    VECTOR_INIT(MyStructp, v);
+
+    // note we never own the pointers in the vector! So we must allocate and
+    // free them separately
+
+    struct test* tvec = calloc(n, sizeof(struct test));
+
+    for (i=0; i<n; i++) {
+        MyStruct *t = &tvec[i];
+        t->id = i;
+        t->x = 2*i;
+
+        // this copies the pointer, not the data
+        VECTOR_PUSH(MyStructp, v, t);
+    }
+
+    // iteration over a vector of pointers
+    i=0;
+    MyStruct **iter = VECTOR_ITER(v);
+    MyStruct **end  = VECTOR_END(v);
+    for (; iter != end; iter++) {
+        assert((*iter)->id == i);
+        i++;
+    }
+
+    // this does not free the data
+    VECTOR_DELETE(struct_testp, v);
+
+    // still need to free original vector
+    free(tvec);
+
+
+    //
+    // unit tests
+    //
+
+    // to compile the test suite
+    python build.py
+    ./test
+
+  Copyright (C) 2012  Erin Scott Sheldon, 
+                             erin dot sheldon at gmail dot com
+ 
+  This program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License
+  as published by the Free Software Foundation; either version 2
+  of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 #ifndef _PREPROCESSOR_VECTOR_H_TOKEN
 #define _PREPROCESSOR_VECTOR_H_TOKEN
 

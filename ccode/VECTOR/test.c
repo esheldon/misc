@@ -90,10 +90,10 @@ void test_struct() {
     struct test *iter = VECTOR_ITER(v);
     struct test *end  = VECTOR_END(v);
     i=0;
-    while (iter != end) {
+    //while (iter != end) {
+    for (; iter != end; iter++) {
         assert(i == iter->id);
         assert(2*i == iter->x);
-        iter++;
         i++;
     }
 
@@ -220,7 +220,6 @@ void test_ptr() {
         VECTOR_PUSH(struct_testp, v, t);
     }
 
-    // two different ways to use vector_get for pointers
     for (i=0; i<n; i++) {
         struct test *t = VECTOR_GET(v, i);
         assert(t->id == i);
@@ -228,17 +227,21 @@ void test_ptr() {
     }
 
     // iteration
-    // We could also use declaration as 
-    //     struct_testp *iter=VECTOR_ITER(v);
+    // note different pointer declarations
     i=0;
-    struct test **iter = VECTOR_ITER(v);
-    struct test **end  = VECTOR_END(v);
+    struct_testp *iter = VECTOR_ITER(v);
+    struct_test **end  = VECTOR_END(v);
     while (iter != end) {
         assert((*iter)->id == i);
         iter++;
         i++;
     }
     VECTOR_DELETE(struct_testp, v);
+
+    // make sure the data still exist!
+    assert(3 == tvec[3].id);
+    assert(2*3 == tvec[3].x);
+
     assert(v==NULL);
     free(tvec);
 }
