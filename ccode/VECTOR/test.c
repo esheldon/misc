@@ -56,7 +56,7 @@ void test_sort() {
     VECTOR_SORT(v, &compare_test);
 
     size_t i=0;
-    MyStruct* iter = VECTOR_ITER(v);
+    MyStruct* iter = VECTOR_BEGIN(v);
     MyStruct* end  = VECTOR_END(v);
     for (; iter != end; iter++) {
         assert(iter->id == i);
@@ -179,7 +179,7 @@ void test_long() {
     assert(cap == VECTOR_CAPACITY(v));
     assert(n == VECTOR_SIZE(v));
 
-    long *iter=VECTOR_ITER(v);
+    long *iter=VECTOR_BEGIN(v);
     long *end=VECTOR_END(v);
     i=0;
     while (iter != end) {
@@ -221,6 +221,25 @@ void test_long() {
     assert(NULL == v);
 }
 
+void test_reserve() {
+    size_t n=10, cap=0;
+
+    VECTOR(long) v=NULL;
+    VECTOR_INIT(v);
+
+    VECTOR_RESERVE(v, n);
+    cap = VECTOR_CAPACITY(v);
+
+    assert(0 == VECTOR_SIZE(v));
+    assert(n <= cap);
+
+    VECTOR_PUSH(v, 3);
+    assert(1 == VECTOR_SIZE(v));
+    assert(cap == VECTOR_CAPACITY(v));
+
+    VECTOR_DELETE(v);
+    assert(NULL == v);
+}
 /*
  * A test using a vector to hold pointers.  Note the vector does not "own" the
  * pointers, so allocation and free must happen separately
@@ -256,7 +275,7 @@ void test_ptr() {
     // iteration
     // note different pointer declarations
     i=0;
-    MyStruct_p *iter = VECTOR_ITER(v);
+    MyStruct_p *iter = VECTOR_BEGIN(v);
     MyStruct **end  = VECTOR_END(v);
     while (iter != end) {
         assert((*iter)->id == i);
@@ -281,4 +300,6 @@ int main(int argc, char** argv) {
     test_long();
     wlog("testing pointers to structs\n");
     test_ptr();
+    wlog("testing reserve\n");
+    test_reserve();
 }
