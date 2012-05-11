@@ -34,26 +34,26 @@ int compare_test(const void* t1, const void* t2) {
 
 void test_sort() {
     VECTOR(MyStruct) v=NULL;
-    VECTOR_INIT(MyStruct, v);
+    VECTOR_INIT(v);
 
     MyStruct t;
 
     t.id = 4;
-    VECTOR_PUSH(MyStruct, v, t);
+    VECTOR_PUSH(v, t);
     t.id = 1;
-    VECTOR_PUSH(MyStruct, v, t);
+    VECTOR_PUSH(v, t);
     t.id = 2;
-    VECTOR_PUSH(MyStruct, v, t);
+    VECTOR_PUSH(v, t);
     t.id = 0;
-    VECTOR_PUSH(MyStruct, v, t);
+    VECTOR_PUSH(v, t);
     t.id = 3;
-    VECTOR_PUSH(MyStruct, v, t);
+    VECTOR_PUSH(v, t);
     t.id = 6;
-    VECTOR_PUSH(MyStruct, v, t);
+    VECTOR_PUSH(v, t);
     t.id = 5;
-    VECTOR_PUSH(MyStruct, v, t);
+    VECTOR_PUSH(v, t);
 
-    VECTOR_SORT(MyStruct, v, &compare_test);
+    VECTOR_SORT(v, &compare_test);
 
     size_t i=0;
     MyStruct* iter = VECTOR_ITER(v);
@@ -73,13 +73,13 @@ void test_struct() {
     size_t n=10, cap=16, i=0;
 
     VECTOR(MyStruct) v=NULL;
-    VECTOR_INIT(MyStruct, v);
+    VECTOR_INIT(v);
 
     struct mystruct tmp;
     for (i=0; i<n; i++) {
         tmp.id = i;
         tmp.x = 2*i;
-        VECTOR_PUSH(MyStruct,v,tmp);
+        VECTOR_PUSH(v,tmp);
         assert((i+1) == VECTOR_SIZE(v));
     }
 
@@ -87,7 +87,7 @@ void test_struct() {
     assert(n == VECTOR_SIZE(v));
 
 
-    MyStruct val = VECTOR_POP(MyStruct,v);
+    MyStruct val = VECTOR_POP(v);
     assert((n-1) == val.id);
     assert((n-1) == VECTOR_SIZE(v));
     n--;
@@ -98,11 +98,16 @@ void test_struct() {
     assert((n-1) == VECTOR_SIZE(v));
     n--;
 
-    struct mystruct *iter = VECTOR_ITER(v);
-    struct mystruct *end  = VECTOR_END(v);
+
     i=0;
-    //while (iter != end) {
-    for (; iter != end; iter++) {
+    VECTOR_FOREACH(iter, v)
+        assert(i == iter->id);
+        assert(2*i == iter->x);
+        i++;
+    VECTOR_FOREACH_END
+
+    i=0;
+    VECTOR_FOREACH2(iter, v) {
         assert(i == iter->id);
         assert(2*i == iter->x);
         i++;
@@ -138,25 +143,25 @@ void test_struct() {
     assert(tp->x == tmp.x);
 
 
-    VECTOR_RESIZE(MyStruct, v, 10);
+    VECTOR_RESIZE(v, 10);
     assert(cap == VECTOR_CAPACITY(v));
     assert(10 == VECTOR_SIZE(v));
 
-    VECTOR_CLEAR(MyStruct, v);
+    VECTOR_CLEAR(v);
     assert(cap == VECTOR_CAPACITY(v));
     assert(0 == VECTOR_SIZE(v));
 
-    VECTOR_DROP(MyStruct, v);
+    VECTOR_DROP(v);
     assert(1 == VECTOR_CAPACITY(v));
     assert(0 == VECTOR_SIZE(v));
 
     // nothing left, so popping should give a zeroed struct
-    val = VECTOR_POP(MyStruct,v);
+    val = VECTOR_POP(v);
     assert(0 == val.id);
     assert(0 == val.x);
     assert(0 == VECTOR_SIZE(v));
 
-    VECTOR_DELETE(MyStruct,v);
+    VECTOR_DELETE(v);
     assert(NULL==v);
 }
 
@@ -165,10 +170,10 @@ void test_long() {
     long n=10, cap=16, i=0;
 
     VECTOR(long) v=NULL;
-    VECTOR_INIT(long, v);
+    VECTOR_INIT(v);
 
     for (i=0; i<n; i++) {
-        VECTOR_PUSH(long,v,i);
+        VECTOR_PUSH(v,i);
         assert((i+1) == VECTOR_SIZE(v));
     }
     assert(cap == VECTOR_CAPACITY(v));
@@ -185,7 +190,7 @@ void test_long() {
 
 
     size_t newsize=10;
-    VECTOR_RESIZE(long, v, newsize);
+    VECTOR_RESIZE(v, newsize);
     assert(cap == VECTOR_CAPACITY(v));
     assert(newsize == VECTOR_SIZE(v));
 
@@ -196,23 +201,23 @@ void test_long() {
     long *p = VECTOR_GETPTR(v,3);
     assert(12 == *p);
 
-    long val = VECTOR_POP(long,v);
+    long val = VECTOR_POP(v);
     assert((newsize-1) == val);
     assert((newsize-1) == VECTOR_SIZE(v));
 
-    VECTOR_RESIZE(long, v, 3);
+    VECTOR_RESIZE(v, 3);
     assert(cap == VECTOR_CAPACITY(v));
     assert(3 == VECTOR_SIZE(v));
 
 
-    VECTOR_CLEAR(long, v);
+    VECTOR_CLEAR(v);
     assert(cap == VECTOR_CAPACITY(v));
     assert(0 == VECTOR_SIZE(v));
-    VECTOR_DROP(long, v);
+    VECTOR_DROP(v);
     assert(1 == VECTOR_CAPACITY(v));
     assert(0 == VECTOR_SIZE(v));
 
-    VECTOR_DELETE(long, v);
+    VECTOR_DELETE(v);
     assert(NULL == v);
 }
 
@@ -227,7 +232,7 @@ void test_ptr() {
     size_t i=0, n=10;
 
     VECTOR(MyStruct_p) v=NULL;
-    VECTOR_INIT(MyStruct_p, v);
+    VECTOR_INIT(v);
 
     // note we never own the pointers in the vector! So we must allocat and
     // free them separately
@@ -239,7 +244,7 @@ void test_ptr() {
         t->x = 2*i;
 
         // this copies the pointer to t
-        VECTOR_PUSH(MyStruct_p, v, t);
+        VECTOR_PUSH(v, t);
     }
 
     for (i=0; i<n; i++) {
@@ -258,7 +263,7 @@ void test_ptr() {
         iter++;
         i++;
     }
-    VECTOR_DELETE(MyStruct_p, v);
+    VECTOR_DELETE(v);
 
     // make sure the data still exist!
     assert(3 == tvec[3].id);
