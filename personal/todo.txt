@@ -1,10 +1,31 @@
 Quick look Queue
 
+    - note setting maxiter to 4000 speeds things up; better
+        to try again than keep running for the sims it seems.
+        this hints I should look at how often a good convergence
+        is found for many iterations
+
+    - try using always 3 gaussians for object and 3 for psf, even
+        for gg, eg, etc.  Problems?
+    - need to rerun 
+        - gmix-et01r02 - not yet running
+        - gmix-edg01r02 - running
+    - gmix
+        - sdss psfs not always converging
+            - 3 gauss, free cen and covar: 96% success,  <chi^2> ~ 2.5e-4
+            - 3 gauss, coellip, 99.5% success but <chi^2> ~ 6.5e-4
+            - 2 gauss, free cen and covar, 100% success <chi^2> 6.6e-4
+                so does as well, within noise, as coellip.
+                So maybe drop down to 2 gauss if 3 gauss free fails?
+
+            - lower tolerance? Dave used 1.e-5 in diff, I'm using
+                1.e-6 in fdiff
+                - test on sims
+
     - read ying's draft
 
-    - make install script for espy
-    - add modules load for "work" version
-    - make script to actually run admom on des
+    - figure out s2n measurement for gmix
+    - gmix: need to check for centroid coincidence and drift
 
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
