@@ -247,24 +247,24 @@ struct ppvector_##type {                                                     \
 #define VECTOR(type) struct ppvector_##type*
 
 // always run this before using the vector
-#define VECTOR_INIT(name) do {                                               \
-    (name) = ( typeof((name)) ) calloc(1, sizeof( typeof(*(name)) ) );       \
-    (name)->size = 0;                                                        \
-    (name)->data = calloc(1,sizeof(  typeof( *(name)->data)  ));             \
-    (name)->capacity=1;                                                      \
+#define VECTOR_INIT(vec) do {                                                \
+    (vec) = ( typeof((vec)) ) calloc(1, sizeof( typeof(*(vec)) ) );          \
+    (vec)->size = 0;                                                         \
+    (vec)->data = calloc(1,sizeof(  typeof( *(vec)->data)  ));               \
+    (vec)->capacity=1;                                                       \
 } while(0)
 
 //
 // metadata access
 //
-#define VECTOR_SIZE(name) (name)->size
-#define VECTOR_CAPACITY(name) (name)->capacity
+#define VECTOR_SIZE(vec) (vec)->size
+#define VECTOR_CAPACITY(vec) (vec)->capacity
 
 //
 // safe iterators, even for empty vectors
 //
-#define VECTOR_ITER(name) (name)->data
-#define VECTOR_END(name) (name)->data + (name)->size
+#define VECTOR_ITER(vec) (vec)->data
+#define VECTOR_END(vec) (vec)->data + (vec)->size
 
 
 // this should always work since new block is created
@@ -299,12 +299,12 @@ struct ppvector_##type {                                                     \
 // safe way to add elements to the vector
 //
 
-#define VECTOR_PUSH(name, val) do {                                          \
-    if ((name)->size == (name)->capacity) {                                  \
-        VECTOR_REALLOC(name, (name)->capacity*2);                            \
+#define VECTOR_PUSH(vec, val) do {                                           \
+    if ((vec)->size == (vec)->capacity) {                                    \
+        VECTOR_REALLOC(vec, (vec)->capacity*2);                              \
     }                                                                        \
-    (name)->size++;                                                          \
-    (name)->data[(name)->size-1] = val;                                      \
+    (vec)->size++;                                                           \
+    (vec)->data[(vec)->size-1] = val;                                        \
 } while(0)
 
 // safely pop a value off the vector.  If the vector is empty,
@@ -315,10 +315,10 @@ struct ppvector_##type {                                                     \
 // block lets it become the value in an expression,
 // e.g.
 //   x = VECTOR_POP(long, vec);
-#define VECTOR_POP(name) ({                                                  \
-    typeof( *(name)->data) val = {0};                                        \
-    if ((name)->size > 0) {                                                  \
-        val=(name)->data[(name)->size-- -1];                                 \
+#define VECTOR_POP(vec) ({                                                   \
+    typeof( *(vec)->data) val = {0};                                         \
+    if ((vec)->size > 0) {                                                   \
+        val=(vec)->data[(vec)->size-- -1];                                   \
     }                                                                        \
     val; \
 })
@@ -328,14 +328,14 @@ struct ppvector_##type {                                                     \
 // unsafe access, no bounds checking
 //
 
-#define VECTOR_GET(name,index) (name)->data[index]
-#define VECTOR_GETFRONT(name) (name)->data[0]
-#define VECTOR_GETBACK(name) (name)->data[(name)->size-1]
+#define VECTOR_GET(vec,index) (vec)->data[index]
+#define VECTOR_GETFRONT(vec) (vec)->data[0]
+#define VECTOR_GETBACK(vec) (vec)->data[(vec)->size-1]
 
-#define VECTOR_GETPTR(name,index) &(name)->data[index]
+#define VECTOR_GETPTR(vec,index) &(vec)->data[index]
 
-#define VECTOR_SET(name,index,val) do {                                      \
-    (name)->data[index] = val;                                               \
+#define VECTOR_SET(vec,index,val) do {                                       \
+    (vec)->data[index] = val;                                                \
 } while(0)
 
 // unsafe pop, but fast.  One way to safely use it is something
@@ -343,7 +343,7 @@ struct ppvector_##type {                                                     \
 // while (VECTOR_SIZE(v) > 0)
 //     data = VECTOR_POPFAST(v);
 //
-#define VECTOR_POPFAST(name) (name)->data[-1 + (name)->size--]
+#define VECTOR_POPFAST(vec) (vec)->data[-1 + (vec)->size--]
 
 //
 // Modifying the size or capacity
@@ -351,11 +351,11 @@ struct ppvector_##type {                                                     \
 
 // Completely destroy the data and container
 // The container is set to NULL
-#define VECTOR_DELETE(name) do {                                             \
-    if ((name)) {                                                            \
-        free((name)->data);                                                  \
-        free((name));                                                        \
-        (name)=NULL;                                                         \
+#define VECTOR_DELETE(vec) do {                                              \
+    if ((vec)) {                                                             \
+        free((vec)->data);                                                   \
+        free((vec));                                                         \
+        (vec)=NULL;                                                          \
     }                                                                        \
 } while(0)
 
@@ -363,50 +363,50 @@ struct ppvector_##type {                                                     \
 // Change the visible size
 // The capacity is only changed if size is larger
 // than the existing capacity
-#define VECTOR_RESIZE(name, newsize)  do {                                   \
-    if (newsize > (name)->capacity) {                                        \
-        VECTOR_REALLOC(name, newsize);                                       \
+#define VECTOR_RESIZE(vec, newsize)  do {                                    \
+    if (newsize > (vec)->capacity) {                                         \
+        VECTOR_REALLOC(vec, newsize);                                        \
     }                                                                        \
-    (name)->size=newsize;                                                    \
+    (vec)->size=newsize;                                                     \
 } while(0)
 
 // Set the visible size to zero
-#define VECTOR_CLEAR(name)  do {                                             \
-    (name)->size=0;                                                          \
+#define VECTOR_CLEAR(vec)  do {                                              \
+    (vec)->size=0;                                                           \
 } while(0)
 
 // delete the data leaving capacity 1 and set size to 0
-#define VECTOR_DROP(name) do {                                               \
-    VECTOR_REALLOC(name,1);                                                  \
-    (name)->size=0;                                                          \
+#define VECTOR_DROP(vec) do {                                                \
+    VECTOR_REALLOC(vec,1);                                                   \
+    (vec)->size=0;                                                           \
 } while(0)
 
 
 // reallocate the underlying data
 // note we don't allow the capacity to drop below 1
-#define VECTOR_REALLOC(name, nsize) do {                                     \
+#define VECTOR_REALLOC(vec, nsize) do {                                      \
     size_t newsize=nsize;                                                    \
-    size_t sizeof_type = sizeof(  typeof( *((name)->data) ) );               \
+    size_t sizeof_type = sizeof(  typeof( *((vec)->data) ) );                \
     if (newsize < 1) newsize=1;                                              \
                                                                              \
-    if (newsize != (name)->capacity) {                                       \
-        (name)->data =                                                       \
-            realloc((name)->data, newsize*sizeof_type);                      \
-        if (!(name)->data) {                                                 \
+    if (newsize != (vec)->capacity) {                                        \
+        (vec)->data =                                                        \
+            realloc((vec)->data, newsize*sizeof_type);                       \
+        if (!(vec)->data) {                                                  \
             fprintf(stderr,                                                  \
               "VectorError: failed to reallocate to %lu elements of "        \
               "size %lu\n",                                                  \
               (size_t) newsize, sizeof_type);                                \
             exit(EXIT_FAILURE);                                              \
         }                                                                    \
-        if (newsize > (name)->capacity) {                                    \
-            size_t num_new_bytes = (newsize-(name)->capacity)*sizeof_type;   \
-            memset((name)->data + (name)->capacity, 0, num_new_bytes);       \
-        } else if ((name)->size > newsize) {                                 \
-            (name)->size = newsize;                                          \
+        if (newsize > (vec)->capacity) {                                     \
+            size_t num_new_bytes = (newsize-(vec)->capacity)*sizeof_type;    \
+            memset((vec)->data + (vec)->capacity, 0, num_new_bytes);         \
+        } else if ((vec)->size > newsize) {                                  \
+            (vec)->size = newsize;                                           \
         }                                                                    \
                                                                              \
-        (name)->capacity = newsize;                                          \
+        (vec)->capacity = newsize;                                           \
     }                                                                        \
 } while (0)
 
@@ -416,9 +416,9 @@ struct ppvector_##type {                                                     \
 
 // convenience function to sort the data.  The compare_func
 // must work on your data type!
-#define VECTOR_SORT(name, compare_func) do {                                 \
-    size_t sizeof_type = sizeof(  typeof( *((name)->data) ) );               \
-    qsort((name)->data, (name)->size, sizeof_type, compare_func);            \
+#define VECTOR_SORT(vec, compare_func) do {                                  \
+    size_t sizeof_type = sizeof(  typeof( *((vec)->data) ) );                \
+    qsort((vec)->data, (vec)->size, sizeof_type, compare_func);              \
 } while (0)
 
 #endif
