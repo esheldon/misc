@@ -9,7 +9,10 @@ Quick look Queue
         for gg, eg, etc.  Problems?
     - need to rerun 
         - gmix-et01r02 - not yet running
-        - gmix-edg01r02 - running
+
+    - gmix-edg01r02 - looks bad.  Maybe reduce to two gaussians for
+        object?
+
     - gmix
         - sdss psfs not always converging
             - 3 gauss, free cen and covar: 96% success,  <chi^2> ~ 2.5e-4

@@ -22,8 +22,9 @@
     typedef struct test MyStruct;
     typedef struct test* MyStructp;
 
-    // This declares the underlying structures as types
+    // This declares the underlying vector structures as a new type
     VECTOR_DECLARE(MyStruct);
+
     // vector of pointers to structs.  Data not owned.
     VECTOR_DECLARE(MyStructp);
 
@@ -201,7 +202,7 @@
     // Acknowledgements
     //   I got the idea from a small header
     //   https://github.com/wmorgan/whistlepig/blob/master/rarray.h
-    //   Which had he copyright (c) 2011 William Morgan
+    //   Which he copyright (c) 2011 William Morgan
     //
 
 
@@ -232,12 +233,7 @@
 #include <stdint.h>
 #include <string.h>
 
-
-// note the use of temporary variable __v is helpful even when not necessary
-// because we will get warnings of incompatible types if we pass in objects
-// of the wrong type
-
-// Use this to make new vector types
+// Use this to declare new vector types
 //     e.g.  VECTOR_DECLARE(long);
 #define VECTOR_DECLARE(type)                                                 \
 struct ppvector_##type {                                                     \
@@ -272,11 +268,10 @@ struct ppvector_##type {                                                     \
 
 
 // this should always work since new block is created
-// try to use a mangled name for end iter
-// Use like this, e.g. for a vector of long
+// Use like this, e.g. for a vector of int
 //
-// VECTOR_FOREACH(long, iter, vec)
-//     printf("val is: %ld\n", *iter);
+// VECTOR_FOREACH(iter, vec)
+//     printf("val is: %d\n", *iter);
 // VECTOR_FOREACH_END
 //
 // The name 'iter' will not live past the foreach
@@ -288,7 +283,12 @@ struct ppvector_##type {                                                     \
 
 #define VECTOR_FOREACH_END  } } while (0);
 
-
+// This version requires C99 for the index declaration in
+// the for loop.  Use like this for an int vector
+//
+// VECTOR_FOREACH2(iter, vec) {
+//     printf("val is: %d\n", *iter);
+// }
 #define VECTOR_FOREACH2(iter, vec)                                           \
     for(typeof(vec->data) (iter)=VECTOR_ITER(vec),                           \
         _iter_end=VECTOR_END(vec);                                           \
@@ -341,7 +341,7 @@ struct ppvector_##type {                                                     \
 // unsafe pop, but fast.  One way to safely use it is something
 // like
 // while (VECTOR_SIZE(v) > 0)
-//     data = VECTOR_POPFAST(V);
+//     data = VECTOR_POPFAST(v);
 //
 #define VECTOR_POPFAST(name) (name)->data[-1 + (name)->size--]
 
