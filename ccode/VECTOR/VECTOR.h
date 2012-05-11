@@ -3,7 +3,7 @@
  
   This approach is generally more appealing for generic types than a compiled
   library because the code is more type safe. At the very least one gets
-  compiler warnings about incompatible pointers.  It is impossible to get that
+  compiler warnings, which are quite useful.  It is impossible to get even that
   with a compiled library.
   
   Examples
@@ -22,13 +22,14 @@
     typedef struct test MyStruct;
     typedef struct test* MyStructp;
 
-    // This declares the underlying vector structures as a new type
+    // This declares a new type, under the hood 
+    // it is a struct ppvector_MyStruct
     VECTOR_DECLARE(MyStruct);
 
     // vector of pointers to structs.  Data not owned.
     VECTOR_DECLARE(MyStructp);
 
-    // Now create an actual variable of this type.
+    // Now create an actual variable.
     VECTOR(MyStruct) v=NULL;
 
     // initialize zero visible size. The capacity is 1 internally.
@@ -165,7 +166,7 @@
     // note we never own the pointers in the vector! So we must allocate and
     // free them separately
 
-    struct test* tvec = calloc(n, sizeof(struct test));
+    MyStruct* tvec = calloc(n, sizeof(MyStruct));
 
     for (i=0; i<n; i++) {
         MyStruct *t = &tvec[i];
@@ -200,10 +201,8 @@
 
     //
     // Acknowledgements
-    //   I got the idea from a small header
+    //   I got the idea from a small header by William Morgan
     //   https://github.com/wmorgan/whistlepig/blob/master/rarray.h
-    //   Which he copyright (c) 2011 William Morgan
-    //
 
 
   Copyright (C) 2012  Erin Scott Sheldon, 
@@ -280,7 +279,6 @@ struct ppvector_##type {                                                     \
         typeof(vec->data) _iter_end_##vec = VECTOR_END((vec));               \
         for (; (iter) != _iter_end_##vec; (iter)++) {                        \
 
-
 #define VECTOR_FOREACH_END  } } while (0);
 
 // This version requires C99 for the index declaration in
@@ -291,8 +289,8 @@ struct ppvector_##type {                                                     \
 // }
 #define VECTOR_FOREACH2(iter, vec)                                           \
     for(typeof(vec->data) (iter)=VECTOR_ITER(vec),                           \
-        _iter_end=VECTOR_END(vec);                                           \
-        iter != _iter_end;                                                   \
+        _iter_end_##vec=VECTOR_END(vec);                                     \
+        iter != _iter_end_##vec;                                             \
         iter++)
 
 //
