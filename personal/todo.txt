@@ -1,10 +1,5 @@
 Quick look Queue
 
-    - note setting maxiter to 4000 speeds things up; better
-        to try again than keep running for the sims it seems.
-        this hints I should look at how often a good convergence
-        is found for many iterations
-
     - try using always 3 gaussians for object and 3 for psf, even
         for gg, eg, etc.  Problems?
     - need to rerun 

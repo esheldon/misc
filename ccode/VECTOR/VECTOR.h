@@ -66,7 +66,7 @@
     }
 
     // the above are equivalent to the following
-    MyStruct *iter = VECTOR_ITER(v);
+    MyStruct *iter = VECTOR_BEGIN(v);
     MyStruct *end  = VECTOR_END(v);
     for (; iter != end; iter++) {
         iter->i = someval;
@@ -106,7 +106,8 @@
     assert(25 == VECTOR_SIZE(v));
  
     // clear sets the visible size to zero, but the underlying storage is
-    // unchanged.
+    // unchanged.  This is different from the std::vector in C++ stdlib
+    // VECTOR_DROP corresponds the clear in std::vector
 
     VECTOR_CLEAR(v);
     assert(0==VECTOR_SIZE(v));
@@ -119,7 +120,7 @@
     VECTOR_REALLOC(v,newsize);
     assert(newsize==VECTOR_SIZE(v));
 
-    // drop actually reallocates the underlying storage to size 1 and sets the
+    // drop reallocates the underlying storage to size 1 and sets the
     // visible size to zero
 
     VECTOR_DROP(v);
@@ -178,7 +179,7 @@
     }
 
     // iteration over a vector of pointers
-    MyStruct **iter = VECTOR_ITER(v);
+    MyStruct **iter = VECTOR_BEGIN(v);
     MyStruct **end  = VECTOR_END(v);
     for (i=0; iter != end; iter++, i++) {
         assert((*iter)->id == i);
@@ -262,7 +263,7 @@ struct ppvector_##type {                                                     \
 //
 // safe iterators, even for empty vectors
 //
-#define VECTOR_ITER(vec) (vec)->data
+#define VECTOR_BEGIN(vec) (vec)->data
 #define VECTOR_END(vec) (vec)->data + (vec)->size
 
 
@@ -275,7 +276,7 @@ struct ppvector_##type {                                                     \
 //
 // The name 'iter' will not live past the foreach
 #define VECTOR_FOREACH(iter, vec)  do {                                      \
-        typeof(vec->data) (iter) = VECTOR_ITER((vec));                       \
+        typeof(vec->data) (iter) = VECTOR_BEGIN((vec));                       \
         typeof(vec->data) _iter_end_##vec = VECTOR_END((vec));               \
         for (; (iter) != _iter_end_##vec; (iter)++) {                        \
 
@@ -288,7 +289,7 @@ struct ppvector_##type {                                                     \
 //     printf("val is: %d\n", *iter);
 // }
 #define VECTOR_FOREACH2(iter, vec)                                           \
-    for(typeof(vec->data) (iter)=VECTOR_ITER(vec),                           \
+    for(typeof(vec->data) (iter)=VECTOR_BEGIN(vec),                          \
         _iter_end_##vec=VECTOR_END(vec);                                     \
         iter != _iter_end_##vec;                                             \
         iter++)
@@ -362,16 +363,30 @@ struct ppvector_##type {                                                     \
 // The capacity is only changed if size is larger
 // than the existing capacity
 #define VECTOR_RESIZE(vec, newsize)  do {                                    \
-    if (newsize > (vec)->capacity) {                                         \
+    if ((newsize) > (vec)->capacity) {                                       \
         VECTOR_REALLOC(vec, newsize);                                        \
     }                                                                        \
-    (vec)->size=newsize;                                                     \
+    (vec)->size=(newsize);                                                   \
 } while(0)
 
 // Set the visible size to zero
 #define VECTOR_CLEAR(vec)  do {                                              \
     (vec)->size=0;                                                           \
 } while(0)
+
+
+// reserve at least the specified amount of slots.  If the new capacity is
+// smaller than the current capacity, nothing happens.  If larger, a
+// reallocation occurs.  No change to current contents will happen.
+//
+// currently, the exact requested amount is used but in the future we can
+// optimize to page boundaries.
+#define VECTOR_RESERVE(vec, new_capacity)  do {                              \
+    if ((new_capacity) > (vec)->capacity) {                                  \
+        VECTOR_REALLOC(vec, new_capacity);                                   \
+    }                                                                        \
+} while(0)
+
 
 // delete the data leaving capacity 1 and set size to 0
 #define VECTOR_DROP(vec) do {                                                \
@@ -383,28 +398,28 @@ struct ppvector_##type {                                                     \
 // reallocate the underlying data
 // note we don't allow the capacity to drop below 1
 #define VECTOR_REALLOC(vec, nsize) do {                                      \
-    size_t newsize=nsize;                                                    \
-    size_t sizeof_type = sizeof(  typeof( *((vec)->data) ) );                \
-    if (newsize < 1) newsize=1;                                              \
+    size_t _newsize=nsize;                                                   \
+    size_t _sizeof_type = sizeof(  typeof( *((vec)->data) ) );               \
+    if (_newsize < 1) _newsize=1;                                            \
                                                                              \
-    if (newsize != (vec)->capacity) {                                        \
+    if (_newsize != (vec)->capacity) {                                       \
         (vec)->data =                                                        \
-            realloc((vec)->data, newsize*sizeof_type);                       \
+            realloc((vec)->data, _newsize*_sizeof_type);                     \
         if (!(vec)->data) {                                                  \
             fprintf(stderr,                                                  \
               "VectorError: failed to reallocate to %lu elements of "        \
               "size %lu\n",                                                  \
-              (size_t) newsize, sizeof_type);                                \
+              (size_t) _newsize, _sizeof_type);                              \
             exit(EXIT_FAILURE);                                              \
         }                                                                    \
-        if (newsize > (vec)->capacity) {                                     \
-            size_t num_new_bytes = (newsize-(vec)->capacity)*sizeof_type;    \
-            memset((vec)->data + (vec)->capacity, 0, num_new_bytes);         \
-        } else if ((vec)->size > newsize) {                                  \
-            (vec)->size = newsize;                                           \
+        if (_newsize > (vec)->capacity) {                                    \
+            size_t _num_new_bytes = (_newsize-(vec)->capacity)*_sizeof_type; \
+            memset((vec)->data + (vec)->capacity, 0, _num_new_bytes);        \
+        } else if ((vec)->size > _newsize) {                                 \
+            (vec)->size = _newsize;                                          \
         }                                                                    \
                                                                              \
-        (vec)->capacity = newsize;                                           \
+        (vec)->capacity = _newsize;                                          \
     }                                                                        \
 } while (0)
 
@@ -415,8 +430,8 @@ struct ppvector_##type {                                                     \
 // convenience function to sort the data.  The compare_func
 // must work on your data type!
 #define VECTOR_SORT(vec, compare_func) do {                                  \
-    size_t sizeof_type = sizeof(  typeof( *((vec)->data) ) );                \
-    qsort((vec)->data, (vec)->size, sizeof_type, compare_func);              \
+    size_t _sizeof_type = sizeof(  typeof( *((vec)->data) ) );               \
+    qsort((vec)->data, (vec)->size, _sizeof_type, compare_func);             \
 } while (0)
 
 #endif
