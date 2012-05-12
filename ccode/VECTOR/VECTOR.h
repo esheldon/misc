@@ -20,21 +20,22 @@
         double x;
     };
     typedef struct test MyStruct;
-    typedef struct test* MyStructp;
+    typedef struct test* MyStruct_p;
 
     // This declares a new type, under the hood 
     // it is a struct ppvector_MyStruct
-    VECTOR_DECLARE(MyStruct);
+    VECTOR_DEF(MyStruct);
 
     // vector of pointers to structs.  Data not owned.
-    VECTOR_DECLARE(MyStructp);
+    VECTOR_DEF(MyStruct_p);
 
     // Now create an actual variable.
     VECTOR(MyStruct) v=NULL;
 
-    // initialize zero visible size. The capacity is 1 internally.
-    // Always init before using the vector
-    VECTOR_INIT(v);
+    // Initialize to a vector with zero visible size. The capacity is 1
+    // internally.  Always init before using the vector
+
+    v = VECTOR_NEW(MyStruct);
  
 
     //
@@ -129,7 +130,7 @@
 
     // free the vector and the underlying array.  Sets the vector to NULL
 
-    VECTOR_DELETE(v);
+    VECTOR_DEL(v);
     assert(NULL==v);
 
     //
@@ -158,11 +159,10 @@
 
     //
     // storing pointers in the vector
-    // recall MyStructp is a MyStruct*
+    // recall MyStruct_p is a MyStruct*
     //
 
-    VECTOR(MyStructp) v=NULL;
-    VECTOR_INIT(v);
+    VECTOR(MyStruct_p) v = VECTOR_NEW(MyStruct_p);
 
     // note we never own the pointers in the vector! So we must allocate and
     // free them separately
@@ -186,7 +186,7 @@
     }
 
     // this does not free the data pointed to by pointers
-    VECTOR_DELETE(v);
+    VECTOR_DEL(v);
 
     // still need to free original vector
     free(tvec);
@@ -233,9 +233,9 @@
 #include <stdint.h>
 #include <string.h>
 
-// Use this to declare new vector types
-//     e.g.  VECTOR_DECLARE(long);
-#define VECTOR_DECLARE(type)                                                 \
+// Use this to define new vector types
+//     e.g.  VECTOR_DEF(long);
+#define VECTOR_DEF(type)                                                     \
 struct ppvector_##type {                                                     \
     size_t size;                                                             \
     size_t capacity;                                                         \
@@ -246,13 +246,36 @@ struct ppvector_##type {                                                     \
 //     e.g. use VECTOR(long) myvar;
 #define VECTOR(type) struct ppvector_##type*
 
-// always run this before using the vector
-#define VECTOR_INIT(vec) do {                                                \
-    (vec) = ( typeof((vec)) ) calloc(1, sizeof( typeof(*(vec)) ) );          \
-    (vec)->size = 0;                                                         \
-    (vec)->data = calloc(1,sizeof(  typeof( *(vec)->data)  ));               \
-    (vec)->capacity=1;                                                       \
+// Create a new vector.  Note magic leaving the variable at the end of the
+// block
+#define VECTOR_NEW(type) ({ \
+    VECTOR(type) _v =  calloc(1, sizeof(VECTOR(type)));                      \
+    if (!_v) {                                                               \
+        fprintf(stderr,                                                      \
+                "VectorError: failed to allocate VECTOR\n");                 \
+        exit(EXIT_FAILURE);                                                  \
+    }                                                                        \
+    _v->data = calloc(1,sizeof(type));                                       \
+    if (!_v->data) {                                                         \
+        fprintf(stderr,                                                      \
+                "VectorError: failed to initialize VECTOR data\n");          \
+        exit(EXIT_FAILURE);                                                  \
+    }                                                                        \
+    _v->size = 0;                                                            \
+    _v->capacity=1;                                                          \
+    _v;                                                                      \
+})
+
+// Completely destroy the data and container
+// The container is set to NULL
+#define VECTOR_DEL(vec) do {                                                 \
+    if ((vec)) {                                                             \
+        free((vec)->data);                                                   \
+        free((vec));                                                         \
+        (vec)=NULL;                                                          \
+    }                                                                        \
 } while(0)
+
 
 //
 // metadata access
@@ -267,8 +290,9 @@ struct ppvector_##type {                                                     \
 #define VECTOR_END(vec) (vec)->data + (vec)->size
 
 
-// this should always work since new block is created
-// Use like this, e.g. for a vector of int
+// this should always work even with older C since new block is created
+//
+// usage for an int vector:
 //
 // VECTOR_FOREACH(iter, vec)
 //     printf("val is: %d\n", *iter);
@@ -276,14 +300,16 @@ struct ppvector_##type {                                                     \
 //
 // The name 'iter' will not live past the foreach
 #define VECTOR_FOREACH(iter, vec)  do {                                      \
-        typeof(vec->data) (iter) = VECTOR_BEGIN((vec));                       \
+        typeof(vec->data) (iter) = VECTOR_BEGIN((vec));                      \
         typeof(vec->data) _iter_end_##vec = VECTOR_END((vec));               \
         for (; (iter) != _iter_end_##vec; (iter)++) {                        \
 
 #define VECTOR_FOREACH_END  } } while (0);
 
 // This version requires C99 for the index declaration in
-// the for loop.  Use like this for an int vector
+// the for loop.
+//
+// usage for an int vector:
 //
 // VECTOR_FOREACH2(iter, vec) {
 //     printf("val is: %d\n", *iter);
@@ -314,12 +340,13 @@ struct ppvector_##type {                                                     \
 // block lets it become the value in an expression,
 // e.g.
 //   x = VECTOR_POP(long, vec);
+
 #define VECTOR_POP(vec) ({                                                   \
-    typeof( *(vec)->data) val = {0};                                         \
+    typeof( *(vec)->data) _val = {0};                                        \
     if ((vec)->size > 0) {                                                   \
-        val=(vec)->data[(vec)->size-- -1];                                   \
+        _val=(vec)->data[(vec)->size-- -1];                                  \
     }                                                                        \
-    val; \
+    _val;                                                                    \
 })
 
 
@@ -344,20 +371,10 @@ struct ppvector_##type {                                                     \
 //
 #define VECTOR_POPFAST(vec) (vec)->data[-1 + (vec)->size--]
 
+
 //
 // Modifying the size or capacity
 //
-
-// Completely destroy the data and container
-// The container is set to NULL
-#define VECTOR_DELETE(vec) do {                                              \
-    if ((vec)) {                                                             \
-        free((vec)->data);                                                   \
-        free((vec));                                                         \
-        (vec)=NULL;                                                          \
-    }                                                                        \
-} while(0)
-
 
 // Change the visible size
 // The capacity is only changed if size is larger
