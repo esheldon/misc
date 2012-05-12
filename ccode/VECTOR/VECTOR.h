@@ -89,7 +89,9 @@
     tnew.id = 57;
     tnew.x = -2.7341;
 
-    VECTOR_SET(v, 5, tnew);
+    // VECTOR_SET and VECTOR_GET are really the same, but
+    // read better in context
+    VECTOR_SET(v, 5) = tnew;
     MyStruct t = VECTOR_GET(v, 5);
 
     assert(t.id == tnew.id);
@@ -233,23 +235,39 @@
 #include <stdint.h>
 #include <string.h>
 
-// Use this to define new vector types
-//     e.g.  VECTOR_DEF(long);
-#define VECTOR_DEF(type)                                                     \
-struct ppvector_##type {                                                     \
+// Use this to define new vector types.
+//
+//     e.g.  VECTOR_DEF(long)L;
+//
+// Note need the both VECTOR_DEF and _VECTOR_DEF in order to
+// make vectors of vectors due to the fact that concatenation
+// does not expand macros.  That is also why we use a typedef.
+#define VECTOR_DEF(type) _VECTOR_DEF(type)
+#define _VECTOR_DEF(type)                                                     \
+typedef struct ppvector_##type {                                             \
     size_t size;                                                             \
     size_t capacity;                                                         \
     type* data;                                                              \
-};
+} ppvector_##type; \
+typedef ppvector_##type* p_ppvector_##type
 
 // this is how to declare vector variables in your code
-//     e.g. use VECTOR(long) myvar;
-#define VECTOR(type) struct ppvector_##type*
+//
+//     VECTOR(long) myvar=VECTOR_NEW(long);
+//
+// It is a reference type, and must be initialized
+// with VECTOR_NEW.
+//
+// Note need the both VECTOR_DEF and _VECTOR_DEF in order to
+// allow vectors of vectors because concatenation does not expand macros.
+#define VECTOR(type) _VECTOR(type)
+#define _VECTOR(type) p_ppvector_##type
 
 // Create a new vector.  Note magic leaving the variable at the end of the
 // block
-#define VECTOR_NEW(type) ({ \
-    VECTOR(type) _v =  calloc(1, sizeof(VECTOR(type)));                      \
+#define VECTOR_NEW(type) _VECTOR_NEW(type)
+#define _VECTOR_NEW(type) ({ \
+    VECTOR(type) _v =  calloc(1, sizeof(ppvector_##type));                   \
     if (!_v) {                                                               \
         fprintf(stderr,                                                      \
                 "VectorError: failed to allocate VECTOR\n");                 \
@@ -265,6 +283,7 @@ struct ppvector_##type {                                                     \
     _v->capacity=1;                                                          \
     _v;                                                                      \
 })
+
 
 // Completely destroy the data and container
 // The container is set to NULL
@@ -355,14 +374,15 @@ struct ppvector_##type {                                                     \
 //
 
 #define VECTOR_GET(vec,index) (vec)->data[index]
+
+// VECTOR_SET is the same as VECTOR_GET but reads better
+// in a setter context
+#define VECTOR_SET(vec,index) (vec)->data[index]
+
 #define VECTOR_GETFRONT(vec) (vec)->data[0]
 #define VECTOR_GETBACK(vec) (vec)->data[(vec)->size-1]
 
 #define VECTOR_GETPTR(vec,index) &(vec)->data[index]
-
-#define VECTOR_SET(vec,index,val) do {                                       \
-    (vec)->data[index] = val;                                                \
-} while(0)
 
 // unsafe pop, but fast.  One way to safely use it is something
 // like
