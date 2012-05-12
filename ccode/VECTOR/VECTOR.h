@@ -158,6 +158,21 @@
     // note only elements [0,size) are sorted
     VECTOR_SORT(v, &MyStruct_compare);
 
+    //
+    // vectors of vectors
+    //
+    VECTOR_DEF(VECTOR(long));
+    VECTOR(VECTOR(long)) v = VECTOR_NEW(VECTOR(long));;
+
+    VECTOR_PUSH(v, VECTOR_NEW(long));
+    VECTOR_PUSH(v, VECTOR_NEW(long));
+
+    // This is the recommended way to delete elements in a vector of vectors
+    // You can't use an iterator in this case
+    for (size_t i=0; i<VECTOR_SIZE(v); i++) {
+        VECTOR_DEL(VECTOR_GET(v,i));
+    }
+    VECTOR_DEL(v);
 
     //
     // storing pointers in the vector
