@@ -14,9 +14,9 @@ struct mystruct {
 typedef struct mystruct MyStruct;
 typedef struct mystruct* MyStruct_p;
 
-VECTOR_DECLARE(long);
-VECTOR_DECLARE(MyStruct);
-VECTOR_DECLARE(MyStruct_p);
+VECTOR_DEF(long);
+VECTOR_DEF(MyStruct);
+VECTOR_DEF(MyStruct_p);
 
 int compare_test(const void* t1, const void* t2) {
     int temp = 
@@ -33,8 +33,7 @@ int compare_test(const void* t1, const void* t2) {
 }
 
 void test_sort() {
-    VECTOR(MyStruct) v=NULL;
-    VECTOR_INIT(v);
+    VECTOR(MyStruct) v = VECTOR_NEW(MyStruct);
 
     MyStruct t;
 
@@ -72,8 +71,7 @@ void test_pass_struct(VECTOR(MyStruct) v) {
 void test_struct() {
     size_t n=10, cap=16, i=0;
 
-    VECTOR(MyStruct) v=NULL;
-    VECTOR_INIT(v);
+    VECTOR(MyStruct) v = VECTOR_NEW(MyStruct);
 
     struct mystruct tmp;
     for (i=0; i<n; i++) {
@@ -161,7 +159,7 @@ void test_struct() {
     assert(0 == val.x);
     assert(0 == VECTOR_SIZE(v));
 
-    VECTOR_DELETE(v);
+    VECTOR_DEL(v);
     assert(NULL==v);
 }
 
@@ -169,8 +167,7 @@ void test_long() {
 
     long n=10, cap=16, i=0;
 
-    VECTOR(long) v=NULL;
-    VECTOR_INIT(v);
+    VECTOR(long) v = VECTOR_NEW(long);
 
     for (i=0; i<n; i++) {
         VECTOR_PUSH(v,i);
@@ -217,15 +214,14 @@ void test_long() {
     assert(1 == VECTOR_CAPACITY(v));
     assert(0 == VECTOR_SIZE(v));
 
-    VECTOR_DELETE(v);
+    VECTOR_DEL(v);
     assert(NULL == v);
 }
 
 void test_reserve() {
     size_t n=10, cap=0;
 
-    VECTOR(long) v=NULL;
-    VECTOR_INIT(v);
+    VECTOR(long) v = VECTOR_NEW(long);
 
     VECTOR_RESERVE(v, n);
     cap = VECTOR_CAPACITY(v);
@@ -237,7 +233,7 @@ void test_reserve() {
     assert(1 == VECTOR_SIZE(v));
     assert(cap == VECTOR_CAPACITY(v));
 
-    VECTOR_DELETE(v);
+    VECTOR_DEL(v);
     assert(NULL == v);
 }
 /*
@@ -250,8 +246,7 @@ void test_reserve() {
 void test_ptr() {
     size_t i=0, n=10;
 
-    VECTOR(MyStruct_p) v=NULL;
-    VECTOR_INIT(v);
+    VECTOR(MyStruct_p) v = VECTOR_NEW(MyStruct_p);
 
     // note we never own the pointers in the vector! So we must allocat and
     // free them separately
@@ -282,7 +277,7 @@ void test_ptr() {
         iter++;
         i++;
     }
-    VECTOR_DELETE(v);
+    VECTOR_DEL(v);
 
     // make sure the data still exist!
     assert(3 == tvec[3].id);

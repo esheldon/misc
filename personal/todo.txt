@@ -1,7 +1,8 @@
 Quick look Queue
 
     - try using always 3 gaussians for object and 3 for psf, even
-        for gg, eg, etc.  Problems?
+        for gg, eg, etc.  Problems?  
+            - gg it works OK
     - need to rerun 
         - gmix-et01r02 - not yet running
 
