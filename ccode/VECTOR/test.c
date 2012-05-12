@@ -5,18 +5,18 @@
 
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 
-struct mystruct {
+// must use typedefs for use in vectors
+typedef struct mystruct {
     int id;
     double x;
-};
+} MyStruct;
 
-// we need these for structs and pointers to work
-typedef struct mystruct MyStruct;
-typedef struct mystruct* MyStruct_p;
+typedef MyStruct* MyStruct_p;
 
 VECTOR_DEF(long);
 VECTOR_DEF(MyStruct);
 VECTOR_DEF(MyStruct_p);
+VECTOR_DEF(VECTOR(long));
 
 int compare_test(const void* t1, const void* t2) {
     int temp = 
@@ -135,7 +135,7 @@ void test_struct() {
 
     tmp.id = 3423;
     tmp.x = 500;
-    VECTOR_SET(v, 3, tmp);
+    VECTOR_SET(v, 3) = tmp;
     tp = VECTOR_GETPTR(v,3);
     assert(tp->id == tmp.id);
     assert(tp->x == tmp.x);
@@ -191,8 +191,9 @@ void test_long() {
     assert(cap == VECTOR_CAPACITY(v));
     assert(newsize == VECTOR_SIZE(v));
 
-
-    VECTOR_SET(v,3,12);
+    // different ways to set.  VECTOR_SET is the
+    // same as VECTOR_GET but reads better when setting
+    VECTOR_SET(v,3) = 12;
     assert(12 == VECTOR_GET(v,3));
 
     long *p = VECTOR_GETPTR(v,3);
@@ -218,6 +219,47 @@ void test_long() {
     assert(NULL == v);
 }
 
+void test_vector_of_vectors() {
+
+    // vector of vectors.  Each is a reference type, so we must use VECTOR_NEW
+    // to initialize. Also we have to destroy the data pointed at by these
+    // before destroying the vector
+
+    VECTOR(VECTOR(long)) v = VECTOR_NEW(VECTOR(long));;
+
+    VECTOR_PUSH(v, VECTOR_NEW(long));
+    VECTOR_PUSH(v, VECTOR_NEW(long));
+
+    assert(2 == VECTOR_SIZE(v));
+    assert(NULL != VECTOR_GET(v,0));
+    assert(NULL != VECTOR_GET(v,1));
+
+    VECTOR_RESIZE(v,3);
+    VECTOR_SET(v,2) = VECTOR_NEW(long);
+    assert(NULL != VECTOR_GET(v,2));
+
+    // add data to one of the sub-vectors
+    VECTOR(long) tmp = VECTOR_GET(v,0);
+    VECTOR_PUSH(tmp, 3);
+
+    assert(1 == VECTOR_SIZE(VECTOR_GET(v,0)) );
+    long x = VECTOR_GETFRONT(VECTOR_GET(v,0));
+    assert(x == 3);
+
+    // This is the recommended way to delete elements in a vector of vectors
+    // You can't use an iterator in this case
+    for (size_t i=0; i<VECTOR_SIZE(v); i++) {
+        VECTOR_DEL(VECTOR_GET(v,i));
+    }
+
+    assert(NULL==VECTOR_GET(v,0));
+    assert(NULL==VECTOR_GET(v,1));
+    assert(NULL==VECTOR_GET(v,2));
+
+    VECTOR_DEL(v);
+    assert(NULL==v);
+
+}
 void test_reserve() {
     size_t n=10, cap=0;
 
@@ -297,4 +339,6 @@ int main(int argc, char** argv) {
     test_ptr();
     wlog("testing reserve\n");
     test_reserve();
+    wlog("testing vector of vectors\n");
+    test_vector_of_vectors();
 }
