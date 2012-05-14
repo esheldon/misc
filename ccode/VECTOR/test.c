@@ -260,6 +260,37 @@ void test_vector_of_vectors() {
     assert(NULL==v);
 
 }
+
+void test_raii() {
+
+    VECTOR_RAII(long, lvec) {
+        VECTOR_RAII(MyStruct, msvec) {
+            VECTOR_PUSH(lvec,3);
+            VECTOR_PUSH(lvec,5);
+
+            long t = VECTOR_POP(lvec);
+            assert(t == 5);
+            t = VECTOR_POP(lvec);
+            assert(t == 3);
+            assert(0==VECTOR_SIZE(lvec));
+
+            MyStruct ms;
+            ms.id = 3;
+            ms.x = -3.;
+            VECTOR_PUSH(msvec,ms);
+            ms.id = 5;
+            ms.x = -5.;
+            VECTOR_PUSH(msvec,ms);
+
+            MyStruct tms = VECTOR_POP(msvec);
+            assert(tms.id == 5);
+            tms = VECTOR_POP(msvec);
+            assert(tms.id == 3);
+            assert(0==VECTOR_SIZE(msvec));
+        } // msvec cleanup
+    } // lvec  cleanup
+}
+
 void test_reserve() {
     size_t n=10, cap=0;
 
@@ -341,4 +372,6 @@ int main(int argc, char** argv) {
     test_reserve();
     wlog("testing vector of vectors\n");
     test_vector_of_vectors();
+    wlog("testing raii\n");
+    test_raii();
 }

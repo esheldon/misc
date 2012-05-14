@@ -4,10 +4,8 @@ Quick look Queue
         for gg, eg, etc.  Problems?  
             - gg it works OK
     - need to rerun 
-        - gmix-et01r02 - not yet running
-
-    - gmix-edg01r02 - looks bad.  Maybe reduce to two gaussians for
-        object?
+        - gmix-et01r02 - forgot coellip
+        - gmix-edg01r02 - forgot coellip
 
     - gmix
         - sdss psfs not always converging
