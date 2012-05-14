@@ -317,9 +317,9 @@ typedef ppvector_##type* p_ppvector_##type
 // is safeer; you can't use vec outside the for block.
 
 #define VECTOR_RAII(type, vec) _VECTOR_RAII(type, vec)
-#define _VECTOR_RAII(type, vec)                                \
-    VECTOR(type) __v_##vec_##type = VECTOR_NEW(type);                     \
-    for(VECTOR(type) vec =__v_##vec_##type  \
+#define _VECTOR_RAII(type, vec)                                              \
+    VECTOR(type) __v_##vec_##type = VECTOR_NEW(type);                        \
+    for(VECTOR(type) vec =__v_##vec_##type                                   \
         ; vec ; free(vec->data), free(vec), vec=NULL)
 
 
