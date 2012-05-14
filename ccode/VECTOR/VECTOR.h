@@ -310,6 +310,20 @@ typedef ppvector_##type* p_ppvector_##type
     }                                                                        \
 } while(0)
 
+// c99 
+//
+// We use __v_##vec_##type and assign vec to the same pointer in the for loop
+// initializer.  Then vec is a local variable and will go out of scope.  This
+// is safeer; you can't use vec outside the for block.
+
+#define VECTOR_RAII(type, vec) _VECTOR_RAII(type, vec)
+#define _VECTOR_RAII(type, vec)                                \
+    VECTOR(type) __v_##vec_##type = VECTOR_NEW(type);                     \
+    for(VECTOR(type) vec =__v_##vec_##type  \
+        ; vec ; free(vec->data), free(vec), vec=NULL)
+
+
+//, v->data = calloc(1,sizeof(type))
 
 //
 // metadata access
