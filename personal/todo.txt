@@ -1,5 +1,10 @@
 Quick look Queue
 
+    - fitsio
+        - header
+            - stephen's note
+            - keywords can be lower case when heierarch, ??
+
     - try using always 3 gaussians for object and 3 for psf, even
         for gg, eg, etc.  Problems?  
             - gg it works OK
@@ -18,6 +23,9 @@ Quick look Queue
             - lower tolerance? Dave used 1.e-5 in diff, I'm using
                 1.e-6 in fdiff
                 - test on sims
+
+    - mcmc
+        - get priors right, normalization of prob
 
     - read ying's draft
 
