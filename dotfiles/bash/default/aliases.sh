@@ -73,6 +73,7 @@ alias fmplayer='mplayer -fstype none'
 alias setcorus="export http_proxy=http://192.168.1.140:3128"
 alias unsetcorus="unset http_proxy"
 
+alias urxvtb='urxvt -fn "xft:peep"'
 alias mrxvt10='mrxvt -xft -xftfn Monaco -xftsz 10'
 alias lmrxvt10='mrxvt -cf ~/.dotfiles/mrxvt/mrxvtrc-lightbg -xft -xftfn Monaco -xftsz 10'
 

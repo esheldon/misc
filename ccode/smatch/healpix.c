@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "healpix.h"
 #include "defs.h"
-#include "stack.h"
+#include "vector.h"
 
 
 
@@ -48,10 +48,22 @@ struct healpix* hpix_delete(struct healpix* hpix) {
 
 // ra,dec in degrees
 // radius in radians
-void hpix_disc_intersect(
+void hpix_disc_intersect_radec(
         const struct healpix* hpix,
         double ra, double dec, double radius, 
-        struct i64stack* listpix) {
+        struct vector* listpix)  // vector of int64
+{
+
+    double x,y,z;
+    hpix_eq2xyz(ra, dec, &x, &y, &z);
+    hpix_disc_intersect(hpix, x, y, z, radius, listpix);
+}
+
+void hpix_disc_intersect(
+        const struct healpix* hpix,
+        double x0, double y0, double z0, double radius, 
+        struct vector* listpix)  // vector of int64
+{
 
     // this is from the f90 code
     // this number is acos(2/3)
@@ -61,26 +73,21 @@ void hpix_disc_intersect(
     //double fudge = 1.362*M_PI/(4*hpix->nside);
 
     radius += fudge;
-    hpix_disc_contains(hpix, ra, dec, radius, listpix);
+    hpix_disc_contains(hpix, x0, y0, z0, radius, listpix);
 }
 
-double dot_product3(double v1[3], double v2[3]) {
-    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
-}
 void hpix_disc_contains(
         const struct healpix* hpix,
-        double ra, double dec, double radius, 
-        struct i64stack* listpix) {
+        double x0, double y0, double z0, double radius, 
+        struct vector* listpix)  // vector of int64
+{
 
     //double vector0[3];
     int64 nside=hpix->nside;
     double cosang = cos(radius);
 
     // this does not alter the storage
-    i64stack_resize(listpix, 0);
-
-    double x0, y0, z0;
-    hpix_eq2xyz(ra, dec, &x0, &y0, &z0);
+    vector_resize(listpix, 0);
 
     double dth1 = 1. / (3.0*nside*nside);
     double dth2 = 2. / (3.0*nside);
@@ -174,7 +181,8 @@ void hpix_in_ring(
         int64 iz, 
         double phi0, 
         double dphi, 
-        struct i64stack* plist) {
+        struct vector* listpix)  // vector of int64
+{
 
     int64 nr, ir, ipix1;
     double shift=0.5;
@@ -203,7 +211,7 @@ void hpix_in_ring(
 
     if (dphi > (M_PI-1e-7)) {
         for (int64 i=ipix1; i<=ipix2; ++i) {
-            i64stack_push(plist, i);
+            vector_push(listpix, &i);
         }
     } else {
 
@@ -218,7 +226,7 @@ void hpix_in_ring(
             if (pixnum>ipix2) {
                 pixnum -= nr;
             }
-            i64stack_push(plist, pixnum);
+            vector_push(listpix, &pixnum);
         }
     }
 

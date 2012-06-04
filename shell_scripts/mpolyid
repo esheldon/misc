@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# run a ra,dec file through poly id, demanding that objects
+# land in zero or one polygons.
+#
+# if no polygons found, put -1 in the last column.
+
+
+if [[ $# -lt 3 ]]; then
+    echo "usage: mpolyid poly_file radec_file out_file"
+    exit 1
+fi
+
+plyfile=$1
+radecfile=$2
+idfile=$3
+
+tmpfile=$(basename $idfile)
+tmpfile="tmp-$RANDOM-$tmpfile"
+badfile="bad-$tmpfile"
+
+tmpfile="/tmp/$tmpfile"
+badfile="/tmp/$badfile"
+
+polyid -p+16-16 "$plyfile" "$radecfile" "$tmpfile"
+
+# test for lines with more than one id
+awk '(NF>3)' "$tmpfile" > "$badfile"
+nbad=$(wc -l < "$badfile")
+rm -f "$badfile"
+
+if [[ $nbad != "0" ]]; then
+    echo "error: found $nbad objects in > 1 polygons"
+    echo "leaving temporary file for inspection: $tmpfile"
+    exit 1
+fi
+
+
+# now make sure at least three columns, putting -1 when
+# no polyid was found
+
+awk '{if (NF==3) print; else print $0,-1;}' "$tmpfile" > "$idfile"
+rm -f "$tmpfile"

@@ -36,12 +36,12 @@ struct universe {
     struct particle* particles;
 };
 
-void print_universe(struct universe* u) {
-    printf("xmax: %lf\n", u->xmax[0]);
-    printf("nparticles: %ld\n", u->nparticles);
-    printf("nstep: %ld\n", u->nstep);
-    printf("tstep: %lf\n", u->tstep);
-    printf("xsoft: %lf\n", u->xsoft);
+void print_universe(struct universe* u, FILE* fptr) {
+    fprintf(fptr,"xmax: %lf\n", u->xmax[0]);
+    fprintf(fptr,"nparticles: %ld\n", u->nparticles);
+    fprintf(fptr,"nstep: %ld\n", u->nstep);
+    fprintf(fptr,"tstep: %lf\n", u->tstep);
+    fprintf(fptr,"xsoft: %lf\n", u->xsoft);
 }
 
 void set_initial_conditions(struct universe* u) {
@@ -79,7 +79,7 @@ struct universe* universe_new(int64_t nstep, int64_t nperside, double xmax, doub
     struct universe* u;
     u = malloc(sizeof(struct universe));
     if (u == NULL) {
-        printf("Could not malloc struct universe");
+        fprintf(stderr,"Could not malloc struct universe");
         exit(EXIT_FAILURE);
     }
 
@@ -93,7 +93,7 @@ struct universe* universe_new(int64_t nstep, int64_t nperside, double xmax, doub
 
     u->particles = malloc(u->nparticles*sizeof(struct particle));
     if (u->particles == NULL) {
-        printf("Could not malloc %ld particles", u->nparticles);
+        fprintf(stderr,"Could not malloc %ld particles", u->nparticles);
         exit(EXIT_FAILURE);
     }
 
@@ -106,26 +106,44 @@ struct universe* universe_new(int64_t nstep, int64_t nperside, double xmax, doub
 FILE* open_output(const char* filename) {
     FILE* fptr = fopen(filename, "w");
     if (fptr==NULL) {
-        printf("Could not open file: '%s'\n", filename);
+        fprintf(stderr,"Could not open file: '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
     return fptr;
 }
 
-void write_header(FILE* fptr, struct universe* u) {
+void write_header(struct universe* u, FILE* fptr) {
+    fprintf(fptr,"nstep:      %ld\n", u->nstep);
+    fprintf(fptr,"nparticles: %ld\n", u->nparticles);
+    fprintf(fptr,"xmax:       %.16g %.16g %.16g\n", 
+            u->xmax[0],u->xmax[1],u->xmax[2]);
+    fprintf(fptr,"tstep:      %.16g\n", u->tstep);
+    /*
     fwrite(&u->nstep,      sizeof(int64_t), 1, fptr);
     fwrite(&u->nparticles, sizeof(int64_t), 1, fptr);
     fwrite(&u->xmax,       sizeof(double),  1, fptr);
     fwrite(&u->tstep,      sizeof(double),  1, fptr);
+    */
 }
-void write_step(FILE* fptr, struct universe* u, int64_t step) {
+void write_step(struct universe* u, int64_t step, FILE* fptr) {
     struct particle* p = u->particles;
 
+    for (int64_t i=0; i<u->nparticles; i++) {
+        fprintf(fptr,"%ld %ld %.16g %.16g %.16g %.16g %.16g %.16g\n", 
+                step, i,
+                p->x[0],p->x[1],p->x[2],
+                p->v[0],p->v[1],p->v[2]);
+
+        p++;
+    }
+
+    /*
     fwrite(&step, sizeof(int64_t), 1, fptr);
     for (int64_t i=0; i< u->nparticles; i++) {
         fwrite(p[i].x, sizeof(double), 3, fptr);
         fwrite(p[i].v, sizeof(double), 3, fptr);
     }
+    */
 }
 
 // magnitude squared
@@ -164,9 +182,9 @@ void get_accel(struct universe* u, double x[3], double accel[3]) {
     }
 }
 
-void print_particle(struct particle* p) {
-    printf("  x: [%lf, %lf, %lf]\n", p->x[0], p->x[1], p->x[2]);
-    printf("  v: [%lf, %lf, %lf]\n", p->v[0], p->v[1], p->v[2]);
+void print_particle(struct particle* p, FILE* fptr) {
+    fprintf(fptr,"  x: [%lf, %lf, %lf]\n", p->x[0], p->x[1], p->x[2]);
+    fprintf(fptr,"  v: [%lf, %lf, %lf]\n", p->v[0], p->v[1], p->v[2]);
 }
 
 void take_step(struct universe* u) {
@@ -196,7 +214,7 @@ void take_step(struct universe* u) {
 
         /*
         if (i == 0) {
-            print_particle(&u->particles[i]);
+            print_particle(&u->particles[i],stderr);
         }
         */
     }
@@ -216,23 +234,23 @@ int main(int argc, char* argv) {
 
     universe = universe_new(nstep, nperside, xmax, tstep, xsoft);
 
-    printf("Universe parameters:\n");
-    print_universe(universe);
+    fprintf(stderr,"Universe parameters:\n");
+    print_universe(universe,stderr);
 
     FILE* fptr=open_output("tests/test-nb.dat");
 
-    write_header(fptr, universe);
+    write_header(universe,fptr);
 
     // write out first step from initial conditions
     step=0;
-    write_step(fptr, universe, step);
+    write_step(universe, step, fptr);
     
     for (step=1; step < nstep; step++) {
         if ( ((step+1) % 10) == 0) {
-            printf("step %ld/%ld\n", (step+1), nstep);
+            fprintf(stderr,"step %ld/%ld\n", (step+1), nstep);
         }
         take_step(universe);
-        write_step(fptr, universe, step);
+        write_step(universe, step, fptr);
     }
 
     fclose(fptr);

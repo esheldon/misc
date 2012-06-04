@@ -7,8 +7,14 @@ import glob
 
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
-optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix,help="where to install"),
-         optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)")]
+optlist=[optparse.Option('-p','--prefix',default=sys.exec_prefix,
+                         help="where to install"),
+         optparse.Option('-d','--debug',action="store_true",
+                         help="turn on debugging (assert)"),
+         optparse.Option('--pixelof',action="store_true",
+                         help="make the pixelof executable"),
+         optparse.Option('--intersect',action="store_true",
+                         help="make the intersect executable")]
 parser.add_options(optlist)
 
 options,args = parser.parse_args()
@@ -18,17 +24,30 @@ CC='gcc'
 
 LINKFLAGS=['-lm']
 
-#CFLAGS=['-std=c99','-Wall','-Werror','-O2']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
+#CFLAGS=['-std=gnu99','-Wall','-Werror','-O2','-DHASH_FUNCTION=HASH_SFH']
+# use this when testing hash functions
+#CFLAGS=['-std=gnu99','-Wall','-O2','-DHASH_EMIT_KEYS=3']
+# redirect ./smatch .. 3> keystats.bin
+# then run the keystats program in the /tests subdir of the uthash distro
+
 if not options.debug:
     CFLAGS += ['-DNDEBUG']
 
 
 
-sources = ['healpix','tree','stack','smatch']
-
+sources = ['alloc','healpix','match','point_hash',
+           'vector','cat','files','smatch']
 
 programs = [{'name':'smatch', 'sources':sources}]
+
+if options.pixelof:
+    p_sources = ['alloc','healpix','vector','pixelof']
+    programs.append({'name':'pixelof','sources':p_sources})
+if options.intersect:
+    p_sources = ['alloc','healpix','vector','intersect']
+    programs.append({'name':'intersect','sources':p_sources})
+
 
 install_targets = [(prog['name'],'bin') for prog in programs]
 
@@ -44,7 +63,7 @@ def compile():
 def link():
     for prog in programs:
         objects = [s+'.o' for s in prog['sources']]
-        run(CC,LINKFLAGS,'-o', prog['name'], objects)
+        run(CC,'-o', prog['name'], objects,LINKFLAGS)
 
 def clean():
     autoclean()

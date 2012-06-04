@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "defs.h"
-#include "stack.h"
+#include "vector.h"
 
 #define NS_MAX 268435456 // 2^28 : largest nside available
 
@@ -40,10 +40,14 @@ int64 hpix_eq2pix(const struct healpix* hpix, double ra, double dec);
    ra,dec - degrees
    radius - radians
  */
-void hpix_disc_intersect(
+void hpix_disc_intersect_radec(
         const struct healpix* hpix,
         double ra, double dec, double radius, 
-        struct i64stack* listpix);
+        struct vector* listpix); // vector of int64
+void hpix_disc_intersect(
+        const struct healpix* hpix,
+        double x, double y, double z, double radius, 
+        struct vector* listpix); // vector of int64
 /*
  Fill listpix with all pixels whose centers are contained within the disc
 
@@ -55,16 +59,16 @@ void hpix_disc_intersect(
 int64 i64max(int64 v1, int64 v2);
 int64 i64min(int64 v1, int64 v2);
 
-double dot_product3(double v1[3], double v2[3]);
 void hpix_disc_contains(
         const struct healpix* hpix,
-        double ra, double dec, double radius, 
-        struct i64stack* listpix);
+        double x, double y, double z, double radius, 
+        struct vector* listpix); // vector of int64
 
 /*
  
-  fill in the list of pixels in RING scheme. pixels are *appended* to plist so
-  be sure to run i64stack_resize(plist, 0) or _clear or some such if necessary
+  fill in the list of pixels in RING scheme. pixels are *appended* to listpix
+  so be sure to run vector_resize(listpix, 0) or _clear or some such if
+  necessary
 
 */
 void hpix_in_ring(
@@ -72,7 +76,7 @@ void hpix_in_ring(
         int64 iz, 
         double phi0, 
         double dphi, 
-        struct i64stack* plist);
+        struct vector* listpix); // vector of int64
 
 /*
    returns the ring number in {1, 4*nside-1} from the z coordinate

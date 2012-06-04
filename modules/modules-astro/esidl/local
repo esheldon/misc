@@ -1,0 +1,26 @@
+#%Module
+# vim: set filetype=tcl :
+##
+## esidl modulefile
+##
+proc ModulesHelp { } {
+    global version
+
+    puts stderr "	My collection of python scripts, packages and modules."
+    puts stderr "
+	Version $version
+"
+}
+
+# for Tcl script use only
+set     version      local
+
+module-whatis	"personal idl code"
+conflict esidl
+
+eval set  [ array get env HOME ]
+
+set ESIDL_DIR $HOME/idl.lib
+
+prepend-path IDL_PATH +$ESIDL_DIR/pro
+setenv ESIDL_DIR $ESIDL_DIR

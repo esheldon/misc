@@ -28,6 +28,7 @@
 # needed to override the system mailcap on a few things
 application/x-dvi; /usr/bin/xdvi '%s'; description=TeX DVI; test=test -n "$DISPLAY"; nametemplate=%s.dvi
 application/pdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
+application/octet-stream; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
 application/x-pdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
 application/x-bzpdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf.bz2
 application/x-gzpdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf.gz
@@ -63,3 +64,4 @@ image/pm; qiv -tfi '%s'; description="PM Image"; test=test "$DISPLAY"; nametempl
 text/plain; gview -f '%s'; edit=gvim -f '%s'; compose=gvim -f '%s'; test=test "$DISPLAY" != ""
 
 application/x-debian-package; /usr/lib/mime/debian-view '%s'; needsterminal; description=Debian GNU/Linux Package; nametemplate=%s.deb
+text/html; firefox -a firefox -remote 'openURL(file://%s, new-tab)'

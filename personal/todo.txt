@@ -1,14 +1,94 @@
 Quick look Queue
-    see how multishear is writing it's logs.  stderr?  what
-    about my outputs?
 
-    update SE stuff for new runconfigs and to use database
-    add setup stuff in astrodat to my github
+    - fitsio
+        - header
+            - stephen's note
+            - keywords can be lower case when heierarch, ??
 
-    Update my letter for mzm to say I am architect of DES and BOSS.
-    shape testing, lots of correlations
+    - try using always 3 gaussians for object and 3 for psf, even
+        for gg, eg, etc.  Problems?  
+            - gg it works OK
+    - need to rerun 
+        - gmix-et01r02 - forgot coellip
+        - gmix-edg01r02 - forgot coellip
 
-    implement SessionPool on my wrapped oracle connection.
+    - gmix
+        - sdss psfs not always converging
+            - 3 gauss, free cen and covar: 96% success,  <chi^2> ~ 2.5e-4
+            - 3 gauss, coellip, 99.5% success but <chi^2> ~ 6.5e-4
+            - 2 gauss, free cen and covar, 100% success <chi^2> 6.6e-4
+                so does as well, within noise, as coellip.
+                So maybe drop down to 2 gauss if 3 gauss free fails?
+
+            - lower tolerance? Dave used 1.e-5 in diff, I'm using
+                1.e-6 in fdiff
+                - test on sims
+
+    - mcmc
+        - get priors right, normalization of prob
+
+    - read ying's draft
+
+    - figure out s2n measurement for gmix
+    - gmix: need to check for centroid coincidence and drift
+
+    - make combined mask starting with "good", excluding star, good excluding
+      badfield or whatever is appropriate.
+    - optionally mask around bright galaxies?
+
+    pymangle
+    - don't allow not snapped masks; problem is IDL code doesn't write it.
+    - good mask is snapped, but doesn't say it because write_mangle_polygons
+      didn't write it
+
+    recfile
+    - strings passed in might disappear!  Just do delim as char.
+      and copy delim[0] from input
+    - unit test structured subarray for binary
+    - document the _method stuff too, where necessary
+    - can just use memmap for binary (problem on OSX)?  Extracting multiple
+      columns using memmap and looping over rows or reading in chunks (latter
+      don't even need memmap)?
+    - can optimize reading specified binary rows when they are *consecutive*.
+      Same with cols.
+    - fread style change?
+
+
+    - tmv+wl using intel, with openmp
+        - Mike says you can compile tmv with openmp and it won't
+        - mess up our method of using openmp in the outer loop
+
+    - shears
+
+        - propagate corrections into the covariance matrix
+            - could just get new diagonal errors and scale correlation matrix
+            - could correct each delta sigma individually and derive new
+              covariance matrices
+
+        - s/g sep in BOSS catalog.  See Rachel's stuff.
+
+        - re-run source catalog without masking, and just have masks in the
+          collated columns
+            - not crucial since currently aren't referencing that cut anywhere
+              else, e.g. randoms are "good" mask only
+
+
+    - catalog for peter
+    - sobjshear hadoop
+        - do we need the index-tab at beginning? Can we just use zindex-tab?
+
+    - get wood delivered
+    - get details on pre-matching in mangle
+    - add match structures and sorting to smatch
+    - do a r < 21.8 run (sample s06)
+
+    - faster masking edge stuff
+
+    - Think about masking bias
+    - Are our bright star masks aggressive enough?
+
+    - Try to make ctrl-c work for cxOracle
+    - implement SessionPool on my wrapped oracle connection.
 
 fitsio
 
@@ -38,28 +118,13 @@ DES:
 objshear
     kathy romer, chris miller catalogs
 
-    RedMapper
-        - get first redmapper catalog
-        - apply 1Mpc cuts; need to do this for randoms too... ugly. 
-        - Look into new binning scheme on lambda.
-
     shears:
+        - s/g sep
+        - stellar contamination
         - Match Frank's file
         - look at various local tests 
             - PSF tests need to be devised
             - <e> vs R
             - <e> vs psf e
             - <e> vs position, run, etc.
-
-
-BOSS 
-    ukidss TS
-
-    Target Selection Overview Paper
-
-        Describe chunks
-
-        References to tiling stuff and brief description
-
-
 

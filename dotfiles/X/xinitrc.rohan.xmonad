@@ -42,8 +42,8 @@ if [ -x /usr/bin/nm-applet ]; then
     nm-applet --sm-disable &	
 fi
 
-if [ -x /usr/bin/gnome-power-manager ]; then
-    gnome-power-manager &
+if [ -x /usr/bin/xfce4-power-manager ]; then
+    xfce4-power-manager &
 fi
 
 sleep $sleeptime

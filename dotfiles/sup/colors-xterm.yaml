@@ -10,7 +10,7 @@
     :bg: default
 
 :index_new: # new email subject color
-  :fg: yellow
+  :fg: magenta
   :bg: default
 
 :index_old: # read email subject color
@@ -19,19 +19,18 @@
 
 :index_draft: # draft email
   :fg: red
-  :bg: black
-  :attrs:
-    - bold
+  :bg: default
 
 :index_starred: # starred email subject color
   :fg: red
   :bg: default
+  :attrs: [bold]
 :starred: # The color of the star in index view
   :fg: red
   :bg: default
 
 :label: # label of email (shows after subject)
-  :fg: green
+  :fg: cyan
   :bg: default
 
 :snippet:
@@ -94,8 +93,7 @@
 :search_highlight:
   :fg: green
   :bg: black
-  :attrs:
-    - bold
+  :attrs: [bold]
 
 
 #
