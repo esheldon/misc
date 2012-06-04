@@ -1,0 +1,13 @@
+#!/bin/bash
+
+tmpfile=~/www/cluster/dfall-tmp.txt
+file=~/www/cluster/dfall.txt
+while [ 1 ]; do
+
+    dfall -d > $tmpfile
+
+    mv -f $tmpfile $file
+
+    # wait 1 hour, 60*60 = 3600
+    sleep 3600
+done

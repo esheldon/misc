@@ -105,6 +105,7 @@ xclock*hourColor: green4
 ! zenburn colors
 ! urxvt.geometry: 80x25
 urxvt.font: xft:peep
+!urxvt.font: xft:Terminus:size=9
 !urxvt*inheritPixmap: true
 urxvt*tintColor: gray30
 urxvt.internalBorder: 0

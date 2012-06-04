@@ -1,0 +1,26 @@
+#%Module
+# vim: set filetype=tcl :
+##
+## idlastron modulefile
+##
+proc ModulesHelp { } {
+    global version
+
+    puts stderr "	goddard astron idl."
+    puts stderr "
+	Version $version
+"
+}
+
+# for Tcl script use only
+set     version      local
+
+module-whatis	"goddard idl code"
+conflict idlastron
+
+eval set  [ array get env HOME ]
+
+set IDLASTRON_DIR $HOME/exports/goddard-idl
+
+append-path IDL_PATH +$IDLASTRON_DIR/pro
+setenv IDLASTRON_DIR $IDLASTRON_DIR

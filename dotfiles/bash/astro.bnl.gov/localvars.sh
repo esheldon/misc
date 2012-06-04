@@ -34,8 +34,8 @@ append_path CPATH /usr/java/jdk1.6.0_14/include
 append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include/linux
 append_path CPATH /usr/java/jdk1.6.0_14/include/linux
 
-export MAXBCG_CATDIR=/mount/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
-export MAXBCG_INPUT=/mount/tutti1/esheldon/maxbcg-input
+export MAXBCG_CATDIR=/astro/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
+export CLUSTERS_INPUT=/astro/tutti1/esheldon/clusters-input
 
 export PHOTOZ_DIR=~esheldon/photoz
 export SWEEP_REDUCE=~esheldon/sweep-reduce
@@ -50,6 +50,9 @@ export PIXEL_MASK_SIMPLE=pixel_mask_dr4_simple
 export PIXEL_MASK_BASIC_PRINCETON=$MASK_DIR/pixel_mask_princeton_basic
 
 # location we keep simulations of the regauss algorithm
-export REGAUSSIM_DIR=~esheldon/regauss-sim
+export REGAUSSIM_DIR=~esheldon/lensing/regauss-sim
+export REGAUSSIM_HDFS_DIR=hdfs:///user/esheldon/lensing/regauss-sim
 
 export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
+
+

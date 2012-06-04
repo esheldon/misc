@@ -6,6 +6,10 @@ function usage {
 
         -n to specify the max number of allowed jobs in any queue. 
               default is 50.
+        -p time between polls of wq status when we are at max allowed
+           jobs, default 30
+        -s time to sleep between individual submissions when trying to
+           catch up to the max number of jobs, default 1 second
         -h for this help message
 
     Incrementally submit wq jobs from the input file list, maintaining at most
@@ -17,16 +21,21 @@ function usage {
     get jobs to run.
 
     Outputs from wq are sent to file.wqlog
+
+    Recently I used this for a SE run:
+        incsub -s 0.25 -n 120 \$(find . -name \"*[0-9].yaml\")
 "
 }
 
 function count_jobs {
     name=$1
 
-    # since we don't want the header, we demand the user field
-    # equals the user instead of using -u to the qstat
     awk_name="{if (\$2 == \"$name\") print \$0}"
     njob=$(wq ls | awk "$awk_name" | wc -l)
+    if [[ $? != 0 ]]; then
+        echo "Error found calling wq: $?"
+        exit 1
+    fi
     echo "$njob"
 }
 
@@ -34,9 +43,13 @@ name=`whoami`
 
 # number of jobs running at once
 maxjobs=50
-while getopts "hn:" Option; do
+sleep_time=0.25
+poll_time=30
+while getopts "hn:s:p:" Option; do
     case $Option in
         n) maxjobs=$OPTARG ;;
+        s) sleep_time=$OPTARG ;;
+        p) poll_time=$OPTARG ;;
         h) usage
            exit 45 ;;
         [?]) usage
@@ -50,27 +63,48 @@ if [ $# -lt 1 ]; then
     exit 45
 fi
 
+nfiles=$#
 echo "submitting jobs for user: $name"
-echo "number in list: $#"
+echo "number in list: $nfiles"
 echo "will limit to maxjobs:    $maxjobs"
 
+i=1
+
+diffjobs=0
 for file; do
-    outf1="$file.out"
-    outf2="${file%.*}.out"
-    logf="${file%.*}.wqlog"
+    perc=$(echo "scale=0; 100*$i/$nfiles" | bc)
 
-    if [[ ! -e $outf1 && ! -e $outf2 ]]; then
+    logf="${file}.wqlog"
 
-        njob=$(count_jobs $name)
-        while [[ $njob -ge $maxjobs ]]; do
-            sleep 30
+    if [[ ! -e $logf ]]; then
+
+        if [[ $diffjobs -le 0 ]]; then
             njob=$(count_jobs $name $queue)
-        done
+            ((diffjobs = maxjobs - njob))
+            while [[ $diffjobs -le 0 ]]; do
+                sleep $poll_time
+                njob=$(count_jobs $name $queue)
+                ((diffjobs = maxjobs - njob))
+            done
+            echo "Found $njob jobs  diffjobs: $diffjobs"
+        fi
 
         dt=`date +"%T"`
-        echo "Found $njob jobs, submitting $file ($dt) "
+        echo "    submitting $file $dt $i/$nfiles (${perc}%)"
+        #echo -n "$i/$nfiles $dt (${perc}%)  "
         nohup wq sub "$file" &> "$logf" &
-        sleep 1
+        #wq sub -b "$file"
+        # this is to force an appropriate pause when things are slow
+
+        if [[ $? != 0 ]]; then
+            echo "Error submitting job through wq: $?"
+            exit 1
+        fi
+        wq &> /dev/null
+
+        ((diffjobs -= 1))
+        sleep $sleep_time
 
     fi
+    let "i += 1"
 done

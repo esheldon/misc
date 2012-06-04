@@ -7,6 +7,8 @@
 append_path PATH /sbin
 append_path PATH /usr/sbin
 
+append_path PYTHONPATH /home/esheldon/local/lib/python2.7/site-packages
+
 #prepend_path PYTHONPATH ~/exports/fitsio-local/lib/python2.7/site-packages
 
 export PATH

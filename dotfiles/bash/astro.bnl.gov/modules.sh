@@ -18,6 +18,12 @@ if [[ $check == "" ]]; then
 
     #module load wq
 
+    module load pylint
+
+    module load mangle     # *
+    module load pymangle   # *
+    module load gmix_image # *
+
     # for oracle libraries
     module load libaio     # *
 
@@ -37,7 +43,7 @@ if [[ $check == "" ]]; then
 
     module load perllib
     module load shell_scripts
-    module load espy
+    module load espy/local
 
     module load desfiles
 
@@ -46,12 +52,12 @@ if [[ $check == "" ]]; then
     # this is currently just the python extension
     module load stomp      # *
 
-    module load esutil/local     # *
+    module unload esutil && module load esutil/local     # *
     module load recfile    # *
 
     module load cosmology  # *
     module load admom      # *
-    module load fimage     # *
+    module load fimage/local     # *
     module load fitsio
 
     module load numpydb    # *
@@ -64,13 +70,17 @@ if [[ $check == "" ]]; then
     module load columns
 
 
-
-    module load tmv        # *
+    # these get loaded in other scripts, be careful
+    module unload tmv && module load tmv        # *
 
     # prereq: ccfits, tmv, desfiles, esutil
     # also numpy if not using system
-    module load wl/local   # *
+    module unload wl && module load wl/local   # *
 
+
+    module load esidl
+    module load sdssidl
+    module load idlastron
 fi
 
 

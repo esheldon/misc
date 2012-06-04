@@ -1,0 +1,19 @@
+#!/bin/bash
+todo=smatch
+if [[ $# -eq 1 ]]; then
+    todo=$1
+fi
+
+if [[ $todo == "test" || $todo == "all" ]]; then
+    # this also runst test in match.d
+    rdmd --main -unittest -w -I../healpix -I../point -I../stack cat.d
+fi
+if [[ $todo == "pixelof" || $todo == "all" ]]; then 
+    rdmd --build-only -w -I../healpix -I../point -I../stack pixelof.d
+fi
+if [[ $todo == "smatch" || $todo == "all" ]]; then 
+    rdmd --build-only -O -w -noboundscheck \
+        -I../healpix -I../point -I../stack smatch.d
+    #rdmd --build-only -O -w \
+    #    -I../healpix -I../point -I../stack smatch.d
+fi

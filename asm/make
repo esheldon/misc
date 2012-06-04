@@ -1,0 +1,9 @@
+#!/bin/bash
+#yasm -f elf64 test.nasm
+#ld -o test test.o
+
+# include c library now for printf
+yasm -f elf64 readf.nasm && gcc -o readf readf.o -lc
+
+# this is stand alone
+yasm -f elf64 dosyscall.nasm && ld -o dosyscall dosyscall.o
