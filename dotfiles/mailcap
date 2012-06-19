@@ -35,6 +35,7 @@ application/x-gzpdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf.g
 application/postscript; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.ps
 application/x-bzpostscript; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.ps.bz2
 application/x-gzpostscript; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.ps.gz
+image/eps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
 image/ps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
 image/x-eps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.eps
 image/x-bzeps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.eps.bz2
@@ -45,6 +46,7 @@ application/pdf; /usr/bin/gv '%s'; test=test -n "$DISPLAY"
 
 image/gif; qiv -tfi '%s'; description="GIF Image"; test=test "$DISPLAY"; nametemplate=%s.gif
 image/jpeg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
+image/jpg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
 image/pjpeg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
 image/tiff; qiv -tfi '%s'; description="TIFF Image"; test=test "$DISPLAY"; nametemplate=%s.tiff
 image/x-portable-bitmap; qiv -tfi '%s'; description="PBM Image"; test=test "$DISPLAY"; nametemplate=%s.pbm

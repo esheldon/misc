@@ -4,3 +4,5 @@ if [[ -e $f ]]; then
 fi
 
 append_path PATH ~/local/src/dmd/dmd2/linux/bin64
+
+export LENSDIR=~/lensing
