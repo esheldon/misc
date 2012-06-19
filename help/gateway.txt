@@ -1,3 +1,7 @@
+Note if things don't work randomly, try reloading iptables
+        sudo iptables-restore < /etc/iptables.rules
+Especially do so after an OS update
+
 On ubuntu:
 
 - Install the new card.  
