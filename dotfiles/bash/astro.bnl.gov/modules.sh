@@ -22,7 +22,7 @@ if [[ $check == "" ]]; then
 
     module load mangle     # *
     module load pymangle   # *
-    module load gmix_image # *
+    module load gmix_image/local # *
 
     # for oracle libraries
     module load libaio     # *
@@ -37,6 +37,7 @@ if [[ $check == "" ]]; then
 
     module load ccfits     # *
 
+    module load emcee
 
     # these are under my ~/privatemodules
     # and installed generally under ~/exports
@@ -71,7 +72,7 @@ if [[ $check == "" ]]; then
 
 
     # these get loaded in other scripts, be careful
-    module unload tmv && module load tmv        # *
+    module unload tmv && module load tmv/0.71     # *
 
     # prereq: ccfits, tmv, desfiles, esutil
     # also numpy if not using system
