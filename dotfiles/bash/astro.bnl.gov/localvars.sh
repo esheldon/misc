@@ -34,6 +34,14 @@ append_path CPATH /usr/java/jdk1.6.0_14/include
 append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include/linux
 append_path CPATH /usr/java/jdk1.6.0_14/include/linux
 
+
+
+append_path C_INCLUDE_PATH /astro/u/anze/local/include/
+append_path CPATH /astro/u/anze/local/include/
+append_path LD_LIBRARY_PATH /astro/u/anze/local/lib
+append_path LIBRARY_PATH /astro/u/anze/local/lib
+
+
 export MAXBCG_CATDIR=/astro/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
 export CLUSTERS_INPUT=/astro/tutti1/esheldon/clusters-input
 
