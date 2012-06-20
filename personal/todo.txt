@@ -13,18 +13,9 @@ Quick look Queue
             - stephen's note
             - keywords can be lower case when heierarch, ??
 
-    - try using always 3 gaussians for object and 3 for psf, even
-        for gg, eg, etc.  Problems?  
-            - gg it works OK
-    - need to rerun 
-        - gmix-et01r02 - forgot coellip
-        - gmix-edg01r02 - forgot coellip
-
     - gmix
-        - try even higher S/N and see if curves look even better.
-            - try on eg
-        - errors are too big on e1,e2 when using jacobian
-
+        - try jacob again, see if get better fits at high ellip.
+        can try to run again without to get better errors?
 
     - mcmc
         - get priors right, normalization of prob
