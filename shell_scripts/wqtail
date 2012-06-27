@@ -1,0 +1,47 @@
+#!/bin/bash
+
+function usage {
+    echo "
+    usage: wqtail [-h -n nfiles -c columns] dir
+
+        Tail recently changed .wqlog files.  By default follow the latest using
+        less +F.  If more are requested then mtail is used.
+
+    options:
+        -n Number of files to watch, default 1
+        -c Number of columns to use in display if n > 1
+        -h for this help message
+"
+}
+
+
+nfiles=1
+ncols=1
+while getopts "hn:c:" Option; do
+    case $Option in
+        n) nfiles=$OPTARG ;;
+        c) ncols=$OPTARG ;;
+        h) usage
+           exit 1 ;;
+        [?]) usage
+             exit 1 ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
+fi
+
+dir=$1
+
+if [[ $nfiles == "1" ]]; then
+    cmd="less +F"
+else
+    cmd="mtail -c $ncols"
+fi
+cmd="$cmd $(ls -t $dir/*.wqlog | head -$nfiles)"
+
+$cmd
