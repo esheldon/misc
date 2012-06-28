@@ -1,6 +1,42 @@
 #!/bin/bash
 
-col=$1
-script="{sum += \$$col} END { print sum/NR }"
+if [[ $# -lt 1 ]]; then
+    echo "usage: avgcol col1 col2 ..."
+    echo "  date in stdin"
+    exit 1
+fi
+
+front=""
+cmd=""
+prnt="print "
+i=1
+for col; do 
+    front="$front
+    sum[$col] += \$$col;
+    sum2[$col] += \$$col*\$$col;"
+
+    cmd="$cmd
+    mn[$col]=sum[$col]/NR;
+    mn2[$col]=sum2[$col]/NR;
+    err[$col]=sqrt( (mn2[$col] - mn[$col]*mn[$col])/NR);"
+
+    if [[ $i -gt 1 ]]; then
+        prnt="$prnt ,"
+    fi
+    prnt="$prnt mn[$col] \" +/- \" err[$col]"
+
+    i=$((i = i+1))
+done
+
+front="$front"
+
+script="{
+    $front
+} END {
+    $cmd
+    $prnt
+}"
+
+#echo "$script"
 
 awk "$script" < /dev/stdin
