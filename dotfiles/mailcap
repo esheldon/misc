@@ -40,6 +40,7 @@ image/ps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
 image/x-eps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.eps
 image/x-bzeps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.eps.bz2
 image/x-gzeps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.eps.gz
+image/pdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
 application/postscript; /usr/bin/gv '%s'; test=test -n "$DISPLAY"; description=postscript
 application/ghostview; /usr/bin/gv '%s'; test=test -n "$DISPLAY"
 application/pdf; /usr/bin/gv '%s'; test=test -n "$DISPLAY"
