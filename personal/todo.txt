@@ -1,5 +1,14 @@
 Quick look Queue
 
+    - computing doc
+        - 4.2 justify 2 weeks
+        - be explicit in section 3 number of exposures assumed.
+        - put in 32G per machine very explicitly.
+        monday at the latest
+
+    - get flights for berkeley trip
+        - book shuttle from SFO to the lab.  See notes.
+
     - voids for peter
     - some other cluster stacking thing I'm forgetting...?
     - kathy romer
@@ -14,8 +23,47 @@ Quick look Queue
             - keywords can be lower case when heierarch, ??
 
     - gmix
-        - try jacob again, see if get better fits at high ellip.
-        can try to run again without to get better errors?
+
+        - ring tests
+            - gg03 1000 because it is fast
+                gg03r01 - s/n 100
+                gg03r01 - s/n 100
+        - do S/N=100 run for et with 1000 per, adding to cache
+            - running
+        - run n=1000 dt01 sims
+        - run n=1000 et01 sims (running now as part of et01r05)
+
+        - some cache was generated with same seeds; I think this
+        is ok for shape stuff, but not for shear tests, which we
+        will have to do separately anyway.
+        - get PSF working on Tfrac
+        - rename Tfrac class etc.
+
+
+        - it looks like my trouble with dt was partly because of a too-small
+          expansion factor for the FFTs.  Using minres fix does it, but it is
+          not letting up at low s2 as I would like because it sees the PSF
+          still as small, but this is about cuspiness really so minres is
+          overkill.  Turned off sigma *= 1.75 and I'm getting good ellip
+          accuracy and better s2 at low ellip, but still highly ellip
+          dependent.
+
+          Uses lots of memory but it works!  Need to check out mapping of
+          parameters now and see if that is more independent.
+
+        - priors
+            - Priors are working for the Tfrac stuff.
+            - high S/N dt
+                - needs tighter priors for effect. I'm able to force the sizes
+                  to be what I want that way, but the tradeoff seems to be
+                  worse ellip estimates.  Do better e1,e2 with weak priors.
+                  Maybe they really are bigger than I think.
+
+                  dt01r05 is running with weak priors and getting good
+                  e1,e2 measurements so far.
+
+        - implement generic multiple S/N in config?  How to
+        guess at ntrial?  1000*(100/s2n)**2
 
     - mcmc
         - get priors right, normalization of prob
