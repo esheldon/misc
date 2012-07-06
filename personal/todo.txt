@@ -5,9 +5,9 @@ Quick look Queue
         - be explicit in section 3 number of exposures assumed.
         - put in 32G per machine very explicitly.
         monday at the latest
-
-    - get flights for berkeley trip
-        - book shuttle from SFO to the lab.  See notes.
+    - proofs
+    - money for apj
+    - book shuttle from SFO to the lab.  See notes.
 
     - voids for peter
     - some other cluster stacking thing I'm forgetting...?
@@ -24,32 +24,19 @@ Quick look Queue
 
     - gmix
 
-        - ring tests
-            - gg03 1000 because it is fast
-                gg03r01 - s/n 100
-                gg03r01 - s/n 100
-        - do S/N=100 run for et with 1000 per, adding to cache
-            - running
-        - run n=1000 dt01 sims
-        - run n=1000 et01 sims (running now as part of et01r05)
+        - see if we can shrink the aperture for dev: the S/N is just
+          ridiculously low: in the presence of noise we just can't be
+          using those large radii.
+            - But how to pick a radius?
+              Doing kludge for now using fluxfrac 0.9973 for 3 sigma
+              instead of 4 sigma.  Cuts dev to half as big.  Should
+              instead just calculate the signal over that region?
 
-        - some cache was generated with same seeds; I think this
-        is ok for shape stuff, but not for shear tests, which we
-        will have to do separately anyway.
+              Still would like something better, something would do
+              in the real world.
+
         - get PSF working on Tfrac
         - rename Tfrac class etc.
-
-
-        - it looks like my trouble with dt was partly because of a too-small
-          expansion factor for the FFTs.  Using minres fix does it, but it is
-          not letting up at low s2 as I would like because it sees the PSF
-          still as small, but this is about cuspiness really so minres is
-          overkill.  Turned off sigma *= 1.75 and I'm getting good ellip
-          accuracy and better s2 at low ellip, but still highly ellip
-          dependent.
-
-          Uses lots of memory but it works!  Need to check out mapping of
-          parameters now and see if that is more independent.
 
         - priors
             - Priors are working for the Tfrac stuff.

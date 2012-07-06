@@ -1,6 +1,6 @@
 --- 
 :confirm_no_attachments: true
-:wrap_width: 80
+:wrap_width: null
 :confirm_top_posting: true
 :editor: vim + -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'
 :ask_for_to: true
