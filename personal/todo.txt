@@ -1,11 +1,7 @@
 Quick look Queue
 
     - computing doc
-        - 4.2 justify 2 weeks
-        - be explicit in section 3 number of exposures assumed.
-        - put in 32G per machine very explicitly.
-        monday at the latest
-    - proofs
+        monday meeting?
     - money for apj
     - book shuttle from SFO to the lab.  See notes.
 
@@ -18,6 +14,7 @@ Quick look Queue
     - photoz review response
 
     - fitsio
+        - constructure lower=True, upper=True
         - header
             - stephen's note
             - keywords can be lower case when heierarch, ??
