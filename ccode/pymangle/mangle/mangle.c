@@ -6,25 +6,6 @@
 #include "defs.h"
 
 
-// we have an inline def in the header
-/*
-extern int mangle_polyid_and_weight(struct MangleMask *self, 
-                                    struct Point *pt, 
-                                    int64 *poly_id,
-                                    double *weight);
-*/
-int mangle_polyid_and_weight(struct MangleMask *self, 
-                             struct Point *pt, 
-                             int64 *poly_id,
-                             double *weight)
-{
-    if (self->pixeltype == 'u') {
-        return mangle_polyid_and_weight_nopix(self,pt,poly_id,weight);
-    } else {
-        return mangle_polyid_and_weight_pix(self,pt,poly_id,weight);
-    }
-}
-
 
 struct MangleMask* mangle_new()
 {
@@ -274,7 +255,6 @@ _set_pixel_map_errout:
 
 }
 
-/*
 int mangle_polyid_and_weight(struct MangleMask *self, 
                              struct Point *pt, 
                              int64 *poly_id,
@@ -286,7 +266,6 @@ int mangle_polyid_and_weight(struct MangleMask *self,
         return mangle_polyid_and_weight_pix(self,pt,poly_id,weight);
     }
 }
-*/
 
 int mangle_polyid_and_weight_nopix(struct MangleMask *self, 
                                    struct Point *pt, 

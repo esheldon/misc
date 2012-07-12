@@ -313,7 +313,8 @@ PyMangleMask_polyid(struct PyMangleMask* self, PyObject* args)
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
-        status=mangle_polyid_and_weight(self->mask, 
+        //status=mangle_polyid_and_weight(self->mask, 
+        status=MANGLE_POLYID_AND_WEIGHT(self->mask, 
                                         &pt, 
                                         poly_id_ptr, 
                                         &weight);
@@ -365,7 +366,8 @@ PyMangleMask_weight(struct PyMangleMask* self, PyObject* args)
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
-        status=mangle_polyid_and_weight(self->mask, 
+        //status=mangle_polyid_and_weight(self->mask, 
+        status=MANGLE_POLYID_AND_WEIGHT(self->mask, 
                                         &pt, 
                                         &poly_id, 
                                         weight_ptr);
@@ -419,7 +421,8 @@ PyMangleMask_contains(struct PyMangleMask* self, PyObject* args)
     for (i=0; i<nra; i++) {
         point_set_from_radec(&pt, *ra_ptr, *dec_ptr);
 
-        status=mangle_polyid_and_weight(self->mask, 
+        //status=mangle_polyid_and_weight(self->mask, 
+        status=MANGLE_POLYID_AND_WEIGHT(self->mask, 
                                         &pt, 
                                         &poly_id, 
                                         &weight);
@@ -496,7 +499,8 @@ PyMangleMask_genrand(struct PyMangleMask* self, PyObject* args)
         genrand_theta_phi_allsky(&theta, &phi);
         point_set_from_thetaphi(&pt, theta, phi);
 
-        status=mangle_polyid_and_weight(self->mask, 
+        //status=mangle_polyid_and_weight(self->mask, 
+        status=MANGLE_POLYID_AND_WEIGHT(self->mask, 
                                         &pt, 
                                         &poly_id, 
                                         &weight);
@@ -591,7 +595,8 @@ PyMangleMask_genrand_range(struct PyMangleMask* self, PyObject* args)
         genrand_theta_phi(cthmin,cthmax,phimin,phimax,&theta, &phi);
         point_set_from_thetaphi(&pt, theta, phi);
 
-        status=mangle_polyid_and_weight(self->mask, &pt, &poly_id, &weight);
+        //status=mangle_polyid_and_weight(self->mask, &pt, &poly_id, &weight);
+        status=MANGLE_POLYID_AND_WEIGHT(self->mask, &pt, &poly_id, &weight);
 
         if (status != 1) {
             goto _genrand_range_cleanup;

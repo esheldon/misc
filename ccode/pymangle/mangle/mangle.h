@@ -74,22 +74,25 @@ int mangle_polyid_and_weight_pix(struct MangleMask *self,
  * this chooses the right function based on pixeltype
  */
 
-/*
-inline int mangle_polyid_and_weight(struct MangleMask *self, 
-                             struct Point *pt, 
-                             int64 *poly_id,
-                             double *weight)
-{
-    if (self->pixeltype == 'u') {
-        return mangle_polyid_and_weight_nopix(self,pt,poly_id,weight);
-    } else {
-        return mangle_polyid_and_weight_pix(self,pt,poly_id,weight);
-    }
-}
-*/
-
 int mangle_polyid_and_weight(struct MangleMask *self, 
                              struct Point *pt, 
                              int64 *poly_id,
                              double *weight);
+
+/*
+ * inline version
+ *
+ * using some magic: leaving val at the end of this
+ * block lets it become the value in an expression,
+ */
+#define MANGLE_POLYID_AND_WEIGHT(self, pt, poly_id, weight) ({            \
+    int ret=0;                                                            \
+    if ( (self)->pixeltype == 'u') {                                      \
+        ret=mangle_polyid_and_weight_nopix(self,pt,poly_id,weight);       \
+    } else {                                                              \
+        ret=mangle_polyid_and_weight_pix(self,pt,poly_id,weight);         \
+    }                                                                     \
+    ret;                                                                  \
+})
+
 #endif
