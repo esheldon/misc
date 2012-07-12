@@ -74,6 +74,7 @@ int mangle_polyid_and_weight_pix(struct MangleMask *self,
  * this chooses the right function based on pixeltype
  */
 
+/*
 inline int mangle_polyid_and_weight(struct MangleMask *self, 
                              struct Point *pt, 
                              int64 *poly_id,
@@ -85,12 +86,10 @@ inline int mangle_polyid_and_weight(struct MangleMask *self,
         return mangle_polyid_and_weight_pix(self,pt,poly_id,weight);
     }
 }
+*/
 
-
-/*
 int mangle_polyid_and_weight(struct MangleMask *self, 
                              struct Point *pt, 
                              int64 *poly_id,
                              double *weight);
-*/
 #endif

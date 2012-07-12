@@ -33,8 +33,8 @@ class Mangle(_mangle.Mangle):
         dec: array
             Declination in degrees.  Can be an array.
         """
-        ra = array(ra, ndmin=1, dtype='f8', copy=False)
-        dec = array(dec, ndmin=1, dtype='f8', copy=False)
+        ra = array(ra, ndmin=1, dtype='f8', copy=False, order='C')
+        dec = array(dec, ndmin=1, dtype='f8', copy=False, order='C')
         return super(Mangle,self).polyid_and_weight(ra,dec)
 
     def polyid(self, ra, dec):
@@ -48,8 +48,8 @@ class Mangle(_mangle.Mangle):
         dec: array
             Declination in degrees.  Can be an array.
         """
-        ra = array(ra, ndmin=1, dtype='f8', copy=False)
-        dec = array(dec, ndmin=1, dtype='f8', copy=False)
+        ra = array(ra, ndmin=1, dtype='f8', copy=False, order='C')
+        dec = array(dec, ndmin=1, dtype='f8', copy=False, order='C')
         return super(Mangle,self).polyid(ra,dec)
 
     def weight(self, ra, dec):
@@ -63,8 +63,8 @@ class Mangle(_mangle.Mangle):
         dec: array
             Declination in degrees.  Can be an array.
         """
-        ra = array(ra, ndmin=1, dtype='f8', copy=False)
-        dec = array(dec, ndmin=1, dtype='f8', copy=False)
+        ra = array(ra, ndmin=1, dtype='f8', copy=False, order='C')
+        dec = array(dec, ndmin=1, dtype='f8', copy=False, order='C')
         return super(Mangle,self).weight(ra,dec)
 
     def contains(self, ra, dec):
@@ -78,8 +78,9 @@ class Mangle(_mangle.Mangle):
         dec: array
             Declination in degrees.  Can be an array.
         """
-        ra = array(ra, ndmin=1, dtype='f8', copy=False)
-        dec = array(dec, ndmin=1, dtype='f8', copy=False)
+        # we specify order to force contiguous
+        ra = array(ra, ndmin=1, dtype='f8', copy=False, order='C')
+        dec = array(dec, ndmin=1, dtype='f8', copy=False, order='C')
         return super(Mangle,self).contains(ra,dec)
 
 
