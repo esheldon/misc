@@ -2,14 +2,16 @@
 
 function usage {
     echo "
-    usage: wqtail [-h -n nfiles -c columns] dir
+    usage: wqtail [-h -n nfiles -c columns -E limit -l] dir
 
         Tail recently changed .wqlog files.  By default follow the latest using
-        less +F.  If more are requested then mtail is used.
+        less +F.  If more are requested then multitail is used.
 
     options:
         -n Number of files to watch, default 1
         -c Number of columns to use in display if n > 1
+        -E Limit to lines matching the input regular expression
+        -l Use less on one file
         -h for this help message
 "
 }
@@ -17,10 +19,14 @@ function usage {
 
 nfiles=1
 ncols=1
-while getopts "hn:c:" Option; do
+limit="None"
+use_less="No"
+while getopts "hn:c:E:l" Option; do
     case $Option in
         n) nfiles=$OPTARG ;;
         c) ncols=$OPTARG ;;
+        E) limit=$OPTARG ;;
+        l) use_less="Yes";;
         h) usage
            exit 1 ;;
         [?]) usage
@@ -35,12 +41,19 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-dir=$1
+dir="$1"
 
-if [[ $nfiles == "1" ]]; then
+if [[ $nfiles == "1" && $use_less == "Yes" ]]; then
     cmd="less +F"
 else
-    cmd="mtail -c $ncols"
+    cmd="multitail"
+    if [[ $ncols != 1 ]]; then
+        cmd="$cmd -s $ncols"
+    fi
+    if [[ $limit != "None" ]]; then
+        #cmd="$cmd -E \"$limit\""
+        cmd="$cmd -E $limit"
+    fi
 fi
 cmd="$cmd $(ls -t $dir/*.wqlog | head -$nfiles)"
 
