@@ -45,8 +45,9 @@ typedef int64_t int64;
 // (shape noise/2)**2  to give noise on gamma
 #define GSN2 0.0256
 
+// we now do this with optional config parameter
 // min lens redshift to consider
-#define MIN_ZLENS 0.05
+//#define MIN_ZLENS 0.05
 
 
 #endif

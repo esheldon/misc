@@ -35,6 +35,9 @@ struct config {
     double log_rmax;
     double log_binsize;
 
+    // optional min z lens to allow instead
+    // of the full interpolation range
+    double min_zlens_interp;
 };
 
 struct config* config_read(const char* url);

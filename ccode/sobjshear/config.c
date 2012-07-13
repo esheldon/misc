@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "config.h"
 #include "Vector.h"
 #include "log.h"
@@ -50,6 +51,13 @@ struct config* config_read(const char* url) {
         fscanf(stream," %s ", key);
         for (i=0; i<c->zl->size; i++) {
             fscanf(stream, "%lf", &c->zl->data[i]);
+        }
+
+        // optional parameter for min z to use
+        if (1 == fscanf(stream, "%s", key)) {
+           if (0 == strcmp(key,"min_zlens_interp")) {
+               fscanf(stream, "%lf", &c->min_zlens_interp);
+           }
         }
     }
 

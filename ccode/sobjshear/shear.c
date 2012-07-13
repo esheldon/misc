@@ -71,9 +71,9 @@ struct shear* shear_init(const char* config_url, const char* lens_url) {
         // interpolation region
         double* zl=config->zl->data;
         int64 nzl=config->nzl;
-        shear->min_zlens = zl[0];
+        //shear->min_zlens = zl[0];
         shear->max_zlens = zl[nzl-1];
-        shear->min_zlens = fmax(shear->min_zlens, MIN_ZLENS);
+        shear->min_zlens = fmax(zl[0], shear->config->min_zlens_interp);
     } else {
         shear->min_zlens = 0;
         shear->max_zlens = 9999;
