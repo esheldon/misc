@@ -1,9 +1,14 @@
 Quick look Queue
 
+    - berkeley trip
+        * print pass
+        * print ticket stuff with confirmation number
+        - book shuttle from SFO to the lab.  See notes.
+        - travel size shaving cream
+
     - computing doc
         monday meeting?
     - money for apj
-    - book shuttle from SFO to the lab.  See notes.
 
     - voids for peter
     - some other cluster stacking thing I'm forgetting...?
@@ -21,17 +26,8 @@ Quick look Queue
 
     - gmix
 
-        - see if we can shrink the aperture for dev: the S/N is just
-          ridiculously low: in the presence of noise we just can't be
-          using those large radii.
-            - But how to pick a radius?
-              Doing kludge for now using fluxfrac 0.9973 for 3 sigma
-              instead of 4 sigma.  Cuts dev to half as big.  Should
-              instead just calculate the signal over that region?
-
-              Still would like something better, something would do
-              in the real world.
-
+        - can we choose an aperture automatically?
+        - need to check for centroid coincidence and drift
         - get PSF working on Tfrac
         - rename Tfrac class etc.
 
@@ -46,16 +42,10 @@ Quick look Queue
                   dt01r05 is running with weak priors and getting good
                   e1,e2 measurements so far.
 
-        - implement generic multiple S/N in config?  How to
-        guess at ntrial?  1000*(100/s2n)**2
-
     - mcmc
         - get priors right, normalization of prob
 
     - read ying's draft
-
-    - figure out s2n measurement for gmix
-    - gmix: need to check for centroid coincidence and drift
 
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
@@ -98,13 +88,12 @@ Quick look Queue
               else, e.g. randoms are "good" mask only
 
 
-    - catalog for peter
     - sobjshear hadoop
         - do we need the index-tab at beginning? Can we just use zindex-tab?
 
     - get details on pre-matching in mangle
     - add match structures and sorting to smatch
-    - do a r < 21.8 run (sample s06)
+    - do a r < 21.8 run
 
     - faster masking edge stuff
 
@@ -133,9 +122,6 @@ fitsio
        and copy that result into the rec array, but probably should have a
        separate code for reading these since that involves inefficiecies.
 
-BigBOSS
-    - fill out SDSS footprint info for response to review
-        deadline is before august?  Ask Nick Mostek
 
 DES:
 
