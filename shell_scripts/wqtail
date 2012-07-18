@@ -4,14 +4,14 @@ function usage {
     echo "
     usage: wqtail [-h -n nfiles -c columns -E limit -l] dir
 
-        Tail recently changed .wqlog files.  By default follow the latest using
-        less +F.  If more are requested then multitail is used.
+        Tail recently changed .wqlog files.  If multiple are
+        found, "nfiles" are displayed simulaneously
 
     options:
         -n Number of files to watch, default 1
         -c Number of columns to use in display if n > 1
         -E Limit to lines matching the input regular expression
-        -l Use less on one file
+        -l Use less if nfiles is one
         -h for this help message
 "
 }
@@ -55,6 +55,11 @@ else
         cmd="$cmd -E $limit"
     fi
 fi
-cmd="$cmd $(ls -t $dir/*.wqlog | head -$nfiles)"
 
-$cmd
+# find wqlog files, print their modification date and name
+# then sort numerically with a key from the first column
+# take the top $nfiles
+# finally grab just the filename
+$cmd $(find $dir -name "*.wqlog" -printf '%T@ %p\n' | sort -r -k 1 -n | head -$nfiles | cut -d " " -f 2)
+
+#awk '{print $2}')
