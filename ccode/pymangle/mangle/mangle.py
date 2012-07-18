@@ -12,7 +12,6 @@ from numpy import array
 import _mangle
 __doc__=_mangle.__doc__
 
-
 class Mangle(_mangle.Mangle):
     __doc__=_mangle.Mangle.__doc__
     def __init__(self, filename, verbose=False):
@@ -83,3 +82,13 @@ class Mangle(_mangle.Mangle):
         dec = array(dec, ndmin=1, dtype='f8', copy=False, order='C')
         return super(Mangle,self).contains(ra,dec)
 
+
+    filename = property(_mangle.Mangle.get_filename,doc="The mask filename")
+    area = property(_mangle.Mangle.get_area,doc="The area of the mask")
+    npoly = property(_mangle.Mangle.get_npoly,doc="The number of polygons in the mask")
+    is_pixelized = property(_mangle.Mangle.get_is_pixelized,doc="True if pixelized.")
+    pixeltype = property(_mangle.Mangle.get_pixeltype,doc="The pixelization type, 'u' of unpixelized")
+    pixelres = property(_mangle.Mangle.get_pixelres,doc="The pixel resolution, -1 if unpixelized")
+    maxpix = property(_mangle.Mangle.get_pixelres,doc="The maximum pixel value")
+    is_snapped = property(_mangle.Mangle.get_is_snapped,doc="True if snapped.")
+    is_balkanized = property(_mangle.Mangle.get_is_balkanized,doc="True if balkanized.")

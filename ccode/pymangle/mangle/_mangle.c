@@ -90,13 +90,14 @@ PyMangleMask_npoly(struct PyMangleMask* self) {
     return PyLong_FromLongLong( (PY_LONG_LONG) self->mask->npoly);
 }
 
+
 static PyObject *
-PyMangleMask_pixelres(struct PyMangleMask* self) {
-    return PyLong_FromLongLong( (PY_LONG_LONG) self->mask->pixelres);
-}
-static PyObject *
-PyMangleMask_maxpix(struct PyMangleMask* self) {
-    return PyLong_FromLongLong( (PY_LONG_LONG) self->mask->maxpix);
+PyMangleMask_is_pixelized(struct PyMangleMask* self) {
+    if (self->mask->pixeltype != 'u') {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
 }
 static PyObject *
 PyMangleMask_pixeltype(struct PyMangleMask* self) {
@@ -104,6 +105,14 @@ PyMangleMask_pixeltype(struct PyMangleMask* self) {
     ptype[0] = self->mask->pixeltype;
     ptype[1] = '\0';
     return PyString_FromString( (const char* ) ptype);
+}
+static PyObject *
+PyMangleMask_pixelres(struct PyMangleMask* self) {
+    return PyLong_FromLongLong( (PY_LONG_LONG) self->mask->pixelres);
+}
+static PyObject *
+PyMangleMask_maxpix(struct PyMangleMask* self) {
+    return PyLong_FromLongLong( (PY_LONG_LONG) self->mask->maxpix);
 }
 
 static PyObject *
@@ -734,44 +743,48 @@ static PyMethodDef PyMangleMask_methods[] = {
         "decmax: double\n"
         "    The maximum dec\n"},
 
-    {"filename",       (PyCFunction)PyMangleMask_filename,         METH_VARARGS, 
+    {"get_filename",       (PyCFunction)PyMangleMask_filename,         METH_VARARGS, 
         "filename()\n"
         "\n"
         "Return the mask filename.\n"},
 
 
 
-    {"area",       (PyCFunction)PyMangleMask_area,         METH_VARARGS, 
+    {"get_area",       (PyCFunction)PyMangleMask_area,         METH_VARARGS, 
         "area()\n"
         "\n"
         "Return the area within mask in square degrees.\n"},
 
-    {"npoly",       (PyCFunction)PyMangleMask_npoly,         METH_VARARGS, 
+    {"get_npoly",       (PyCFunction)PyMangleMask_npoly,         METH_VARARGS, 
         "npoly()\n"
         "\n"
         "Return the polygon count.\n"},
 
-    {"maxpix",       (PyCFunction)PyMangleMask_maxpix,         METH_VARARGS, 
+    {"get_is_pixelized",       (PyCFunction)PyMangleMask_is_pixelized,      METH_VARARGS, 
+        "get_is_pixelized()\n"
+        "\n"
+        "True if pixelized.\n"},
+    {"get_maxpix",       (PyCFunction)PyMangleMask_maxpix,         METH_VARARGS, 
         "maxpix()\n"
         "\n"
         "Return the maximum pixel id.\n"},
-    {"pixelres",       (PyCFunction)PyMangleMask_pixelres,         METH_VARARGS, 
+    {"get_pixelres",       (PyCFunction)PyMangleMask_pixelres,         METH_VARARGS, 
         "pixelres()\n"
         "\n"
-        "Return the pixel resolution.\n"},
-    {"pixeltype",       (PyCFunction)PyMangleMask_pixeltype,         METH_VARARGS, 
+        "Return the pixel resolution, -1 if unpixelized.\n"},
+    {"get_pixeltype",       (PyCFunction)PyMangleMask_pixeltype,         METH_VARARGS, 
         "pixeltype()\n"
         "\n"
-        "Return the pixel type as a string.\n"},
+        "Return the pixel type as a string. 'u' if unpixelized.\n"},
 
 
 
-    {"is_snapped",       (PyCFunction)PyMangleMask_is_snapped,         METH_VARARGS, 
-        "is_snapped()\n"
+    {"get_is_snapped",       (PyCFunction)PyMangleMask_is_snapped,         METH_VARARGS, 
+        "get_is_snapped()\n"
         "\n"
         "Return True if the snapped keyword was found in the header.\n"},
-    {"is_balkanized",       (PyCFunction)PyMangleMask_is_balkanized,         METH_VARARGS, 
-        "is_balkanized()\n"
+    {"get_is_balkanized",       (PyCFunction)PyMangleMask_is_balkanized,         METH_VARARGS, 
+        "get_is_balkanized()\n"
         "\n"
         "Return True if the balkanized keyword was found in the header.\n"},
 
@@ -812,6 +825,21 @@ static PyTypeObject PyMangleMaskType = {
         "    import mangle\n"
         "    m=mangle.Mangle(mask_file, verbose=False)\n"
         "\n"
+        "\n"
+        "read-only properties\n"
+        "--------------------\n"
+        "filename\n"
+        "area\n"
+        "npoly\n"
+        "is_pixelized\n"
+        "pixeltype\n"
+        "pixelres\n"
+        "maxpix\n"
+        "is_snapped\n"
+        "is_balkanized\n"
+        "\n"
+        "See docs for each property for more details.\n"
+        "\n"
         "methods\n"
         "-------\n"
         "polyid(ra,dec)\n"
@@ -820,10 +848,20 @@ static PyTypeObject PyMangleMaskType = {
         "contains(ra,dec)\n"
         "genrand(nrand)\n"
         "genrand_range(nrand,ramin,ramax,decmin,decmax)\n"
-        "is_snapped()\n"
-        "is_balkanized()\n"
         "\n"
-        "See docs for each method for more detailed info\n",
+        "getters (correspond to properties above)\n"
+        "----------------------------------------\n"
+        "get_filename()\n"
+        "get_area()\n"
+        "get_npoly()\n"
+        "get_is_pixelized()\n"
+        "get_pixeltype()\n"
+        "get_pixelres()\n"
+        "get_maxpix()\n"
+        "get_is_snapped()\n"
+        "get_is_balkanized()\n"
+        "\n"
+        "See docs for each method for more detail.\n",
     0,                     /* tp_traverse */
     0,                     /* tp_clear */
     0,                     /* tp_richcompare */
