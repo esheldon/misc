@@ -53,18 +53,20 @@
     // Safe iteration
     //
 
-    // The foreach macro.  The name you give for the iterator
-    // is local to this foreach block.
-    VECTOR_FOREACH(iter, v)
+    // The foreach macro.  In c99 this is quite nice and compact.  Note the
+    // name you give for the iterator is local to this foreach block.
+
+    VECTOR_FOREACH(iter, v) {
+        iter->i = someval;
+        iter->x = otherval;
+    }
+
+    // if not using c99, it is a bit more wordy
+    VECTOR_FOREACH_BEG(iter, v)
         iter->i = someval;
         iter->x = otherval;
     VECTOR_FOREACH_END
 
-    // if you are using C99, you can use a nicer form
-    VECTOR_FOREACH2(iter, v) {
-        iter->i = someval;
-        iter->x = otherval;
-    }
 
     // the above are equivalent to the following
     MyStruct *iter = VECTOR_BEGIN(v);
@@ -314,7 +316,7 @@ typedef ppvector_##type* p_ppvector_##type
 //
 // We use __v_##vec_##type and assign vec to the same pointer in the for loop
 // initializer.  Then vec is a local variable and will go out of scope.  This
-// is safeer; you can't use vec outside the for block.
+// is safer; you can't use vec outside the for block.
 
 #define VECTOR_RAII(type, vec) _VECTOR_RAII(type, vec)
 #define _VECTOR_RAII(type, vec)                                              \
@@ -342,15 +344,15 @@ typedef ppvector_##type* p_ppvector_##type
 //
 // usage for an int vector:
 //
-// VECTOR_FOREACH(iter, vec)
+// VECTOR_FOREACH_BEG(iter, vec)
 //     printf("val is: %d\n", *iter);
 // VECTOR_FOREACH_END
 //
 // The name 'iter' will not live past the foreach
-#define VECTOR_FOREACH(iter, vec)  do {                                      \
-        typeof(vec->data) (iter) = VECTOR_BEGIN((vec));                      \
-        typeof(vec->data) _iter_end_##vec = VECTOR_END((vec));               \
-        for (; (iter) != _iter_end_##vec; (iter)++) {                        \
+#define VECTOR_FOREACH_BEG(itername, vec)  do {                                  \
+        typeof((vec)->data) (itername) = VECTOR_BEGIN((vec));                      \
+        typeof((vec)->data) _iter_end_##itername = VECTOR_END((vec));               \
+        for (; (itername) != _iter_end_##itername; (itername)++) {                        \
 
 #define VECTOR_FOREACH_END  } } while (0);
 
@@ -359,14 +361,14 @@ typedef ppvector_##type* p_ppvector_##type
 //
 // usage for an int vector:
 //
-// VECTOR_FOREACH2(iter, vec) {
+// VECTOR_FOREACH(iter, vec) {
 //     printf("val is: %d\n", *iter);
 // }
-#define VECTOR_FOREACH2(iter, vec)                                           \
-    for(typeof(vec->data) (iter)=VECTOR_BEGIN(vec),                          \
-        _iter_end_##vec=VECTOR_END(vec);                                     \
-        iter != _iter_end_##vec;                                             \
-        iter++)
+#define VECTOR_FOREACH(itername, vec)                                        \
+    for(typeof((vec)->data) (itername)=VECTOR_BEGIN(vec),                    \
+        _iter_end_##itername=VECTOR_END((vec));                              \
+        (itername) != _iter_end_##itername;                                        \
+        (itername)++)
 
 //
 // safe way to add elements to the vector
