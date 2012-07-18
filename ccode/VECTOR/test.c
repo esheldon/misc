@@ -98,14 +98,14 @@ void test_struct() {
 
 
     i=0;
-    VECTOR_FOREACH(iter, v)
+    VECTOR_FOREACH_BEG(iter, v)
         assert(i == iter->id);
         assert(2*i == iter->x);
         i++;
     VECTOR_FOREACH_END
 
     i=0;
-    VECTOR_FOREACH2(iter, v) {
+    VECTOR_FOREACH(iter, v) {
         assert(i == iter->id);
         assert(2*i == iter->x);
         i++;
