@@ -82,6 +82,39 @@ PyMangleMask_repr(struct PyMangleMask* self) {
 }
 
 static PyObject *
+PyMangleMask_area(struct PyMangleMask* self) {
+    return PyFloat_FromDouble(self->mask->total_area*R2D*R2D);
+}
+static PyObject *
+PyMangleMask_npoly(struct PyMangleMask* self) {
+    return PyLong_FromLongLong( (PY_LONG_LONG) self->mask->npoly);
+}
+
+static PyObject *
+PyMangleMask_pixelres(struct PyMangleMask* self) {
+    return PyLong_FromLongLong( (PY_LONG_LONG) self->mask->pixelres);
+}
+static PyObject *
+PyMangleMask_maxpix(struct PyMangleMask* self) {
+    return PyLong_FromLongLong( (PY_LONG_LONG) self->mask->maxpix);
+}
+static PyObject *
+PyMangleMask_pixeltype(struct PyMangleMask* self) {
+    char ptype[2];
+    ptype[0] = self->mask->pixeltype;
+    ptype[1] = '\0';
+    return PyString_FromString( (const char* ) ptype);
+}
+
+static PyObject *
+PyMangleMask_filename(struct PyMangleMask* self) {
+    return PyString_FromString( (const char* ) self->mask->filename);
+}
+
+
+
+
+static PyObject *
 PyMangleMask_is_snapped(struct PyMangleMask* self) {
     if (self->mask->snapped) {
         Py_RETURN_TRUE;
@@ -700,6 +733,39 @@ static PyMethodDef PyMangleMask_methods[] = {
         "    The minimum dec\n"
         "decmax: double\n"
         "    The maximum dec\n"},
+
+    {"filename",       (PyCFunction)PyMangleMask_filename,         METH_VARARGS, 
+        "filename()\n"
+        "\n"
+        "Return the mask filename.\n"},
+
+
+
+    {"area",       (PyCFunction)PyMangleMask_area,         METH_VARARGS, 
+        "area()\n"
+        "\n"
+        "Return the area within mask in square degrees.\n"},
+
+    {"npoly",       (PyCFunction)PyMangleMask_npoly,         METH_VARARGS, 
+        "npoly()\n"
+        "\n"
+        "Return the polygon count.\n"},
+
+    {"maxpix",       (PyCFunction)PyMangleMask_maxpix,         METH_VARARGS, 
+        "maxpix()\n"
+        "\n"
+        "Return the maximum pixel id.\n"},
+    {"pixelres",       (PyCFunction)PyMangleMask_pixelres,         METH_VARARGS, 
+        "pixelres()\n"
+        "\n"
+        "Return the pixel resolution.\n"},
+    {"pixeltype",       (PyCFunction)PyMangleMask_pixeltype,         METH_VARARGS, 
+        "pixeltype()\n"
+        "\n"
+        "Return the pixel type as a string.\n"},
+
+
+
     {"is_snapped",       (PyCFunction)PyMangleMask_is_snapped,         METH_VARARGS, 
         "is_snapped()\n"
         "\n"

@@ -83,4 +83,3 @@ class Mangle(_mangle.Mangle):
         dec = array(dec, ndmin=1, dtype='f8', copy=False, order='C')
         return super(Mangle,self).contains(ra,dec)
 
-
