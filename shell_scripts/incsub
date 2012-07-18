@@ -42,7 +42,7 @@ maxjobs=50
 sleep_time=0.25
 poll_time=30
 force="N"
-while getopts "hfn:s:p:" Option; do
+while getopts "hfn:s:p:d:" Option; do
     case $Option in
         f) force="Y" ;;
         n) maxjobs=$OPTARG ;;
