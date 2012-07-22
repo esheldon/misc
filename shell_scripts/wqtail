@@ -46,7 +46,7 @@ dir="$1"
 if [[ $nfiles == "1" && $use_less == "Yes" ]]; then
     cmd="less +F"
 else
-    cmd="multitail"
+    cmd="multitail --basename"
     if [[ $ncols != 1 ]]; then
         cmd="$cmd -s $ncols"
     fi
