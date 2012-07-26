@@ -1,49 +1,18 @@
 Quick look Queue
 
-    - randoms for jiangang
-        - make sure using mangle
-        - one with and without badfield cut
-
-    - computing doc
-        monday meeting?
-    - money for apj
-
-    - voids for peter
-    - some other cluster stacking thing I'm forgetting...?
-    - kathy romer
-    - chris miller catalogs: need randoms!
-
-    - TS overview
-    - photoz review response
-
+    - when these finish
+            gmix-fit-edg12r01-003-000-00090.yaml
+            gmix-fit-edg12r01-003-000-00091.yaml
+            gmix-fit-edg12r01-000-002-00025.yaml
+        then redo the combine
     - fitsio
-        - constructure lower=True, upper=True
         - header
-            - stephen's note
             - keywords can be lower case when heierarch, ??
 
     - gmix
 
         - can we choose an aperture automatically?
         - need to check for centroid coincidence and drift
-        - get PSF working on Tfrac
-        - rename Tfrac class etc.
-
-        - priors
-            - Priors are working for the Tfrac stuff.
-            - high S/N dt
-                - needs tighter priors for effect. I'm able to force the sizes
-                  to be what I want that way, but the tradeoff seems to be
-                  worse ellip estimates.  Do better e1,e2 with weak priors.
-                  Maybe they really are bigger than I think.
-
-                  dt01r05 is running with weak priors and getting good
-                  e1,e2 measurements so far.
-
-    - mcmc
-        - get priors right, normalization of prob
-
-    - read ying's draft
 
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
