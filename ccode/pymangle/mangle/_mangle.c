@@ -78,7 +78,11 @@ PyMangleMask_repr(struct PyMangleMask* self) {
             npoly, mask->pixeltype, mask->pixelres, npix, 
             mask->snapped, mask->balkanized,
             mask->verbose);
-    return PyString_FromString(buff);
+#if PY_MAJOR_VERSION >= 3
+    return PyUnicode_FromString((const char*)buff);
+#else
+    return PyString_FromString((const char*)buff);
+#endif
 }
 
 static PyObject *
@@ -104,7 +108,11 @@ PyMangleMask_pixeltype(struct PyMangleMask* self) {
     char ptype[2];
     ptype[0] = self->mask->pixeltype;
     ptype[1] = '\0';
-    return PyString_FromString( (const char* ) ptype);
+#if PY_MAJOR_VERSION >= 3
+    return PyUnicode_FromString((const char*) ptype);
+#else
+    return PyString_FromString((const char* ) ptype);
+#endif
 }
 static PyObject *
 PyMangleMask_pixelres(struct PyMangleMask* self) {
@@ -117,7 +125,11 @@ PyMangleMask_maxpix(struct PyMangleMask* self) {
 
 static PyObject *
 PyMangleMask_filename(struct PyMangleMask* self) {
+#if PY_MAJOR_VERSION >= 3
+    return PyUnicode_FromString( (const char* ) self->mask->filename);
+#else
     return PyString_FromString( (const char* ) self->mask->filename);
+#endif
 }
 
 
@@ -905,7 +917,11 @@ static PyMethodDef mangle_methods[] = {
 #define PyMODINIT_FUNC void
 #endif
 PyMODINIT_FUNC
+#if PY_MAJOR_VERSION >= 3
+PyInit__mangle(void) 
+#else
 init_mangle(void) 
+#endif
 {
     PyObject* m;
 
@@ -953,4 +969,7 @@ init_mangle(void)
     PyModule_AddObject(m, "Mangle", (PyObject *)&PyMangleMaskType);
 
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    return m;
+#endif
 }

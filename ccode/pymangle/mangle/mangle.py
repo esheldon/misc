@@ -9,7 +9,7 @@
 
 import numpy
 from numpy import array
-import _mangle
+from . import _mangle
 __doc__=_mangle.__doc__
 
 class Mangle(_mangle.Mangle):
