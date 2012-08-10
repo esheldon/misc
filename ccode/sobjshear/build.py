@@ -22,6 +22,7 @@ CC='gcc'
 LINKFLAGS=['-lm']
 
 CFLAGS=['-std=c99','-Wall','-Werror']
+#CFLAGS=['-std=gnu99','-Wall','-Werror']
 if not options.noopt:
     CFLAGS += ['-O2']
 if not options.debug:
@@ -50,6 +51,7 @@ sobjshear_sources = ['config', 'stack', 'Vector','source','lens','cosmo','healpi
                      'shear','lensum','histogram','tree','interp','urls',
                      'sobjshear','sdss-survey']
 redshear_sources = ['healpix','cosmo','tree','stack','lens','lensum','config','urls','Vector',
+                    'util',
                     'redshear','sdss-survey']
 
 

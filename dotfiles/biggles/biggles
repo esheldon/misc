@@ -15,7 +15,8 @@ texthalign		= center
 textvalign		= center
 
 # this only controls the frame
-linewidth = 1.5
+#linewidth = 1.5
+linewidth = 0.5
 
 # lines beginning with this character will be
 # ignored by the read_* routines
