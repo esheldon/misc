@@ -5,6 +5,7 @@
 #include "log.h"
 #include "defs.h"
 #include "lens.h"
+#include "util.h"
 
 #include "uthash.h"
 
@@ -59,8 +60,13 @@ int main(int argc, char** argv) {
                  lensum->index, lensum->zindex, lensum->weight, 
                  lensum->totpairs, lensum->sshsum);
         }
-        if ((counter % 1000) == 0) {
+        if ((counter % 10000) == 0) {
             wlog(".");
+        }
+        if (((counter+1) % 1000000) == 0) {
+            wlog("\n");
+            comma_print(stderr,counter+1);
+            wlog("\n");
         }
 
         struct lensum_hash* this_lens = find_lens(hash, lensum->zindex);
