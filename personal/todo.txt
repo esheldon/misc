@@ -1,49 +1,13 @@
 Quick look Queue
 
-    - randoms for jiangang
-        - make sure using mangle
-        - one with and without badfield cut
-
-    - computing doc
-        monday meeting?
-    - money for apj
-
-    - voids for peter
-    - some other cluster stacking thing I'm forgetting...?
-    - kathy romer
-    - chris miller catalogs: need randoms!
-
-    - TS overview
-    - photoz review response
-
     - fitsio
-        - constructure lower=True, upper=True
         - header
-            - stephen's note
             - keywords can be lower case when heierarch, ??
 
     - gmix
-
+        - calibration errors for dt?
         - can we choose an aperture automatically?
         - need to check for centroid coincidence and drift
-        - get PSF working on Tfrac
-        - rename Tfrac class etc.
-
-        - priors
-            - Priors are working for the Tfrac stuff.
-            - high S/N dt
-                - needs tighter priors for effect. I'm able to force the sizes
-                  to be what I want that way, but the tradeoff seems to be
-                  worse ellip estimates.  Do better e1,e2 with weak priors.
-                  Maybe they really are bigger than I think.
-
-                  dt01r05 is running with weak priors and getting good
-                  e1,e2 measurements so far.
-
-    - mcmc
-        - get priors right, normalization of prob
-
-    - read ying's draft
 
     - make combined mask starting with "good", excluding star, good excluding
       badfield or whatever is appropriate.
@@ -87,6 +51,8 @@ Quick look Queue
 
 
     - sobjshear hadoop
+        - need concatenation of lens outputs when we did lens splits.  to be
+          done during reduce or before?
         - do we need the index-tab at beginning? Can we just use zindex-tab?
 
     - get details on pre-matching in mangle

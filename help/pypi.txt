@@ -8,5 +8,4 @@ Then go to pypi and upload the file.  You can automate it with
 But sdist won't put everything in there.  Apparently I can write a MANIFEST.in
 that will specify everything that needs to go in.
 
-Now when I do a new release, how do I get the new release info into there? Do I
-re-register with a new version in the setup.py?
+For a new release, just update the metadata and repeat above.
