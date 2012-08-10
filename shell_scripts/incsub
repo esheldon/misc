@@ -39,7 +39,8 @@ name=`whoami`
 
 # number of jobs running at once
 maxjobs=50
-sleep_time=0.25
+#sleep_time=0.25
+sleep_time=0.1
 poll_time=30
 force="N"
 while getopts "hfn:s:p:d:" Option; do
