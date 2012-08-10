@@ -1,16 +1,11 @@
 Quick look Queue
 
-    - when these finish
-            gmix-fit-edg12r01-003-000-00090.yaml
-            gmix-fit-edg12r01-003-000-00091.yaml
-            gmix-fit-edg12r01-000-002-00025.yaml
-        then redo the combine
     - fitsio
         - header
             - keywords can be lower case when heierarch, ??
 
     - gmix
-
+        - calibration errors for dt?
         - can we choose an aperture automatically?
         - need to check for centroid coincidence and drift
 
@@ -56,6 +51,8 @@ Quick look Queue
 
 
     - sobjshear hadoop
+        - need concatenation of lens outputs when we did lens splits.  to be
+          done during reduce or before?
         - do we need the index-tab at beginning? Can we just use zindex-tab?
 
     - get details on pre-matching in mangle
