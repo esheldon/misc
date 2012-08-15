@@ -10,9 +10,12 @@ xterm*boldMode: false
 
 ! This means just display a different color, dont use the bold font
 xterm*colorBDMode: true
+
+! will use these if freetype monaco not available
 xterm*font: fixed
 xterm*boldFont: fixed
 
+xterm*faceName: Monaco:pixelsize=10
 
 ! dont include the newline when triple clicking
 xterm*cutNewLine: true
@@ -55,7 +58,8 @@ xterm*rightScrollBar: true
 !! An orangish red, same used for bold below
 
 xterm*background: #1f1f1f
-xterm*foreground: white
+!xterm*foreground: white
+xterm*foreground:  #dcdccc
 
 xterm*color1: #ff6600
 !! A lighter green
