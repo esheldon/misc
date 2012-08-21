@@ -4,7 +4,10 @@ Quick look Queue
         - header
             - keywords can be lower case when heierarch, ??
 
+    - voids
+        run new binning with everything and peter's z limits
     - gmix
+        - nlsolver branch
         - calibration errors for dt?
         - can we choose an aperture automatically?
         - need to check for centroid coincidence and drift
