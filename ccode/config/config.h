@@ -2,6 +2,8 @@
 #define _CONFIG_H_GUARD
 
 #include <stdint.h>
+
+/* these should be considered not exposed */
 enum cfg_type {
     CFG_DOUBLE=0,
     CFG_LONG,
@@ -35,6 +37,9 @@ struct cfg_entry {
     long *lonarr;
     char **strarr;
 };
+
+/* the config list is exposed but it is best to manipulate with the
+ * functions */
 struct cfg_list {
     size_t size;
     size_t capacity;
@@ -62,14 +67,39 @@ struct cfg_list {
 #define CFG_ENTRY_ARRSIZE(entry) (entry)->size
 
 #define CFG_SIZE(cfg_list) (cfg_list)->size
-#define CFG_CAPACITY(cfg_list) (cfg_list)->capacity
 #define CFG_ENTRY(cfg_list, i) (cfg_list)->data[(i)]
+#define CFG_CAPACITY(cfg_list) (cfg_list)->capacity
 
-const char* cfg_status_string(enum cfg_status_code status);
-char **cfg_strarr_del(char **arr, size_t size);
+/*
+ * Here is the exposed API
+ */
 
+
+/*
+ * Parse the config file and return a new config list
+ */
 struct cfg_list *cfg_parse(const char* filename, enum cfg_status_code *status);
+
+/* Delete the configuration list
+ * use like this: 
+ *   list=cfg_list_del(list)
+ * That will set the pointer to NULL
+ */
 struct cfg_list *cfg_list_del(struct cfg_list *list);
+
+/* 
+ * Getters
+ *
+ * If the name is not found zero or NULLis returned and CFG_NOT_FOUND status is
+ * set
+ *
+ * If there is a type mismatch, zero or NULL is returned and CFG_TYPE_ERROR
+ * status is set
+ *
+ * On success, status CFG_SUCCESS==0 is returned
+ */
+
+
 double cfg_get_double(const struct cfg_list *list, 
                       const char* name, 
                       enum cfg_status_code *status);
@@ -77,7 +107,7 @@ long cfg_get_long(const struct cfg_list *list,
                   const char* name, 
                   enum cfg_status_code *status);
 
-/* returns a copy, you must free */
+/* returns a copy, you must free! */
 char *cfg_get_string(const struct cfg_list *list, 
                      const char* name, 
                      enum cfg_status_code *status);
@@ -108,5 +138,12 @@ char **cfg_get_strarr(const struct cfg_list *list,
                       const char* name, 
                       size_t *size,
                       enum cfg_status_code *status);
+
+/* convert a status to a status string. Do not free! */
+const char* cfg_status_string(enum cfg_status_code status);
+
+/* convenience function to delete an array of strings */
+char **cfg_strarr_del(char **arr, size_t size);
+
 #endif
 
