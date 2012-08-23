@@ -254,7 +254,7 @@
 
 // Use this to define new vector types.
 //
-//     e.g.  VECTOR_DEF(long)L;
+//     e.g.  VECTOR_DEF(long);
 //
 // Note need the both VECTOR_DEF and _VECTOR_DEF in order to
 // make vectors of vectors due to the fact that concatenation
