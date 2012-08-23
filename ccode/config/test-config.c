@@ -10,9 +10,9 @@ int main(int argc, char *argv[])
 {
 
     struct cfg_list* cfg_list=NULL;
-    enum cfg_status_code status;
-    double y=0;
-    long x=0;
+    enum cfg_status status;
+    double dbl=0;
+    long lng=0;
 
     double *darr=NULL;
     size_t darrsize=0;
@@ -32,49 +32,49 @@ int main(int argc, char *argv[])
     cfg_print(cfg_list, stdout);
 
     printf("\n\n");
-    y = cfg_get_double(cfg_list, "y", &status);
+    dbl = cfg_get_double(cfg_list, "dbl", &status);
     if (status) {
-        fprintf(stderr,"Could not get y as double: %s\n",cfg_status_string(status));
+        fprintf(stderr,"Could not get dbl as double: %s\n",cfg_status_string(status));
     } else {
-        printf("double y: %.16g\n", y);
+        printf("double dbl: %.16g\n", dbl);
     }
-    y = cfg_get_double(cfg_list, "x", &status);
+    dbl = cfg_get_double(cfg_list, "lng", &status);
     if (status) {
-        fprintf(stderr,"Could not get y as double: %s\n",cfg_status_string(status));
+        fprintf(stderr,"Could not get lng as double: %s\n",cfg_status_string(status));
     } else {
-        printf("double y: %.16g\n", y);
+        printf("double lng: %.16g\n", dbl);
     }
-    y = cfg_get_double(cfg_list, "non-existent", &status);
+    dbl = cfg_get_double(cfg_list, "non-existent", &status);
     if (status) {
         fprintf(stderr,"Could not get non-existent as double: %s\n",cfg_status_string(status));
     } else {
-        printf("double non-existent: %.16g\n", y);
+        printf("double non-existent: %.16g\n", dbl);
     }
 
 
 
-    x = cfg_get_long(cfg_list, "x", &status);
+    lng = cfg_get_long(cfg_list, "lng", &status);
     if (status) {
-        fprintf(stderr,"Could not get x as long: %s\n",cfg_status_string(status));
+        fprintf(stderr,"Could not get lng as long: %s\n",cfg_status_string(status));
     } else {
-        printf("long x: %ld\n", x);
+        printf("long lng: %ld\n", lng);
     }
 
-    tmp = cfg_get_string(cfg_list, "s", &status);
+    tmp = cfg_get_string(cfg_list, "str", &status);
     if (status) {
-        fprintf(stderr,"Could not get s as string: %s\n",cfg_status_string(status));
+        fprintf(stderr,"Could not get str as string: %s\n",cfg_status_string(status));
     } else {
-        printf("string s: '%s'\n", tmp);
+        printf("string str: '%s'\n", tmp);
     }
 
-    cfg_copy_string(cfg_list, "s", str, 80, &status);
+    cfg_copy_string(cfg_list, "str", str, 80, &status);
     if (status) {
-        fprintf(stderr,"Could not copy s: %s\n",cfg_status_string(status));
+        fprintf(stderr,"Could not copy str: %s\n",cfg_status_string(status));
     } else {
-        printf("string s as copy: '%s'\n", str);
+        printf("string str as copy: '%s'\n", str);
     }
 
-    darr = cfg_get_dblarr(cfg_list, "a", &darrsize, &status);
+    darr = cfg_get_dblarr(cfg_list, "darr", &darrsize, &status);
     if (status) {
         fprintf(stderr,"Could not get a as double array: %s\n",cfg_status_string(status));
     } else {
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    larr = cfg_get_lonarr(cfg_list, "iarr", &larrsize, &status);
+    larr = cfg_get_lonarr(cfg_list, "larr", &larrsize, &status);
     if (status) {
         fprintf(stderr,"Could not get iarr as long array: %s\n",cfg_status_string(status));
     } else {
@@ -107,30 +107,10 @@ int main(int argc, char *argv[])
         }
     }
 
-
-
-    /*
-    y = cfg_get_dbl
-    y = cfg_get_lon
-    y = cfg_get_str
-    y = cfg_get_dblarr
-    y = cfg_get_lonarr
-    y = cfg_get_strarr
-
-
-    y = cfg_dbl
-    y = cfg_lon
-    y = cfg_str
-    y = cfg_dblarr
-    y = cfg_lonarr
-    y = cfg_strarr
-    */
-
-    //fprintf(stderr,"main: freeing cfg list\n");
-    cfg_list = cfg_list_del(cfg_list);
-    free(tmp);
-    free(darr);
-    free(larr);
+    cfg_list = cfg_del(cfg_list);
+    free(tmp); tmp=NULL;
+    free(darr); darr=NULL;
+    free(larr); larr=NULL;
     sarr=cfg_strarr_del(sarr, sarrsize);
 
 
