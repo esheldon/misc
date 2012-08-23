@@ -14,7 +14,7 @@ char *cfg_names[]= {
     "long[]",
     "string[]"
 };
-char *cfg_status_code_names[]= {
+char *cfg_status_names[]= {
     "SUCCESS",
     "PARSE_BLANK",
     "PARSE_COMMENT",
@@ -25,16 +25,32 @@ char *cfg_status_code_names[]= {
 
 
 
+/*
+ * some exported helper functions
+ */
+
 /* do not free! */
-const char* cfg_status_string(enum cfg_status_code status)
+const char* cfg_status_string(enum cfg_status status)
 {
-    int imax=sizeof(cfg_status_code_names)-1;
+    int imax=sizeof(cfg_status_names)-1;
 
     if (status < 0 || status > imax) {
         return NULL;
     } else {
-        return cfg_status_code_names[status];
+        return cfg_status_names[status];
     }
+}
+char **cfg_strarr_del(char **arr, size_t size)
+{
+    size_t i=0;
+    if (arr) {
+        for (i=0; i<size; i++) {
+            free(arr[i]);
+            arr[i]=NULL;
+        }
+        free(arr);
+    }
+    return NULL;
 }
 
 /*
@@ -115,19 +131,6 @@ static struct cfg_entry *cfg_entry_new(const char *name, enum cfg_type type)
     return entry;
 }
 
-/* exposed */
-char **cfg_strarr_del(char **arr, size_t size)
-{
-    size_t i=0;
-    if (arr) {
-        for (i=0; i<size; i++) {
-            free(arr[i]);
-            arr[i]=NULL;
-        }
-        free(arr);
-    }
-    return NULL;
-}
 static struct cfg_entry *cfg_entry_del(struct cfg_entry *entry)
 {
     if (entry) {
@@ -373,7 +376,7 @@ static struct cfg_entry *cfg_entry_fromdata(const char *name, enum cfg_type type
 }
 
 
-void cfg_entry_print(struct cfg_entry *entry, FILE *stream)
+static void cfg_entry_print(struct cfg_entry *entry, FILE *stream)
 {
     size_t n=0, i=0;
 
@@ -422,21 +425,9 @@ void cfg_entry_print(struct cfg_entry *entry, FILE *stream)
 
 }
 
-void cfg_print(struct cfg_list *list, FILE *stream)
-{
-    size_t i=0;
-    struct cfg_entry *entry=NULL;
-    if (list) {
-        for (i=0; i<CFG_SIZE(list); i++) {
-            entry=CFG_ENTRY(list, i);
-            cfg_entry_print(entry, stream);
-        }
-    }
-}
-
 /*
- * parse the line and return a config entry
- * return NULL in the case of failure or blank/comment lines
+ * parse the line and return a config entry. return NULL in the case of failure
+ * or blank/comment lines.  This is a monster of cases.
  *
  * status can be
  *   CFG_SUCCESS
@@ -444,7 +435,7 @@ void cfg_print(struct cfg_list *list, FILE *stream)
  *   CFG_PARSE_COMMENT
  *   CFG_PARSE_FAILURE
  */
-static struct cfg_entry *cfg_parse_line(const char* line, enum cfg_status_code *status)
+static struct cfg_entry *cfg_parse_line(const char* line, enum cfg_status *status)
 {
     ssize_t i=0;
 
@@ -527,11 +518,6 @@ static struct cfg_entry *cfg_parse_line(const char* line, enum cfg_status_code *
         *status=CFG_PARSE_FAILURE;
         goto _cfg_parse_line_bail;
     }
-    /*
-     * below here we have to de-allocate entry
-     */
-
-    //cfg_entry_print(entry,stdout);
 
 _cfg_parse_line_bail:
     if (CFG_SUCCESS != *status) {
@@ -542,10 +528,10 @@ _cfg_parse_line_bail:
 }
 
 
-/*
- * cfg_list is exposed
+/* we might want to expose this if we add the ability to
+ * write new config files
  */
-struct cfg_list *cfg_list_new()
+static struct cfg_list *cfg_new()
 {
     struct cfg_list *vec=NULL;
 
@@ -564,8 +550,12 @@ struct cfg_list *cfg_list_new()
 }
 /*
  * Also deletes the data for each entry.
+ *
+ * Usage
+ *     list=cfg_del(list);
+ * list gets set to NULL
  */
-struct cfg_list *cfg_list_del(struct cfg_list *list)
+struct cfg_list *cfg_del(struct cfg_list *list)
 {
     size_t i=0;
     if (list) {
@@ -581,9 +571,9 @@ struct cfg_list *cfg_list_del(struct cfg_list *list)
 }
 
 /*
- * The entries list will now own this entry, don't free!
+ * The config list will now own this entry, don't free!
  */
-static void cfg_list_append(struct cfg_list *list, 
+static void cfg_append(struct cfg_list *list, 
                             struct cfg_entry *entry)
 {
     size_t size=0, oldcap=0;
@@ -612,7 +602,7 @@ static void cfg_list_append(struct cfg_list *list,
 }
 
 
-struct cfg_list *cfg_parse(const char* filename, enum cfg_status_code *status)
+struct cfg_list *cfg_parse(const char* filename, enum cfg_status *status)
 {
     FILE *fp=NULL;
     ssize_t nread=0;
@@ -626,7 +616,7 @@ struct cfg_list *cfg_parse(const char* filename, enum cfg_status_code *status)
         fprintf(stderr,"Could not open file: %s\n", filename);
         return NULL;
     }
-    list = cfg_list_new();
+    list = cfg_new();
 
     line=calloc(80,sizeof(char));
     while ((nread = getline(&line, &len, fp)) != -1) {
@@ -641,17 +631,31 @@ struct cfg_list *cfg_parse(const char* filename, enum cfg_status_code *status)
             continue;
         }
         // ownership of entry is transferred to list here
-        cfg_list_append(list, entry);
+        cfg_append(list, entry);
     }
 _cfg_parse_bail:
     if (*status) {
-        list=cfg_list_del(list);
+        list=cfg_del(list);
     }
     free(line);
     line=NULL;
     return list;
 }
 
+void cfg_print(struct cfg_list *list, FILE *stream)
+{
+    size_t i=0;
+    struct cfg_entry *entry=NULL;
+    if (list) {
+        for (i=0; i<CFG_SIZE(list); i++) {
+            entry=CFG_ENTRY(list, i);
+            cfg_entry_print(entry, stream);
+        }
+    }
+}
+
+
+/* Returns a const reference to the entry if found, otherwise NULL */
 static const struct cfg_entry *cfg_find(const struct cfg_list *list, const char* name)
 {
     size_t i=0;
@@ -670,11 +674,11 @@ static const struct cfg_entry *cfg_find(const struct cfg_list *list, const char*
 
     return entry;
 }
-// only return non-null if the type matches
+/* Same as cfg_find but only return non-null if the type matches */
 static const struct cfg_entry *cfg_find_type(const struct cfg_list *list, 
                                              const char* name, 
                                              enum cfg_type type,
-                                             enum cfg_status_code *status)
+                                             enum cfg_status *status)
 {
     const struct cfg_entry *entry=NULL, *tmp=NULL;
 
@@ -708,7 +712,7 @@ static const struct cfg_entry *cfg_find_type(const struct cfg_list *list,
 
 double cfg_get_double(const struct cfg_list *list, 
                       const char* name, 
-                      enum cfg_status_code *status)
+                      enum cfg_status *status)
 {
     double val=0;
     const struct cfg_entry *entry=NULL;
@@ -721,7 +725,7 @@ double cfg_get_double(const struct cfg_list *list,
 }
 long cfg_get_long(const struct cfg_list *list, 
                   const char* name, 
-                  enum cfg_status_code *status)
+                  enum cfg_status *status)
 {
     long val=0;
     const struct cfg_entry *entry=NULL;
@@ -734,7 +738,7 @@ long cfg_get_long(const struct cfg_list *list,
 }
 char *cfg_get_string(const struct cfg_list *list, 
                      const char* name, 
-                     enum cfg_status_code *status)
+                     enum cfg_status *status)
 {
     char* val=NULL;
     const struct cfg_entry *entry=NULL;
@@ -749,7 +753,7 @@ void cfg_copy_string(const struct cfg_list *list,
                      const char* name, 
                      char *out,
                      size_t n,
-                     enum cfg_status_code *status)
+                     enum cfg_status *status)
 {
     const char* tmp=0;
     const struct cfg_entry *entry=NULL;
@@ -765,7 +769,7 @@ void cfg_copy_string(const struct cfg_list *list,
 double *cfg_get_dblarr(const struct cfg_list *list, 
                        const char* name, 
                        size_t *size,
-                       enum cfg_status_code *status)
+                       enum cfg_status *status)
 {
     double *arr=0;
     const double *tmp=NULL;
@@ -793,7 +797,7 @@ double *cfg_get_dblarr(const struct cfg_list *list,
 long *cfg_get_lonarr(const struct cfg_list *list, 
                      const char* name, 
                      size_t *size,
-                     enum cfg_status_code *status)
+                     enum cfg_status *status)
 {
     long *arr=0;
     const long *tmp=NULL;
@@ -822,7 +826,7 @@ long *cfg_get_lonarr(const struct cfg_list *list,
 char **cfg_get_strarr(const struct cfg_list *list, 
                       const char* name, 
                       size_t *size,
-                      enum cfg_status_code *status)
+                      enum cfg_status *status)
 {
     char **arr=0;
     const char **tmp=NULL;
