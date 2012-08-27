@@ -143,6 +143,7 @@ static struct cfg_entry *cfg_entry_del(struct cfg_entry *entry)
         if (entry->strarr != NULL) {
             entry->strarr = cfg_strarr_del(entry->strarr,entry->size);
         }
+        free(entry);
     }
     return NULL;
 }
