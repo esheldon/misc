@@ -79,8 +79,9 @@ struct cfg {
 #define CFG_FIELD_NAME(field) (field)->name
 #define CFG_FIELD_TYPE(field) (field)->field_type
 #define CFG_FIELD_ELTYPE(field) (field)->el_type
+
 // if we support sub configs we will need to rewrite this
-#define CFG_FIELD_SIZE(field) (field)->strvec->size
+#define CFG_FIELD_ARR_SIZE(field) (field)->strvec->size
 
 
 // public api
@@ -89,16 +90,16 @@ struct cfg *cfg_del(struct cfg *self);
 void cfg_print(struct cfg *self, FILE* stream);
 
 /* 
- * Getters
+ * Public getters
  *
- * If the name is not found zero or NULL is returned and CFG_NOT_FOUND status
+ * If the name is not found, zero or NULL is returned and CFG_NOT_FOUND status
  * is set
  *
  * If there is a type mismatch, zero or NULL is returned and CFG_TYPE_ERROR
  * status is set
  *
- * Arrays must be extracted as C arrays, scalars as C scalars or else
- * a CFG_TYPE_ERROR is set.
+ * Arrays must be extracted as C arrays, scalars as C scalars or else a
+ * CFG_TYPE_ERROR is set.
  *
  * On success, status is set to CFG_SUCCESS==0
  */
@@ -106,10 +107,21 @@ void cfg_print(struct cfg *self, FILE* stream);
 double cfg_get_double(const struct cfg *self,
                       const char *name,
                       enum cfg_status *status);
+long cfg_get_long(const struct cfg *self,
+                  const char *name,
+                  enum cfg_status *status);
 double *cfg_get_dblarr(const struct cfg *self,
                        const char *name,
                        size_t *size,
                        enum cfg_status *status);
+char *cfg_get_string(const struct cfg *self,
+                     const char *name,
+                     enum cfg_status *status);
+char **cfg_get_strarr(const struct cfg *self,
+                      const char *name,
+                      size_t *size,
+                      enum cfg_status *status);
+
 /*
 long cfg_get_long(const struct cfg *list, 
                   const char* name, 
