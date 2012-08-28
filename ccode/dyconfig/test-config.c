@@ -8,8 +8,11 @@ int main(int argc, char *argv[])
 
     enum cfg_status status=0;
     struct cfg *cfg=NULL;
-    double dblval=0, *darr=NULL;
-    size_t i=0, dsize=0;
+    double dblval=0, *darr=NULL, *dempty=NULL;
+    long lonval=0;
+    size_t i=0, dsize=0, dempty_size=0, mixed_size=0;
+    char **mixed=NULL;
+    char *str1=NULL, *str2=NULL;
 
     cfg=cfg_read("test.cfg", &status);
     if (status) {
@@ -18,7 +21,8 @@ int main(int argc, char *argv[])
 
     cfg_print(cfg, stdout);
 
-    printf("\nextracting values\n");
+    printf("\nextracting scalar values\n");
+
     dblval=cfg_get_double(cfg, "dblval", &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
@@ -26,17 +30,67 @@ int main(int argc, char *argv[])
     }
     printf("    dblval: %lf\n", dblval);
 
+    lonval=cfg_get_long(cfg, "lonval", &status);
+    if (status) {
+        fprintf(stderr,"Error: %s\n", cfg_status_string(status));
+        exit(1);
+    }
+    printf("    lonval: %ld\n", lonval);
+
+
+    str1=cfg_get_string(cfg, "multiline_string", &status);
+    if (status) {
+        fprintf(stderr,"Error: %s\n", cfg_status_string(status));
+        exit(1);
+    }
+    printf("    multiline_string: '%s'\n", str1);
+
+    str2=cfg_get_string(cfg, "embed", &status);
+    if (status) {
+        fprintf(stderr,"Error: %s\n", cfg_status_string(status));
+        exit(1);
+    }
+    printf("    embed: '%s'\n", str2);
+
+
+    printf("\nextracting arrays\n");
     darr=cfg_get_dblarr(cfg, "darr", &dsize, &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
         exit(1);
     }
-
+    printf("darr size: %lu\n", dsize);
     for (i=0; i<dsize; i++) {
         printf("    darr[%lu]: %.16g\n", i, darr[i]);
     }
 
+    dempty=cfg_get_dblarr(cfg, "empty", &dempty_size, &status);
+    if (status) {
+        fprintf(stderr,"Error: %s\n", cfg_status_string(status));
+        exit(1);
+    }
+    printf("dempty size: %lu\n", dempty_size);
+    for (i=0; i<dempty_size; i++) {
+        printf("    empty[%lu]: %.16g\n", i, dempty[i]);
+    }
 
+    mixed=cfg_get_strarr(cfg, "mixed", &mixed_size, &status);
+    if (status) {
+        fprintf(stderr,"Error: %s\n", cfg_status_string(status));
+        exit(1);
+    }
+    printf("mixed size: %lu\n", mixed_size);
+    for (i=0; i<mixed_size; i++) {
+        printf("    mixed[%lu]: '%s'\n", i, mixed[i]);
+    }
+
+
+
+
+    free(darr); darr=NULL;
+    free(mixed); mixed=NULL;
+    free(str1); str1=NULL;
+    free(str2); str2=NULL;
     cfg=cfg_del(cfg);
     return 0;
 

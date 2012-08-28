@@ -95,6 +95,7 @@ static void cfg_strvec_realloc(struct cfg_strvec* vec, size_t newcap)
 }
 
 /*
+ * might need this for creating new configs
 static void cfg_strvec_append_copy(struct cfg_strvec* vec, char *str)
 {
     size_t size=0;
@@ -131,6 +132,31 @@ static struct cfg_strvec *cfg_strvec_del(struct cfg_strvec* vec)
     return NULL;
 }
 
+/*
+ * copy the data
+ */
+static char **cfg_strvec2arr(struct cfg_strvec *vec, size_t *size)
+{
+    char **sarr=NULL;
+    size_t i=0;
+
+    *size=0;
+    if (!vec || vec->size == 0) {
+        return sarr;
+    }
+
+    *size=vec->size;
+    sarr=calloc((*size), sizeof(char*));
+    if (!sarr) {
+        fprintf(stderr,"could not allocate for copy of strvec\n");
+        exit(1);
+    }
+    for (i=0; i<(*size); i++) {
+        sarr[i] = strdup(vec->data[i]);
+    }
+
+    return sarr;
+}
 static struct cfg_field *cfg_field_new()
 {
     struct cfg_field *self=NULL;
@@ -192,16 +218,16 @@ static void cfg_field_print(struct cfg_field *self, FILE* stream)
         return;
 
     // only arrays are allowed to be "empty"
-    if (0 == CFG_FIELD_SIZE(self) && CFG_TYPE_ARRAY != CFG_FIELD_TYPE(self))
+    if (0 == CFG_FIELD_ARR_SIZE(self) && CFG_TYPE_ARRAY != CFG_FIELD_TYPE(self))
         return;
 
     fprintf(stream, "%s", CFG_FIELD_NAME(self));
     fprintf(stream," %c ", CFG_ASSIGN);
     if (CFG_TYPE_ARRAY==CFG_FIELD_TYPE(self)) {
         fprintf(stream,"%c", CFG_ARRAY_BEG);
-        for (el=0; el<CFG_FIELD_SIZE(self); el++) {
+        for (el=0; el<CFG_FIELD_ARR_SIZE(self); el++) {
             cfg_field_print_data(self, el, stream);
-            if (el < (CFG_FIELD_SIZE(self)-1)) {
+            if (el < (CFG_FIELD_ARR_SIZE(self)-1)) {
                 fprintf(stream,"%c", CFG_ARRAY_SEP);
             }
         }
@@ -911,13 +937,25 @@ static double *extract_dblarr(const struct cfg_field *self,
                               enum cfg_status *status)
 {
     double *out=NULL, tmp=0;
-    struct cfg_strvec *vec;
+    struct cfg_strvec *vec=NULL;
     size_t i=0;
 
-    if (!self)
+    *size=0;
+
+    *status = CFG_SUCCESS;
+    if (!self) {
+        // not OK to have null field!
+        *status = CFG_EMPTY;
         goto _extract_dblarr_bail;
+    }
 
     vec = CFG_FIELD_GET_VEC(self);
+
+    if (!vec || vec->size==0) {
+        // ok to have empty array, just exit
+        goto _extract_dblarr_bail;
+    }
+
     out = calloc(vec->size, sizeof(double));
 
     if (!out){
@@ -943,6 +981,75 @@ _extract_dblarr_bail:
 
     return out;
 }
+
+
+static long extract_long(const char *str, enum cfg_status *status)
+{
+    char *endptr=NULL;
+    long val=0;
+
+    *status = CFG_SUCCESS;
+
+    endptr=(char*) str;
+    val = strtol(str, &endptr, 10);
+    if (endptr == str) {
+        fprintf(stderr,"Failed to convert data to a long : '%s'\n", str);
+        *status=CFG_TYPE_ERROR;
+    }
+    return val;
+}
+
+/*
+static double *extract_lonarr(const struct cfg_field *self,
+                              size_t *size,
+                              enum cfg_status *status)
+{
+    double *out=NULL, tmp=0;
+    struct cfg_strvec *vec=NULL;
+    size_t i=0;
+
+    *size=0;
+
+    *status = CFG_SUCCESS;
+    if (!self) {
+        // not OK to have null field!
+        *status = CFG_EMPTY;
+        goto _extract_dblarr_bail;
+    }
+
+    vec = CFG_FIELD_GET_VEC(self);
+
+    if (!vec || vec->size==0) {
+        // ok to have empty array, just exit
+        goto _extract_dblarr_bail;
+    }
+
+    out = calloc(vec->size, sizeof(double));
+
+    if (!out){
+        fprintf(stderr,"Failed to allocate double array copy for field '%s'\n", 
+                CFG_FIELD_NAME(self));
+        exit(1);
+    }
+
+    for (i=0; i<vec->size; i++) {
+        tmp = extract_double(vec->data[i], status);
+        if (*status) {
+            goto _extract_dblarr_bail;
+        }
+        out[i] = tmp;
+    }
+    *size = vec->size;
+
+_extract_dblarr_bail:
+    if (*status) {
+        free(out);
+        out=NULL;
+    }
+
+    return out;
+}
+*/
 
 
 /*
@@ -991,4 +1098,83 @@ double *cfg_get_dblarr(const struct cfg *self,
         }
     }
     return arr;
+}
+
+/*
+ * Public
+ *
+ * Extract a scalar as a long
+ */
+long cfg_get_long(const struct cfg *self,
+                  const char *name,
+                  enum cfg_status *status)
+{
+    long val=0;
+    const struct cfg_field *field=NULL;
+    char *str=NULL;
+
+    field = cfg_find(self, name, status);
+    if (*status==CFG_SUCCESS) {
+        if (CFG_TYPE_SCALAR != CFG_FIELD_TYPE(field)) {
+            *status = CFG_TYPE_ERROR;
+        } else {
+            str = CFG_FIELD_GET_DATA(field, 0);
+            val = extract_long(str, status);
+        }
+    }
+    return val;
+}
+
+/*
+ * Public
+ *
+ * Extract a scalar as a string
+ */
+char *cfg_get_string(const struct cfg *self,
+                     const char *name,
+                     enum cfg_status *status)
+{
+    char *str=NULL;
+    const struct cfg_field *field=NULL;
+
+    field = cfg_find(self, name, status);
+    if (*status==CFG_SUCCESS) {
+        if (CFG_TYPE_SCALAR != CFG_FIELD_TYPE(field)) {
+            *status = CFG_TYPE_ERROR;
+        } else {
+            if (0==CFG_FIELD_ARR_SIZE(field)) {
+                *status = CFG_EMPTY;
+            } else {
+                str = strdup( CFG_FIELD_GET_DATA(field, 0) );
+            }
+        }
+    }
+    return str;
+}
+
+/*
+ * Public
+ *
+ * Extract an array as an array of strings
+ */
+char **cfg_get_strarr(const struct cfg *self,
+                      const char *name,
+                      size_t *size,
+                      enum cfg_status *status)
+{
+    char **sarr=NULL;
+    const struct cfg_field *field=NULL;
+
+    field = cfg_find(self, name, status);
+    if (*status==CFG_SUCCESS) {
+        if (CFG_TYPE_ARRAY != CFG_FIELD_TYPE(field)) {
+            *status = CFG_TYPE_ERROR;
+        } else {
+            sarr = cfg_strvec2arr(CFG_FIELD_GET_VEC(field), size);
+            if (!sarr) {
+                *status=CFG_EMPTY;
+            }
+        }
+    }
+    return sarr;
 }
