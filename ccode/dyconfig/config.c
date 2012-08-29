@@ -235,8 +235,13 @@ static void cfg_field_print(struct cfg_field *self, int n_indent, FILE* stream)
         fprintf(stream,"%c", CFG_ARRAY_BEG);
         for (el=0; el<CFG_FIELD_ARR_SIZE(self); el++) {
             cfg_field_print_data(self, el, stream);
+            /*
             if (el < (CFG_FIELD_ARR_SIZE(self)-1)) {
                 fprintf(stream,"%c", CFG_ARRAY_SEP);
+            }
+            */
+            if (el < (CFG_FIELD_ARR_SIZE(self)-1)) {
+                fprintf(stream," ");
             }
         }
         fprintf(stream,"%c", CFG_ARRAY_END);
