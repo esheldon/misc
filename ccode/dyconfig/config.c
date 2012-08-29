@@ -4,8 +4,9 @@
 #include <string.h>
 #include "config.h"
 
-char *cfg_status_names[]= {
+static char *cfg_status_names[]= {
     "SUCCESS",
+    "FOUND_END",
     "READ_ERROR",
     "PARSE_BLANK",
     "PARSE_COMMENT",
@@ -29,7 +30,7 @@ char **cfg_strarr_del(char **arr, size_t size)
             free(arr[i]);
             arr[i]=NULL;
         }
-        free(arr);
+        free(arr); arr=NULL;
     }
     return NULL;
 }
@@ -125,7 +126,7 @@ static struct cfg_strvec *cfg_strvec_del(struct cfg_strvec* vec)
 {
     if (vec) {
         if (vec->data) {
-            vec->data = cfg_strarr_del(vec->data, vec->size);
+            vec->data = cfg_strarr_del(vec->data, vec->capacity);
         }
         free(vec);
     }
@@ -181,14 +182,18 @@ static struct cfg_field *cfg_field_del(struct cfg_field *self)
         // We always zero memory on creation, so this is OK
         free(self->name);
         self->strvec = cfg_strvec_del(self->strvec);
-        if (self->sub) {
-            self->sub = cfg_del(self->sub);
-        }
+        self->sub = cfg_del(self->sub);
         free(self);
     }
     return NULL;
 }
 
+static void print_spaces(int n, FILE* stream) {
+    int i=0;
+    for (i=0; i<n; i++) {
+        fprintf(stream," ");
+    }
+}
 static void cfg_field_print_data(struct cfg_field *self, size_t el, FILE* stream)
 {
     char *tmp=NULL;
@@ -211,19 +216,22 @@ static void cfg_field_print_data(struct cfg_field *self, size_t el, FILE* stream
         fprintf(stream, "%s", CFG_FIELD_GET_DATA(self,el));
     }
 }
-static void cfg_field_print(struct cfg_field *self, FILE* stream)
+static void _cfg_print(struct cfg *self, int n_indent, FILE* stream);
+static void cfg_field_print(struct cfg_field *self, int n_indent, FILE* stream)
 {
     size_t el=0;
     if (!self)
         return;
 
-    // only arrays are allowed to be "empty"
-    if (0 == CFG_FIELD_ARR_SIZE(self) && CFG_TYPE_ARRAY != CFG_FIELD_TYPE(self))
+    // scalars not allowed to be "empty"
+    if (CFG_TYPE_SCALAR == CFG_FIELD_TYPE(self) && 0==CFG_FIELD_ARR_SIZE(self))
         return;
 
+    print_spaces(n_indent, stream);
     fprintf(stream, "%s", CFG_FIELD_NAME(self));
     fprintf(stream," %c ", CFG_ASSIGN);
     if (CFG_TYPE_ARRAY==CFG_FIELD_TYPE(self)) {
+
         fprintf(stream,"%c", CFG_ARRAY_BEG);
         for (el=0; el<CFG_FIELD_ARR_SIZE(self); el++) {
             cfg_field_print_data(self, el, stream);
@@ -232,10 +240,14 @@ static void cfg_field_print(struct cfg_field *self, FILE* stream)
             }
         }
         fprintf(stream,"%c", CFG_ARRAY_END);
+
     } else if (CFG_TYPE_CFG == CFG_FIELD_TYPE(self)) {
-        fprintf(stream,"%c", CFG_CFG_BEG);
-        cfg_print(CFG_FIELD_GET_SUB(self),stream);
+
+        fprintf(stream,"%c\n", CFG_CFG_BEG);
+        _cfg_print(CFG_FIELD_GET_SUB(self),n_indent+4,stream);
+        print_spaces(n_indent, stream);
         fprintf(stream,"%c", CFG_CFG_END);
+
     } else {
         cfg_field_print_data(self, 0, stream);
     }
@@ -305,12 +317,24 @@ struct cfg *cfg_del(struct cfg *self)
                 self->fields[i] = cfg_field_del(self->fields[i]);
             }
         }
-        free(self->fields);
+        free(self->fields); self->fields=NULL;
         free(self);
     }
     return NULL;
 }
 
+static void _cfg_print(struct cfg *self, int n_indent, FILE* stream)
+{
+    size_t el=0;
+
+    if (!self)
+        return;
+
+    for (el=0; el<self->size; el++) {
+        cfg_field_print(self->fields[el], n_indent, stream);
+    }
+
+}
 /*
  * Public
  *
@@ -319,12 +343,13 @@ struct cfg *cfg_del(struct cfg *self)
 void cfg_print(struct cfg *self, FILE* stream)
 {
     size_t el=0;
+    int n_indent=0;
 
     if (!self)
         return;
 
     for (el=0; el<self->size; el++) {
-        cfg_field_print(self->fields[el], stream);
+        cfg_field_print(self->fields[el], n_indent, stream);
     }
 
 }
@@ -384,6 +409,7 @@ static size_t find_nonwhite(const struct cfg_string *str, size_t current, enum c
     }
     return loc;
 }
+/*
 static size_t find_white(const struct cfg_string *str, size_t current, enum cfg_status *status)
 {
     size_t i=0, loc=-1;
@@ -399,6 +425,7 @@ static size_t find_white(const struct cfg_string *str, size_t current, enum cfg_
     }
     return loc;
 }
+*/
 /* find white space and cut off with a null char */
 static void rstrip_inplace(char *str)
 {
@@ -443,7 +470,7 @@ static struct cfg_string *read_whole_file(const char* filename)
     if(ferror(fp)){
         fprintf(stderr,"Error reading file\n");
         free(data);
-        return NULL;
+        goto _read_whole_file_bail;
     }
 
     str = calloc(1, sizeof(struct cfg_string));
@@ -454,6 +481,8 @@ static struct cfg_string *read_whole_file(const char* filename)
 
     str->size = nchar;
     str->data = data;
+_read_whole_file_bail:
+    fclose(fp);
     return str;
 }
 
@@ -507,6 +536,7 @@ static char *copy_next_identifier(const struct cfg_string *str,
     return name;
 }
 // current should point to the first letter
+/*
 static size_t find_end_of_whitespace_token(const struct cfg_string *str, 
                                            size_t current, 
                                            enum cfg_status *status)
@@ -524,12 +554,13 @@ static size_t find_end_of_whitespace_token(const struct cfg_string *str,
     }
     return loc;
 }
-
+*/
 /*
  * current should already point to the first letter
  *
  * return value will point to last letter in the token
  */
+/*
 static size_t copy_bare_token(struct cfg_field *field,
                               const struct cfg_string *str,
                               size_t current,
@@ -550,11 +581,16 @@ static size_t copy_bare_token(struct cfg_field *field,
     // ownership transferred to vector
     cfg_strvec_append_nocopy(field->strvec, tmp);
 
-    return end; }
+    return end; 
+}
+*/
 /*
  * current should already point to the first letter
  *
- * return value will point to the array separator or array end char
+ * return value will point to 
+ *   array separator 
+ *   array end char
+ *   white space
  */
 
 static size_t copy_bare_array_token(struct cfg_field *field,
@@ -576,7 +612,7 @@ static size_t copy_bare_array_token(struct cfg_field *field,
             goto _copy_bare_array_token_bail;
         }
         c=str->data[current];
-    } while (!isspace(c) && c != CFG_ARRAY_SEP && c != CFG_ARRAY_END);
+    } while (!isspace(c) && c != CFG_ARRAY_SEP && c != CFG_ARRAY_END && c != CFG_CFG_END);
 
     *status=CFG_SUCCESS;
 
@@ -773,8 +809,12 @@ _copy_array_bail:
     return current;
 }
 
-static struct cfg *cfg_parse(struct cfg_string *str, size_t *current, enum cfg_status *status);
-static struct cfg_field *cfg_get_field(struct cfg_string *str, size_t current, size_t *end, enum cfg_status *status) {
+static struct cfg *cfg_parse(const struct cfg_string *str, size_t *current, enum cfg_status *status);
+
+static struct cfg_field *cfg_get_field(const struct cfg_string *str, 
+                                       size_t current, 
+                                       size_t *end, 
+                                       enum cfg_status *status) {
 
     char *name=NULL;
     struct cfg_field *field=NULL;
@@ -801,12 +841,22 @@ static struct cfg_field *cfg_get_field(struct cfg_string *str, size_t current, s
 
     if (str->data[current] == CFG_ARRAY_BEG) {
 
+        // leaves end at array end char
         CFG_FIELD_TYPE(field)=CFG_TYPE_ARRAY;
         *end = copy_array(field, str, current, status);
 
     } else if (CFG_CFG_BEG == str->data[current]) {
+
+        //fprintf(stderr,"Found begin of sub config: '%s'\n", name);
         CFG_FIELD_TYPE(field)=CFG_TYPE_CFG;
         field->sub = cfg_parse(str, &current, status);
+        //*end=current;
+        // +1 cause we need to skip the ending brace
+        *end=current+1;
+    } else if (CFG_CFG_END == str->data[current]) {
+        // this never happens
+        *status = CFG_FOUND_END;
+        *end=current;
     } else if (str->data[current] == CFG_QUOTE) {
 
         CFG_FIELD_TYPE(field)=CFG_TYPE_SCALAR;
@@ -817,7 +867,8 @@ static struct cfg_field *cfg_get_field(struct cfg_string *str, size_t current, s
 
         CFG_FIELD_TYPE(field)=CFG_TYPE_SCALAR;
         CFG_FIELD_ELTYPE(field)=CFG_ELTYPE_BARE;
-        *end = copy_bare_token(field, str, current, status);
+        //*end = copy_bare_token(field, str, current, status);
+        *end = copy_bare_array_token(field, str, current, status);
 
     }
 
@@ -828,9 +879,10 @@ _cfg_get_field_bail:
     return field;
 }
 
-static struct cfg *cfg_parse(struct cfg_string *str, size_t *current, enum cfg_status *status) 
+static struct cfg *cfg_parse(const struct cfg_string *str, size_t *current, enum cfg_status *status) 
 {
     struct cfg *cfg=NULL;
+    //int beg_found=0;
 
     struct cfg_field *field=NULL;
     size_t end=0;
@@ -845,7 +897,21 @@ static struct cfg *cfg_parse(struct cfg_string *str, size_t *current, enum cfg_s
     }
     cfg = cfg_new();
     while (1) {
+        *current = find_nonwhite(str, *current, status);
+        if (*status) { // EOF OK here
+            *status=CFG_SUCCESS;
+            break;
+        }
+        if (str->data[*current] == CFG_CFG_END) {
+            break;
+        }
+
         field=cfg_get_field(str, (*current), &end, status);
+        if (CFG_FOUND_END == (*status)) {
+            // just found end of config, break out
+            *status=CFG_SUCCESS;
+            break;
+        }
         if (*status) {
             // an error occured
             break;
@@ -854,21 +920,23 @@ static struct cfg *cfg_parse(struct cfg_string *str, size_t *current, enum cfg_s
             // probably natural end of file found
             break;
         }
+
+
         cfg_append(cfg,field);
 
-        // skip past either the last letter, end quote, end array delim, etc.
-        // also, if within { } config delimiters, break out.
         if (str->data[end] == CFG_CFG_END) {
+            *current = end;
             break;
         }
-        (*current)=end+1;
+
+        // skip past either the last letter, end quote, end array delim, etc.
+        (*current) = end+1;
     }
 
 _cfg_parse_bail:
     if (*status) {
         cfg=cfg_del(cfg);
     }
-    str=cfg_string_del(str);
     return cfg;
 };
 
@@ -889,6 +957,7 @@ struct cfg *cfg_read(const char* filename, enum cfg_status *status)
     }
 
     cfg=cfg_parse(str, &current, status);
+    str=cfg_string_del(str);
     return cfg;
 }
 
@@ -999,12 +1068,11 @@ static long extract_long(const char *str, enum cfg_status *status)
     return val;
 }
 
-/*
-static double *extract_lonarr(const struct cfg_field *self,
-                              size_t *size,
-                              enum cfg_status *status)
+static long *extract_lonarr(const struct cfg_field *self,
+                            size_t *size,
+                            enum cfg_status *status)
 {
-    double *out=NULL, tmp=0;
+    long *out=NULL, tmp=0;
     struct cfg_strvec *vec=NULL;
     size_t i=0;
 
@@ -1014,34 +1082,34 @@ static double *extract_lonarr(const struct cfg_field *self,
     if (!self) {
         // not OK to have null field!
         *status = CFG_EMPTY;
-        goto _extract_dblarr_bail;
+        goto _extract_lonarr_bail;
     }
 
     vec = CFG_FIELD_GET_VEC(self);
 
     if (!vec || vec->size==0) {
         // ok to have empty array, just exit
-        goto _extract_dblarr_bail;
+        goto _extract_lonarr_bail;
     }
 
-    out = calloc(vec->size, sizeof(double));
+    out = calloc(vec->size, sizeof(long));
 
     if (!out){
-        fprintf(stderr,"Failed to allocate double array copy for field '%s'\n", 
+        fprintf(stderr,"Failed to allocate long array copy for field '%s'\n", 
                 CFG_FIELD_NAME(self));
         exit(1);
     }
 
     for (i=0; i<vec->size; i++) {
-        tmp = extract_double(vec->data[i], status);
+        tmp = extract_long(vec->data[i], status);
         if (*status) {
-            goto _extract_dblarr_bail;
+            goto _extract_lonarr_bail;
         }
         out[i] = tmp;
     }
     *size = vec->size;
 
-_extract_dblarr_bail:
+_extract_lonarr_bail:
     if (*status) {
         free(out);
         out=NULL;
@@ -1049,7 +1117,6 @@ _extract_dblarr_bail:
 
     return out;
 }
-*/
 
 
 /*
@@ -1124,6 +1191,30 @@ long cfg_get_long(const struct cfg *self,
     }
     return val;
 }
+/*
+ * Public
+ *
+ * Extract an array as an array of longs
+ */
+long *cfg_get_lonarr(const struct cfg *self,
+                       const char *name,
+                       size_t *size,
+                       enum cfg_status *status)
+{
+    long *arr=NULL;
+    const struct cfg_field *field=NULL;
+
+    field = cfg_find(self, name, status);
+    if (*status==CFG_SUCCESS) {
+        if (CFG_TYPE_ARRAY != CFG_FIELD_TYPE(field)) {
+            *status = CFG_TYPE_ERROR;
+        } else {
+            arr = extract_lonarr(field, size, status);
+        }
+    }
+    return arr;
+}
+
 
 /*
  * Public
@@ -1156,6 +1247,8 @@ char *cfg_get_string(const struct cfg *self,
  * Public
  *
  * Extract an array as an array of strings
+ *
+ * You can use cfg_strarr_del convenience function to free this
  */
 char **cfg_get_strarr(const struct cfg *self,
                       const char *name,
@@ -1177,4 +1270,31 @@ char **cfg_get_strarr(const struct cfg *self,
         }
     }
     return sarr;
+}
+
+/*
+ * Public
+ *
+ * Get a sub-config
+ */
+
+struct cfg *cfg_get_sub(const struct cfg *self,
+                        const char *name,
+                        enum cfg_status *status)
+{
+    struct cfg *sub=NULL;
+    const struct cfg_field *field=NULL;
+
+    field = cfg_find(self, name, status);
+    if (*status==CFG_SUCCESS) {
+        if (CFG_TYPE_CFG != CFG_FIELD_TYPE(field)) {
+            *status = CFG_TYPE_ERROR;
+        } else {
+            sub = CFG_FIELD_GET_SUB(field);
+            if (!sub) {
+                *status=CFG_EMPTY;
+            }
+        }
+    }
+    return sub;
 }
