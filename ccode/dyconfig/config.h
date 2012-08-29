@@ -31,6 +31,7 @@ enum cfg_data_type {
 };
 enum cfg_status {
     CFG_SUCCESS=0,
+    CFG_FOUND_END,
     CFG_READ_ERROR,
     CFG_PARSE_BLANK,
     CFG_PARSE_COMMENT,
@@ -84,13 +85,30 @@ struct cfg {
 #define CFG_FIELD_ARR_SIZE(field) (field)->strvec->size
 
 
-// public api
+/*
+ *
+ * public api
+ *
+ */
+
+/*
+ * read the specified file and return the cfg_struct
+ */
 struct cfg *cfg_read(const char* filename, enum cfg_status *status);
+/*
+ * Completely destroy the configuration structure
+ */
 struct cfg *cfg_del(struct cfg *self);
+
+/*
+ * print the config to the stream.  The result will be a valid config file that
+ * can be read using cfg_read().
+ */
+
 void cfg_print(struct cfg *self, FILE* stream);
 
 /* 
- * Public getters
+ * getters
  *
  * If the name is not found, zero or NULL is returned and CFG_NOT_FOUND status
  * is set
@@ -110,64 +128,35 @@ double cfg_get_double(const struct cfg *self,
 long cfg_get_long(const struct cfg *self,
                   const char *name,
                   enum cfg_status *status);
+char *cfg_get_string(const struct cfg *self,
+                     const char *name,
+                     enum cfg_status *status);
+
 double *cfg_get_dblarr(const struct cfg *self,
                        const char *name,
                        size_t *size,
                        enum cfg_status *status);
-char *cfg_get_string(const struct cfg *self,
-                     const char *name,
-                     enum cfg_status *status);
+long *cfg_get_lonarr(const struct cfg *self,
+                       const char *name,
+                       size_t *size,
+                       enum cfg_status *status);
+// You can use cfg_strarr_del convenience function to free this
 char **cfg_get_strarr(const struct cfg *self,
                       const char *name,
                       size_t *size,
                       enum cfg_status *status);
 
-/*
-long cfg_get_long(const struct cfg *list, 
-                  const char* name, 
-                  enum cfg_status *status);
-*/
-/* returns a copy, you must free! */
- 
- /*
-char *cfg_get_string(const struct cfg *list, 
-                     const char* name, 
-                     enum cfg_status *status);
-                     */
-/* copy at most n characters into input string */
-/*
-void cfg_copy_string(const struct cfg *list, 
-                     const char* name, 
-                     char *out,
-                     size_t nmax,
-                     enum cfg_status *status);
-*/
+// get a sub-config
+struct cfg *cfg_get_sub(const struct cfg *self,
+                        const char *name,
+                        enum cfg_status *status);
 
-/* These return a copies, you must free the result */
-/*
-double *cfg_get_dblarr(const struct cfg *list, 
-                       const char* name, 
-                       size_t *size,
-                       enum cfg_status *status);
-
-long *cfg_get_lonarr(const struct cfg *list, 
-                     const char* name, 
-                     size_t *size,
-                     enum cfg_status *status);
-*/
-// You can use cfg_strarr_del convenience function to free this
-/*
-char **cfg_get_strarr(const struct cfg *list, 
-                      const char* name, 
-                      size_t *size,
-                      enum cfg_status *status);
-
-void cfg_print(struct cfg *list, FILE *stream);
-*/
 /* convert a status to a status string. Do not free! */
 const char* cfg_status_string(enum cfg_status status);
 
 /* convenience function to delete an array of strings */
 char **cfg_strarr_del(char **arr, size_t size);
+
+
 #endif
 
