@@ -59,8 +59,7 @@ struct cfg_field {
     enum cfg_data_type el_type;
     struct cfg_strvec *strvec;
 
-    // for future expansion to sub fields
-    //struct cfg_field *fields;
+    // sub-configuration
     struct cfg *sub;
 };
 
