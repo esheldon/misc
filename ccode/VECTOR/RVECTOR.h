@@ -347,6 +347,8 @@ typedef pprvector_##type* p_pprvector_##type
 
 #define RVECTOR_FOREACH(itername, vec) VECTOR_FOREACH(itername, vec)
 
+#define RVECTOR_PUSH(vec, val) VECTOR_PUSH(vec, val)
+
 // NOTE ownership transferred
 #define RVECTOR_POP(vec) VECTOR_POP(vec)
 

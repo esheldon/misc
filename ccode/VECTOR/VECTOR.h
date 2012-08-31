@@ -187,12 +187,8 @@
     VECTOR_PUSH(v, VECTOR_NEW(long));
     VECTOR_PUSH(v, VECTOR_NEW(long));
 
-    // This is the recommended way to delete elements in a vector of vectors
-    // You can't use an iterator in this case
-    for (size_t i=0; i<VECTOR_SIZE(v); i++) {
-        VECTOR_DEL(VECTOR_GET(v,i));
-    }
-    VECTOR_DEL(v);
+    // special method to delete vectors of vectors
+    VECTOR_VEC_DEL(v);
 
     //
     // storing pointers in the vector
@@ -340,6 +336,16 @@ typedef ppvector_##type* p_ppvector_##type
     }                                                                        \
 } while(0)
 
+
+// special for vectors of vectors
+#define VECTOR_VEC_DEL(vec) do {                                             \
+    size_t i=0;                                                              \
+    for (i=0; i<VECTOR_SIZE(vec); i++) {                                     \
+        VECTOR_DEL(VECTOR_GET(vec,i));                                       \
+    }                                                                        \
+    VECTOR_DEL(vec);                                                         \
+} while(0)
+
 // c99 
 //
 // We use __v_##vec_##type and assign vec to the same pointer in the for loop
@@ -457,12 +463,17 @@ typedef ppvector_##type* p_ppvector_##type
 // Modifying the size or capacity
 //
 
-// Change the visible size
+// Change the visible size; note for ref types, the pointers
+// will be NULL of the size is increased, so better to PUSH 
+// the new elements.
+//
 // The capacity is only changed if size is larger
 // than the existing capacity
 #define VECTOR_RESIZE(vec, newsize)  do {                                    \
     if ((newsize) > (vec)->capacity) {                                       \
         VECTOR_REALLOC(vec, newsize);                                        \
+    } else if ((newsize) < (vec)->size) {                                    \
+        _VECTOR_DSTR_RANGE(vec, (newsize), (vec)->size);                     \
     }                                                                        \
     (vec)->size=(newsize);                                                   \
 } while(0)
@@ -471,17 +482,15 @@ typedef ppvector_##type* p_ppvector_##type
 #define _VECTOR_DSTR_RANGE(vec, i1, i2) do {                                 \
     if ((vec)->dstr) {                                                       \
         size_t i=0;                                                          \
-        for (i=i1; i< i2 && i < (vec)->size; i++) {                          \
+        for (i=(i1); i< (i2) && i < (vec)->size; i++) {                      \
+            fprintf(stderr,"freeing %lu\n", i);                              \
             (vec)->dstr( (vec)->data[i] );                                   \
         }                                                                    \
     }                                                                        \
 } while(0)
 
 // Set the visible size to zero and call destructor if needed
-#define VECTOR_CLEAR(vec)  do {                                              \
-    _VECTOR_DSTR_RANGE(vec, 0, (vec)->size);                                 \
-    (vec)->size=0;                                                           \
-} while(0)
+#define VECTOR_CLEAR(vec) VECTOR_RESIZE(vec,0)
 
 
 // reserve at least the specified amount of slots.  If the new capacity is
