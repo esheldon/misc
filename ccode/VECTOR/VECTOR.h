@@ -279,7 +279,7 @@ typedef struct ppvector_##type {                                             \
     size_t size;                                                             \
     size_t capacity;                                                         \
     type* data;                                                              \
-    type *(*dstr)();                                                         \
+    void (*dstr)();                                                          \
 } ppvector_##type; \
 typedef ppvector_##type* p_ppvector_##type
 
@@ -327,6 +327,7 @@ typedef ppvector_##type* p_ppvector_##type
         if ( (vec)->data && (vec)->dstr) {                                   \
             size_t i=0;                                                      \
             for (i=0; i<(vec)->size; i++) {                                  \
+                fprintf(stderr,"freeing %lu\n", i); \
                 (vec)->dstr( (vec)->data[i] );                               \
             }                                                                \
         }                                                                    \
