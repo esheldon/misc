@@ -282,11 +282,11 @@
 // does not expand macros.  That is also why we use a typedef.
 #define RVECTOR_DEF(type) _RVECTOR_DEF(type)
 #define _RVECTOR_DEF(type)                                                   \
-typedef struct pprvector_##type {                                             \
+typedef struct pprvector_##type {                                            \
     size_t size;                                                             \
     size_t capacity;                                                         \
     type **data;                                                             \
-    type *(*dstr)();                                                         \
+    void (*dstr)();                                                          \
 } pprvector_##type; \
 typedef pprvector_##type* p_pprvector_##type
 

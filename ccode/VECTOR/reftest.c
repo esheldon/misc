@@ -12,6 +12,7 @@ typedef struct mystruct {
 } MyStruct;
 
 RVECTOR_DEF(MyStruct);
+RVECTOR_DEF(long);
 
 MyStruct *MyStruct_new()
 {
@@ -21,13 +22,12 @@ MyStruct *MyStruct_new()
     return ms;
 }
 
-MyStruct *MyStruct_del(MyStruct *self)
+void MyStruct_del(MyStruct *self)
 {
     if (self) {
         free(self->x);
         free(self);
     }
-    return NULL;
 }
 
 void test_pushpop()
@@ -65,7 +65,7 @@ void test_pushpop()
     assert(1==mv->size);
 
     // ms owns this now, must free it
-    ms=MyStruct_del(ms);
+    MyStruct_del(ms); ms=NULL;
 
     RVECTOR_CLEAR(mv);
     assert(cap==mv->capacity);
@@ -80,7 +80,72 @@ void test_pushpop()
     assert(NULL==mv);
 }
 
+void test_lonarr() {
+    size_t i=0, n=3, m=10;
+    long *larr=NULL, *lptr=NULL;
+
+    RVECTOR(long) v = RVECTOR_NEW(long,free);
+
+    larr=calloc(n,sizeof(long));
+    for (i=0; i<n; i++) {
+        larr[i] = i+1;
+    }
+
+    // ownership passed
+    RVECTOR_PUSH(v, larr);
+    assert(1 == RVECTOR_SIZE(v));
+
+    larr=calloc(m,sizeof(long));
+    for (i=0; i<m; i++) {
+        larr[i] = i+1;
+    }
+
+    // ownership passed
+    RVECTOR_PUSH(v, larr);
+    assert(2 == RVECTOR_SIZE(v));
+
+
+    lptr=RVECTOR_GET(v, 0);
+    for (i=0; i<n; i++) {
+        assert((i+1) == lptr[i]);
+    }
+
+    lptr=RVECTOR_GET(v, 1);
+    for (i=0; i<m; i++) {
+        assert((i+1) == lptr[i]);
+    }
+
+
+    RVECTOR_DEL(v);
+    assert(NULL == v);
+}
+
+void test_reserve() {
+    size_t n=10, cap=0;
+    long *larr=NULL;
+
+    RVECTOR(long) v = RVECTOR_NEW(long,free);
+
+    RVECTOR_RESERVE(v, n);
+    cap = RVECTOR_CAPACITY(v);
+
+    assert(0 == RVECTOR_SIZE(v));
+    assert(n <= cap);
+
+    larr=calloc(3,sizeof(long));
+
+    RVECTOR_PUSH(v, larr);
+    assert(1 == RVECTOR_SIZE(v));
+    assert(cap == RVECTOR_CAPACITY(v));
+
+    RVECTOR_DEL(v);
+    assert(NULL == v);
+}
 int main(int argc, char** argv) {
+    wlog("testing long arrays\n");
+    test_lonarr();
     wlog("testing push/pop\n");
     test_pushpop();
+    wlog("testing reserve\n");
+    test_reserve();
 }
