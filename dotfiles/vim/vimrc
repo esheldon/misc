@@ -125,7 +125,6 @@ if &t_Co > 2 || has("gui_running")
     syntax on
     set hlsearch
 
-
     if has("gui_running")
         Zenburn()
 
@@ -135,19 +134,7 @@ if &t_Co > 2 || has("gui_running")
 		" I don't want clicking in the window to put the mouse there!
 		"set mouse=""
 
-        if uname == "Darwin"
-            "set nomacatsui anti enc=utf-8 termencoding=macroman gfn=Courier:h12 
-            "set nomacatsui enc=utf-8 termencoding=macroman gfn=Monaco:h10 
-            "set enc=utf-8 termencoding=macroman gfn=Monaco:h10 
-            "set gfn=Monaco:h10 
-            "set noanti gfn=Monaco:h10 
-            set anti gfn=Monaco:h14 
-			"set gfn=Courier:h12.00
-			" On OSX gvim copy paste doesn't work right
-			vmap <C-c> y:call system("pbcopy", getreg("\""))<CR>
-		else
-            set gfn=peep\ 12
-        endif
+        set gfn=Monaco\ 10
 
         " turn off annoying cursor blinking
         set gcr=a:blinkon0

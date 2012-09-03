@@ -25,7 +25,9 @@ MyStruct *MyStruct_new()
 void MyStruct_del(MyStruct *self)
 {
     if (self) {
+        fprintf(stderr,"    freeing x\n");
         free(self->x);
+        fprintf(stderr,"    freeing self\n");
         free(self);
     }
 }

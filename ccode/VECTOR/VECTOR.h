@@ -1,15 +1,14 @@
 /*
   VECTOR - A generic vector container written using the C preprocessor.
- 
-  This approach is generally more appealing for generic types than a compiled
-  library that uses void*.  The macro approach is actually more type safe.  The
-  compiler can do type checking and catch errors; at the very least one gets
-  compiler warnings, which are quite useful.  These checks are impossible
-  with a void* approach.
 
-  Note a VECTOR is a container for value types. When pointers are contained,
-  the data must be thought of as "not owned".  If you want a container for
-  reference types with ownership and constructors/destructores, use a REFVEC
+  This is a container for value types. When pointers are contained, the data
+  must be thought of as "not owned".  If you want a container for reference
+  types with ownership and destructore, use a RVECTOR
+
+  The macro approach is more appealing for generic types than a compiled
+  library that uses void*.  The macro approach is actually more type safe.  The
+  compiler can do type checking and catch errors or give warnings.  Such checks
+  are impossible with a void* approach.
   
   Examples
   --------
