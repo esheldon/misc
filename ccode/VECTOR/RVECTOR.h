@@ -1,17 +1,15 @@
 /*
   RVECTOR - A generic vector container written using the C preprocessor.
  
-  Each type is a reference type, meaning the container holds pointers and the
+  This container holds "reference types". The container holds pointers and the
   objects can be destroyed automatically using an explicitly specified
-  destructor.  If you just want to hold value types, see VECTOR.h  You can
-  also just hold a set of pointers with VECTOR.h if you don't need
-  the destructor.
+  destructor.  If you just want to hold value types, see VECTOR.h  You can also
+  just hold a set of pointers with VECTOR.h if you don't need the destructor.
 
-  This macro approach is generally more appealing for generic types than a
-  compiled library that uses void*.  The macro approach is actually more type
-  safe.  The compiler can do type checking and catch errors; at the very least
-  one gets compiler warnings, which are quite useful.  These checks are
-  impossible with a void* approach.
+  The macro approach is more appealing for generic types than a compiled
+  library that uses void*.  The macro approach is actually more type safe.  The
+  compiler can do type checking and catch errors or give warnings.  Such checks
+  are impossible with a void* approach.
   
   Examples
   --------

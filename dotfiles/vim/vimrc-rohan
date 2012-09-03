@@ -7,6 +7,9 @@ endif
 " This must be first, because it changes other options as a side effect.
 set nocompatible
 
+" turn on line numbering
+set number
+
 " we have to put this here because some of these will not override
 " previous settings
 let python_highlight_all=1
@@ -131,7 +134,6 @@ if &t_Co > 2 || has("gui_running")
 		" I don't want clicking in the window to put the mouse there!
 		"set mouse=""
 
-        "set gfn=Terminus\ 12
         set gfn=Monaco\ 10
 
         " turn off annoying cursor blinking
@@ -220,7 +222,7 @@ if &t_Co > 2 || has("gui_running")
     else
 
 		if &t_Co < 256
-            set background=light
+            set background=dark
             colorscheme default
 		else
             Zenburn()
@@ -324,4 +326,6 @@ inoremap # X#
 
 au BufNewFile,BufRead *.ooc set filetype=ooc
 
-
+" anything with .sh extension treat as bash.  Also works
+" when using set ft=sh
+let g:is_bash=1
