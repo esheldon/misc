@@ -2,37 +2,59 @@
 
 function usage {
     echo "
-    usage: incsub [-h -n maxjobs] file_list
+    usage: incsub [options] file_list
 
         -n to specify the max number of allowed jobs in any queue. 
               default is 50.
         -p time between polls of wq status when we are at max allowed
            jobs, default 30
         -s time to sleep between individual submissions when trying to
-           catch up to the max number of jobs, default 0.25 second
+           catch up to the max number of jobs, default 0.1 second
         -f force starting of all jobs, even if a log file is present.
+        -r Only count jobs that match the input pattern.
+            incsub -r stuff *.yaml
+           The pattern can be a regular expression
+        -d dry run.  Just print number of jobs and exit.
         -h for this help message
 
     Incrementally submit wq jobs from the input file list, maintaining at most
     the specified number of jobs in the queues.  Jobs are submitted using
     nohup.  Wait 30 seconds between job checks
 
-    If filename.wqlog exists or filename with the extension removed and replaced
-    by .out exists, the job will not be submitted.  Over-ride this with the -f
-    switch.
+    If filename.wqlog exists  the job will not be submitted.  Over-ride this
+    with the -f switch.
 "
 }
 
-function count_jobs {
+function count_jobs_regex {
     name=$1
+    regex=$2
 
     awk_name="{if (\$2 == \"$name\") print \$0}"
-    njob=$(wq ls | awk "$awk_name" | wc -l)
+    njob=$(wq ls | awk "$awk_name" | grep "$regex" | wc -l)
     if [[ $? != 0 ]]; then
         echo "Error found calling wq: $?"
         exit 1
     fi
     echo "$njob"
+}
+
+
+function count_jobs {
+    name=$1
+    regex=$2
+        
+    if [[ "$regex" != "" ]]; then
+        count_jobs_regex $name $regex
+    else
+        awk_name="{if (\$2 == \"$name\") print \$0}"
+        njob=$(wq ls | awk "$awk_name" | wc -l)
+        if [[ $? != 0 ]]; then
+            echo "Error found calling wq and grepping: $?"
+            exit 1
+        fi
+        echo "$njob"
+    fi
 }
 
 name=`whoami`
@@ -43,12 +65,16 @@ maxjobs=50
 sleep_time=0.1
 poll_time=30
 force="N"
-while getopts "hfn:s:p:d:" Option; do
+regex=""
+dryrun="N"
+while getopts "hfdn:s:p:r:" Option; do
     case $Option in
         f) force="Y" ;;
         n) maxjobs=$OPTARG ;;
         s) sleep_time=$OPTARG ;;
         p) poll_time=$OPTARG ;;
+        r) regex=$OPTARG ;;
+        d) dryrun="Y" ;;
         h) usage
            exit 45 ;;
         [?]) usage
@@ -66,7 +92,13 @@ nfiles=$#
 echo "submitting jobs for user: $name"
 echo "number in list: $nfiles"
 echo "will limit to maxjobs:    $maxjobs"
+if [[ $regex != "" ]]; then
+    echo "job regex: '${regex}'"
+fi
 
+if [[ $dryrun == "Y" ]]; then
+    exit 0
+fi
 i=1
 
 diffjobs=0
@@ -78,11 +110,11 @@ for file; do
     if [[ ! -e $logf || $force == "Y" ]]; then
 
         if [[ $diffjobs -le 0 ]]; then
-            njob=$(count_jobs $name $queue)
+            njob=$(count_jobs $name $regex)
             ((diffjobs = maxjobs - njob))
             while [[ $diffjobs -le 0 ]]; do
                 sleep $poll_time
-                njob=$(count_jobs $name $queue)
+                njob=$(count_jobs $name $regex)
                 ((diffjobs = maxjobs - njob))
             done
             echo "Found $njob jobs  diffjobs: $diffjobs"

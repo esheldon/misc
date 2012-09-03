@@ -7,6 +7,9 @@ endif
 " This must be first, because it changes other options as a side effect.
 set nocompatible
 
+" turn on line numbering
+set number
+
 " we have to put this here because some of these will not override
 " previous settings
 let python_highlight_all=1

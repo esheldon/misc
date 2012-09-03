@@ -12,6 +12,7 @@ function usage {
         -c Number of columns to use in display if n > 1
         -E Limit to lines matching the input regular expression
         -l Use less if nfiles is one
+        -m Use mtail instead of multitail.  -E will no longer work
         -h for this help message
 "
 }
@@ -21,12 +22,14 @@ nfiles=1
 ncols=1
 limit="None"
 use_less="No"
-while getopts "hn:c:E:l" Option; do
+use_mtail="No"
+while getopts "hn:c:E:lm" Option; do
     case $Option in
         n) nfiles=$OPTARG ;;
         c) ncols=$OPTARG ;;
         E) limit=$OPTARG ;;
         l) use_less="Yes";;
+        m) use_mtail="Yes";;
         h) usage
            exit 1 ;;
         [?]) usage
@@ -45,6 +48,11 @@ dir="$1"
 
 if [[ $nfiles == "1" && $use_less == "Yes" ]]; then
     cmd="less +F"
+elif [[ $use_mtail == "Yes" ]]; then
+    cmd="mtail"
+    if [[ $ncols != 1 ]]; then
+        cmd="$cmd -c $ncols"
+    fi
 else
     cmd="multitail --basename"
     if [[ $ncols != 1 ]]; then
