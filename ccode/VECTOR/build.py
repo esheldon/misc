@@ -10,9 +10,11 @@ LINKFLAGS=['-lm']
 
 CFLAGS=['-std=gnu99','-Wall','-Werror']
 
-sources = ['test']
+test_sources = ['test']
+ref_sources = ['reftest']
 
-programs = [{'name':'test', 'sources':sources}]
+programs = [{'name':'test', 'sources':test_sources},
+            {'name':'reftest', 'sources':ref_sources}]
 
 def build():
     compile()

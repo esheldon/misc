@@ -246,17 +246,8 @@ void test_vector_of_vectors() {
     long x = VECTOR_GETFRONT(VECTOR_GET(v,0));
     assert(x == 3);
 
-    // This is the recommended way to delete elements in a vector of vectors
-    // You can't use an iterator in this case
-    for (size_t i=0; i<VECTOR_SIZE(v); i++) {
-        VECTOR_DEL(VECTOR_GET(v,i));
-    }
-
-    assert(NULL==VECTOR_GET(v,0));
-    assert(NULL==VECTOR_GET(v,1));
-    assert(NULL==VECTOR_GET(v,2));
-
-    VECTOR_DEL(v);
+    // special method to delete vectors of vectors
+    VECTOR_VEC_DEL(v);
     assert(NULL==v);
 
 }

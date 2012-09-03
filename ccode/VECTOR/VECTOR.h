@@ -2,16 +2,20 @@
   VECTOR - A generic vector container written using the C preprocessor.
  
   This approach is generally more appealing for generic types than a compiled
-  library because the code is more type safe. At the very least one gets
-  compiler warnings, which are quite useful.  It is impossible to get even that
-  with a compiled library.
+  library that uses void*.  The macro approach is actually more type safe.  The
+  compiler can do type checking and catch errors; at the very least one gets
+  compiler warnings, which are quite useful.  These checks are impossible
+  with a void* approach.
+
+  Note a VECTOR is a container for value types. When pointers are contained,
+  the data must be thought of as "not owned".  If you want a container for
+  reference types with ownership and constructors/destructores, use a REFVEC
   
   Examples
   --------
   The container can hold basic data types like int or double, but it is more
-  interesting to work with a struct.  (Note to work with structs or pointers,
-  you must use a typedef. I think typedefs actually make the code less 'local'
-  and thus harder to reason about, but I don't see a better way to do it).
+  interesting to work with a struct.  Note to work with structs or pointers,
+  you must use a typedef; this is a limitation of C macros. 
 
  
     #include "VECTOR.h"
@@ -48,6 +52,12 @@
     VECTOR_PUSH(v,t);
     VECTOR_PUSH(v,t);
     assert(3 == VECTOR_SIZE(v)); 
+
+    // safely pop a value off the vector.  If the vector is empty,
+    // you just get a zeroed object of the type.  Unfortunately
+    // this requires two copies.
+
+    x = VECTOR_POP(vec);
 
     //
     // Safe iteration
@@ -99,6 +109,14 @@
     assert(t.id == tnew.id);
     assert(t.x == tnew.x);
  
+    //
+    // A faster pop that is unsafe; no bounds checking Only use in situation
+    // where you are sure of the current size.
+    //
+
+    x = VECTOR_POPFAST(v);
+
+
     //
     // Modifying the visible size or internal capacity
     //
@@ -169,12 +187,8 @@
     VECTOR_PUSH(v, VECTOR_NEW(long));
     VECTOR_PUSH(v, VECTOR_NEW(long));
 
-    // This is the recommended way to delete elements in a vector of vectors
-    // You can't use an iterator in this case
-    for (size_t i=0; i<VECTOR_SIZE(v); i++) {
-        VECTOR_DEL(VECTOR_GET(v,i));
-    }
-    VECTOR_DEL(v);
+    // special method to delete vectors of vectors
+    VECTOR_VEC_DEL(v);
 
     //
     // storing pointers in the vector
@@ -254,19 +268,23 @@
 
 // Use this to define new vector types.
 //
-//     e.g.  VECTOR_DEF(long)L;
+//     e.g.  VECTOR_DEF(long);
 //
 // Note need the both VECTOR_DEF and _VECTOR_DEF in order to
 // make vectors of vectors due to the fact that concatenation
 // does not expand macros.  That is also why we use a typedef.
 #define VECTOR_DEF(type) _VECTOR_DEF(type)
-#define _VECTOR_DEF(type)                                                     \
+#define _VECTOR_DEF(type)                                                    \
 typedef struct ppvector_##type {                                             \
     size_t size;                                                             \
     size_t capacity;                                                         \
     type* data;                                                              \
+    void (*dstr)();                                                          \
 } ppvector_##type; \
 typedef ppvector_##type* p_ppvector_##type
+
+// note dstr is not used for regular VECTOR; just in place so we
+// can use the same functions like VECTOR_DEL for RVECTOR
 
 // this is how to declare vector variables in your code
 //
@@ -275,7 +293,7 @@ typedef ppvector_##type* p_ppvector_##type
 // It is a reference type, and must be initialized
 // with VECTOR_NEW.
 //
-// Note need the both VECTOR_DEF and _VECTOR_DEF in order to
+// Note need the both VECTOR and _VECTOR in order to
 // allow vectors of vectors because concatenation does not expand macros.
 #define VECTOR(type) _VECTOR(type)
 #define _VECTOR(type) p_ppvector_##type
@@ -283,7 +301,7 @@ typedef ppvector_##type* p_ppvector_##type
 // Create a new vector.  Note magic leaving the variable at the end of the
 // block
 #define VECTOR_NEW(type) _VECTOR_NEW(type)
-#define _VECTOR_NEW(type) ({ \
+#define _VECTOR_NEW(type) ({                                                 \
     VECTOR(type) _v =  calloc(1, sizeof(ppvector_##type));                   \
     if (!_v) {                                                               \
         fprintf(stderr,                                                      \
@@ -306,10 +324,27 @@ typedef ppvector_##type* p_ppvector_##type
 // The container is set to NULL
 #define VECTOR_DEL(vec) do {                                                 \
     if ((vec)) {                                                             \
+        if ( (vec)->data && (vec)->dstr) {                                   \
+            size_t i=0;                                                      \
+            for (i=0; i<(vec)->size; i++) {                                  \
+                fprintf(stderr,"freeing %lu\n", i); \
+                (vec)->dstr( (vec)->data[i] );                               \
+            }                                                                \
+        }                                                                    \
         free((vec)->data);                                                   \
         free((vec));                                                         \
         (vec)=NULL;                                                          \
     }                                                                        \
+} while(0)
+
+
+// special for vectors of vectors
+#define VECTOR_VEC_DEL(vec) do {                                             \
+    size_t i=0;                                                              \
+    for (i=0; i<VECTOR_SIZE(vec); i++) {                                     \
+        VECTOR_DEL(VECTOR_GET(vec,i));                                       \
+    }                                                                        \
+    VECTOR_DEL(vec);                                                         \
 } while(0)
 
 // c99 
@@ -349,10 +384,10 @@ typedef ppvector_##type* p_ppvector_##type
 // VECTOR_FOREACH_END
 //
 // The name 'iter' will not live past the foreach
-#define VECTOR_FOREACH_BEG(itername, vec)  do {                                  \
-        typeof((vec)->data) (itername) = VECTOR_BEGIN((vec));                      \
-        typeof((vec)->data) _iter_end_##itername = VECTOR_END((vec));               \
-        for (; (itername) != _iter_end_##itername; (itername)++) {                        \
+#define VECTOR_FOREACH_BEG(itername, vec)  do {                              \
+        typeof((vec)->data) (itername) = VECTOR_BEGIN((vec));                \
+        typeof((vec)->data) _iter_end_##itername = VECTOR_END((vec));        \
+        for (; (itername) != _iter_end_##itername; (itername)++) {           \
 
 #define VECTOR_FOREACH_END  } } while (0);
 
@@ -367,7 +402,7 @@ typedef ppvector_##type* p_ppvector_##type
 #define VECTOR_FOREACH(itername, vec)                                        \
     for(typeof((vec)->data) (itername)=VECTOR_BEGIN(vec),                    \
         _iter_end_##itername=VECTOR_END((vec));                              \
-        (itername) != _iter_end_##itername;                                        \
+        (itername) != _iter_end_##itername;                                  \
         (itername)++)
 
 //
@@ -382,14 +417,16 @@ typedef ppvector_##type* p_ppvector_##type
     (vec)->data[(vec)->size-1] = val;                                        \
 } while(0)
 
-// safely pop a value off the vector.  If the vector is empty,
-// you just get a zeroed object of the type.  Unfortunately
-// this requires two copies.
-//
+// safely pop a value off the vector.  If the vector is empty, you just get a
+// zeroed object of the type.  Unfortunately this requires two copies.  If the
+// vector "owns" the data for a reference type, because you associated a
+// destructor, then you should consider the ownership transferred to the
+// reciever, so be careful.
+
 // using some magic: leaving val at the end of this
 // block lets it become the value in an expression,
 // e.g.
-//   x = VECTOR_POP(long, vec);
+//   x = VECTOR_POP(vec);
 
 #define VECTOR_POP(vec) ({                                                   \
     typeof( *(vec)->data) _val = {0};                                        \
@@ -427,20 +464,34 @@ typedef ppvector_##type* p_ppvector_##type
 // Modifying the size or capacity
 //
 
-// Change the visible size
+// Change the visible size; note for ref types, the pointers
+// will be NULL of the size is increased, so better to PUSH 
+// the new elements.
+//
 // The capacity is only changed if size is larger
 // than the existing capacity
 #define VECTOR_RESIZE(vec, newsize)  do {                                    \
     if ((newsize) > (vec)->capacity) {                                       \
         VECTOR_REALLOC(vec, newsize);                                        \
+    } else if ((newsize) < (vec)->size) {                                    \
+        _VECTOR_DSTR_RANGE(vec, (newsize), (vec)->size);                     \
     }                                                                        \
     (vec)->size=(newsize);                                                   \
 } while(0)
 
-// Set the visible size to zero
-#define VECTOR_CLEAR(vec)  do {                                              \
-    (vec)->size=0;                                                           \
+// execute the destructor on the elements in the range [i1,i2)
+#define _VECTOR_DSTR_RANGE(vec, i1, i2) do {                                 \
+    if ((vec)->dstr) {                                                       \
+        size_t i=0;                                                          \
+        for (i=(i1); i< (i2) && i < (vec)->size; i++) {                      \
+            fprintf(stderr,"freeing %lu\n", i);                              \
+            (vec)->dstr( (vec)->data[i] );                                   \
+        }                                                                    \
+    }                                                                        \
 } while(0)
+
+// Set the visible size to zero and call destructor if needed
+#define VECTOR_CLEAR(vec) VECTOR_RESIZE(vec,0)
 
 
 // reserve at least the specified amount of slots.  If the new capacity is
@@ -458,8 +509,8 @@ typedef ppvector_##type* p_ppvector_##type
 
 // delete the data leaving capacity 1 and set size to 0
 #define VECTOR_DROP(vec) do {                                                \
+    VECTOR_CLEAR(vec);                                                       \
     VECTOR_REALLOC(vec,1);                                                   \
-    (vec)->size=0;                                                           \
 } while(0)
 
 
@@ -471,6 +522,9 @@ typedef ppvector_##type* p_ppvector_##type
     if (_newsize < 1) _newsize=1;                                            \
                                                                              \
     if (_newsize != (vec)->capacity) {                                       \
+        if (_newsize < (vec)->size) {                                        \
+            _VECTOR_DSTR_RANGE(vec, _newsize, (vec)->size);                  \
+        }                                                                    \
         (vec)->data =                                                        \
             realloc((vec)->data, _newsize*_sizeof_type);                     \
         if (!(vec)->data) {                                                  \
