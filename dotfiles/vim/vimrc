@@ -329,3 +329,6 @@ au BufNewFile,BufRead *.ooc set filetype=ooc
 " anything with .sh extension treat as bash.  Also works
 " when using set ft=sh
 let g:is_bash=1
+
+" turn off inserting comment lines
+autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
