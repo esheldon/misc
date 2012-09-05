@@ -359,7 +359,8 @@ void cfg_print(struct cfg *self, FILE* stream)
 
 }
 
-static size_t find_char(const struct cfg_string *str, size_t current, int ch, enum cfg_status *status)
+static size_t find_char(const struct cfg_string *str, size_t current, int ch, 
+                        enum cfg_status *status)
 {
     size_t i=0, loc=-1;
 
