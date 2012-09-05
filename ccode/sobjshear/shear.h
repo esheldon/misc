@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "defs.h"
-#include "config.h"
+#include "sconfig.h"
 #include "cosmo.h"
 #include "healpix.h"
 #include "lens.h"
@@ -11,7 +11,7 @@
 #include "source.h"
 
 struct shear {
-    struct config*  config;
+    struct sconfig*  config;
     struct cosmo*   cosmo;
     struct healpix* hpix;
     struct lcat*    lcat;

@@ -21,7 +21,7 @@ CC='gcc'
 
 LINKFLAGS=['-lm']
 
-CFLAGS=['-std=c99','-Wall','-Werror']
+CFLAGS=['-std=gnu99','-Wall','-Werror']
 #CFLAGS=['-std=gnu99','-Wall','-Werror']
 if not options.noopt:
     CFLAGS += ['-O2']
@@ -29,7 +29,10 @@ if not options.debug:
     CFLAGS += ['-DNDEBUG']
 
 
+test_programs=[{'name':'test/test-sconfig','sources':['sconfig','config','Vector',
+                                                      'test/test-sconfig']}]
 
+"""
 test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/test-healpix']},
                  {'name':'test/test-healpix-brute',
                   'sources':['healpix','gcirc','stack','Vector','sort','histogram','test/test-healpix-brute']},
@@ -38,7 +41,7 @@ test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/
                  {'name':'test/test-sdss-survey','sources':['test/test-sdss-survey','sdss-survey']},
                  {'name':'test/test-sdss-quad','sources':['test/test-sdss-quad','sdss-survey']},
                  {'name':'test/test-sdss-quad-check','sources':['test/test-sdss-quad-check','sdss-survey']},
-                 {'name':'test/test-config','sources':['config','test/test-config']},
+                 {'name':'test/test-config','sources':['sconfig','test/test-config']},
                  {'name':'test/test-source',
                   'sources':['source','sort','healpix','histogram','stack','Vector','test/test-source']},
                  {'name':'test/test-lens','sources':['lens','cosmo','test/test-lens']},
@@ -46,11 +49,13 @@ test_programs = [{'name':'test/test-healpix','sources':['healpix','stack','test/
                  {'name':'test/test-cosmo','sources':['cosmo','test/test-cosmo']},
                  {'name':'test/test-sort','sources':['sort','Vector','test/test-sort']},
                  {'name':'test/test-hist','sources':['histogram','Vector','test/test-hist']}]
+"""
 
-sobjshear_sources = ['config', 'stack', 'Vector','source','lens','cosmo','healpix',
+sobjshear_sources = ['sconfig', 'config', 'stack', 'Vector','source','lens','cosmo','healpix',
                      'shear','lensum','histogram','tree','interp','urls',
                      'sobjshear','sdss-survey']
-redshear_sources = ['healpix','cosmo','tree','stack','lens','lensum','config','urls','Vector',
+redshear_sources = ['healpix','cosmo','tree','stack','lens','lensum','sconfig','config',
+                    'urls','Vector',
                     'util',
                     'redshear','sdss-survey']
 

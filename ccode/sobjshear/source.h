@@ -3,7 +3,7 @@
 
 #include "Vector.h"
 #include "defs.h"
-#include "config.h"
+#include "sconfig.h"
 
 /* 
   We can work in two modes:
@@ -54,7 +54,7 @@ struct source {
 
 
 // n_zlens == 0 indicates we are using "true z" style
-struct source* source_new(struct config* config);
+struct source* source_new(struct sconfig* config);
 
 int source_read(FILE* stream, struct source* src);
 

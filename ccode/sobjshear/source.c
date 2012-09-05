@@ -7,9 +7,9 @@
 #include "Vector.h"
 #include "log.h"
 #include "sdss-survey.h"
-#include "config.h"
+#include "sconfig.h"
 
-struct source* source_new(struct config* config) {
+struct source* source_new(struct sconfig* config) {
     struct source* src = calloc(1,sizeof(struct source));
     if (src == NULL) {
         wlog("Could not allocate struct source\n");

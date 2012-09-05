@@ -6,7 +6,7 @@
 
 #include "defs.h"
 #include "shear.h"
-#include "config.h"
+#include "sconfig.h"
 #include "cosmo.h"
 #include "healpix.h"
 #include "lens.h"
@@ -26,11 +26,11 @@ struct shear* shear_init(const char* config_url, const char* lens_url) {
         exit(EXIT_FAILURE);
     }
 
-    shear->config=config_read(config_url);
+    shear->config=sconfig_read(config_url);
 
-    struct config* config=shear->config;
+    struct sconfig* config=shear->config;
     wlog("config structure:\n");
-    config_print(config);
+    sconfig_print(config);
 
     // now initialize the structures we need
     wlog("Initalizing cosmo in flat universe\n");
@@ -118,7 +118,7 @@ void shear_procpair(struct shear* self,
                     struct lens* lens, 
                     struct lensum* lensum) {
 
-    struct config* config=self->config;
+    struct sconfig* config=self->config;
     
     double cosphi, cosradiff, sinradiff, theta;
     double phi, arg, cos2theta, sin2theta;
@@ -247,7 +247,7 @@ struct shear* shear_delete(struct shear* self) {
 
     if (self != NULL) {
 
-        self->config   = config_delete(self->config);
+        self->config   = sconfig_delete(self->config);
         self->lcat     = lcat_delete(self->lcat);
         self->hpix     = hpix_delete(self->hpix);
         self->cosmo    = cosmo_delete(self->cosmo);

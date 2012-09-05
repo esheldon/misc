@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "config.h"
 #include "source.h"
 #include "shear.h"
 #include "log.h"
