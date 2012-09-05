@@ -454,7 +454,7 @@ static struct cfg_string *read_whole_file(const char* filename)
     FILE* fp=NULL;
     char *data=NULL;
     size_t nchar=0;
-    struct cfg_string *str;
+    struct cfg_string *str=NULL;
 
     fp = fopen(filename,"r");
     if (fp==NULL) {

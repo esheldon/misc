@@ -7,7 +7,6 @@
 #include "log.h"
 #include "healpix.h"
 #include "stack.h"
-#include "config.h"
 #include "urls.h"
 #include "sdss-survey.h"
 

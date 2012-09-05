@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "lensum.h"
-#include "config.h"
+#include "sconfig.h"
 #include "log.h"
 #include "defs.h"
 #include "lens.h"
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     }
 
     const char* config_url = argv[1];
-    struct config* config=config_read(config_url);
+    struct sconfig* config=sconfig_read(config_url);
 
     // this is the beginning of the table
     struct lensum_hash* hash = NULL;
