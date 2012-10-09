@@ -27,7 +27,7 @@ const char *kernel_source =
 "   float v = col-cencol;                        \n"
 "   float chi2=icc*u*u + irr*v*v - 2.0*irc*u*v;  \n"
 "   chi2 *= idet;                                \n"
-"   output[idx] = exp( -0.5*chi2 );  \n"
+"   output[idx] += exp( -0.5*chi2 );  \n"
 "}                                                                     \n";
 //END KERNEL
 const char *kernel_source_old =
@@ -97,7 +97,7 @@ void do_c_map(int nrow,
             float v = col-cencol;
             float chi2=icc*u*u + irr*v*v - 2.0*irc*u*v;
             chi2 *= idet;
-            data[idx] = exp( -0.5*chi2 );
+            data[idx] += exp( -0.5*chi2 );
 
         }
     }
@@ -129,13 +129,17 @@ int main(int argc, char** argv)
 
     int nelem=nrow*ncol;
 
-    size_t szLocalWorkSize = 256;
+    // both 100 and 256 gave same.  Doesn't seem to matter much
+    //size_t szLocalWorkSize = 10;
+    //size_t szLocalWorkSize = 256;
+    size_t szLocalWorkSize = 100;
     size_t szGlobalWorkSize = shrRoundUp((int)szLocalWorkSize, (int)(nrow*ncol));  // rounded up to the nearest multiple of the LocalWorkSize
+    printf("nelem: %d\n", nelem);
+    printf("local work size: %lu\n", szLocalWorkSize);
+    printf("global work size: %lu\n", szGlobalWorkSize);
 
 
-    // working with local work sizes gives a big speedup, at least 2.5
-    // what other optimizations can we do?
-    cl_float *data_from_gpu = calloc(nrow*ncol, sizeof(cl_float));
+    cl_float *data_from_gpu = calloc(szGlobalWorkSize, sizeof(cl_float));
     cl_float *data_from_cpu = calloc(nrow*ncol, sizeof(cl_float));
 
     cl_float *rows=calloc(szGlobalWorkSize,sizeof(cl_float));
@@ -210,23 +214,32 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    cl_mem rows_in = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(cl_float)*nrow*ncol, NULL, &err);
+    cl_mem rows_in = clCreateBuffer(context,  
+            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, rows, &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create rows buffer\n");
         exit(EXIT_FAILURE);
     }
-    cl_mem cols_in = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(cl_float)*nrow*ncol, NULL, &err);
+    cl_mem cols_in = clCreateBuffer(context,  
+            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, cols, &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create cols buffer\n");
         exit(EXIT_FAILURE);
     }
-    output = clCreateBuffer(context,  CL_MEM_WRITE_ONLY,  sizeof(cl_float)*nrow*ncol, NULL, &err);
+
+    // we copy because we want the memory to be zerod
+    // read-write because we will reduce it!
+    //output = clCreateBuffer(context,  
+    //        CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, data_from_gpu, &err);
+    output = clCreateBuffer(context,  
+            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, data_from_gpu, &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create buffer\n");
         exit(EXIT_FAILURE);
     }
 
     // true here is for blocking write,0 for 0 offset. End stuff is event oriented
+    /*
     err=clEnqueueWriteBuffer(queue,rows_in,CL_TRUE,0,(size_t)(sizeof(float)*nrow*ncol),rows,0,NULL,NULL);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not copy rows\n");
@@ -237,6 +250,7 @@ int main(int argc, char** argv)
         fprintf(stderr,"could not copy cols\n");
         exit(EXIT_FAILURE);
     }
+    */
     cl_program program = clCreateProgramWithSource(context, 1, &kernel_source , NULL, &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create program\n");
@@ -257,12 +271,15 @@ int main(int argc, char** argv)
     char buffer[2048];
     clGetProgramBuildInfo(program, device_ids, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
 
-    clGetDeviceInfo(device_ids, 
-                     CL_DEVICE_NAME,
-                     sizeof(buffer),
-                     buffer,
-                     &len);
-    printf("device name: '%s'\n", buffer);
+    clGetDeviceInfo(device_ids, CL_DEVICE_NAME, sizeof(buffer), buffer, &len);
+    cl_ulong memsize;
+    clGetDeviceInfo(device_ids, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_ulong), &memsize, &len);
+    cl_uint nunits;
+    clGetDeviceInfo(device_ids, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &nunits, &len);
+     
+    printf("device name:  '%s'\n", buffer);
+    printf("memory:        %lu\n", memsize);
+    printf("compute units: %u\n", nunits);
 
     //SETUP KERNEL
     cl_kernel kernel = clCreateKernel(program, "gmix", &err);

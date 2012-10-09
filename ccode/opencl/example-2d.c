@@ -13,6 +13,8 @@ const char *kernel_source =
 "{                                                                     \n"
 "   int row = get_global_id(0);                                        \n"
 "   int col = get_global_id(1);                                        \n"
+"   if ( (row >= nrow) || (col >= ncol) ) \n"
+"       return;                           \n"
 "   int idx=row*nrow + col;                                            \n"
 "   output[idx] = idx;                                                 \n"
 "}                                                                     \n";
@@ -93,7 +95,7 @@ int main(int argc, char** argv)
     cl_int err = CL_SUCCESS;
 
     clock_t t0,t1;
-    size_t numiter=1000000;
+    size_t numiter=400000;
 
     int nelem=nrow*ncol;
 
