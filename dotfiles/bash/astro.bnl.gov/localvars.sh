@@ -52,6 +52,7 @@ export MASK_DIR=~esheldon/masks
 
 export LENSDIR=~esheldon/lensing
 export LENSDIR_HDFS=hdfs:///user/esheldon/lensing
+export SHAPESIM_FS=hdfs
 
 export PIXEL_MASK_BASIC=pixel_mask_dr4_basic
 export PIXEL_MASK_BOUND=pixel_mask_dr4_bound

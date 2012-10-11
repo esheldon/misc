@@ -15,6 +15,7 @@ function usage {
             incsub -r stuff *.yaml
            The pattern can be a regular expression
         -d dry run.  Just print number of jobs and exit.
+        -P port
         -h for this help message
 
     Incrementally submit wq jobs from the input file list, maintaining at most
@@ -28,10 +29,11 @@ function usage {
 
 function count_jobs_regex {
     name=$1
-    regex=$2
+    port=$2
+    regex=$3
 
     awk_name="{if (\$2 == \"$name\") print \$0}"
-    njob=$(wq ls | awk "$awk_name" | grep "$regex" | wc -l)
+    njob=$(wq -p "$port" ls | awk "$awk_name" | grep "$regex" | wc -l)
     if [[ $? != 0 ]]; then
         echo "Error found calling wq: $?"
         exit 1
@@ -42,13 +44,14 @@ function count_jobs_regex {
 
 function count_jobs {
     name=$1
-    regex=$2
-        
+    port=$2
+    regex=$3
+
     if [[ "$regex" != "" ]]; then
-        count_jobs_regex $name $regex
+        count_jobs_regex $name $regex $port
     else
         awk_name="{if (\$2 == \"$name\") print \$0}"
-        njob=$(wq ls | awk "$awk_name" | wc -l)
+        njob=$(wq -p "$port" ls | awk "$awk_name" | wc -l)
         if [[ $? != 0 ]]; then
             echo "Error found calling wq and grepping: $?"
             exit 1
@@ -61,13 +64,14 @@ name=`whoami`
 
 # number of jobs running at once
 maxjobs=50
-#sleep_time=0.25
-sleep_time=0.1
+sleep_time=0.2
+#sleep_time=0.1
 poll_time=30
 force="N"
 regex=""
 dryrun="N"
-while getopts "hfdn:s:p:r:" Option; do
+port="51093"
+while getopts "hfdn:s:p:r:P:" Option; do
     case $Option in
         f) force="Y" ;;
         n) maxjobs=$OPTARG ;;
@@ -75,6 +79,7 @@ while getopts "hfdn:s:p:r:" Option; do
         p) poll_time=$OPTARG ;;
         r) regex=$OPTARG ;;
         d) dryrun="Y" ;;
+        P) port=$OPTARG ;;
         h) usage
            exit 45 ;;
         [?]) usage
@@ -110,11 +115,11 @@ for file; do
     if [[ ! -e $logf || $force == "Y" ]]; then
 
         if [[ $diffjobs -le 0 ]]; then
-            njob=$(count_jobs $name $regex)
+            njob=$(count_jobs $name $port $regex)
             ((diffjobs = maxjobs - njob))
             while [[ $diffjobs -le 0 ]]; do
                 sleep $poll_time
-                njob=$(count_jobs $name $regex)
+                njob=$(count_jobs $name $port $regex)
                 ((diffjobs = maxjobs - njob))
             done
             echo "Found $njob jobs  diffjobs: $diffjobs"
@@ -122,10 +127,7 @@ for file; do
 
         dt=`date +"%T"`
         echo "    submitting $file $dt $i/$nfiles (${perc}%)"
-        #echo -n "$i/$nfiles $dt (${perc}%)  "
-        nohup wq sub "$file" &> "$logf" &
-        #wq sub -b "$file"
-        # this is to force an appropriate pause when things are slow
+        nohup wq -p "$port" sub "$file" &> "$logf" &
 
         if [[ $? != 0 ]]; then
             echo "Error submitting job through wq: $?"

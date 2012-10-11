@@ -39,6 +39,9 @@ struct source {
     double z;
     double dc; // for speed
 
+    double mag;
+    double R; 
+
     // calculate these for speed
     double sinra; 
     double cosra;
@@ -57,6 +60,8 @@ struct source {
 struct source* source_new(struct sconfig* config);
 
 int source_read(FILE* stream, struct source* src);
+
+int source_filter(struct source *src, struct sconfig *cfg);
 
 void source_print(struct source* src);
 
