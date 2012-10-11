@@ -27,6 +27,7 @@ struct image {
     double _counts; // total counts
 
     double sky;
+    double skysig;
 
     int is_owner;
     double **rows;
