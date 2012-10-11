@@ -12,7 +12,7 @@ void usage_and_exit(void) {
 
 
 int main(int argc, char** argv) {
-    int64 counter=0;
+    int64 nsource=0, nkeep=0;
 
     if (argc < 3) {
         usage_and_exit();
@@ -26,25 +26,28 @@ int main(int argc, char** argv) {
     src->zlens = shear->config->zl;
 
     while (source_read(stdin, src)) {
-        counter++;
-        if (counter == 1) {
+        nsource++;
+        if (nsource == 1) {
             wlog("first source:\n");
             source_print(src);
         }
-        if ((counter % 10000) == 0) {
-            wlog(".");
-        }
+        if (source_filter(src,shear->config)) {
+            nkeep++;
+            if ((nsource % 10000) == 0) {
+                wlog(".");
+            }
 
-        if (src->scstyle == SCSTYLE_TRUE) {
-            src->dc = Dc(shear->cosmo, 0.0, src->z);
-        }
+            if (src->scstyle == SCSTYLE_TRUE) {
+                src->dc = Dc(shear->cosmo, 0.0, src->z);
+            }
 
-        shear_process_source(shear, src);
+            shear_process_source(shear, src);
+        }
     }
     wlog("\nlast source:\n");
     source_print(src);
 
-    wlog("Read a total of %lu sources\n", counter);
+    wlog("Used %ld/%ld sources\n", nkeep, nsource);
 
     // print some summary info
     shear_print_sum(shear);

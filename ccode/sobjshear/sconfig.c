@@ -36,10 +36,15 @@ struct sconfig* sconfig_read(const char* url) {
     char key[CONFIG_KEYSZ];
 
     // set defaults
-    c->max_mag=9999;
-    c->Rmin = 0;
+    c->mag_min=0;
+    c->mag_max=9999;
+    c->R_min = 0;
+    c->R_max = 1;
+
     c->min_zlens_interp=0;
 
+    // this strcpy business is so we can print error messages
+    // below
     c->H0 = cfg_get_double(cfg,strcpy(key,"H0"),&status);
     if (status) goto _sconfig_read_bail;
 
@@ -78,14 +83,20 @@ struct sconfig* sconfig_read(const char* url) {
     }
 
     // optional pars
-    double max_mag = cfg_get_double(cfg,"max_mag",&ostatus);
+    size_t sz=0;
+    double *mag_range = cfg_get_dblarr(cfg,"mag_range",&sz,&ostatus);
     if (!ostatus) {
-        c->max_mag=max_mag;
+        c->mag_min=mag_range[0];
+        c->mag_max=mag_range[1];
+        free(mag_range);
     }
-    double Rmin = cfg_get_double(cfg,"Rmin",&ostatus);
+    double *R_range = cfg_get_dblarr(cfg,"R_range",&sz,&ostatus);
     if (!ostatus) {
-        c->Rmin=Rmin;
+        c->R_min = R_range[0];
+        c->R_max = R_range[1];
+        free(R_range);
     }
+
     double mzl = cfg_get_double(cfg, "min_zlens_interp", &ostatus);
     if (!ostatus) {
         c->min_zlens_interp=mzl;
@@ -252,8 +263,10 @@ void sconfig_print(struct sconfig* c) {
     wlog("    nside:        %ld\n", c->nside);
     wlog("    mask style:   %ld\n", c->mask_style);
     wlog("    scrit style:  %ld\n", c->scstyle);
-    wlog("    max_mag:      %lf\n", c->max_mag);
-    wlog("    Rmin:         %lf\n", c->Rmin);
+    wlog("    mag_min:      %lf\n", c->mag_min);
+    wlog("    mag_max:      %lf\n", c->mag_max);
+    wlog("    R_min:         %lf\n", c->R_min);
+    wlog("    R_max:         %lf\n", c->R_max);
     wlog("    nbin:         %ld\n", c->nbin);
     wlog("    rmin:         %lf\n", c->rmin);
     wlog("    rmax:         %lf\n", c->rmax);

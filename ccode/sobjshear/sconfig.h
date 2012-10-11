@@ -41,8 +41,10 @@ struct sconfig {
     // of the full interpolation range
     double min_zlens_interp;
 
-    double max_mag;
-    double Rmin;
+    double mag_min;
+    double mag_max;
+    double R_min;
+    double R_max;
 };
 
 struct sconfig* sconfig_read(const char* url);

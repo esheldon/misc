@@ -53,6 +53,11 @@ def main():
         ip.ex("import fitsio")
     except:
         print "Could not import fitsio"
+    try:
+        ip.ex("import gmix_image")
+    except:
+        print "Could not import gmix_image"
+
 
 
     try:

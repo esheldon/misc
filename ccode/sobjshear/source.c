@@ -38,16 +38,17 @@ int source_read(FILE* stream, struct source* src) {
     int nread=0;
     int nexpect=0;
 
-    nread += fscanf(stream, "%lf %lf %lf %lf %lf", 
-            &src->ra, &src->dec, &src->g1, &src->g2, &src->err);
+    nread += fscanf(stream, "%lf %lf %lf %lf %lf %lf %lf", 
+            &src->ra, &src->dec, &src->g1, &src->g2, 
+            &src->err, &src->mag, &src->R);
 
     if (src->scstyle == SCSTYLE_INTERP) {
-        nexpect = 5+src->scinv->size;
+        nexpect = 7+src->scinv->size;
         for (i=0; i<src->scinv->size; i++) {
             nread += fscanf(stream,"%lf", &src->scinv->data[i]);
         }
     } else {
-        nexpect = 5+1;
+        nexpect = 7+1;
         fscanf(stream,"%lf", &src->z);
     }
 
@@ -68,12 +69,23 @@ int source_read(FILE* stream, struct source* src) {
     return (nread == nexpect);
 }
 
+// filter sources if mag and R were present
+int source_filter(struct source *src, struct sconfig *cfg) {
+    if (src->mag > cfg->mag_min && src->mag < cfg->mag_max 
+        && src->R > cfg->R_min && src->R < cfg->R_max) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 void source_print(struct source* src) {
     wlog("    ra:     %lf  dec: %lf\n", src->ra, src->dec);
     wlog("    g1:     %lf  g2: %lf\n", src->g1, src->g2);
     wlog("    err:    %lf\n", src->err);
     wlog("    hpixid: %ld\n", src->hpixid);
+    wlog("    mag:    %lf\n", src->mag);
+    wlog("    R:      %lf\n", src->R);
 
     if (src->mask_style == MASK_STYLE_SDSS) {
         wlog("    sinlam: %lf\n", src->sinlam);
