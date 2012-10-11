@@ -6,14 +6,17 @@
 customization: -color
 
 ! This means never use overstriking for bold
-xterm*boldMode: false
+!xterm*boldMode: false
+xterm*allowBoldFonts: false
+
+xterm*faceName: Terminus:pixelsize=12
 
 ! This means just display a different color, dont use the bold font
-xterm*colorBDMode: true
+!xterm*colorBDMode: true
 
 ! will use these if freetype monaco not available
-xterm*font: fixed
-xterm*boldFont: fixed
+!xterm*font: fixed
+!xterm*boldFont: fixed
 !xterm*font: -*-proggytiny-*-*-*-*-*-*-*-*-*-*-iso8859-*
 !xterm*font: -windows-proggytiny-medium-r-normal--10-80-96-96-c-60-iso8859-1
 !xterm*Xft*antialias:  false

@@ -1,5 +1,9 @@
 Quick look Queue
 
+    - mangle code for eli
+    - training
+    - pack. keep it simple!
+
     - fitsio
         - header
             - keywords can be lower case when heierarch, ??
