@@ -1,83 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "admom.h"
-#include "amgauss.h"
+#include "admom_noise.h"
+#include "gauss.h"
 #include "image.h"
+#include "randn.h"
 
 
-double randn() 
+void fill_gauss_image(struct image *image, const struct gauss *gauss)
 {
-    double x1, x2, w, y1;//, y2;
- 
-    do {
-        x1 = 2.*drand48() - 1.0;
-        x2 = 2.*drand48() - 1.0;
-        w = x1*x1 + x2*x2;
-    } while ( w >= 1.0 );
-
-    w = sqrt( (-2.*log( w ) ) / w );
-    y1 = x1*w;
-    //y2 = x2*w;
-    return y1;
-}
-
-void add_noise(struct image *image, double s2n, const struct amgauss *wt,
-               double *skysig, double *s2n_meas)
-{
-    size_t nrows=0, ncols=0, row=0, col=0, pass=0;
-    double u=0,u2=0,v=0,v2=0,uv=0,chi2=0;
-    double weight=0;
-    double *rowdata=NULL;
-    double sum=0, wsum=0;
-
-    nrows=IM_NROWS(image);
-    ncols=IM_NCOLS(image);
-
-    // first pass with noise=1
-    (*skysig)=1.;
-    (*s2n_meas)=-9999;
-    for (pass=1;pass<=2;pass++) {
-
-        sum=0;
-        wsum=0;
-        for (row=0; row<nrows; row++) {
-            rowdata=IM_ROW(image, row);
-            u = row-wt->row;
-            u2=u*u;
-
-            for (col=0; col<ncols; col++) {
-
-                v = col-wt->col;
-                v2 = v*v;
-                uv = u*v;
-
-                chi2=wt->dcc*u2 + wt->drr*v2 - 2.0*wt->drc*uv;
-                weight = exp( -0.5*chi2 );
-
-                sum += (*rowdata)*weight;
-                wsum += weight;
-
-                if (pass==2) {
-                    (*rowdata) += (*skysig) * randn();
-                }
-                rowdata++;
-            } // cols
-        } // rows
-
-        (*s2n_meas) = sum/sqrt(wsum)/(*skysig);
-        if (pass==1) {
-            // this new skysig should give us the requested S/N
-            (*skysig) = (*s2n_meas)/s2n * (*skysig);
-        }
-    }
-
-
-}
-
-void fill_gauss_image(struct image *image, const struct amgauss *gauss)
-{
-
     size_t nrows=0, ncols=0, row=0, col=0;
     double u=0,u2=0,v=0,v2=0,uv=0,chi2=0;
     double *rowdata=NULL;
@@ -102,7 +35,6 @@ void fill_gauss_image(struct image *image, const struct amgauss *gauss)
             rowdata++;
         } // cols
     } // rows
-
 }
 
 int main(int argc, char **argv)
@@ -110,15 +42,15 @@ int main(int argc, char **argv)
 
     //struct am am = {0};
     struct image *im=NULL, *noisy_im=NULL;
-    struct amgauss gauss={0};
+    struct gauss gauss={0};
     int row=10, col=10, irr=2.0, irc=0.1, icc=2.5;
-
+    time_t t1;
     double meandiff=0, imvar=0;
     double skysig=0, s2n_meas=0;
     double s2n=100;
 
     // make the true gaussian 
-    if (!amgauss_set(&gauss, 1.0, row, col, irr, irc, icc)) {
+    if (!gauss_set(&gauss, 1.0, row, col, irr, irc, icc)) {
         fprintf(stderr,"bad gaussian determinant\n");
         exit(EXIT_FAILURE);
     }
@@ -129,7 +61,9 @@ int main(int argc, char **argv)
     noisy_im=image_copy(im);
 
     // use true gauss as weight to get s/n 
-    add_noise(noisy_im, s2n, &gauss, &skysig, &s2n_meas);
+    (void) time(&t1);
+    srand48((long) t1);
+    admom_add_noise(noisy_im, s2n, &gauss, &skysig, &s2n_meas);
     image_compare(im, noisy_im, &meandiff, &imvar);
 
     fprintf(stderr,"s2n:      %.16g\n", s2n);

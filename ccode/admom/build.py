@@ -27,7 +27,7 @@ if not options.noopt:
 if not options.debug:
     CFLAGS += ['-DNDEBUG']
 
-sources=['test','admom','amgauss','image','bound']
+sources=['test','admom','admom_noise','gauss','image','bound','randn']
 programs=[{'name':'test','sources':sources}]
 
 def build():

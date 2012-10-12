@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "admom.h"
-#include "amgauss.h"
+#include "gauss.h"
 #include "image.h"
 
 /* 
@@ -17,7 +17,7 @@
    the edges
 */
 static void get_mask(const struct image *image,
-                     struct amgauss *gauss, 
+                     struct gauss *gauss, 
                      struct bound *mask)
 {
     double rowmin=0,rowmax=0,colmin=0,colmax=0;
@@ -43,8 +43,8 @@ static void update_cen(struct am *am, const struct image *image)
     double rowm=0, colm=0, ymod=0;
     const double *rowdata=NULL;
     double weight=0, expon=0;
-    struct amgauss *wt=NULL;
-    const struct amgauss *guess=NULL;
+    struct gauss *wt=NULL;
+    const struct gauss *guess=NULL;
 
     size_t nrows=0, ncols=0;
 
@@ -114,8 +114,8 @@ static void admom_step(struct am *am) {
 void admom(struct am *am, const struct image *image)
 {
 
-    struct amgauss *wt=NULL;
-    const struct amgauss *guess=NULL;
+    struct gauss *wt=NULL;
+    const struct gauss *guess=NULL;
 
     //double mrr=0, mrc=0, mcc=0;
     //double nrr=0, nrc=0, ncc=0;
