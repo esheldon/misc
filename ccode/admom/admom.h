@@ -1,6 +1,7 @@
 #ifndef _ADMOM_HEADER_GUARD
 #define _ADMOM_HEADER_GUARD
 
+#include "image.h"
 #include "amgauss.h"
 
 #define AM_SHIFTMAX 5
@@ -51,11 +52,6 @@ struct am {
     double irr, irc, icc;
 };
 
-void admom_update_cen(struct am *am, const struct image *image);
-void admom_calc_moments(struct am *am, const struct image *image);
 
 
-static void get_mask(const struct image *image,
-                     struct amgauss *gauss, 
-                     struct bound *mask);
 #endif
