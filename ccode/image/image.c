@@ -219,8 +219,11 @@ struct image* image_getref(const struct image* image)
 {
     size_t i=0;
     struct image *self=NULL;
+    size_t nrows=0, ncols=0;
 
-    self = _image_new(IM_NROWS(image), IM_NCOLS(ncols), 0);
+    nrows=IM_NROWS(image);
+    ncols=IM_NCOLS(image);
+    self = _image_new(nrows, ncols, 0);
 
     self->rows[0] = image->rows[0];
     for(i = 1; i < IM_NROWS(self); i++) {

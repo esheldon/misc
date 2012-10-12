@@ -8,9 +8,6 @@
 #include <stdio.h>
 #include "bound.h"
 
-struct mask {
-
-};
 // nrows,ncols,size represent the visible portion, which
 // can be a masked subset
 struct image {
