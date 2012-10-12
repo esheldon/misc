@@ -105,6 +105,9 @@ struct image {
 struct image *image_new(size_t nrows, size_t ncols);
 struct image *_image_new(size_t nrows, size_t ncols, int alloc_data);
 
+// If image is masked, only the region inside the mask is copied
+struct image *image_copy(const struct image *image);
+
 // in this case we own the rows only, not the data to which they point
 struct image* image_from_array(double* data, size_t nrows, size_t ncols);
 // get a new image that just references the data in another image.
@@ -126,5 +129,7 @@ void image_calc_counts(struct image *self);
 // consistent
 void image_add_scalar(struct image *self, double val);
 
+int image_compare(const struct image *im1, const struct image *im2,
+                   double *meandiff, double *std);
 
 #endif

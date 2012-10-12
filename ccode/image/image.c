@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "image.h"
 #include "bound.h"
 
@@ -194,6 +195,33 @@ void image_add_mask(struct image *self, const struct bound* bound)
     image_calc_counts(self);
 }
 
+struct image *image_copy(const struct image *image)
+{
+    struct image *imcopy=NULL;
+    size_t nrows=0, ncols=0, row=0;
+    const double *rowdata=NULL;
+    double *rowdata_copy=NULL;
+
+    nrows=IM_NROWS(image);
+    ncols=IM_NCOLS(image);
+    imcopy=image_new(nrows,ncols);
+
+    // could be masked, so do a loop
+    for (row=0; row<nrows; row++) {
+        rowdata=IM_ROW(image, row);
+        rowdata_copy=IM_ROW(imcopy, row);
+
+        memcpy(rowdata_copy, rowdata, ncols*sizeof(double));
+    }
+
+    imcopy->counts=image->counts;
+    imcopy->_counts=image->_counts;
+    imcopy->sky=image->sky;
+    imcopy->skysig=image->skysig;
+
+    return imcopy;
+}
+
 // in this case we own the rows only, not the data to which they point
 struct image* image_from_array(double* data, size_t nrows, size_t ncols)
 {
@@ -273,3 +301,39 @@ void image_add_scalar(struct image *self, double val)
     self->sky += val;
 }
 
+
+int image_compare(const struct image *im1, const struct image *im2,
+                   double *meandiff, double *var)
+{
+
+    size_t row=0, nrows=0, col=0, ncols=0;
+    double *rows1=NULL, *rows2=NULL;
+    double diff=0, sum=0, sum2=0;
+
+    (*meandiff)=9999.e9;
+    (*var)=9999.e9;
+
+    nrows=IM_NROWS(im1);
+    ncols=IM_NCOLS(im1);
+    if (nrows != IM_NROWS(im2) || ncols != IM_NCOLS(im2) ) {
+        return 0;
+    }
+
+    for (row=0; row<nrows; row++) {
+        rows1=IM_ROW(im1,row);
+        rows2=IM_ROW(im2,row);
+        for (col=0; col<ncols; col++) {
+            diff = (*rows2) - (*rows1);
+            sum += diff;
+            sum2 += diff*diff;
+
+            rows1++;
+            rows2++;
+        }
+    }
+
+    (*meandiff) = sum/IM_SIZE(im1);
+    (*var) = sum2/IM_SIZE(im1) - (*meandiff)*(*meandiff);
+
+    return 1;
+}
