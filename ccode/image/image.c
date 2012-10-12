@@ -171,7 +171,7 @@ void fix_bounds(size_t dim, ssize_t *minval, ssize_t *maxval)
         *maxval = *minval;
     }
 }
-void image_add_mask(struct image *self, const struct bound* bound)
+void image_add_mask(struct image *self, const struct bound* bound, int update_counts)
 {
     ssize_t tminval=0, tmaxval=0;
 
@@ -192,7 +192,9 @@ void image_add_mask(struct image *self, const struct bound* bound)
 
     // we keep the counts for the sub-image region
     // the parent counts are still available in _counts
-    image_calc_counts(self);
+    if (update_counts) {
+        image_calc_counts(self);
+    }
 }
 
 struct image *image_copy(const struct image *image)

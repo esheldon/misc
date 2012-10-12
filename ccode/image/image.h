@@ -119,7 +119,7 @@ struct image *image_read_text(const char* filename);
 struct image *image_free(struct image *self);
 
 // note the bounds will be trimmed to within the image
-void image_add_mask(struct image *self, const struct bound* bound);
+void image_add_mask(struct image *self, const struct bound* bound, int update_counts);
 
 void image_write(const struct image *self, FILE* stream);
 
