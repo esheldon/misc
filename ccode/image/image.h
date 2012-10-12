@@ -107,7 +107,13 @@ struct image {
 
 struct image *image_new(size_t nrows, size_t ncols);
 struct image *_image_new(size_t nrows, size_t ncols, int alloc_data);
+
+// in this case we own the rows only, not the data to which they point
 struct image* image_from_array(double* data, size_t nrows, size_t ncols);
+// get a new image that just references the data in another image.
+// in this case we own the rows only, not the data to which they point
+// good for applying masks 
+struct image* image_getref(const struct image* image);
 struct image *image_read_text(const char* filename);
 
 struct image *image_free(struct image *self);

@@ -212,6 +212,25 @@ struct image* image_from_array(double* data, size_t nrows, size_t ncols)
     return self;
 }
 
+// get a new image that just references the data in another image.
+// in this case we own the rows only, not the data to which they point
+// good for applying masks 
+struct image* image_getref(const struct image* image)
+{
+    size_t i=0;
+    struct image *self=NULL;
+
+    self = _image_new(IM_NROWS(image), IM_NCOLS(ncols), 0);
+
+    self->rows[0] = image->rows[0];
+    for(i = 1; i < IM_NROWS(self); i++) {
+        self->rows[i] = self->rows[i-1] + ncols;
+    }
+
+    IM_SET_COUNTS(self, IM_COUNTS(image));
+    return self;
+}
+
 
 void image_calc_counts(struct image *self)
 {
