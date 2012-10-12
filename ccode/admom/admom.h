@@ -1,6 +1,7 @@
 #ifndef _ADMOM_HEADER_GUARD
 #define _ADMOM_HEADER_GUARD
 
+#include <stdio.h>
 #include "image.h"
 #include "gauss.h"
 
@@ -34,6 +35,7 @@ c       2**8: detw <= 0
 struct am {
     // input parameters for algorithm
     struct gauss guess;
+    double nsigma;  // number of sigma around center for calculations
     int maxiter;
     double shiftmax;
     double sky;
@@ -53,5 +55,8 @@ struct am {
 };
 
 
+void admom(struct am *am, const struct image *image);
+
+void admom_print(const struct am *am, FILE *stream);
 
 #endif

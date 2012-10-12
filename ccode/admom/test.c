@@ -12,7 +12,7 @@
 void fill_gauss_image(struct image *image, const struct gauss *gauss)
 {
     size_t nrows=0, ncols=0, row=0, col=0;
-    double u=0,u2=0,v=0,v2=0,uv=0,chi2=0;
+    double rowm=0,rowm2=0,colm=0,colm2=0,chi2=0;
     double *rowdata=NULL;
 
     nrows=IM_NROWS(image);
@@ -20,16 +20,15 @@ void fill_gauss_image(struct image *image, const struct gauss *gauss)
 
     for (row=0; row<nrows; row++) {
         rowdata=IM_ROW(image, row);
-        u = row-gauss->row;
-        u2=u*u;
+        rowm = row-gauss->row;
+        rowm2=rowm*rowm;
 
         for (col=0; col<ncols; col++) {
 
-            v = col-gauss->col;
-            v2 = v*v;
-            uv = u*v;
+            colm = col-gauss->col;
+            colm2 = colm*colm;
 
-            chi2=gauss->dcc*u2 + gauss->drr*v2 - 2.0*gauss->drc*uv;
+            chi2=gauss->dcc*rowm2 + gauss->drr*colm2 - 2.0*gauss->drc*rowm*colm;
             (*rowdata) = gauss->norm*gauss->p*exp( -0.5*chi2 );
 
             rowdata++;
@@ -40,10 +39,11 @@ void fill_gauss_image(struct image *image, const struct gauss *gauss)
 int main(int argc, char **argv)
 {
 
-    //struct am am = {0};
+    struct am am = {{0}};
     struct image *im=NULL, *noisy_im=NULL;
     struct gauss gauss={0};
-    int row=10, col=10, irr=2.0, irc=0.1, icc=2.5;
+    //int row=10, col=10, irr=2.0, irc=0.1, icc=2.5;
+    int row=10, col=10, irr=2., irc=0., icc=2.;
     time_t t1;
     double meandiff=0, imvar=0;
     double skysig=0, s2n_meas=0;
@@ -58,6 +58,8 @@ int main(int argc, char **argv)
     im=image_new(20,20);
     fill_gauss_image(im, &gauss);
 
+    // we keep two images so we can check the variance is right
+    // after adding noise
     noisy_im=image_copy(im);
 
     // use true gauss as weight to get s/n 
@@ -72,5 +74,20 @@ int main(int argc, char **argv)
     fprintf(stderr,"meandiff: %.16g\n", meandiff);
     fprintf(stderr,"std:      %.16g\n", sqrt(imvar));
 
+    am.guess = gauss;
+    am.nsigma = 4;
+    am.maxiter = 100;
+    am.shiftmax = 5;
+    am.sky=0.0;
+    am.skysig = skysig;
+    fprintf(stderr,"am before\n");
+    admom_print(&am, stderr);
+
+    fprintf(stderr,"\n");
+    admom(&am, noisy_im);
+    admom_print(&am, stderr);
+
+    im = image_free(im);
+    noisy_im = image_free(noisy_im);
     return 0;
 }

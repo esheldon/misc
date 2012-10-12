@@ -69,10 +69,10 @@ struct image {
 #define IM_PARENT_COUNTS(im) ( (im)->_counts )
 
 #define IM_ROW0(im) ((im)->row0)
-#define IM_COL0(im) ((im)->row0)
+#define IM_COL0(im) ((im)->col0)
 
 #define IM_ROW(im,row) \
-    ((im)->rows[(im)->row0 + (row)])
+    ((im)->rows[(im)->row0 + (row)] + (im)->col0)
 #define IM_ROW_ITER(im,row) \
     ((im)->rows[(im)->row0 + (row)] + (im)->col0)
 #define IM_ROW_END(im,row) \

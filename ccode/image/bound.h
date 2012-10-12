@@ -25,4 +25,6 @@ void bound_set(struct bound* self,
                ssize_t colmin, 
                ssize_t colmax);
 
+void bound_print(const struct bound *bound, FILE *stream);
+
 #endif

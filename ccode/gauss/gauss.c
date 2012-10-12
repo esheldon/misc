@@ -39,4 +39,14 @@ int gauss_set(struct gauss *self,
     return retval;
 }
 
-
+void gauss_print(const struct gauss *self, FILE *stream)
+{
+    fprintf(stream,"  p:   %.16g\n", self->p);
+    fprintf(stream,"  row: %.16g\n", self->row);
+    fprintf(stream,"  col: %.16g\n", self->col);
+    fprintf(stream,"  irr: %.16g\n", self->irr);
+    fprintf(stream,"  irc: %.16g\n", self->irc);
+    fprintf(stream,"  icc: %.16g\n", self->icc);
+    fprintf(stream,"  e1:  %.16g\n", self->e1);
+    fprintf(stream,"  e2:  %.16g\n", self->e2);
+}
