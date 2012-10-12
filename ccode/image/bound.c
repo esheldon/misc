@@ -37,3 +37,11 @@ void bound_set(struct bound* self,
     self->colmin=colmin;
     self->colmax=colmax;
 }
+
+void bound_print(const struct bound *bound, FILE *stream)
+{
+    fprintf(stream,"  rowmin: %ld\n", bound->rowmin);
+    fprintf(stream,"  rowmax: %ld\n", bound->rowmax);
+    fprintf(stream,"  colmin: %ld\n", bound->colmin);
+    fprintf(stream,"  colmin: %ld\n", bound->colmax);
+}

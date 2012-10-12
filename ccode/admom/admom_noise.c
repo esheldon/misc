@@ -5,6 +5,9 @@
 #include "randn.h"
 #include "gauss.h"
 
+// this is bogus because it doesn't limit to the 4 sigma region!
+// need to do it right where we run the adaptive moment code on it,
+// like we do in the python code.  Duh.
 void admom_add_noise(struct image *image, double s2n, const struct gauss *wt,
                      double *skysig, double *s2n_meas)
 {
