@@ -175,7 +175,7 @@ void admom(struct am *am, const struct image *image)
     for (iter=0; iter<am->maxiter; iter++) {
 
         get_mask(image, wt, am->nsigma, &mask);
-        image_add_mask(maskim, &mask);
+        image_add_mask(maskim, &mask, 0); // 0 means don't update counts
 
         fprintf(stderr,"mask:\n");
         bound_print(&mask, stderr);
