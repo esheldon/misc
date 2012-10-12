@@ -2,7 +2,7 @@
 #define _ADMOM_HEADER_GUARD
 
 #include "image.h"
-#include "amgauss.h"
+#include "gauss.h"
 
 #define AM_SHIFTMAX 5
 
@@ -33,7 +33,7 @@ c       2**8: detw <= 0
 
 struct am {
     // input parameters for algorithm
-    struct amgauss guess;
+    struct gauss guess;
     int maxiter;
     double shiftmax;
     double sky;
@@ -41,7 +41,7 @@ struct am {
 
 
     // outputs
-    struct amgauss wt;
+    struct gauss wt;
     double s2n;
     double rho4;
     double uncer; // error on either e1 or e2 for round object

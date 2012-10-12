@@ -1,11 +1,11 @@
-#ifndef _ADMOM_GAUSS_HEADER_GUARD
-#define _ADMOM_GAUSS_HEADER_GUARD
+#ifndef _GAUSS_HEADER_GUARD
+#define _GAUSS_HEADER_GUARD
 
 #ifndef M_TWO_PI
 #define M_TWO_PI   6.28318530717958647693
 #endif
 
-struct amgauss {
+struct gauss {
     double p;
     double row;
     double col;
@@ -27,13 +27,13 @@ struct amgauss {
 };
 
 // use this to keep the structure internally consistent
-int amgauss_set(struct amgauss *self,
-                double p,
-                double row,
-                double col,
-                double irr,
-                double irc,
-                double icc);
+int gauss_set(struct gauss *self,
+              double p,
+              double row,
+              double col,
+              double irr,
+              double irc,
+              double icc);
 
 
 #endif
