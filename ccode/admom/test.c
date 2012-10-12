@@ -22,22 +22,22 @@ double randn()
     return y1;
 }
 
-double add_noise(struct image *image, double s2n, const struct amgauss *wt,
-                 double *skysig, double *s2n_meas)
+void add_noise(struct image *image, double s2n, const struct amgauss *wt,
+               double *skysig, double *s2n_meas)
 {
     size_t nrows=0, ncols=0, row=0, col=0, pass=0;
     double u=0,u2=0,v=0,v2=0,uv=0,chi2=0;
     double weight=0;
     double *rowdata=NULL;
-    double sum=0, wsum=0, skysig=0, s2n_meas=0;
+    double sum=0, wsum=0;
 
     nrows=IM_NROWS(image);
     ncols=IM_NCOLS(image);
 
     // first pass with noise=1
-    *skysig=1.;
-    *s2n_meas=-9999;
-    for (pass=1,pass<=2;pass++) {
+    (*skysig)=1.;
+    (*s2n_meas)=-9999;
+    for (pass=1;pass<=2;pass++) {
 
         sum=0;
         wsum=0;
@@ -65,10 +65,10 @@ double add_noise(struct image *image, double s2n, const struct amgauss *wt,
             } // cols
         } // rows
 
-        (*s2n_meas) = sum/sqrt(wsum)/skysig;
+        (*s2n_meas) = sum/sqrt(wsum)/(*skysig);
         if (pass==1) {
             // this new skysig should give us the requested S/N
-            skysig = (*s2n_meas)/s2n * (*skysig);
+            (*skysig) = (*s2n_meas)/s2n * (*skysig);
         }
     }
 
@@ -104,15 +104,18 @@ void fill_gauss_image(struct image *image, const struct amgauss *gauss)
     } // rows
 
 }
+
 int main(int argc, char **argv)
 {
 
     //struct am am = {0};
-    struct image *im=NULL;
+    struct image *im=NULL, *noisy_im=NULL;
     struct amgauss gauss={0};
     int row=10, col=10, irr=2.0, irc=0.1, icc=2.5;
 
-    im=image_new(20,20);
+    double meandiff=0, imvar=0;
+    double skysig=0, s2n_meas=0;
+    double s2n=100;
 
     // make the true gaussian 
     if (!amgauss_set(&gauss, 1.0, row, col, irr, irc, icc)) {
@@ -120,5 +123,20 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    im=image_new(20,20);
     fill_gauss_image(im, &gauss);
+
+    noisy_im=image_copy(im);
+
+    // use true gauss as weight to get s/n 
+    add_noise(noisy_im, s2n, &gauss, &skysig, &s2n_meas);
+    image_compare(im, noisy_im, &meandiff, &imvar);
+
+    fprintf(stderr,"s2n:      %.16g\n", s2n);
+    fprintf(stderr,"s2n_meas: %.16g\n", s2n_meas);
+    fprintf(stderr,"skysig:   %.16g\n", skysig);
+    fprintf(stderr,"meandiff: %.16g\n", meandiff);
+    fprintf(stderr,"std:      %.16g\n", sqrt(imvar));
+
+    return 0;
 }
