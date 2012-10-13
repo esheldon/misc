@@ -71,10 +71,6 @@ int main(int argc, char **argv)
 
     fill_gauss_image(im, &gauss);
 
-    // we keep two images so we can check the variance is right
-    // after adding noise
-    //noisy_im=image_newcopy(im);
-
     // use true gauss as weight to get s/n 
     (void) time(&t1);
     srand48((long) t1);
@@ -95,7 +91,6 @@ int main(int argc, char **argv)
 
         image_copy(im, noisy_im);
         admom_add_noise(noisy_im, s2n, &gauss, &skysig, &s2n_meas);
-        //image_compare(im, noisy_im, &meandiff, &imvar);
         gauss_set(&am.guess,
                   1.,
                   gauss.row + 2*(drand48()-0.5),
