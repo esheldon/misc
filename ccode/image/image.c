@@ -197,31 +197,51 @@ void image_add_mask(struct image *self, const struct bound* bound, int update_co
     }
 }
 
-struct image *image_copy(const struct image *image)
+int image_copy(const struct image *image, struct image *imout)
 {
-    struct image *imcopy=NULL;
     size_t nrows=0, ncols=0, row=0;
-    const double *rowdata=NULL;
-    double *rowdata_copy=NULL;
+    double *rowdata=NULL, *rowdata_out;
 
     nrows=IM_NROWS(image);
     ncols=IM_NCOLS(image);
-    imcopy=image_new(nrows,ncols);
+    if (nrows != IM_NROWS(imout) 
+            || ncols != IM_NCOLS(imout)) {
+        return 0;
+    }
+    // could be masked, so do a loop
+    for (row=0; row<nrows; row++) {
+        rowdata=IM_ROW(image, row);
+        rowdata_out=IM_ROW(imout, row);
+
+        memcpy(rowdata_out, rowdata, ncols*sizeof(double));
+    }
+    return 1;
+}
+struct image *image_newcopy(const struct image *image)
+{
+    struct image *imout=NULL;
+    size_t nrows=0, ncols=0, row=0;
+    const double *rowdata=NULL;
+    double *rowdata_out=NULL;
+
+    nrows=IM_NROWS(image);
+    ncols=IM_NCOLS(image);
+    imout=image_new(nrows,ncols);
 
     // could be masked, so do a loop
     for (row=0; row<nrows; row++) {
         rowdata=IM_ROW(image, row);
-        rowdata_copy=IM_ROW(imcopy, row);
+        rowdata_out=IM_ROW(imout, row);
 
-        memcpy(rowdata_copy, rowdata, ncols*sizeof(double));
+        memcpy(rowdata_out, rowdata, ncols*sizeof(double));
     }
 
-    imcopy->counts=image->counts;
-    imcopy->_counts=image->_counts;
-    imcopy->sky=image->sky;
-    imcopy->skysig=image->skysig;
+    imout->counts=image->counts;
+    imout->_counts=image->_counts;
+    imout->sky=image->sky;
+    imout->skysig=image->skysig;
 
-    return imcopy;
+    return imout;
 }
 
 // in this case we own the rows only, not the data to which they point

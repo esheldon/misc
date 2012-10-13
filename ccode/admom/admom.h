@@ -24,12 +24,27 @@ c       2**8: detw <= 0
 #define AM_XINTERP2 0.0
 #define AM_TOL1 0.001
 #define AM_TOL2 0.01
-#define AM_DETTOL 1.e-6
+#define AM_DETTOL 1.e-7
 
 /* Flags: these correspond to what used to be in PHOTO */
 #define AM_FLAG_FAINT 0x1
 #define AM_FLAG_SHIFT 0x2
 #define AM_FLAG_MAXIT 0x4
+
+#define DEBUG
+//#define DEBUG2
+
+#ifdef DEBUG
+ #define DBG if(1) 
+#else
+ #define DBG if(0) 
+#endif
+#ifdef DEBUG2
+ #define DBG2 if(1) 
+#else
+ #define DBG2 if(0) 
+#endif
+
 
 
 struct am {
@@ -50,8 +65,8 @@ struct am {
     int numiter;
     int flags;
 
-    // *measured* moments, used to take the adaptive step
-    double irr, irc, icc;
+    // temporary *measured* moments, used to take the adaptive step
+    double irr_tmp, irc_tmp, icc_tmp, det_tmp;
 };
 
 

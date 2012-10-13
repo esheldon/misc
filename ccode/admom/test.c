@@ -42,12 +42,23 @@ int main(int argc, char **argv)
     struct am am = {{0}};
     struct image *im=NULL, *noisy_im=NULL;
     struct gauss gauss={0};
-    //int row=10, col=10, irr=2.0, irc=0.1, icc=2.5;
-    int row=10, col=10, irr=2., irc=0., icc=2.;
     time_t t1;
     double meandiff=0, imvar=0;
     double skysig=0, s2n_meas=0;
-    double s2n=100;
+    double s2n=40;
+    size_t itrial=0,ntrial=1; // different random realizations
+
+    if (argc > 1) {
+        ntrial = atoi(argv[1]);
+    }
+
+    int nrows=21;
+    int ncols=21;
+    double row=(nrows-1.)/2.;
+    double col=(ncols-1.)/2.;
+    double irr=2.;
+    double irc=0.;
+    double icc=2.;
 
     // make the true gaussian 
     if (!gauss_set(&gauss, 1.0, row, col, irr, irc, icc)) {
@@ -55,18 +66,18 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    im=image_new(20,20);
+    im=image_new(nrows,ncols);
+    noisy_im=image_new(nrows,ncols);
+
     fill_gauss_image(im, &gauss);
 
     // we keep two images so we can check the variance is right
     // after adding noise
-    noisy_im=image_copy(im);
+    //noisy_im=image_newcopy(im);
 
     // use true gauss as weight to get s/n 
     (void) time(&t1);
     srand48((long) t1);
-    admom_add_noise(noisy_im, s2n, &gauss, &skysig, &s2n_meas);
-    image_compare(im, noisy_im, &meandiff, &imvar);
 
     fprintf(stderr,"s2n:      %.16g\n", s2n);
     fprintf(stderr,"s2n_meas: %.16g\n", s2n_meas);
@@ -74,18 +85,40 @@ int main(int argc, char **argv)
     fprintf(stderr,"meandiff: %.16g\n", meandiff);
     fprintf(stderr,"std:      %.16g\n", sqrt(imvar));
 
-    am.guess = gauss;
     am.nsigma = 4;
     am.maxiter = 100;
     am.shiftmax = 5;
     am.sky=0.0;
     am.skysig = skysig;
-    fprintf(stderr,"am before\n");
-    admom_print(&am, stderr);
 
-    fprintf(stderr,"\n");
-    admom(&am, noisy_im);
-    admom_print(&am, stderr);
+    for (itrial=0; itrial<ntrial; itrial++) {
+
+        image_copy(im, noisy_im);
+        admom_add_noise(noisy_im, s2n, &gauss, &skysig, &s2n_meas);
+        //image_compare(im, noisy_im, &meandiff, &imvar);
+        gauss_set(&am.guess,
+                  1.,
+                  gauss.row + 2*(drand48()-0.5),
+                  gauss.col + 2*(drand48()-0.5),
+                  gauss.irr + gauss.irr*(drand48()-0.5),
+                  0.,
+                  gauss.icc + gauss.icc*(drand48()-0.5));
+
+        fprintf(stderr,"am before\n");
+        admom_print(&am, stderr);
+        fprintf(stderr,"\n");
+
+        admom(&am, noisy_im);
+        if (am.flags != 0) {
+            fprintf(stderr,"error encountered\n");
+        } else {
+
+            fprintf(stderr,"\nam after\n");
+            admom_print(&am, stderr);
+            // this goes to stdout so we can use it
+        }
+        printf("%d %.16g %.16g %.16g %.16g\n", am.flags, am.wt.e1, am.wt.e2, gauss.e1, gauss.e2);
+    }
 
     im = image_free(im);
     noisy_im = image_free(noisy_im);
