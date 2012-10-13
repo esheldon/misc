@@ -7,7 +7,7 @@
 
    Don't forget to seed srand48!
  */
-long mca_randlong(long n);
+long mca_rand_long(long n);
 
 /*
 
@@ -16,5 +16,17 @@ long mca_randlong(long n);
 
 */
 long mca_rand_complement(long current, long n);
+
+/*
+   generate random numbers 
+       {
+       { 1/sqrt(z) if z in (1/a,a)
+       {     0     otherwise
+       {
+
+   When used in the affine invariant mcmc, a value
+   of a=2 gives about 50% acceptance rate
+ */
+double mca_rand_gofz(double a);
 
 #endif
