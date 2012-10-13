@@ -1,8 +1,6 @@
 /*
   Generate gaussian random deviates
 
-  Note we get two per run but I'm only using one.
-
   Don't forget to seed the random number generator using
   srand48(some integer).
 

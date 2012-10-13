@@ -106,11 +106,16 @@ struct image *image_new(size_t nrows, size_t ncols);
 struct image *_image_new(size_t nrows, size_t ncols, int alloc_data);
 
 // If image is masked, only the region inside the mask is copied
+// if the images are not the same shape, then 0 is returned and
+// no copy is made.  Otherwise 1 is returned
 int image_copy(const struct image *image, struct image *imout);
+
+// make a new copy, conforming to the region in the mask
 struct image *image_newcopy(const struct image *image);
 
 // in this case we own the rows only, not the data to which they point
 struct image* image_from_array(double* data, size_t nrows, size_t ncols);
+
 // get a new image that just references the data in another image.
 // in this case we own the rows only, not the data to which they point
 // good for applying masks 
@@ -130,7 +135,9 @@ void image_calc_counts(struct image *self);
 // consistent
 void image_add_scalar(struct image *self, double val);
 
+// get the mean difference and variance between two images.
+// returns 0 if the images are not the same shape, otherwise 1
 int image_compare(const struct image *im1, const struct image *im2,
-                   double *meandiff, double *std);
+                   double *meandiff, double *var);
 
 #endif
