@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include "../mca_rand.h"
+#include "../mca.h"
 
 
 int main(int argc, char **argv)
