@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "matrix.h"
+#include "mtx2.h"
 
 struct vec2 *vec2_new()
 {
