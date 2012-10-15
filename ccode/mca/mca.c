@@ -1,37 +1,23 @@
+/*
+    for docs see mca.h
+
+    Copyright (C) 2012  Erin Sheldon
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+*/
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include "mca.h"
 
-/*
-struct mca *mca_new(size_t nwalkers,
-                    size_t steps_per_walker,
-                    size_t npars,
-                    double (*lnprob_func)(double *pars, size_t npars, void *data),
-                    const void *userdata)
-{
-    struct mca *self=calloc(1,sizeof(struct mca));
-    if (self==NULL) {
-        fprintf(stderr,"Could not allocate struct mca\n");
-        exit(EXIT_FAILURE);
-    }
-
-    self->lnprob_func = lnprob_func;
-    self->userdata=userdata;
-
-    self->chain=mca_chain_new(nwalkers,steps_per_walker,npars);
-
-    return self;
-}
-struct mca *mca_del(struct mca *self)
-{
-    if (self) {
-        self->chain=mca_chain_del(self->chain);
-        free(self);
-    }
-    return NULL;
-}
-*/
 struct mca_chain *mca_chain_new(size_t nwalkers,
                                 size_t steps_per_walker,
                                 size_t npars)
@@ -236,7 +222,7 @@ void mca_stats_print_full(struct mca_stats *self, FILE *stream)
         fprintf(stream,"\n");
     }
 }
-//void mca_run(struct mca *mca, struct mca_chain *guesses)
+
 void mca_run(double a,
              const struct mca_chain *start,
              struct mca_chain *chain,

@@ -3,6 +3,23 @@
    outlined in Goodman & Weare 2010.
 
    Some implementation inspiration from the Emcee python version.
+
+   I made a choice to use have mca_run() take in the value a rathern than put
+   this in some "self" struct.  If we decide to keep more such data around
+   between runs, I might change this.
+
+    Copyright (C) 2012  Erin Sheldon
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
 */
 #ifndef _MCA_HEADER_GUARD
 #define _MCA_HEADER_GUARD
@@ -166,11 +183,30 @@ void mca_stats_print_full(struct mca_stats *self, FILE *stream);
    Fill the chain with MCMC steps.
 
    The *last* set of walkers in the "start" chain will be the starting point
-   for the chain.  This way you can feed a start as a single chain or as the
-   last step of a previous burn-in run.
+   for the chain.  This way you can feed a start as a single chain, e.g.  from
+   mca_make_guess() or as the last step of a previous burn-in run.
 
-   take input pars and add random errors in a ball
-   for each walker
+   parameters
+   ----------
+   a  double
+     The scale for the g(z) random number function.  a=2 gives
+     acceptance rate ~.5.  4 around .35-.4 but these depend
+     on the dimensionality
+   start mca_chain
+     To be used as the starting point.  When starting burn-in, get
+     this by calling mca_make_guess().  For a post-burn run just
+     send the chain from the burn-in run.
+   chain mca_chain
+     The chain to be filled.  It's size determines the number
+     of steps.
+   lnprob_func function pointer
+     The function to call for lnprob
+   userdata void*
+     Either NULL or some data for use by the lnprob func.  The
+     user must cast it to the right type.
+
+   Procedure
+   ---------
 
    loop over steps
      loop over walkers
