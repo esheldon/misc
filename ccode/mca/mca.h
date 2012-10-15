@@ -10,8 +10,9 @@
 
    Example
    -------
-   // assume the data are stored in the struct mydata and
-   // our lnprob function is called lnprob.  We will use nwalkers
+
+   // assume the data are stored in the struct mydata and our ln(prob) function
+   // is called lnprob.  We will use nwalkers
 
    // first make a guess
    double guess[NPARS];
@@ -28,14 +29,15 @@
 
    // Run the mcmc and fill the chain.  The value of a controls the acceptance
    // rate.  a=2 gives about .5 and a=4 gives lower, maybe .3-.4
+   // the lnprob function takes (pars, npars, userdata) as inputs
 
-   mca_run(a, guesses, burn_chain, &lnprob, (void*) &mydata);
+   mca_run(a, guesses, &lnprob, &mydata, burnin_chain);
 
    // now a production run.  We can feed the burn chain as the new starting
    // point
 
    struct mca_chain *chain=mca_chain_new(nwalkers,steps_per_walker,npars);
-   mca_run(a, burn_chain, chain, &lnprob, (void*) &mydata);
+   mca_run(a, burn_chain, &lnprob, &mydata, chain);
 
    // now extract some statistics
    struct mca_stats *stats=mca_chain_stats(chain);
@@ -272,11 +274,11 @@ void mca_stats_print_full(struct mca_stats *self, FILE *stream);
            copy old pars
 */
 
-void mca_run(double a,
+void mca_run(struct mca_chain *chain,
+             double a,
              const struct mca_chain *start,
-             struct mca_chain *chain,
-             double (*lnprob_func)(double *pars, size_t npars, void *userdata),
-             void *userdata);
+             double (*lnprob_func)(const double *, size_t, const void *),
+             const void *userdata);
 
 /* copy the last step in the start chain to the first step
    in the chain */
