@@ -1,8 +1,8 @@
 /*
    A library for length two vectors and symmetric 2x2 matrices
 */
-#ifndef _MATRIX_HEADER_GUARD
-#define _MATRIX_HEADER_GUARD
+#ifndef _MTRX2_HEADER_GUARD
+#define _MTRX2_HEADER_GUARD
 
 struct vec2 {
     double v1;
