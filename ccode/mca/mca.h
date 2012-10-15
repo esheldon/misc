@@ -244,17 +244,16 @@ void mca_stats_print_full(struct mca_stats *self, FILE *stream);
 
    parameters
    ----------
+   chain mca_chain
+     The chain to be filled.  It's size determines the number
+     of steps.
    a  double
-     The scale for the g(z) random number function.  a=2 gives
-     acceptance rate ~.5.  4 around .35-.4 but these depend
-     on the dimensionality
+     The scale for the g(z) random number function.  a=2 gives acceptance rate
+     ~.5.  2.5 about 0.4 and 4 around .25
    start mca_chain
      To be used as the starting point.  When starting burn-in, get
      this by calling mca_make_guess().  For a post-burn run just
      send the chain from the burn-in run.
-   chain mca_chain
-     The chain to be filled.  It's size determines the number
-     of steps.
    lnprob_func function pointer
      The function to call for lnprob
    userdata void*
