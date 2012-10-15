@@ -6,7 +6,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "bound.h"
 
 // nrows,ncols,size represent the visible portion, which
 // can be a masked subset
@@ -158,15 +157,15 @@ struct image_mask *image_mask_new(ssize_t rowmin,
                                   ssize_t rowmax, 
                                   ssize_t colmin, 
                                   ssize_t colmax);
-struct image_mask *bound_free(struct image_mask *self);
+struct image_mask *image_mask_free(struct image_mask *self);
 
-void bound_set(struct image_mask* self,
-               ssize_t rowmin, 
-               ssize_t rowmax, 
-               ssize_t colmin, 
-               ssize_t colmax);
+void image_mask_set(struct image_mask* self,
+                    ssize_t rowmin, 
+                    ssize_t rowmax, 
+                    ssize_t colmin, 
+                    ssize_t colmax);
 
-void bound_print(const struct image_mask *bound, FILE *stream);
+void image_mask_print(const struct image_mask *mask, FILE *stream);
 
 
 

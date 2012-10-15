@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
     fprintf(stderr,"s2n:      %.16g\n", s2n);
     fprintf(stderr,"s2n_meas: %.16g\n", s2n_meas);
-    fprintf(stderr,"skysig:   %.16g\n", skysig);
+    //fprintf(stderr,"skysig:   %.16g\n", skysig);
     fprintf(stderr,"meandiff: %.16g\n", meandiff);
     fprintf(stderr,"std:      %.16g\n", sqrt(imvar));
 
@@ -85,12 +85,13 @@ int main(int argc, char **argv)
     am.maxiter = 100;
     am.shiftmax = 5;
     am.sky=0.0;
-    am.skysig = skysig;
 
     for (itrial=0; itrial<ntrial; itrial++) {
 
         image_copy(im, noisy_im);
         admom_add_noise(noisy_im, s2n, &gauss, &skysig, &s2n_meas);
+        am.skysig = skysig;
+
         gauss_set(&am.guess,
                   1.,
                   gauss.row + 2*(drand48()-0.5),
