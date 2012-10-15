@@ -2,11 +2,65 @@
    mca - a library implementing affine invariant MCMC as
    outlined in Goodman & Weare 2010.
 
-   Some implementation inspiration from the Emcee python version.
+   I took some implementation inspiration from the Emcee python version.
 
-   I made a choice to use have mca_run() take in the value a rathern than put
-   this in some "self" struct.  If we decide to keep more such data around
-   between runs, I might change this.
+   I made a choice to use have mca_run() take in the value a as a parameter
+   rather than put this in some "self" struct.  If we decide to keep more such
+   data around *between* runs, I might start using a self.
+
+   Example
+   -------
+   // assume the data are stored in the struct mydata and
+   // our lnprob function is called lnprob.  We will use nwalkers
+
+   // first make a guess
+   double guess[NPARS];
+   guess[0] = ..;  // fill in guess
+
+   // now take a random ball around the guess and assign values
+   // for each walker.   This gets stored in a 1-step mca_chain
+   double ballsize[NPARS];
+   ballsize[0] = ...;  // fill in ball sizes
+   struct mca_chain *guesses=mca_make_guess(guess, ballsize, npars, nwalkers);
+
+   // now lets run a burn-in.  We will make a new chain to be filled
+   struct mca_chain *burn_chain=mca_chain_new(nwalkers,burn_per_walker,npars);
+
+   // Run the mcmc and fill the chain.  The value of a controls the acceptance
+   // rate.  a=2 gives about .5 and a=4 gives lower, maybe .3-.4
+
+   mca_run(a, guesses, burn_chain, &lnprob, (void*) &mydata);
+
+   // now a production run.  We can feed the burn chain as the new starting
+   // point
+
+   struct mca_chain *chain=mca_chain_new(nwalkers,steps_per_walker,npars);
+   mca_run(a, burn_chain, chain, &lnprob, (void*) &mydata);
+
+   // now extract some statistics
+   struct mca_stats *stats=mca_chain_stats(chain);
+
+   // print to a stream, can be stdout/stderr or an opened file object
+   mca_stats_print(stats,stderr);
+
+   mean_par2 = MCA_STATS_MEAN(stats,2);
+   err_par2 = sqrt(MCA_STATS_COV(stats,2,2))
+
+   // This will give a machine readable printout
+   mca_stats_print_full(stats,stderr);
+
+   // Finally, we can store the chain in a file for reading later
+   // here stdout but you can use an opened file stream
+   mca_chain_print(chain, stdout);
+
+
+
+   // clean up
+   guesses=mca_chain_del(guesses);
+   burn_chain=mca_chain_del(burn_chain);
+   chain=mca_chain_del(chain);
+   stats=mca_stats_del(stats);
+
 
     Copyright (C) 2012  Erin Sheldon
 

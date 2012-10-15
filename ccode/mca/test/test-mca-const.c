@@ -66,7 +66,6 @@ int main(int argc, char **argv)
         data[i] = truepars[0] + err*mca_randn();
     }
 
-
     guess[0] = truepars[0] + err*mca_randn();
     ballsize[0] = 1.0;
 
@@ -79,7 +78,6 @@ int main(int argc, char **argv)
 
     struct mca_chain *burn_chain=mca_chain_new(nwalkers,burn_per_walker,npars);
     mca_run(a, guesses, burn_chain, &lnprob, (void*) &mydata);
-    //mca_chain_print(burn_chain, stderr);
 
     struct mca_chain *chain=mca_chain_new(nwalkers,steps_per_walker,npars);
     mca_run(a, burn_chain, chain, &lnprob, (void*) &mydata);
@@ -93,6 +91,9 @@ int main(int argc, char **argv)
     mca_chain_print(chain, stdout);
 
     guesses=mca_chain_del(guesses);
+    burn_chain=mca_chain_del(burn_chain);
+    chain=mca_chain_del(chain);
+
     stats=mca_stats_del(stats);
     free(data);
 }
