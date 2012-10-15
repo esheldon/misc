@@ -13,7 +13,7 @@ struct mydata {
     double ivar; // same error for each
 };
 
-double lnprob(double *pars, size_t npars, void *userdata)
+double lnprob(const double *pars, size_t npars, const void *userdata)
 {
     double chi2=0, diff=0;
     const struct mydata *mydata = userdata;
@@ -76,11 +76,11 @@ int main(int argc, char **argv)
     mydata.data = (const double*) data;
     mydata.ivar = 1/(err*err);
 
-    struct mca_chain *burn_chain=mca_chain_new(nwalkers,burn_per_walker,npars);
-    mca_run(a, guesses, burn_chain, &lnprob, (void*) &mydata);
+    struct mca_chain *burnin_chain=mca_chain_new(nwalkers,burn_per_walker,npars);
+    mca_run(burnin_chain, a, guesses, &lnprob, &mydata);
 
     struct mca_chain *chain=mca_chain_new(nwalkers,steps_per_walker,npars);
-    mca_run(a, burn_chain, chain, &lnprob, (void*) &mydata);
+    mca_run(chain, a, burnin_chain, &lnprob, &mydata);
 
     struct mca_stats *stats=mca_chain_stats(chain);
     fprintf(stderr,"\nStats:\n");
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     mca_chain_print(chain, stdout);
 
     guesses=mca_chain_del(guesses);
-    burn_chain=mca_chain_del(burn_chain);
+    burnin_chain=mca_chain_del(burnin_chain);
     chain=mca_chain_del(chain);
 
     stats=mca_stats_del(stats);

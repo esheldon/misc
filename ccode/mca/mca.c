@@ -223,11 +223,11 @@ void mca_stats_print_full(struct mca_stats *self, FILE *stream)
     }
 }
 
-void mca_run(double a,
+void mca_run(struct mca_chain *chain,
+             double a,
              const struct mca_chain *start,
-             struct mca_chain *chain,
-             double (*lnprob_func)(double *pars, size_t npars, void *userdata),
-             void *userdata)
+             double (*lnprob_func)(const double *, size_t, const void *),
+             const void *userdata)
 {
     double z=0;
     size_t nwalkers=MCA_CHAIN_NWALKERS(chain);
