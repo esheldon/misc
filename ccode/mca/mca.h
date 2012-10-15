@@ -14,6 +14,10 @@
 
 #define MCA_LOW_VAL (-DBL_MAX)
 
+/*
+   The main structure for mcmc chains.
+*/
+
 struct mca_chain {
     size_t nwalkers;
     size_t steps_per_walker;
@@ -35,29 +39,6 @@ struct mca_chain {
 
     int *accept;
 };
-
-struct mca_stats {
-    size_t npars;
-
-    double *mean;
-
-    /* index by npar*i + j */
-    double *cov;
-};
-
-/*
-struct mca {
-    // holds the pars and lnprob
-    struct mca_chain *chain;
-
-    // This is the function to calculate the log(prob)
-    double (*lnprob_func)(double *pars, size_t npars, void *userdata);
-
-    // The user can store data here for the log(prob) function
-    // This field will not be set or freed by mca_run()
-    const void *userdata;
-};
-*/
 
 #define MCA_CHAIN(mca) (mca)->chain
 
@@ -95,6 +76,33 @@ struct mca {
     (chain)->accept[(istep)]
 
 
+
+struct mca_chain *mca_chain_new(size_t nwalkers,
+                                size_t steps_per_walker,
+                                size_t npars);
+struct mca_chain *mca_chain_del(struct mca_chain *self);
+
+void mca_chain_print(struct mca_chain *chain, FILE *stream);
+
+struct mca_chain *mca_make_guess(double *centers, 
+                                 double *ballsizes,
+                                 size_t npars, 
+                                 size_t nwalkers);
+
+
+/*
+   stats calculated from mca_chain s
+*/
+struct mca_stats {
+    size_t npars;
+
+    double *mean;
+
+    /* [i,j] -> npar*i + j */
+    double *cov;
+};
+
+
 #define MCA_STATS_NPARS(stats) (stats)->npars
 
 #define MCA_STATS_MEAN(stats, i) ({                                           \
@@ -124,58 +132,33 @@ struct mca {
 })
 
 
-// here istep is within the walker's sub-chain
-/*
-#define MCA_PAR_BYWALKER(mca, iwalker, istep, ipar)                 \
-    MCA_CHAIN_PAR_BYWALKER((mca)->chain, iwalker, istep, ipar)      \
 
-// here istep is the overall step, [0,nwalkers*steps_per_walker)
-#define MCA_PAR(mca, istep, ipar)                 \
-    MCA_CHAIN_PAR((mca)->chain, istep, ipar)      \
-
-#define MCA_LNPROB_BYWALKER(mca, iwalker, istep)        \
-    MCA_CHAIN_LNPROB_BYWALKER((mca)->chain, iwalker, istep)
-#define MCA_LNPROB(mca, istep)    \
-    MCA_CHAIN_LNPROB((mca)->chain, istep)
-
-
-#define MCA_NSTEPS_BYWALKER(mca) \
-    MCA_CHAIN_NSTEPS_BYWALKER((mca)->chain)
-#define MCA_NSTEP(mca) \
-    MCA_CHAIN_NSTEPS((mca)->chain)
-*/
-
-
-
-
-
-/*
-*/
-/*
-struct mca *mca_new(size_t nwalkers,
-                    size_t steps_per_walker,
-                    size_t npars,
-                    double (*lnprob_func)(double *pars, size_t npars, void *userdata),
-                    const void *userdata);
-struct mca *mca_del(struct mca *self);
-*/
-
-struct mca_chain *mca_chain_new(size_t nwalkers,
-                                size_t steps_per_walker,
-                                size_t npars);
-struct mca_chain *mca_chain_del(struct mca_chain *self);
-
-void mca_chain_print(struct mca_chain *chain, FILE *stream);
-
-struct mca_chain *mca_make_guess(double *centers, 
-                                 double *ballsizes,
-                                 size_t npars, 
-                                 size_t nwalkers);
 
 struct mca_stats *mca_stats_new(size_t npar);
 struct mca_stats *mca_stats_del(struct mca_stats *self);
+
+/*
+   Calculate means of each parameter and full covariance matrix
+*/
+
 struct mca_stats *mca_chain_stats(struct mca_chain *chain);
+/* print 
+     mean +/- err
+   for each parameter
+
+   This is for human viewing.
+*/
 void mca_stats_print(struct mca_stats *self, FILE *stream);
+/* 
+   this version good for machine reading
+
+   npar
+   mean1 mean2 mean3 ....
+   cov11 cov12 cov13 ....
+   cov21 cov22 cov23 ....
+   cov31 cov32 cov33 ....
+
+*/
 void mca_stats_print_full(struct mca_stats *self, FILE *stream);
 
 /*
@@ -277,7 +260,10 @@ double mca_rand_gofz(double a);
 
 
 /*
-   Generate normal random numbers.
+
+   Generate gaussian random numbers with variance 1 and mean 0.  This is not
+   used by the affine invariant sampler, but will probably be useful for test
+   programs that generate random data.
 
    Note we get two per run but I'm only using one.
 */

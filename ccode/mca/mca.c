@@ -222,6 +222,7 @@ void mca_stats_print_full(struct mca_stats *self, FILE *stream)
 {
     size_t npars = MCA_STATS_NPARS(self);
 
+    fprintf(stream,"%lu\n", npars);
     for (size_t ipar=0; ipar< npars; ipar++) {
         double mn=MCA_STATS_MEAN(self,ipar);
         fprintf(stream,"%.16g", mn);
