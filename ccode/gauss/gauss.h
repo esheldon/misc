@@ -37,4 +37,5 @@ int gauss_set(struct gauss *self,
 
 
 void gauss_print(const struct gauss *self, FILE *stream);
+
 #endif

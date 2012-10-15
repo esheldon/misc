@@ -1,15 +1,7 @@
 #ifndef _GMIX_HEADER_GUARD
 #define _GMIX_HEADER_GUARD
 
-struct gauss {
-    double p;
-    double row;
-    double col;
-    double irr;
-    double irc;
-    double icc;
-    double det;
-};
+#include "gauss.h"
 
 struct gmix {
     size_t size;
@@ -37,15 +29,6 @@ int gmix_verify(struct gmix *self);
 // only makes sense for same center, e.g. psf
 void gmix_set_total_moms(struct gmix *self);
 
-// this is actually kind of unclear to use in practice since it is easy to
-// screw up which parameters go where
-void gauss_set(struct gauss* self, 
-               double p, 
-               double row, 
-               double col,
-               double irr,
-               double irc,
-               double icc);
 
 int gmix_copy(struct gmix *self, struct gmix* dest);
 void gmix_print(struct gmix *self, FILE* fptr);
