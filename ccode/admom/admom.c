@@ -1,7 +1,5 @@
 /* 
    Adaptive moments.  no sub-pixel integration in this version
-
-
 */
 
 #include <stdio.h>
@@ -19,7 +17,7 @@
 static void get_mask(const struct image *image,
                      struct gauss *gauss, 
                      double nsigma,
-                     struct bound *mask)
+                     struct image_mask *mask)
 {
     double rowmin=0,rowmax=0,colmin=0,colmax=0;
     double grad=0;
@@ -31,7 +29,7 @@ static void get_mask(const struct image *image,
     colmin = lround(fmax( gauss->col-grad-0.5,0.) );
     colmax = lround(fmin( gauss->col+grad+0.5, (double)IM_NCOLS(image)-1 ) );
 
-    bound_set(mask, rowmin, rowmax, colmin, colmax);
+    image_mask_set(mask, rowmin, rowmax, colmin, colmax);
 
 }
 
@@ -205,7 +203,7 @@ void admom(struct am *am, const struct image *image)
 
     int iter=0;
     struct image *maskim = NULL;
-    struct bound mask = {0};
+    struct image_mask mask = {0};
 
     // For masking.  won't own data
     maskim = image_getref(image);
@@ -229,9 +227,6 @@ void admom(struct am *am, const struct image *image)
 
         get_mask(image, wt, am->nsigma, &mask);
         image_add_mask(maskim, &mask, 0); // 0 means don't update counts
-
-        //fprintf(stderr,"mask:\n");
-        //bound_print(&mask, stderr);
 
         //update_cen(am, maskim);
         calc_moments(am, maskim);
