@@ -101,6 +101,17 @@ struct image {
 } while (0)
 
 
+// note masks can have negative indices; the image code should deal with it
+// properly
+
+struct image_mask {
+    ssize_t rowmin;
+    ssize_t rowmax;
+    ssize_t colmin;
+    ssize_t colmax;
+};
+
+
 
 struct image *image_new(size_t nrows, size_t ncols);
 struct image *_image_new(size_t nrows, size_t ncols, int alloc_data);
@@ -124,8 +135,8 @@ struct image *image_read_text(const char* filename);
 
 struct image *image_free(struct image *self);
 
-// note the bounds will be trimmed to within the image
-void image_add_mask(struct image *self, const struct bound* bound, int update_counts);
+// note the masks will be trimmed to within the image
+void image_add_mask(struct image *self, const struct image_mask* mask, int update_counts);
 
 void image_write(const struct image *self, FILE* stream);
 
@@ -139,5 +150,25 @@ void image_add_scalar(struct image *self, double val);
 // returns 0 if the images are not the same shape, otherwise 1
 int image_compare(const struct image *im1, const struct image *im2,
                    double *meandiff, double *var);
+
+
+
+
+struct image_mask *image_mask_new(ssize_t rowmin, 
+                                  ssize_t rowmax, 
+                                  ssize_t colmin, 
+                                  ssize_t colmax);
+struct image_mask *bound_free(struct image_mask *self);
+
+void bound_set(struct image_mask* self,
+               ssize_t rowmin, 
+               ssize_t rowmax, 
+               ssize_t colmin, 
+               ssize_t colmax);
+
+void bound_print(const struct image_mask *bound, FILE *stream);
+
+
+
 
 #endif

@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "image.h"
-#include "bound.h"
 
 struct image *image_new(size_t nrows, size_t ncols)
 {
@@ -149,9 +148,9 @@ void image_write(const struct image *self, FILE* stream)
     }
 }
 
-// bound is gauranteed to be within [0,size).  Also maxval is
+// mask is gauranteed to be within [0,size).  Also maxval is
 // gauranteed to be >= minval.
-void fix_bounds(size_t dim, ssize_t *minval, ssize_t *maxval)
+static void fix_mask(size_t dim, ssize_t *minval, ssize_t *maxval)
 {
     if (*minval < 0) {
         *minval=0;
@@ -171,20 +170,20 @@ void fix_bounds(size_t dim, ssize_t *minval, ssize_t *maxval)
         *maxval = *minval;
     }
 }
-void image_add_mask(struct image *self, const struct bound* bound, int update_counts)
+void image_add_mask(struct image *self, const struct image_mask* mask, int update_counts)
 {
     ssize_t tminval=0, tmaxval=0;
 
-    tminval=bound->rowmin;
-    tmaxval=bound->rowmax;
+    tminval=mask->rowmin;
+    tmaxval=mask->rowmax;
 
-    fix_bounds(IM_PARENT_NROWS(self), &tminval, &tmaxval);
+    fix_mask(IM_PARENT_NROWS(self), &tminval, &tmaxval);
     self->row0  = (size_t) tminval;
     self->nrows = (size_t) (tmaxval - tminval + 1);
 
-    tminval=bound->colmin;
-    tmaxval=bound->colmax;
-    fix_bounds(IM_PARENT_NCOLS(self), &tminval, &tmaxval);
+    tminval=mask->colmin;
+    tmaxval=mask->colmax;
+    fix_mask(IM_PARENT_NCOLS(self), &tminval, &tmaxval);
     self->col0  = (size_t) tminval;
     self->ncols = (size_t)(tmaxval - tminval + 1);
 
@@ -358,4 +357,49 @@ int image_compare(const struct image *im1, const struct image *im2,
     (*var) = sum2/IM_SIZE(im1) - (*meandiff)*(*meandiff);
 
     return 1;
+}
+
+
+struct image_mask *image_mask_new(ssize_t rowmin, 
+                        ssize_t rowmax, 
+                        ssize_t colmin, 
+                        ssize_t colmax)
+{
+    struct image_mask *self=NULL;
+
+    self = calloc(1, sizeof(struct image_mask));
+    if (self==NULL) {
+        fprintf(stderr,"could not allocate struct image_mask\n");
+        exit(EXIT_FAILURE);
+    }
+
+    image_mask_set(self, rowmin, rowmax, colmin, colmax);
+    return self;
+}
+
+struct image_mask *image_mask_free(struct image_mask *self) {
+    if (self) {
+        free(self);
+    }
+    return NULL;
+}
+
+void image_mask_set(struct image_mask* self,
+                     ssize_t rowmin, 
+                     ssize_t rowmax, 
+                     ssize_t colmin, 
+                     ssize_t colmax)
+{
+    self->rowmin=rowmin;
+    self->rowmax=rowmax;
+    self->colmin=colmin;
+    self->colmax=colmax;
+}
+
+void image_mask_print(const struct image_mask *mask, FILE *stream)
+{
+    fprintf(stream,"  rowmin: %ld\n", mask->rowmin);
+    fprintf(stream,"  rowmax: %ld\n", mask->rowmax);
+    fprintf(stream,"  colmin: %ld\n", mask->colmin);
+    fprintf(stream,"  colmin: %ld\n", mask->colmax);
 }
