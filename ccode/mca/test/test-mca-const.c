@@ -72,9 +72,6 @@ int main(int argc, char **argv)
 
     struct mca_chain *guesses=mca_make_guess(guess, ballsize, npars, nwalkers);
 
-    //printf("guess\n");
-    //mca_chain_print(guesses, stdout);
-
     struct mydata mydata;
     mydata.ndata = ndata;
     mydata.data = (const double*) data;
