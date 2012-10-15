@@ -1,6 +1,7 @@
 #ifndef _GMIX_HEADER_GUARD
 #define _GMIX_HEADER_GUARD
 
+#include <stdio.h>
 #include "gauss.h"
 
 struct gmix {
@@ -30,7 +31,9 @@ int gmix_verify(struct gmix *self);
 void gmix_set_total_moms(struct gmix *self);
 
 
+struct gmix *gmix_new_copy(struct gmix *self);
 int gmix_copy(struct gmix *self, struct gmix* dest);
+
 void gmix_print(struct gmix *self, FILE* fptr);
 
 // calculate the weighted sum of the moments

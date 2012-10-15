@@ -295,7 +295,7 @@ void image_calc_counts(struct image *self)
         col = IM_ROW_ITER(self,row);
         end = IM_ROW_END(self,row);
         for (; col != end; col++) {
-            counts += *col;
+            counts += (*col);
         }
     }
     self->counts=counts;
@@ -310,12 +310,12 @@ void image_add_scalar(struct image *self, double val)
     double *col=NULL, *end=NULL;
     size_t row=0, nrows = IM_NROWS(self);
     for (row=0;row<nrows;row++) {
-        col    = IM_ROW_ITER(self,row);
+        col = IM_ROW_ITER(self,row);
         end = IM_ROW_END(self,row);
         for (; col != end; col++) {
-            self->counts  += val-(*col);
-            self->_counts += val-(*col);
-            *col += val;
+            self->counts  += val;
+            self->_counts += val;
+            (*col) += val;
         }
     }
 

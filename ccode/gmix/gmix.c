@@ -73,6 +73,13 @@ int gmix_verify(struct gmix *self)
     return 1;
 }
 
+struct gmix *gmix_new_copy(struct gmix *self)
+{
+    struct gmix *dest=gmix_new(self->size);
+    gmix_copy(self, dest);
+    return dest;
+}
+
 
 int gmix_copy(struct gmix *self, struct gmix* dest)
 {
