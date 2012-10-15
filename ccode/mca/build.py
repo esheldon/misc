@@ -31,8 +31,13 @@ if not options.debug:
 programs=[]
 
 if options.tests:
-    trand_sources=['test/test-mca-rand','mca']
-    programs=[{'name':'test/test-mca-rand','sources':trand_sources}]
+    trand_src=['test/test-mca-rand','mca']
+    trand_prog = {'name':'test/test-mca-rand','sources':trand_src}
+
+    tconst_src=['test/test-mca-const','mca']
+    tconst_prog = {'name':'test/test-mca-const','sources':tconst_src}
+
+    programs=[trand_prog, tconst_prog]
 
 def build():
     compile()
