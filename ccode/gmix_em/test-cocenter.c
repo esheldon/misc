@@ -19,7 +19,7 @@ struct gmix *get_gmix(size_t ngauss)
     gauss_set(&gptr[0],
             0.6, 15., 15., 2.0, 0.0, 1.7);
     gauss_set(&gptr[1],
-            0.4, 10., 8., 1.5, .3, 4.);
+            0.4, 15., 15., 1.5, .3, 4.);
     return gmix;
 }
 
@@ -32,20 +32,23 @@ struct gmix *get_guess_gmix(size_t ngauss, size_t nrow, size_t ncol)
     struct gmix *gmix = gmix_new(ngauss);
     struct gauss *gptr = gmix->data;
 
+    double row=nrow/2. + 0.5*(drand48()-0.5);
+    double col=ncol/2. + 0.5*(drand48()-0.5);
+
     gauss_set(&gptr[0],
-            0.27, 
-            nrow/2. + 4*(drand48()-0.5),
-            ncol/2. + 4*(drand48()-0.5),
-            1.0, 
-            0.0, 
-            1.0);
+            0.27 + .05*(drand48()-0.5), 
+            row,
+            col,
+            1.0 + .05*(drand48()-0.5), 
+            0.0 + .05*(drand48()-0.5), 
+            1.0 + .05*(drand48()-0.5));
     gauss_set(&gptr[1],
-            0.23, 
-            nrow/2. + 4*(drand48()-0.5),
-            ncol/2. + 4*(drand48()-0.5),
-            2.0, 
-            0.0, 
-            2.0);
+            0.23 + .05*(drand48()-0.5), 
+            row,
+            col,
+            2.0 + .05*(drand48()-0.5), 
+            0.0 + .05*(drand48()-0.5), 
+            2.0 + .05*(drand48()-0.5));
     return gmix;
 }
 
@@ -63,9 +66,6 @@ int main(int argc, char** argv)
 
     // the true gmix
     struct gmix *gmix_true = get_gmix(ngauss);
-    wlog("True gmix:\n");
-    gmix_print(gmix_true, stderr);
-    wlog("\n\n");
 
     // make the image
     struct image* image = gmix_image_new(gmix_true, nrow, ncol, nsub);

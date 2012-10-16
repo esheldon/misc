@@ -194,9 +194,9 @@ static void set_means(struct gmix *gmix, struct vec2 *cen)
 /*
  * this could be cleaned up, some repeated code
  */
-void gmix_em_cocenter(struct gmix_em* self,
-                      struct image *image, 
-                      struct gmix *gmix)
+void gmix_em_cocenter_run(struct gmix_em* self,
+                          struct image *image, 
+                          struct gmix *gmix)
 {
     double wmomlast=0, wmom=0;
     double sky     = IM_SKY(image);
@@ -365,6 +365,15 @@ void gmix_em_gmix_set_fromiter(struct gmix *gmix,
     struct gauss *gauss = gmix->data;
     size_t i=0;
     for (i=0; i<gmix->size; i++) {
+        double p   = sums->pnew;
+        double row = sums->rowsum/sums->pnew;
+        double col = sums->colsum/sums->pnew;
+        double irr = sums->u2sum/sums->pnew;
+        double irc = sums->uvsum/sums->pnew;
+        double icc = sums->v2sum/sums->pnew;
+
+        gauss_set(gauss,p, row, col, irr, irc, icc);
+        /*
         gauss->p   = sums->pnew;
         gauss->row = sums->rowsum/sums->pnew;
         gauss->col = sums->colsum/sums->pnew;
@@ -372,6 +381,7 @@ void gmix_em_gmix_set_fromiter(struct gmix *gmix,
         gauss->irc = sums->uvsum/sums->pnew;
         gauss->icc = sums->v2sum/sums->pnew;
         gauss->det = gauss->irr*gauss->icc - gauss->irc*gauss->irc;
+        */
 
         sums++;
         gauss++;
