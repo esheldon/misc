@@ -84,11 +84,11 @@ int main(int argc, char **argv)
 
     struct mca_stats *stats=mca_chain_stats(chain);
     fprintf(stderr,"\nStats:\n");
-    mca_stats_print(stats,stderr);
+    mca_stats_write_brief(stats,stderr);
     fprintf(stderr,"\nStats full:\n");
-    mca_stats_print_full(stats,stderr);
+    mca_stats_write(stats,stderr);
 
-    mca_chain_print(chain, stdout);
+    mca_chain_write(chain, stdout);
 
     guesses=mca_chain_del(guesses);
     burnin_chain=mca_chain_del(burnin_chain);

@@ -3,7 +3,6 @@
 #include <math.h>
 #include <time.h>
 #include "admom.h"
-#include "admom_noise.h"
 #include "gauss.h"
 #include "image.h"
 #include "randn.h"

@@ -11,8 +11,7 @@ import glob
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
 optlist=[optparse.Option('--noopt',action="store_true",help="turn off compiler optimizations"),
-         optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)"),
-         optparse.Option('--tests',action="store_true",help="build the test programs)")]
+         optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)")]
          
 parser.add_options(optlist)
 
@@ -30,14 +29,13 @@ if not options.debug:
 
 programs=[]
 
-if options.tests:
-    trand_src=['test/test-mca-rand','mca']
-    trand_prog = {'name':'test/test-mca-rand','sources':trand_src}
+trand_src=['test/test-mca-rand','mca']
+trand_prog = {'name':'test/test-mca-rand','sources':trand_src}
 
-    tconst_src=['test/test-mca-const','mca']
-    tconst_prog = {'name':'test/test-mca-const','sources':tconst_src}
+tconst_src=['test/test-mca-const','mca']
+tconst_prog = {'name':'test/test-mca-const','sources':tconst_src}
 
-    programs=[trand_prog, tconst_prog]
+programs=[trand_prog, tconst_prog]
 
 def build():
     compile()

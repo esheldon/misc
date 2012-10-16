@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <math.h>
 #include <float.h> // for DBL_MAX
 #include "gmix_image.h"
@@ -5,7 +6,10 @@
 #include "gauss.h"
 #include "gmix.h"
 
-struct image *gmix_image_new(struct gmix *gmix, size_t nrows, size_t ncols, int nsub)
+struct image *gmix_image_new(const struct gmix *gmix, 
+                             size_t nrows, 
+                             size_t ncols, 
+                             int nsub)
 {
     struct image *im = image_new(nrows, ncols);
     gmix_image_fill(im, gmix, nsub);
@@ -13,7 +17,7 @@ struct image *gmix_image_new(struct gmix *gmix, size_t nrows, size_t ncols, int 
 }
 
 int gmix_image_fill(struct image *image, 
-                    struct gmix *gmix, 
+                    const struct gmix *gmix, 
                     int nsub)
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
@@ -84,8 +88,8 @@ _gmix_image_fill_model_bail:
     return flags;
 }
 
-double gmix_image_loglike(struct image *image, 
-                          struct gmix *gmix, 
+double gmix_image_loglike(const struct image *image, 
+                          const struct gmix *gmix, 
                           double ivar,
                           int *flags)
 {
@@ -96,7 +100,7 @@ double gmix_image_loglike(struct image *image,
     double chi2=0, diff=0;
     size_t i=0, col=0, row=0;
 
-    double loglike = (-DBL_MAX);
+    double loglike = 0;
     double model_val=0;
     double *rowdata=NULL;
 
@@ -104,6 +108,7 @@ double gmix_image_loglike(struct image *image,
 
     if (!gmix_verify(gmix)) {
         (*flags) |= GMIX_IMAGE_NEGATIVE_DET;
+        loglike = GMIX_IMAGE_LOW_VAL;
         goto _gmix_image_loglike_bail;
     }
 
@@ -124,6 +129,7 @@ double gmix_image_loglike(struct image *image,
                 gauss++;
             } // gmix
 
+            //fprintf(stderr,"Model val: %.16g rowdata: %.16g\n", model_val, (*rowdata));
             diff = model_val -(*rowdata);
             loglike += diff*diff*ivar;
 
@@ -132,6 +138,8 @@ double gmix_image_loglike(struct image *image,
     } // rows
 
     loglike *= (-0.5);
+    //fprintf(stderr,"loglike: %.16g\n", loglike);
+    //exit(1);
 
 _gmix_image_loglike_bail:
 

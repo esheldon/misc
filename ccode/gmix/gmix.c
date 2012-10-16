@@ -52,7 +52,7 @@ void gmix_set_dets(struct gmix *self)
     }
 }
 
-int gmix_verify(struct gmix *self)
+int gmix_verify(const struct gmix *self)
 {
     size_t i=0;
     struct gauss *gauss=NULL;
@@ -65,7 +65,7 @@ int gmix_verify(struct gmix *self)
     gauss=self->data;
     for (i=0; i<self->size; i++) {
         if (gauss->det <= 0) {
-            fprintf(stderr,"found det: %.16g\n", gauss->det);
+            //fprintf(stderr,"found det: %.16g\n", gauss->det);
             return 0;
         }
         gauss++;
@@ -223,9 +223,54 @@ struct gmix *gmix_from_pars(double *pars, int size)
 }
 
 
+struct gmix *gmix_from_coellip(const double *pars, int npars)
+{
+    size_t ngauss = (npars-4)/2;
+    struct gmix *gmix = gmix_new(ngauss);
+    gmix_fill_coellip(gmix, pars, npars);
+    return gmix;
+}
+struct gmix *gmix_fill_coellip(struct gmix *gmix, 
+                               const double *pars, 
+                               int npars)
+{
 
-/* should move away from using Tmax */
-struct gmix *gmix_from_coellip(double *pars, int size)
+    if ( ((npars-4) % 2) != 0) {
+        fprintf(stderr,"gmix error: pars are wrong size for coelliptical\n");
+        exit(EXIT_FAILURE);
+    }
+    int ngauss=(npars-4)/2;
+    if (ngauss != gmix->size) {
+        fprintf(stderr,"input pars wrong length for input gmix struct\n");
+        exit(EXIT_FAILURE);
+    }
+
+    double row=pars[0];
+    double col=pars[1];
+    double e1 = pars[2];
+    double e2 = pars[3];
+
+    struct gauss *gauss=gmix->data;
+    for (int i=0; i<ngauss; i++) {
+
+        double Ti = pars[4+i];
+        double pi = pars[4+ngauss+i];
+
+        gauss_set(gauss,
+                  pi,
+                  row, 
+                  col, 
+                  (Ti/2.)*(1-e1),
+                  (Ti/2.)*e2,
+                  (Ti/2.)*(1+e1));
+        gauss++;
+    }
+
+    return gmix;
+}
+
+
+struct gmix *gmix_from_coellip_Tfrac(double *pars, int size)
 {
     int ngauss=0;
     double row=0, col=0, e1=0, e2=0, Tmax=0, Ti=0, pi=0, Tfrac=0;

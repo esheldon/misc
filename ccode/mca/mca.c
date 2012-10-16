@@ -62,8 +62,20 @@ struct mca_chain *mca_chain_del(struct mca_chain *self)
     return NULL;
 }
 
+int mca_chain_write_file(const struct mca_chain *self, const char *fname)
+{
+    FILE *fobj=fopen(fname,"w");
+    if (fobj==NULL) {
+        fprintf(stderr,"Could not open file '%s'\n", fname);
+        return 0;
+    }
 
-void mca_chain_print(struct mca_chain *chain, FILE *stream)
+    mca_chain_write(self, fobj);
+    fclose(fobj);
+
+    return 1;
+}
+void mca_chain_write(const struct mca_chain *chain, FILE *stream)
 {
     size_t nwalkers=MCA_CHAIN_NWALKERS(chain);
     size_t steps_per_walker=MCA_CHAIN_NSTEPS_BYWALKER(chain);
@@ -84,22 +96,24 @@ void mca_chain_print(struct mca_chain *chain, FILE *stream)
 }
 
 struct mca_chain *mca_make_guess(double *centers, 
-                                 double *ballsizes,
+                                 double *widths,
                                  size_t npars, 
                                  size_t nwalkers)
 {
     struct mca_chain *chain=mca_chain_new(nwalkers,1,npars);
 
+    /*
     for (size_t iwalk=0; iwalk<nwalkers; iwalk++) {
         MCA_CHAIN_LNPROB_BYWALKER(chain,iwalk,0) = MCA_LOW_VAL;
     }
+    */
     for (size_t ipar=0; ipar<npars; ipar++) {
 
         double center=centers[ipar];
-        double ballsize=ballsizes[ipar];
+        double width=widths[ipar];
 
         for (size_t iwalk=0; iwalk<nwalkers; iwalk++) {
-            double val = center + ballsize*(drand48()-0.5)*2;
+            double val = center + width*(drand48()-0.5)*2;
             MCA_CHAIN_PAR_BYWALKER(chain, iwalk, 0, ipar) = val; 
         }
     }
@@ -193,7 +207,7 @@ struct mca_stats *mca_chain_stats(struct mca_chain *chain)
     return self;
 }
 
-void mca_stats_print(struct mca_stats *self, FILE *stream)
+void mca_stats_write_brief(struct mca_stats *self, FILE *stream)
 {
     size_t npars = MCA_STATS_NPARS(self);
 
@@ -204,7 +218,7 @@ void mca_stats_print(struct mca_stats *self, FILE *stream)
         fprintf(stream,"%.16g +/- %.16g\n",mn,err);
     }
 }
-void mca_stats_print_full(struct mca_stats *self, FILE *stream)
+void mca_stats_write(struct mca_stats *self, FILE *stream)
 {
     size_t npars = MCA_STATS_NPARS(self);
 
@@ -238,6 +252,11 @@ void mca_run(struct mca_chain *chain,
 
     mca_set_start(start, chain);
 
+    for (size_t iwalker=0; iwalker<nwalkers; iwalker++) {
+        pars_old   =&MCA_CHAIN_PAR_BYWALKER(chain, iwalker, 0, 0);
+        lnprob_old = (*lnprob_func)(pars_old,npars,userdata);
+        MCA_CHAIN_LNPROB_BYWALKER(chain,iwalker,0) = lnprob_old;
+    }
 
     for (size_t istep=1; istep<steps_per_walker; istep++) {
         for (size_t iwalker=0; iwalker<nwalkers; iwalker++) {

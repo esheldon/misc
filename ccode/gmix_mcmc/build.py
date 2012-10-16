@@ -14,11 +14,9 @@ LINKFLAGS=['-lm']
 
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2','-mfpmath=sse']
 
-test_sources = ['test','gauss','gmix','image','gmix_em','mtx2','gmix_image']
-test_cocenter_sources = ['test-cocenter','gauss','gmix','image','gmix_em','mtx2','gmix_image']
+test_coellip_sources = ['test-coellip','gauss','gmix','image','gmix_mcmc','gmix_image','mca','admom','randn']
 
-programs = [{'name':'test', 'sources':test_sources},
-            {'name':'test-cocenter', 'sources':test_cocenter_sources}]
+programs = [{'name':'test-coellip', 'sources':test_coellip_sources}]
 
 install_targets = [(prog['name'],'bin') for prog in programs]
 

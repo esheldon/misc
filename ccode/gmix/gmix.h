@@ -25,7 +25,7 @@ struct gmix *gmix_free(struct gmix *self);
 void gmix_set_dets(struct gmix *self);
 
 // make sure pointer not null and det>0 for all gauss
-int gmix_verify(struct gmix *self);
+int gmix_verify(const struct gmix *self);
 
 // only makes sense for same center, e.g. psf
 void gmix_set_total_moms(struct gmix *self);
@@ -54,10 +54,20 @@ struct gmix *gmix_convolve(struct gmix *obj_gmix,
    [pi,rowi,coli,irri,irci,icci,...]
 */
 struct gmix *gmix_from_pars(double *pars, int size);
+
 /* coellip list
+   [row,col,e1,e2,T1,T2,T3,...,p1,p2,p3..]
+ */
+struct gmix *gmix_from_coellip(const double *pars, int npars);
+struct gmix *gmix_fill_coellip(struct gmix *gmix, 
+                               const double *pars, 
+                               int npars);
+
+
+/* coellip Tfrac list
    [row,col,e1,e2,Tmax,f2,f3,...,p1,p2,p3..]
  */
-struct gmix *gmix_from_coellip(double *pars, int size);
+struct gmix *gmix_from_coellip_Tfrac(double *pars, int size);
 
 /* 
    Generate a gmix from the inputs pars assuming an appoximate

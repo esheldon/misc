@@ -45,5 +45,8 @@ def main(fname):
                           xlabel='par %s' % (i+1))
 
 
+if len(sys.argv) < 2:
+    print 'python plot-chain.py filename'
+    sys.exit(1)
 fname=os.path.expanduser(sys.argv[1])
 main(fname)
