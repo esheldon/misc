@@ -74,4 +74,18 @@ void admom(struct am *am, const struct image *image);
 
 void admom_print(const struct am *am, FILE *stream);
 
+/* 
+   this is bogus, need to fix
+
+  add gaussian noise to the image to get the requested S/N.  The S/N is defined
+  as
+
+     sum(weight*im)/sqrt(sum(weight)/skysig
+
+  Returned are the skysig and the measured s/n which should be equivalent to
+  the requested s/n to precision.
+*/
+void admom_add_noise(struct image *image, double s2n, const struct gauss *wt,
+                     double *skysig, double *s2n_meas);
+
 #endif

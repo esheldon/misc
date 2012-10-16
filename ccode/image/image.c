@@ -121,6 +121,20 @@ struct image *image_read(const char* filename)
 }
 
 
+int image_write_file(const struct image *self, const char *fname)
+{
+    FILE *fobj=fopen(fname,"w");
+    if (fobj==NULL) {
+        fprintf(stderr,"Could not open file '%s'\n", fname);
+        return 0;
+    }
+
+    image_write(self, fobj);
+    fclose(fobj);
+
+    return 1;
+}
+
 
 
 void image_write(const struct image *self, FILE* stream)

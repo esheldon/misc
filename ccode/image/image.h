@@ -138,6 +138,7 @@ struct image *image_free(struct image *self);
 void image_add_mask(struct image *self, const struct image_mask* mask, int update_counts);
 
 void image_write(const struct image *self, FILE* stream);
+int image_write_file(const struct image *self, const char *fname);
 
 void image_calc_counts(struct image *self);
 

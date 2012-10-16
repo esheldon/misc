@@ -20,9 +20,14 @@ GSSAPIAuthentication yes
 #Host rssh
 Host rssh.rhic.bnl.gov
 
-	# bach
 	LocalForward localhost:2224 astro.rcf.bnl.gov:22
 	LocalForward localhost:2225 tutti.astro.bnl.gov:22
+
+Host ssh.bluegene.bnl.local
+
+	LocalForward localhost:2226 gpu1.csc.bnl.gov:22
+	LocalForward localhost:2227 gpu2.csc.bnl.gov:22
+
 
 # Set up aliases to point us to the ports and machines listed above
 # don't use their actual names, just in case we are on a machine local
@@ -33,6 +38,13 @@ Host tastro
 Host ttutti
 	HostName localhost
 	Port 2225
+
+Host tgpu1
+	HostName localhost
+	Port 2226
+Host tgpu2
+	HostName localhost
+	Port 2227
 
 
 # Created by /usr/bin/cluster-env (1.2)

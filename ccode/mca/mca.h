@@ -20,9 +20,9 @@
 
    // now take a random ball around the guess and assign values
    // for each walker.   This gets stored in a 1-step mca_chain
-   double ballsize[NPARS];
-   ballsize[0] = ...;  // fill in ball sizes
-   struct mca_chain *guesses=mca_make_guess(guess, ballsize, npars, nwalkers);
+   double widths[NPARS];
+   widths[0] = ...;  // fill in widths
+   struct mca_chain *guesses=mca_make_guess(guess, widths, npars, nwalkers);
 
    // now lets run a burn-in.  We will make a new chain to be filled
    struct mca_chain *burn_chain=mca_chain_new(nwalkers,burn_per_walker,npars);
@@ -43,17 +43,17 @@
    struct mca_stats *stats=mca_chain_stats(chain);
 
    // print to a stream, can be stdout/stderr or an opened file object
-   mca_stats_print(stats,stderr);
+   mca_stats_write_brief(stats,stderr);
 
    mean_par2 = MCA_STATS_MEAN(stats,2);
    err_par2 = sqrt(MCA_STATS_COV(stats,2,2))
 
    // This will give a machine readable printout
-   mca_stats_print_full(stats,stderr);
+   mca_stats_write(stats,stderr);
 
    // Finally, we can store the chain in a file for reading later
    // here stdout but you can use an opened file stream
-   mca_chain_print(chain, stdout);
+   mca_chain_write(chain, stdout);
 
 
 
@@ -84,8 +84,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <float.h>
+#include "image.h"
 
-#define MCA_LOW_VAL (-DBL_MAX)
+//#define MCA_LOW_VAL (-DBL_MAX+1000)
+#define MCA_LOW_VAL (-9999.e9)
 
 /*
    The main structure for mcmc chains.
@@ -155,10 +157,11 @@ struct mca_chain *mca_chain_new(size_t nwalkers,
                                 size_t npars);
 struct mca_chain *mca_chain_del(struct mca_chain *self);
 
-void mca_chain_print(struct mca_chain *chain, FILE *stream);
+int mca_chain_write_file(const struct mca_chain *self, const char *fname);
+void mca_chain_write(const struct mca_chain *chain, FILE *stream);
 
 struct mca_chain *mca_make_guess(double *centers, 
-                                 double *ballsizes,
+                                 double *widths,
                                  size_t npars, 
                                  size_t nwalkers);
 
