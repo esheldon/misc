@@ -1,4 +1,5 @@
 #include <math.h>
+#include <float.h> // for DBL_MAX
 #include "gmix_image.h"
 #include "image.h"
 #include "gauss.h"
@@ -81,6 +82,60 @@ int gmix_image_fill(struct image *image,
 
 _gmix_image_fill_model_bail:
     return flags;
+}
+
+double gmix_image_loglike(struct image *image, 
+                          struct gmix *gmix, 
+                          double ivar,
+                          int *flags)
+{
+    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
+
+    struct gauss *gauss=NULL;
+    double u=0, v=0;
+    double chi2=0, diff=0;
+    size_t i=0, col=0, row=0;
+
+    double loglike = (-DBL_MAX);
+    double model_val=0;
+    double *rowdata=NULL;
+
+    (*flags)=0;
+
+    if (!gmix_verify(gmix)) {
+        (*flags) |= GMIX_IMAGE_NEGATIVE_DET;
+        goto _gmix_image_loglike_bail;
+    }
+
+
+    for (row=0; row<nrows; row++) {
+        rowdata=IM_ROW(image, row);
+        for (col=0; col<ncols; col++) {
+
+            model_val=0;
+            gauss=gmix->data;
+            for (i=0; i<gmix->size; i++) {
+                u = row-gauss->row;
+                v = col-gauss->col;
+
+                chi2=gauss->dcc*u*u + gauss->drr*v*v - 2.0*gauss->drc*u*v;
+                model_val += gauss->norm*gauss->p*exp( -0.5*chi2 );
+
+                gauss++;
+            } // gmix
+
+            diff = model_val -(*rowdata);
+            loglike += diff*diff*ivar;
+
+            rowdata++;
+        } // cols
+    } // rows
+
+    loglike *= (-0.5);
+
+_gmix_image_loglike_bail:
+
+    return loglike;
 }
 
 
