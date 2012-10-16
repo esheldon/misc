@@ -7,7 +7,7 @@
 #include "gmix_image.h"
 #include "gmix_em.h"
 
-struct gmix *get_gmix(size_t ngauss)
+struct gmix *get_gmix(size_t ngauss, size_t nrow, size_t ncol)
 {
     if (ngauss != 2) {
         wlog("only ngauss==2 for now\n");
@@ -16,10 +16,13 @@ struct gmix *get_gmix(size_t ngauss)
     struct gmix *gmix = gmix_new(ngauss);
     struct gauss *gptr = gmix->data;
 
+    double col=nrow/2.;
+    double row=ncol/2.;
+
     gauss_set(&gptr[0],
-            0.6, 15., 15., 2.0, 0.0, 1.7);
+            0.6, row, col, 7., 0.0, 12.);
     gauss_set(&gptr[1],
-            0.4, 15., 15., 1.5, .3, 4.);
+            0.4, row, col, 16., 5., 27.);
     return gmix;
 }
 
@@ -32,23 +35,23 @@ struct gmix *get_guess_gmix(size_t ngauss, size_t nrow, size_t ncol)
     struct gmix *gmix = gmix_new(ngauss);
     struct gauss *gptr = gmix->data;
 
-    double row=nrow/2. + 0.5*(drand48()-0.5);
-    double col=ncol/2. + 0.5*(drand48()-0.5);
+    double row=nrow/2. + 2*(drand48()-0.5);
+    double col=ncol/2. + 2*(drand48()-0.5);
 
     gauss_set(&gptr[0],
-            0.27 + .05*(drand48()-0.5), 
+            0.2 + .05*(drand48()-0.5), 
             row,
             col,
-            1.0 + .05*(drand48()-0.5), 
-            0.0 + .05*(drand48()-0.5), 
-            1.0 + .05*(drand48()-0.5));
+            10.0*(1 + .1*(drand48()-0.5)), 
+            0.0 + 2*(drand48()-0.5), 
+            10.0*(1 + .1*(drand48()-0.5)) );
     gauss_set(&gptr[1],
-            0.23 + .05*(drand48()-0.5), 
+            0.3 + .05*(drand48()-0.5), 
             row,
             col,
-            2.0 + .05*(drand48()-0.5), 
-            0.0 + .05*(drand48()-0.5), 
-            2.0 + .05*(drand48()-0.5));
+            18.0*(1. + .1*(drand48()-0.5)), 
+            0.0 + 2*(drand48()-0.5), 
+            18.0*(1. + .1*(drand48()-0.5))  );
     return gmix;
 }
 
@@ -57,7 +60,7 @@ int main(int argc, char** argv)
     char fname[] = "test-image.dat";
     char fit_fname[] = "test-image-fit.dat";
     size_t ngauss=2;
-    size_t nrow=30, ncol=30;
+    size_t nrow=40, ncol=40;
     int nsub=1;
 
     time_t tm;
@@ -65,7 +68,7 @@ int main(int argc, char** argv)
     srand48((long) tm);
 
     // the true gmix
-    struct gmix *gmix_true = get_gmix(ngauss);
+    struct gmix *gmix_true = get_gmix(ngauss, nrow, ncol);
 
     // make the image
     struct image* image = gmix_image_new(gmix_true, nrow, ncol, nsub);
@@ -78,7 +81,7 @@ int main(int argc, char** argv)
 
     // the "self"
     struct gmix_em gmix_em;
-    gmix_em.maxiter=2000;
+    gmix_em.maxiter=4000;
     gmix_em.tol = 1.e-6;
     gmix_em.fixsky = 0;
     gmix_em.verbose=0;
@@ -107,7 +110,7 @@ int main(int argc, char** argv)
     wlog("guess\n");
     gmix_print(gmix,stderr);
 
-    gmix_em_run(&gmix_em, image, gmix);
+    gmix_em_cocenter_run(&gmix_em, image, gmix);
 
     wlog("\nnumiter: %lu\n", gmix_em.numiter);
     if (gmix_em.flags != 0) {
@@ -115,14 +118,14 @@ int main(int argc, char** argv)
     } else {
         wlog("measured\n");
         gmix_print(gmix,stderr);
-    }
 
-    wlog("storing fit image in '%s'\n", fit_fname);
-    {
-        FILE *fobj=fopen(fit_fname,"w");
-        struct image* model_image = gmix_image_new(gmix, nrow, ncol, nsub);
-        image_write(model_image, fobj);
-        fclose(fobj);
+        wlog("storing fit image in '%s'\n", fit_fname);
+        {
+            FILE *fobj=fopen(fit_fname,"w");
+            struct image* model_image = gmix_image_new(gmix, nrow, ncol, nsub);
+            image_write(model_image, fobj);
+            fclose(fobj);
+        }
     }
 
 }
