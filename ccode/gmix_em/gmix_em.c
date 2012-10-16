@@ -373,15 +373,6 @@ void gmix_em_gmix_set_fromiter(struct gmix *gmix,
         double icc = sums->v2sum/sums->pnew;
 
         gauss_set(gauss,p, row, col, irr, irc, icc);
-        /*
-        gauss->p   = sums->pnew;
-        gauss->row = sums->rowsum/sums->pnew;
-        gauss->col = sums->colsum/sums->pnew;
-        gauss->irr = sums->u2sum/sums->pnew;
-        gauss->irc = sums->uvsum/sums->pnew;
-        gauss->icc = sums->v2sum/sums->pnew;
-        gauss->det = gauss->irr*gauss->icc - gauss->irc*gauss->irc;
-        */
 
         sums++;
         gauss++;
