@@ -82,7 +82,7 @@ struct image *image_free(struct image *self)
     return self;
 }
 
-struct image *image_read_text(const char* filename)
+struct image *image_read(const char* filename)
 {
     FILE* fobj=fopen(filename,"r");
     if (fobj==NULL) {
@@ -90,19 +90,12 @@ struct image *image_read_text(const char* filename)
         return NULL;
     }
 
-    double sky=0;
     size_t nrows, ncols;
     if (2 != fscanf(fobj, "%lu %lu", &nrows, &ncols)) {
         fprintf(stderr,"Could not read nrows ncols from header\n");
         return NULL;
     }
-    if (1 != fscanf(fobj, "%lf", &sky)) {
-        fprintf(stderr,"Could not read sky from header\n");
-        return NULL;
-    }
     struct image* image = image_new(nrows, ncols);
-
-    IM_SET_SKY(image, sky);
 
     size_t row=0, col=0;
     double *ptr=NULL;
@@ -134,9 +127,7 @@ void image_write(const struct image *self, FILE* stream)
 {
     size_t row=0;
     double *col=NULL, *end=NULL;
-    fprintf(stream,"%lu\n", IM_NROWS(self));
-    fprintf(stream,"%lu\n", IM_NCOLS(self));
-    fprintf(stream,"%.16g\n", IM_SKY(self));
+    fprintf(stream,"%lu %lu\n", IM_NROWS(self), IM_NCOLS(self));
 
     for (row=0; row<IM_NROWS(self); row++) {
         col = IM_ROW_ITER(self,row);

@@ -65,9 +65,9 @@ void gmix_em_run(struct gmix_em* self,
                  struct image *image, 
                  struct gmix *gmix);
 
-void gmix_em_cocenter(struct gmix_em* self,
-                      struct image *image, 
-                      struct gmix *gmix);
+void gmix_em_cocenter_run(struct gmix_em* self,
+                          struct image *image, 
+                          struct gmix *gmix);
 
 int gmix_get_sums(struct gmix_em* self,
                   struct image *image,
