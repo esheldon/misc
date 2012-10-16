@@ -123,9 +123,11 @@ int main(int argc, char** argv)
     _global_ivar_tmp = ivar;
 
     wlog("building guesses for %lu walkers\n", nwalkers);
-    struct mca_chain *start_chain = mca_make_guess(guess, widths, npars, nwalkers);
+    struct mca_chain *start_chain = gmix_mcmc_make_guess_coellip(guess, widths, npars, nwalkers);
+
     wlog("creating burn-in chain for %lu steps per walker\n", burn_per_walker);
     struct mca_chain *burnin_chain=mca_chain_new(nwalkers, burn_per_walker, npars);
+
     wlog("running burn-in\n");
     mca_run(burnin_chain, a, start_chain, &lnprob, NULL);
 

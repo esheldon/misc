@@ -1,0 +1,79 @@
+#!/bin/bash
+#
+# usage: setup-astro [options] start|stop|restart
+#
+# start: Set up the connection.  If the connection exists the request is 
+#        ignored.
+# stop:  Disconnect. If the connection does not exist the request is ignored.
+# restart: run "stop" then "start".
+
+un=$(uname)
+
+gateway_short=ssh.bluegene.bnl
+
+ip=$(ip addr | grep 'inet ' | grep -v 'inet 127' | awk '{print $2}' | cut -d '/' -f 1)
+
+check=$(echo $ip | grep 130\.199)
+inside="no"
+if [[ $check != "" ]]; then
+    echo "inside"
+    inside="yes"
+fi
+
+if [[ $inside == "yes" ]]; then
+    domain="local"
+else
+    domain="gov"
+fi
+
+gateway=$gateway_short.$domain
+
+function usage
+{
+    echo "
+usage: 
+    setup-gpu start|stop|restart
+"
+}
+function connect
+{
+	check=$(ps auxww | grep ".*ssh.*-N.*$gateway_short.*" | grep -v grep)
+	if [ "$check" == "" ]; then
+		echo "Connecting to $gateway"
+		ssh -f -N "$gateway"
+	fi
+}
+
+function disconnect
+{
+	check=$(ps auxww | grep ".*ssh.*-N.*$gateway_short.*" | grep -v grep)
+    while [[ $check != "" ]]; do
+	    #if [ "$check" != "" ]; then
+		id=$(echo $check | awk '{print $2}')
+		echo "disconnecting from $gateway_short (jobid $id)"
+		kill $id
+	    check=$(ps auxww | grep ".*ssh.*-N.*$gateway_short.*" | grep -v grep)
+    done
+
+}
+
+if [ $# -lt 1 ]; then
+    usage
+	exit 45
+fi
+
+action=$1
+
+if [ "$action" == "start" ]; then
+	connect
+elif [ "$action" == "stop" ]; then
+	disconnect
+elif [ "$action" == "restart" ]; then
+	disconnect
+	connect
+else
+	echo "Unrecognized action: $action"
+	exit 45
+fi
+
+
