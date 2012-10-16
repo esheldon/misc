@@ -1,3 +1,7 @@
+"""
+Make a plot comparing the image and the best fit model
+from a run of one of the test programs
+"""
 import images
 
 im=images.image_read("test-image.dat")
