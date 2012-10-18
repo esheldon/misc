@@ -218,15 +218,17 @@ struct mca_stats *mca_stats_del(struct mca_stats *self);
 */
 
 struct mca_stats *mca_chain_stats(struct mca_chain *chain);
+
 /* print 
      mean +/- err
    for each parameter
 
    This is for human viewing.
 */
-void mca_stats_print(struct mca_stats *self, FILE *stream);
+void mca_stats_write_brief(struct mca_stats *self, FILE *stream);
+
 /* 
-   this version good for machine reading
+   A full printout
 
    npar
    mean1 mean2 mean3 ....
@@ -235,7 +237,8 @@ void mca_stats_print(struct mca_stats *self, FILE *stream);
    cov31 cov32 cov33 ....
 
 */
-void mca_stats_print_full(struct mca_stats *self, FILE *stream);
+
+void mca_stats_write(struct mca_stats *self, FILE *stream);
 
 /*
 

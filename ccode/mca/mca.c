@@ -274,10 +274,7 @@ void mca_run(struct mca_chain *chain,
             mca_stretch_move(a, pars_old, comp_pars, npars, 
                              pars_new, &z);
 
-            //fprintf(stderr,"    calculate lnprob\n");
             lnprob_new = (*lnprob_func)(pars_new,npars,userdata);
-            //fprintf(stderr,"lnprob: %.16g\n", lnprob_new);
-            //fprintf(stderr,"    done\n");
 
             int accept = mca_accept(npars, lnprob_old, lnprob_new, z);
             MCA_CHAIN_ACCEPT_BYWALKER(chain,iwalker,istep) = accept;
