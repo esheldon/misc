@@ -50,8 +50,8 @@ static cl_context context;
 
 static cl_platform_id platform_id;
 
-static const int nrow=40;
-static const int ncol=40;
+static const int nrow=64;
+static const int ncol=64;
 
 void compare_data(int nrow, int ncol, float *gpudata, float *cpudata)
 {
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
     // both 100 and 256 gave same.  Doesn't seem to matter much
     //size_t szLocalWorkSize = 10;
     //size_t szLocalWorkSize = 256;
-    size_t szLocalWorkSize = 100;
+    size_t szLocalWorkSize = nrow;
     size_t szGlobalWorkSize = shrRoundUp((int)szLocalWorkSize, (int)(nrow*ncol));  // rounded up to the nearest multiple of the LocalWorkSize
     printf("nelem: %d\n", nelem);
     printf("local work size: %lu\n", szLocalWorkSize);
@@ -336,25 +336,32 @@ int main(int argc, char** argv)
     }
 
     t1=clock();
-    printf("time for GPU: %lf\n", ((double)(t1-t0))/CLOCKS_PER_SEC);
+    double topencl = ((double)(t1-t0))/CLOCKS_PER_SEC;
+    printf("time for GPU: %lf\n", topencl);
 
+    /*
     for (int row=cenrow-2; row<cenrow+2; row++) {
         for (int col=cencol-2; col<cencol+2; col++) {
             printf("VALUE AT [%d,%d]:\t %.16g\n", row, col, data_from_gpu[row*nrow + col]);
         }
     }
+    */
 
     t0=clock();
     for (size_t iter=0; iter<numiter; iter++) {
         do_c_map(nrow, ncol, cenrow, cencol, idet, irr, irc, icc, data_from_cpu);
     }
     t1=clock();
-    printf("time for C loop: %lf\n", ((double)(t1-t0))/CLOCKS_PER_SEC);
+    double tstandard = ((double)(t1-t0))/CLOCKS_PER_SEC;
+    printf("time for C loop: %lf\n", tstandard);
+    printf("opencl was %.16g times faster\n", tstandard/topencl);
+    /*
     for (int row=cenrow-2; row<cenrow+2; row++) {
         for (int col=cencol-2; col<cencol+2; col++) {
             printf("VALUE AT [%d,%d]:\t %.16g\n", row, col, data_from_cpu[row*nrow + col]);
         }
     }
+    */
 
 
 
