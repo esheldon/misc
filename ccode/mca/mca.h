@@ -84,7 +84,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <float.h>
-#include "image.h"
 
 //#define MCA_LOW_VAL (-DBL_MAX+1000)
 #define MCA_LOW_VAL (-9999.e9)
@@ -121,20 +120,28 @@ struct mca_chain {
 #define MCA_CHAIN_NWALKERS(chain)  (chain)->nwalkers
 #define MCA_CHAIN_NSTEPS(chain)  \
     (chain)->steps_per_walker*(chain)->nwalkers
-#define MCA_CHAIN_NSTEPS_BYWALKER(chain)  (chain)->steps_per_walker
+#define MCA_CHAIN_WNSTEPS(chain)  (chain)->steps_per_walker
 
 
-#define MCA_CHAIN_PAR_BYWALKER(chain, iwalker, istep, ipar)    \
+#define MCA_CHAIN_WPAR(chain, iwalker, istep, ipar)    \
     (chain)->pars[                                             \
         (chain)->npars*(chain)->steps_per_walker*(iwalker)       \
       + (chain)->npars*(istep)                                   \
       + (ipar)                                                   \
     ]
+#define MCA_CHAIN_WPARS(chain, iwalker, istep)           \
+    &(chain)->pars[                                              \
+        (chain)->npars*(chain)->steps_per_walker*(iwalker)       \
+      + (chain)->npars*(istep)                                   \
+    ]
+
 #define MCA_CHAIN_PAR(mca, istep, ipar)    \
     (chain)->pars[ (chain)->npars*(istep)  + (ipar) ]
+#define MCA_CHAIN_PARS(mca, istep)    \
+    &(chain)->pars[ (chain)->npars*(istep) ]
 
 
-#define MCA_CHAIN_LNPROB_BYWALKER(chain, iwalker, istep)        \
+#define MCA_CHAIN_WLNPROB(chain, iwalker, istep)        \
     (chain)->lnprob[                               \
         (chain)->steps_per_walker*(iwalker)          \
       + (istep)                                           \
@@ -142,7 +149,7 @@ struct mca_chain {
 #define MCA_CHAIN_LNPROB(chain, istep)    \
     (chain)->lnprob[(istep)]
 
-#define MCA_CHAIN_ACCEPT_BYWALKER(chain, iwalker, istep)        \
+#define MCA_CHAIN_WACCEPT(chain, iwalker, istep)        \
     (chain)->accept[                               \
         (chain)->steps_per_walker*(iwalker)          \
       + (istep)                                           \
@@ -172,6 +179,8 @@ struct mca_chain *mca_make_guess(double *centers,
 struct mca_stats {
     size_t npars;
 
+    double arate;
+
     double *mean;
 
     /* [i,j] -> npar*i + j */
@@ -180,6 +189,7 @@ struct mca_stats {
 
 
 #define MCA_STATS_NPARS(stats) (stats)->npars
+#define MCA_STATS_ARATE(stats) (stats)->arate
 
 #define MCA_STATS_MEAN(stats, i) ({                                           \
     double _mn=-MCA_LOW_VAL;                                                  \
@@ -219,18 +229,25 @@ struct mca_stats *mca_stats_del(struct mca_stats *self);
 
 struct mca_stats *mca_chain_stats(struct mca_chain *chain);
 
-/* print 
-     mean +/- err
-   for each parameter
+/* 
+   mca_stats_write_brief
+
+     acceptance_rate
+     mean1 +/- err1
+     mean2 +/- err2
+     ...
 
    This is for human viewing.
 */
 void mca_stats_write_brief(struct mca_stats *self, FILE *stream);
 
 /* 
-   A full printout
+   mca_stats_write
+
+   A full printout with cov in matrix form
 
    npar
+   acceptance_rate
    mean1 mean2 mean3 ....
    cov11 cov12 cov13 ....
    cov21 cov22 cov23 ....
@@ -242,11 +259,13 @@ void mca_stats_write(struct mca_stats *self, FILE *stream);
 
 /*
 
+   mca_run
+
    Fill the chain with MCMC steps.
 
    The *last* set of walkers in the "start" chain will be the starting point
    for the chain.  This way you can feed a start as a single chain, e.g.  from
-   mca_make_guess() or as the last step of a previous burn-in run.
+   mca_make_guess() or the chain from a previous burn-in run.
 
    parameters
    ----------
@@ -282,13 +301,14 @@ void mca_stats_write(struct mca_stats *self, FILE *stream);
 void mca_run(struct mca_chain *chain,
              double a,
              const struct mca_chain *start,
-             double (*lnprob_func)(const double *, size_t, const void *),
+             double (*lnprob)(const double *, size_t, const void *),
              const void *userdata);
 
 /* copy the last step in the start chain to the first step
    in the chain */
-void mca_set_start(const struct mca_chain *start,
-                   struct mca_chain *chain);
+
+//void mca_set_start(struct mca_chain *chain,
+//                   const struct mca_chain *start);
 
 /*
    make a stretch move
@@ -306,27 +326,28 @@ void mca_set_start(const struct mca_chain *start,
    On return the value of z is set and the newpars are filled in.
 
 */
-void mca_stretch_move(double a,
+/*
+void mca_stretch_move(double a, double z,
                       const double *pars, 
                       const double *comp_pars, 
                       size_t ndim,
-                      double *newpars,
-                      double *z);
-
+                      double *newpars);
+*/
 /*
    Determine of a stretch move should be accepted
 
    Returns 1 if yes 0 if no
 */
+/*
 int mca_accept(int ndim,
                double lnprob_old,
                double lnprob_new,
                double z);
-
+*/
 /*
    copy the parameters
 */
-void mca_copy_pars(const double *pars_src, double *pars_dst, size_t npars);
+//void mca_copy_pars(const double *self, double *pars_dst, size_t npars);
 
 /* 
    generate random integers in [0,n)
