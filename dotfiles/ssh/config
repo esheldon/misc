@@ -23,10 +23,16 @@ Host rssh.rhic.bnl.gov
 	LocalForward localhost:2224 astro.rcf.bnl.gov:22
 	LocalForward localhost:2225 tutti.astro.bnl.gov:22
 
-Host ssh.bluegene.bnl.local
+
+Host ssh.bluegene.bnl.gov
 
 	LocalForward localhost:2226 gpu1.csc.bnl.gov:22
 	LocalForward localhost:2227 gpu2.csc.bnl.gov:22
+
+Host ssh.bluegene.bnl.local
+
+	LocalForward localhost:2228 gpu1.csc.bnl.gov:22
+	LocalForward localhost:2229 gpu2.csc.bnl.gov:22
 
 
 # Set up aliases to point us to the ports and machines listed above
@@ -39,12 +45,20 @@ Host ttutti
 	HostName localhost
 	Port 2225
 
-Host tgpu1
+Host rgpu1
 	HostName localhost
 	Port 2226
-Host tgpu2
+Host rgpu2
 	HostName localhost
 	Port 2227
+
+Host lgpu1
+	HostName localhost
+	Port 2228
+Host lgpu2
+	HostName localhost
+	Port 2229
+
 
 
 # Created by /usr/bin/cluster-env (1.2)
