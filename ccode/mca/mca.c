@@ -78,7 +78,7 @@ int mca_chain_write_file(const struct mca_chain *self, const char *fname)
 void mca_chain_write(const struct mca_chain *chain, FILE *stream)
 {
     size_t nwalkers=MCA_CHAIN_NWALKERS(chain);
-    size_t steps_per_walker=MCA_CHAIN_NSTEPS_BYWALKER(chain);
+    size_t steps_per_walker=MCA_CHAIN_WNSTEPS(chain);
     size_t npars=MCA_CHAIN_NPARS(chain);
 
     size_t nsteps=nwalkers*steps_per_walker;
@@ -102,11 +102,6 @@ struct mca_chain *mca_make_guess(double *centers,
 {
     struct mca_chain *chain=mca_chain_new(nwalkers,1,npars);
 
-    /*
-    for (size_t iwalk=0; iwalk<nwalkers; iwalk++) {
-        MCA_CHAIN_LNPROB_BYWALKER(chain,iwalk,0) = MCA_LOW_VAL;
-    }
-    */
     for (size_t ipar=0; ipar<npars; ipar++) {
 
         double center=centers[ipar];
@@ -114,7 +109,7 @@ struct mca_chain *mca_make_guess(double *centers,
 
         for (size_t iwalk=0; iwalk<nwalkers; iwalk++) {
             double val = center + width*(drand48()-0.5)*2;
-            MCA_CHAIN_PAR_BYWALKER(chain, iwalk, 0, ipar) = val; 
+            MCA_CHAIN_WPAR(chain, iwalk, 0, ipar) = val; 
         }
     }
 
@@ -162,8 +157,10 @@ struct mca_stats *mca_chain_stats(struct mca_chain *chain)
     double ival=0, jval=0;
     struct mca_stats *self=mca_stats_new(npars);
 
+    double arate=0;
     for (size_t istep=0; istep<nsteps; istep++) {
 
+        arate += MCA_CHAIN_ACCEPT(chain, istep);
         for (size_t ipar=0; ipar<npars; ipar++) {
 
             ival=MCA_CHAIN_PAR(chain,istep,ipar);
@@ -204,6 +201,7 @@ struct mca_stats *mca_chain_stats(struct mca_chain *chain)
         }
     }
 
+    self->arate = arate/nsteps;
     return self;
 }
 
@@ -211,6 +209,7 @@ void mca_stats_write_brief(struct mca_stats *self, FILE *stream)
 {
     size_t npars = MCA_STATS_NPARS(self);
 
+    fprintf(stream,"%.16g\n", MCA_STATS_ARATE(self));
     for (size_t ipar=0; ipar< npars; ipar++) {
         double mn=MCA_STATS_MEAN(self,ipar);
         double var=MCA_STATS_COV(self,ipar,ipar);
@@ -223,6 +222,7 @@ void mca_stats_write(struct mca_stats *self, FILE *stream)
     size_t npars = MCA_STATS_NPARS(self);
 
     fprintf(stream,"%lu\n", npars);
+    fprintf(stream,"%.16g\n", MCA_STATS_ARATE(self));
     for (size_t ipar=0; ipar< npars; ipar++) {
         double mn=MCA_STATS_MEAN(self,ipar);
         fprintf(stream,"%.16g", mn);
@@ -237,84 +237,42 @@ void mca_stats_write(struct mca_stats *self, FILE *stream)
     }
 }
 
-void mca_run(struct mca_chain *chain,
-             double a,
-             const struct mca_chain *start,
-             double (*lnprob_func)(const double *, size_t, const void *),
-             const void *userdata)
-{
-    double z=0;
-    size_t nwalkers=MCA_CHAIN_NWALKERS(chain);
-    size_t npars=MCA_CHAIN_NPARS(chain);
-    size_t steps_per_walker=MCA_CHAIN_NSTEPS_BYWALKER(chain);
-    double *pars_old=NULL,*pars_new=NULL;
-    double lnprob_old=0, lnprob_new=0;
 
-    mca_set_start(start, chain);
+static void copy_pars(const double *self, double *pars_dst, size_t npars)
+{
+    memcpy(pars_dst, self, npars*sizeof(double));
+}
+
+
+ /* copy the last step in the start chain to the first step
+   in the chain */
+static void set_start(struct mca_chain *chain,
+                      const struct mca_chain *start,
+                      double (*lnprob)(const double *, size_t, const void *),
+                      const void *userdata)
+{
+    size_t steps_per=MCA_CHAIN_WNSTEPS(start);
+    size_t nwalkers=MCA_CHAIN_NWALKERS(start);
+    size_t npars=MCA_CHAIN_NPARS(start);
 
     for (size_t iwalker=0; iwalker<nwalkers; iwalker++) {
-        pars_old   =&MCA_CHAIN_PAR_BYWALKER(chain, iwalker, 0, 0);
-        lnprob_old = (*lnprob_func)(pars_old,npars,userdata);
-        MCA_CHAIN_LNPROB_BYWALKER(chain,iwalker,0) = lnprob_old;
-    }
+        MCA_CHAIN_WACCEPT(chain,iwalker,0) = 1;
 
-    for (size_t istep=1; istep<steps_per_walker; istep++) {
-        for (size_t iwalker=0; iwalker<nwalkers; iwalker++) {
+        double *pars_start = MCA_CHAIN_WPARS(start, iwalker, (steps_per-1));
+        double *pars = MCA_CHAIN_WPARS(chain, iwalker, 0);
 
-            pars_old   =&MCA_CHAIN_PAR_BYWALKER(chain,   iwalker,istep-1,0);
-            lnprob_old = MCA_CHAIN_LNPROB_BYWALKER(chain,iwalker,istep-1);
+        copy_pars(pars_start, pars, npars);
 
-            pars_new=&MCA_CHAIN_PAR_BYWALKER(chain,iwalker,istep,0);
-
-            long comp_walker=mca_rand_complement(iwalker,nwalkers);
-            double *comp_pars=&MCA_CHAIN_PAR_BYWALKER(chain,comp_walker,istep-1,0);
-
-            // note this copies the new pars into our chain; we will copy over
-            // if not accepted
-            mca_stretch_move(a, pars_old, comp_pars, npars, 
-                             pars_new, &z);
-
-            lnprob_new = (*lnprob_func)(pars_new,npars,userdata);
-
-            int accept = mca_accept(npars, lnprob_old, lnprob_new, z);
-            MCA_CHAIN_ACCEPT_BYWALKER(chain,iwalker,istep) = accept;
-
-            if (!accept) {
-                // copy the older pars over
-                mca_copy_pars(pars_old, pars_new, npars);
-                MCA_CHAIN_LNPROB_BYWALKER(chain,iwalker,istep) = lnprob_old;
-            } else {
-                MCA_CHAIN_LNPROB_BYWALKER(chain,iwalker,istep) = lnprob_new;
-            }
-
-        }
+        MCA_CHAIN_WLNPROB(chain,iwalker,0) = (*lnprob)(pars,npars,userdata);
     }
 }
 
-
-void mca_stretch_move(double a,
-                      const double *pars, 
-                      const double *comp_pars, 
-                      size_t ndim,
-                      double *newpars,
-                      double *z)
+static int mca_accept(double lnprob_old,
+                      double lnprob_new,
+                      int npars, 
+                      double z)
 {
-    (*z) = mca_rand_gofz(a);
-    for (size_t i=0; i<ndim; i++) {
-
-        double val=pars[i];
-        double cval=comp_pars[i];
-
-        newpars[i] = cval + (*z)*(val-cval); 
-    }
-}
-
-int mca_accept(int ndim,
-               double lnprob_old,
-               double lnprob_new,
-               double z)
-{
-    double lnprob_diff = (ndim - 1.)*log(z) + lnprob_new - lnprob_old;
+    double lnprob_diff = (npars - 1.)*log(z) + lnprob_new - lnprob_old;
     double r = drand48();
 
     if (lnprob_diff > log(r)) {
@@ -323,35 +281,84 @@ int mca_accept(int ndim,
         return 0;
     }
 }
- /* copy the last step in the start chain to the first step
-   in the chain */
-void mca_set_start(const struct mca_chain *start,
-                   struct mca_chain *chain)
+ 
+
+static void mca_stretch_move(double a, 
+                             double z,
+                             const double *pars, 
+                             const double *comp_pars, 
+                             size_t ndim,
+                             double *newpars)
 {
-    size_t steps_per=MCA_CHAIN_NSTEPS_BYWALKER(start);
-    size_t nwalkers=MCA_CHAIN_NWALKERS(start);
-    size_t npars=MCA_CHAIN_NPARS(start);
+    for (size_t i=0; i<ndim; i++) {
 
-    for (size_t iwalker=0; iwalker<nwalkers; iwalker++) {
-        MCA_CHAIN_ACCEPT_BYWALKER(chain,iwalker,0) = 1;
-        MCA_CHAIN_LNPROB_BYWALKER(chain,iwalker,0) = 
-            MCA_CHAIN_LNPROB_BYWALKER(start,iwalker,(steps_per-1));
-        for (size_t ipar=0; ipar<npars; ipar++) {
+        double val=pars[i];
+        double cval=comp_pars[i];
 
-            MCA_CHAIN_PAR_BYWALKER(chain,iwalker,0,ipar) = 
-                MCA_CHAIN_PAR_BYWALKER(start,iwalker,(steps_per-1),ipar);
-
-        }
+        //newpars[i] = cval + z*(val-cval); 
+        newpars[i] = cval - z*(cval-val); 
     }
 }
 
 
-                 
-void mca_copy_pars(const double *pars_src, double *pars_dst, size_t npars)
+
+static void step_walker(struct mca_chain *chain,
+                        double a,
+                        double (*lnprob)(const double *, size_t, const void *),
+                        const void *userdata,
+                        size_t istep, size_t iwalker)
 {
-    memcpy(pars_dst, pars_src, npars*sizeof(double));
+    size_t npars=MCA_CHAIN_NPARS(chain);
+    size_t nwalkers=MCA_CHAIN_NWALKERS(chain);
+    size_t prev_step=istep-1;
+
+    const double *pars_old  = MCA_CHAIN_WPARS(chain,iwalker,prev_step);
+    double lnprob_old = MCA_CHAIN_WLNPROB(chain,iwalker,prev_step);
+
+    double *pars_new=MCA_CHAIN_WPARS(chain,iwalker,istep);
+
+    long cwalker=mca_rand_complement(iwalker,nwalkers);
+    const double *cpars=MCA_CHAIN_WPARS(chain,cwalker,prev_step);
+
+    // this over-writes our chain at this step
+    double z = mca_rand_gofz(a);
+    mca_stretch_move(a, z, pars_old, cpars, npars, pars_new);
+
+    double lnprob_new = (*lnprob)(pars_new,npars,userdata);
+
+    int accept = mca_accept(lnprob_old, lnprob_new, npars, z);
+    MCA_CHAIN_WACCEPT(chain,iwalker,istep) = accept;
+
+    if (accept) {
+        MCA_CHAIN_WLNPROB(chain,iwalker,istep) = lnprob_new;
+    } else {
+        // copy the older pars over what we put in above
+        copy_pars(pars_old, pars_new, npars);
+        MCA_CHAIN_WLNPROB(chain,iwalker,istep) = lnprob_old;
+    }
 }
 
+void mca_run(struct mca_chain *chain,
+             double a,
+             const struct mca_chain *start,
+             double (*lnprob)(const double *, size_t, const void *),
+             const void *userdata)
+{
+    size_t nwalkers=MCA_CHAIN_NWALKERS(chain);
+    size_t steps_per_walker=MCA_CHAIN_WNSTEPS(chain);
+
+    set_start(chain, start, lnprob, userdata);
+
+    for (size_t istep=1; istep<steps_per_walker; istep++) {
+        for (size_t iwalker=0; iwalker<nwalkers; iwalker++) {
+            step_walker(chain,a,lnprob,userdata,istep,iwalker);
+        }
+    }
+
+}
+
+
+                
 long mca_rand_long(long n)
 {
     return lrand48() % n;

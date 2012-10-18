@@ -31,13 +31,14 @@ double lnprob(const double *pars, size_t npars, const void *userdata)
 int main(int argc, char **argv)
 {
     double a=2;
+    const char fname[]="test/chain.dat";
     time_t tm;
 
     size_t ndata=100;
     size_t npars=1;
-    size_t nwalkers=10;
-    size_t burn_per_walker=400;
-    size_t steps_per_walker=500;
+    size_t nwalkers=20;
+    size_t burn_per_walker=200;
+    size_t steps_per_walker=200;
 
     double truepars[1] = {1};
     double guess[1] = {0};
@@ -88,7 +89,8 @@ int main(int argc, char **argv)
     fprintf(stderr,"\nStats full:\n");
     mca_stats_write(stats,stderr);
 
-    mca_chain_write(chain, stdout);
+    fprintf(stderr,"writing chain to %s\n", fname);
+    mca_chain_write_file(chain, fname);
 
     guesses=mca_chain_del(guesses);
     burnin_chain=mca_chain_del(burnin_chain);

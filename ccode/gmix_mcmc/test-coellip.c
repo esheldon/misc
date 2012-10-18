@@ -80,10 +80,10 @@ int main(int argc, char** argv)
     size_t ngauss=2;
     size_t nrow=40, ncol=40;
     int nsub=1;
-    size_t nwalkers=20;
+    size_t nwalkers=100;
     size_t burn_per_walker=200;
     size_t steps_per_walker=200;
-    double a=2.;
+    double a=2;
     double skysig=0;
     double s2n=100;
     double s2n_meas=0;
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
     admom_add_noise(noisy_im, s2n, &gmix_true->data[0], &skysig, &s2n_meas);
     double ivar = 1./(skysig*skysig);
     wlog("storing noisy image in '%s'\n", noisy_image_fname);
-    image_write_file(image, noisy_image_fname);
+    image_write_file(noisy_im, noisy_image_fname);
 
 
     struct gmix *gmix_tmp=gmix_new(ngauss);
