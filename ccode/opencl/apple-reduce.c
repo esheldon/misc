@@ -443,6 +443,8 @@ int main(int argc, char **argv)
     }
     
     // Do the reduction for each level  
+    // this is one pass over it to establish the kernel args and such, so
+    // it is negligible time
     //
     cl_mem pass_swap;
     cl_mem pass_input = output_buffer;
