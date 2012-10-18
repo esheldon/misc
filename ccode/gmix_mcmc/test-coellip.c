@@ -81,8 +81,8 @@ int main(int argc, char** argv)
     size_t nrow=40, ncol=40;
     int nsub=1;
     size_t nwalkers=20;
-    size_t burn_per_walker=400;
-    size_t steps_per_walker=400;
+    size_t burn_per_walker=200;
+    size_t steps_per_walker=200;
     double a=2.;
     double skysig=0;
     double s2n=100;
@@ -128,23 +128,29 @@ int main(int argc, char** argv)
     wlog("creating burn-in chain for %lu steps per walker\n", burn_per_walker);
     struct mca_chain *burnin_chain=mca_chain_new(nwalkers, burn_per_walker, npars);
 
-    wlog("running burn-in\n");
+    wlog("    running burn-in\n");
     mca_run(burnin_chain, a, start_chain, &lnprob, NULL);
 
-    wlog("writing burn chain to %s\n", burn_fname);
+    wlog("    writing burn chain to %s\n", burn_fname);
     mca_chain_write_file(burnin_chain, burn_fname);
 
     wlog("creating chain for %lu steps per walker\n", steps_per_walker);
     struct mca_chain *chain=mca_chain_new(nwalkers, steps_per_walker, npars);
-    wlog("running chain\n");
+    wlog("    running chain\n");
     mca_run(chain, a, burnin_chain, &lnprob, NULL);
 
-    wlog("writing chain to %s\n", chain_fname);
+    wlog("    writing chain to %s\n", chain_fname);
     mca_chain_write_file(chain, chain_fname);
+
+    wlog("brief stats\n");
+    struct mca_stats *stats = mca_chain_stats(chain);
+    mca_stats_write_brief(stats, stderr);
+
 
     start_chain=mca_chain_del(start_chain);
     burnin_chain=mca_chain_del(burnin_chain);
     chain=mca_chain_del(chain);
+    stats=mca_stats_del(stats);
 
     return 0;
 }
