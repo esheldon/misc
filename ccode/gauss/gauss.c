@@ -50,3 +50,13 @@ void gauss_print(const struct gauss *self, FILE *stream)
     fprintf(stream,"  e1:  %.16g\n", self->e1);
     fprintf(stream,"  e2:  %.16g\n", self->e2);
 }
+
+
+double gauss_lnprob0(const struct gauss *self, double row, double col)
+{
+    double u=row-self->row;
+    double v=col-self->col;
+    double chi2=self->dcc*u*u + self->drr*v*v - 2.0*self->drc*u*v;
+
+    return -.5*chi2;
+}

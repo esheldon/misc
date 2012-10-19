@@ -38,4 +38,7 @@ int gauss_set(struct gauss *self,
 
 void gauss_print(const struct gauss *self, FILE *stream);
 
+// 0 means without normalization, so the peak is 1
+double gauss_lnprob0(const struct gauss *self, double row, double col);
+
 #endif
