@@ -20,7 +20,6 @@ double lnprob(const double *pars, size_t npars, const void *void_data)
     int flags=0;
 
     gmix_fill_coellip(_global_gmix_tmp, pars, npars);
-    //gmix_print(_global_gmix_tmp, stderr);
 
     // flags are only set for conditions we want to
     // propagate back through the likelihood
@@ -33,7 +32,7 @@ double lnprob(const double *pars, size_t npars, const void *void_data)
 }
 size_t get_pars_and_guess(double **pars_true, double **guess, double **widths)
 {
-    size_t ngauss=2;
+    size_t ngauss=1;
     size_t npars=2*ngauss+4;
 
     (*pars_true)=calloc(npars, sizeof(double));
@@ -44,10 +43,8 @@ size_t get_pars_and_guess(double **pars_true, double **guess, double **widths)
     (*pars_true)[1] = 20.;
     (*pars_true)[2] = 0.2;
     (*pars_true)[3] = 0.1;
-    (*pars_true)[4] = 16.;
-    (*pars_true)[5] = 24.;
-    (*pars_true)[6] = 0.6;
-    (*pars_true)[7] = 0.4;
+    (*pars_true)[4] = 24.;
+    (*pars_true)[5] = 1.;
 
     (*widths)[0] = 1.0;
     (*widths)[1] = 1.0;
@@ -55,8 +52,6 @@ size_t get_pars_and_guess(double **pars_true, double **guess, double **widths)
     (*widths)[3] = 0.1;
     (*widths)[4] = 0.1*(*pars_true)[4];
     (*widths)[5] = 0.1*(*pars_true)[5];
-    (*widths)[6] = 0.1*(*pars_true)[6];
-    (*widths)[7] = 0.1*(*pars_true)[7];
 
     (*guess)[0] = (*pars_true)[0] + (*widths)[0]*(drand48()-0.5);
     (*guess)[1] = (*pars_true)[1] + (*widths)[1]*(drand48()-0.5);
@@ -64,8 +59,6 @@ size_t get_pars_and_guess(double **pars_true, double **guess, double **widths)
     (*guess)[3] = (*pars_true)[3] + (*widths)[3]*(drand48()-0.5);
     (*guess)[4] = (*pars_true)[4] + (*widths)[4]*(drand48()-0.5);
     (*guess)[5] = (*pars_true)[5] + (*widths)[5]*(drand48()-0.5);
-    (*guess)[6] = (*pars_true)[6] + (*widths)[6]*(drand48()-0.5);
-    (*guess)[7] = (*pars_true)[7] + (*widths)[7]*(drand48()-0.5);
 
     return npars;
 }
@@ -77,12 +70,11 @@ int main(int argc, char** argv)
     char burn_fname[] = "tmp/chain-burnin.dat";
     char chain_fname[] = "tmp/chain.dat";
     //char fit_fname[] = "test-image-fit.dat";
-    size_t ngauss=2;
     size_t nrow=40, ncol=40;
     int nsub=1;
     size_t nwalkers=200;
     size_t burn_per_walker=200;
-    size_t steps_per_walker=2000;
+    size_t steps_per_walker=200;
     double a=2;
     double skysig=0;
     double s2n=100;
@@ -114,7 +106,7 @@ int main(int argc, char** argv)
     wlog("storing noisy image in '%s'\n", noisy_image_fname);
     image_write_file(noisy_im, noisy_image_fname);
 
-
+    int ngauss=1;
     struct gmix *gmix_tmp=gmix_new(ngauss);
 
     // global variables hold pointers to data
