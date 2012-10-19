@@ -18,6 +18,7 @@
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 #endif
 
+
 /*
    just do some error checking and call mca_make_guess
 
@@ -29,11 +30,25 @@ struct mca_chain *gmix_mcmc_make_guess_coellip(double *centers,
                                                double *widths,
                                                size_t npars, 
                                                size_t nwalkers);
-struct gmix_mcmc {
-    size_t ngauss;
 
-    int cocenter;
+/* 
+   this is for models with a single scale and normalization
+   The center guess for e1,e2 is 0,0
+*/
 
+struct mca_chain *gmix_mcmc_guess_simple(double row, double col,
+                                         double T, double p,
+                                         size_t nwalkers);
+
+struct lognormal {
+    double mean;
+    double sigma;
+    double logmean;
+    double logivar;
 };
+
+void lognormal_set(struct lognormal *self, double mean, double sigma);
+double lognormal_lnprob(struct lognormal *self, double x);
+
 
 #endif

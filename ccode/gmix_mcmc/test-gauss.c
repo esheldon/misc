@@ -70,9 +70,9 @@ int main(int argc, char** argv)
     char burn_fname[] = "tmp/chain-burnin.dat";
     char chain_fname[] = "tmp/chain.dat";
     //char fit_fname[] = "test-image-fit.dat";
-    size_t nrow=40, ncol=40;
+    size_t nrow=25, ncol=25;
     int nsub=1;
-    size_t nwalkers=200;
+    size_t nwalkers=20;
     size_t burn_per_walker=200;
     size_t steps_per_walker=200;
     double a=2;
