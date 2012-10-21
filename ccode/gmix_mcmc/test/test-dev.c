@@ -3,15 +3,16 @@
 #include <time.h>
 #include <float.h>
 
-#include "image.h"
-#include "gmix.h"
-#include "gmix_image.h"
-#include "gmix_mcmc.h"
-#include "admom.h"
+#include "../image.h"
+#include "../gmix.h"
+#include "../gmix_image.h"
+#include "../gmix_mcmc.h"
+#include "../admom.h"
 
 // these will hold pointers to data used in the fits
 const struct image *_global_image_tmp;
 struct gmix *_global_gmix_tmp;
+struct gmix *_global_gmix_psf;
 double _global_ivar_tmp;
 
 double lnprob(const double *pars, size_t npars, const void *void_data)
@@ -19,7 +20,7 @@ double lnprob(const double *pars, size_t npars, const void *void_data)
     double lnprob=0;
     int flags=0;
 
-    gmix_fill_coellip(_global_gmix_tmp, pars, npars);
+    gmix_fill_dev(_global_gmix_tmp, pars, npars);
 
     // flags are only set for conditions we want to
     // propagate back through the likelihood
@@ -31,17 +32,20 @@ double lnprob(const double *pars, size_t npars, const void *void_data)
     return lnprob;
 }
 size_t get_pars_and_guess(int nrow, int ncol,
-                          double **pars_true, double **guess, double **widths)
+                          double **pars_true, 
+                          double **guess, 
+                          double **widths,
+                          double **pars_psf)
 {
-    size_t ngauss=1;
-    size_t npars=2*ngauss+4;
+    size_t npars=6;
 
     (*pars_true)=calloc(npars, sizeof(double));
     (*guess)    =calloc(npars, sizeof(double));
     (*widths)   =calloc(npars, sizeof(double));
+    (*pars_psf) =calloc(npars, sizeof(double));
 
-    (*pars_true)[0] = 0.5*nrow;
-    (*pars_true)[1] = 0.5*ncol;
+    (*pars_true)[0] = 0.5*(nrow-1);
+    (*pars_true)[1] = 0.5*(ncol-1);
     (*pars_true)[2] = 0.2;
     (*pars_true)[3] = 0.1;
     (*pars_true)[4] = 12.;
@@ -61,6 +65,14 @@ size_t get_pars_and_guess(int nrow, int ncol,
     (*guess)[4] = (*pars_true)[4] + (*widths)[4]*(drand48()-0.5);
     (*guess)[5] = (*pars_true)[5] + (*widths)[5]*(drand48()-0.5);
 
+    (*pars_psf)[0] = 0.5*(nrow-1);
+    (*pars_psf)[1] = 0.5*(ncol-1);
+    (*pars_psf)[2] = 0.0;
+    (*pars_psf)[3] = 0.0;
+    (*pars_psf)[4] = 6.;
+    (*pars_psf)[5] = 1.;
+
+
     return npars;
 }
 
@@ -78,7 +90,7 @@ int main(int argc, char** argv)
     char chain_fname[] = "tmp/chain.dat";
     //char fit_fname[] = "test-image-fit.dat";
     size_t nrow=25, ncol=25;
-    int nsub=1;
+    int nsub=16;
     size_t nwalkers=20;
     size_t burn_per_walker=200;
     size_t steps_per_walker=200;
@@ -90,18 +102,24 @@ int main(int argc, char** argv)
     (void) time(&tm);
     srand48((long) tm);
 
-    double *pars_true=NULL, *guess=NULL, *widths=NULL;
-    size_t npars = get_pars_and_guess(nrow,ncol,&pars_true, &guess, &widths);
+    double *pars_true=NULL, *guess=NULL, *widths=NULL, *pars_psf=NULL;
+    size_t npars = get_pars_and_guess(nrow,ncol,&pars_true, &guess, &widths, 
+                                      &pars_psf);
 
     if (0 != system("mkdir -p tmp")) {
         fprintf(stderr,"could not make ./tmp");
         exit(1);
     }
-    struct gmix *gmix_true=gmix_from_coellip(pars_true, npars);
+    struct gmix *gmix_true=gmix_new(3);
+    struct gmix *gmix_psf=gmix_new(3);
+    gmix_fill_turb(gmix_psf, pars_psf, npars);
+    gmix_fill_dev(gmix_true, pars_true, npars);
+    struct gmix *gmix_conv=gmix_convolve(gmix_true,gmix_psf);
 
 
     // make the image and noisy image
-    struct image* image = gmix_image_new(gmix_true, nrow, ncol, nsub);
+    wlog("making dev image\n");
+    struct image* image = gmix_image_new(gmix_conv, nrow, ncol, nsub);
     wlog("storing image in '%s'\n", image_fname);
     image_write_file(image, image_fname);
 
@@ -112,19 +130,20 @@ int main(int argc, char** argv)
     wlog("storing noisy image in '%s'\n", noisy_image_fname);
     image_write_file(noisy_im, noisy_image_fname);
 
-    int ngauss=1;
-    struct gmix *gmix_tmp=gmix_new(ngauss);
-
     // global variables hold pointers to data
     _global_image_tmp = (const struct image*) noisy_im;
-    _global_gmix_tmp = gmix_tmp;
+    _global_gmix_tmp = gmix_new(3);
     _global_ivar_tmp = ivar;
 
     wlog("building guesses for %lu walkers\n", nwalkers);
-    struct mca_chain *start_chain = gmix_mcmc_make_guess_coellip(guess, widths, npars, nwalkers);
+    struct mca_chain *start_chain = gmix_mcmc_make_guess_coellip(guess, 
+                                                                 widths, 
+                                                                 npars, 
+                                                                 nwalkers);
 
     wlog("creating burn-in chain for %lu steps per walker\n", burn_per_walker);
-    struct mca_chain *burnin_chain=mca_chain_new(nwalkers, burn_per_walker, npars);
+    struct mca_chain *burnin_chain=mca_chain_new(nwalkers, burn_per_walker, 
+                                                 npars);
 
     wlog("    running burn-in\n");
     mca_run(burnin_chain, a, start_chain, &lnprob, NULL);
