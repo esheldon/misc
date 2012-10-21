@@ -117,6 +117,18 @@ double gmix_wmomsum(struct gmix* gmix)
     return wmom;
 }
 
+double gmix_get_T(const struct gmix *self)
+{
+    double T=0, psum=0;
+
+    for (size_t i=0; i<self->size; i++) {
+        T += self->p*(self->irr+self->icc);
+        psum += self->p;
+    }
+
+    T = T/psum;
+    return T;
+}
 void gmix_set_total_moms(struct gmix *self)
 {
     size_t i=0;
@@ -141,6 +153,7 @@ void gmix_set_total_moms(struct gmix *self)
     self->total_irr /= psum;
     self->total_irc /= psum;
     self->total_icc /= psum;
+    self->psum=psum;
 }
 
 
@@ -368,6 +381,13 @@ int _gapprox_fill(struct gmix *self,
 }
 
 
+struct gmix *gmix_make_exp(const double *pars,
+ {
+    struct gmix *self=gmix_new(3);
+    gmix_fill_exp(self, pars, size);
+    return self;
+}
+                          int size)
 int gmix_fill_exp(struct gmix *self,
                   const double *pars,
                   int size)
@@ -383,6 +403,14 @@ int gmix_fill_exp(struct gmix *self,
         //{0.3327063609401037,0.5273717628243284,0.1399218762355679};
 
     return _gapprox_fill(self,pars,size,Fvals,pvals);
+}
+
+struct gmix *gmix_make_dev(const double *pars,
+                           int size)
+{
+    struct gmix *self=gmix_new(3);
+    gmix_fill_dev(self, pars, size);
+    return self;
 }
 int gmix_fill_dev(struct gmix *self,
                   const double *pars,
@@ -400,6 +428,15 @@ int gmix_fill_dev(struct gmix *self,
 
     return _gapprox_fill(self,pars,size,Fvals,pvals);
 }
+
+struct gmix *gmix_make_turb(const double *pars,
+                            int size)
+{
+    struct gmix *self=gmix_new(3);
+    gmix_fill_turb(self, pars, size);
+    return self;
+}
+
 int gmix_fill_turb(struct gmix *self,
                    const double *pars,
                    int size)

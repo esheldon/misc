@@ -20,10 +20,10 @@ struct mca_chain *gmix_mcmc_guess_simple(double row, double col,
     centers[4]=T;
     centers[5]=p;
 
-    widths[0] = 1.0;
-    widths[1] = 1.0;
-    widths[2] = 0.1;
-    widths[3] = 0.1;
+    widths[0] = 0.1;
+    widths[1] = 0.1;
+    widths[2] = 0.05;
+    widths[3] = 0.05;
     widths[4] = 0.1*T;
     widths[5] = 0.1*p;
 
@@ -40,7 +40,8 @@ struct mca_chain *gmix_mcmc_make_guess_coellip(double *centers,
                                                size_t nwalkers)
 {
     if ( ( (npars-4) % 2 ) != 0 ) {
-        fprintf(stderr,"gmix_mcmc error: pars are wrong size for coelliptical\n");
+        fprintf(stderr,
+                "gmix_mcmc error: pars are wrong size for coelliptical\n");
         exit(EXIT_FAILURE);
     }
     return mca_make_guess(centers,

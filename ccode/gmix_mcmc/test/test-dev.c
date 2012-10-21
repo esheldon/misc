@@ -110,20 +110,20 @@ int main(int argc, char** argv)
         fprintf(stderr,"could not make ./tmp");
         exit(1);
     }
-    struct gmix *gmix_true=gmix_new(3);
-    struct gmix *gmix_psf=gmix_new(3);
-    gmix_fill_turb(gmix_psf, pars_psf, npars);
-    gmix_fill_dev(gmix_true, pars_true, npars);
+    struct gmix *gmix_true=gmix_make_dev(pars_true, npars);
+    struct gmix *gmix_psf=gmix_make_turb(pars_psf, npars);
     struct gmix *gmix_conv=gmix_convolve(gmix_true,gmix_psf);
 
+    wlog("making psf sim\n");
+    struct gmix_sim *psf_sim=gmix_sim_new(gmix_psf,nsub);
+    wlog("making dev convolved sim\n");
+    struct gmix_sim *obj_sim=gmix_sim_new(gmix_conv,nsub);
 
     // make the image and noisy image
-    wlog("making dev image\n");
-    struct image* image = gmix_image_new(gmix_conv, nrow, ncol, nsub);
     wlog("storing image in '%s'\n", image_fname);
-    image_write_file(image, image_fname);
+    image_write_file(obj_sim->image, image_fname);
 
-    struct image *noisy_im = image_newcopy(image);
+    struct image *noisy_im = image_newcopy(gmix_sim->image);
     // need to fix this program
     admom_add_noise(noisy_im, s2n, &gmix_true->data[0], &skysig, &s2n_meas);
     double ivar = 1./(skysig*skysig);
