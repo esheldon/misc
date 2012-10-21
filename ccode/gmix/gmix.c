@@ -230,19 +230,19 @@ struct gmix *gmix_from_coellip(const double *pars, int npars)
     gmix_fill_coellip(gmix, pars, npars);
     return gmix;
 }
-struct gmix *gmix_fill_coellip(struct gmix *gmix, 
-                               const double *pars, 
-                               int npars)
+int gmix_fill_coellip(struct gmix *gmix, 
+                      const double *pars, 
+                      int npars)
 {
 
     if ( ((npars-4) % 2) != 0) {
         fprintf(stderr,"gmix error: pars are wrong size for coelliptical\n");
-        exit(EXIT_FAILURE);
+        return 0;
     }
     int ngauss=(npars-4)/2;
     if (ngauss != gmix->size) {
         fprintf(stderr,"input pars wrong length for input gmix struct\n");
-        exit(EXIT_FAILURE);
+        return 0;
     }
 
     double row=pars[0];
@@ -266,7 +266,7 @@ struct gmix *gmix_fill_coellip(struct gmix *gmix,
         gauss++;
     }
 
-    return gmix;
+    return 1;
 }
 
 
@@ -398,7 +398,7 @@ int gmix_fill_dev(struct gmix *self,
         {0.769283048205522,0.1841443288072131,0.04657262298726506};
         //{0.659318547053916,    0.2623209100496331, 0.07836054289645095};
 
-    return _gapprox_fill(self,pars,size,Fvals, pvals);
+    return _gapprox_fill(self,pars,size,Fvals,pvals);
 }
 int gmix_fill_turb(struct gmix *self,
                    const double *pars,
@@ -409,7 +409,7 @@ int gmix_fill_turb(struct gmix *self,
     static const double pvals[3] = 
         {0.596510042804182,0.4034898268889178,1.303069003078001e-07};
 
-    return _gapprox_fill(self,pars,size,Fvals, pvals);
+    return _gapprox_fill(self,pars,size,Fvals,pvals);
 }
 
 

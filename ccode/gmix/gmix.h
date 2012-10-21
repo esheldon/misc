@@ -59,9 +59,9 @@ struct gmix *gmix_from_pars(double *pars, int size);
    [row,col,e1,e2,T1,T2,T3,...,p1,p2,p3..]
  */
 struct gmix *gmix_from_coellip(const double *pars, int npars);
-struct gmix *gmix_fill_coellip(struct gmix *gmix, 
-                               const double *pars, 
-                               int npars);
+int gmix_fill_coellip(struct gmix *gmix, 
+                      const double *pars, 
+                      int npars);
 
 
 /* coellip Tfrac list
