@@ -32,10 +32,16 @@ struct mca_chain *gmix_mcmc_make_guess_coellip(double *centers,
                                                size_t nwalkers);
 
 /* 
-   this is for models with a single scale and normalization
+
+   this is a quick guess maker for models with a single scale and normalization
    The center guess for e1,e2 is 0,0
 
-   pars are [row,col,e1,e2,T,p]
+   The centers widths chosen may not always be what you want, check the code.
+   widths on cen and ellip are 0.1. Width on T and p are 10 percent of the
+   guess.
+
+   center/pars are [row,col,e1,e2,T,p]
+
 */
 
 struct mca_chain *gmix_mcmc_guess_simple(double row, double col,

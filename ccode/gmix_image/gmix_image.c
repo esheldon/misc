@@ -5,6 +5,7 @@
 #include "image.h"
 #include "gauss.h"
 #include "gmix.h"
+#include "rand.h"
 
 struct image *gmix_image_new(const struct gmix *gmix, 
                              size_t nrows, 
@@ -144,6 +145,72 @@ double gmix_image_loglike(const struct image *image,
 _gmix_image_loglike_bail:
 
     return loglike;
+}
+
+int gmix_image_add_noise(struct image *image, 
+                         double s2n,
+                         const struct gmix *gmix,
+                         double *skysig, 
+                         double *s2n_meas)
+{
+    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
+
+    struct gauss *gauss=NULL;
+    double u=0, v=0;
+    double chi2=0;
+    size_t i=0, col=0, row=0;
+    double sum=0, wsum=0, wt=0;
+
+    if (!gmix_verify(gmix)) {
+        flags |= GMIX_IMAGE_NEGATIVE_DET;
+        goto _gmix_image_add_noise_bail;
+    }
+
+    for (pass=1;pass<=2;pass++) {
+        for (row=0; row<nrows; row++) {
+            rowdata=IM_ROW(image, row);
+            for (col=0; col<ncols; col++) {
+
+                if (pass==1) {
+                    wt=0;
+                    gauss=gmix->data;
+                    for (i=0; i<gmix->size; i++) {
+
+                        u = row-gauss->row;
+                        v = col-gauss->col;
+
+                        chi2 =
+                            gauss->dcc*u*u 
+                            + gauss->drr*v*v 
+                            - 2.0*gauss->drc*u*v;
+
+                        wt +=  gauss->norm*gauss->p*exp( -0.5*chi2 );
+
+                        gauss++;
+                    } // gmix
+
+                    sum += (*rowdata)*wt;
+                    wsum += wt;
+
+                } else  {
+                    (*rowdata) += (*skysig) * randn();
+                }
+                rowdata++;
+            } // cols
+        } // rows
+
+        if (pass==1) {
+            // this new skysig should give us the requested S/N
+            (*skysig) = (*s2n_meas)/s2n * (*skysig);
+        } else {
+            (*s2n_meas) = sum/sqrt(wsum)/(*skysig);
+        }
+
+    }
+
+
+_gmix_image_add_noise_bail:
+    return flags;
 }
 
 

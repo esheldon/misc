@@ -13,6 +13,7 @@ struct gmix {
     double total_irr;
     double total_irc;
     double total_icc;
+    double psum;
 };
 
 enum gapprox {
@@ -26,6 +27,9 @@ void gmix_set_dets(struct gmix *self);
 
 // make sure pointer not null and det>0 for all gauss
 int gmix_verify(const struct gmix *self);
+
+// get sum(p_i*T_i)/sum(p_i);
+double gmix_get_T(const struct gmix *self);
 
 // only makes sense for same center, e.g. psf
 void gmix_set_total_moms(struct gmix *self);
@@ -70,6 +74,14 @@ int gmix_fill_coellip(struct gmix *gmix,
 struct gmix *gmix_from_coellip_Tfrac(double *pars, int size);
 
 /* 
+   Generate new a gmix from the inputs pars assuming an appoximate
+   3-gaussian representation of an exponential profile. See
+   gmix_fill_exp for more info. 
+*/
+struct gmix *gmix_make_exp(const double *pars, int size);
+
+
+/* 
    Generate a gmix from the inputs pars assuming an appoximate
    3-gaussian representation of an exponential disk. It's only
    a good approx when convolved with a substantial psf.
@@ -83,8 +95,16 @@ struct gmix *gmix_from_coellip_Tfrac(double *pars, int size);
    The p and F values are chosen to make this so
 */
 int gmix_fill_exp(struct gmix *self, const double *pars, int size);
+
 /* 
-   Generate a gmix from the inputs pars assuming an appoximate
+   Generate new a gmix from the inputs pars assuming an appoximate
+   3-gaussian representation of a devauc profile. See
+   gmix_fill_dev for more info. 
+*/
+struct gmix *gmix_make_dev(const double *pars, int size);
+
+/*
+   fill a gmix from the inputs pars assuming an appoximate
    3-gaussian representation of a devauc profile. It's only
    a good approx when convolved with a substantial psf.
 
@@ -99,6 +119,8 @@ int gmix_fill_exp(struct gmix *self, const double *pars, int size);
 int gmix_fill_dev(struct gmix *self,const double *pars, int size);
 
 /* similar to above but for a turbulent psf */
+
+struct gmix *gmix_make_turb(const double *pars, int size);
 int gmix_fill_turb(struct gmix *self,const double *pars, int size);
 
 #endif
