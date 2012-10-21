@@ -30,7 +30,8 @@ double lnprob(const double *pars, size_t npars, const void *void_data)
 
     return lnprob;
 }
-size_t get_pars_and_guess(double **pars_true, double **guess, double **widths)
+size_t get_pars_and_guess(int nrow, int ncol,
+                          double **pars_true, double **guess, double **widths)
 {
     size_t ngauss=1;
     size_t npars=2*ngauss+4;
@@ -39,11 +40,11 @@ size_t get_pars_and_guess(double **pars_true, double **guess, double **widths)
     (*guess)    =calloc(npars, sizeof(double));
     (*widths)   =calloc(npars, sizeof(double));
 
-    (*pars_true)[0] = 20.;
-    (*pars_true)[1] = 20.;
+    (*pars_true)[0] = 0.5*nrow;
+    (*pars_true)[1] = 0.5*ncol;
     (*pars_true)[2] = 0.2;
     (*pars_true)[3] = 0.1;
-    (*pars_true)[4] = 24.;
+    (*pars_true)[4] = 12.;
     (*pars_true)[5] = 1.;
 
     (*widths)[0] = 1.0;
@@ -65,6 +66,12 @@ size_t get_pars_and_guess(double **pars_true, double **guess, double **widths)
 
 int main(int argc, char** argv)
 {
+    if (argc < 2) {
+        fprintf(stderr,"test-gauss s2n\n");
+        exit(1);
+    }
+    double s2n=atof(argv[1]);
+
     char image_fname[] = "tmp/test-image.dat";
     char noisy_image_fname[] = "tmp/test-image-noisy.dat";
     char burn_fname[] = "tmp/chain-burnin.dat";
@@ -77,7 +84,6 @@ int main(int argc, char** argv)
     size_t steps_per_walker=200;
     double a=2;
     double skysig=0;
-    double s2n=100;
     double s2n_meas=0;
 
     time_t tm;
@@ -85,7 +91,7 @@ int main(int argc, char** argv)
     srand48((long) tm);
 
     double *pars_true=NULL, *guess=NULL, *widths=NULL;
-    size_t npars = get_pars_and_guess(&pars_true, &guess, &widths);
+    size_t npars = get_pars_and_guess(nrow,ncol,&pars_true, &guess, &widths);
 
     if (0 != system("mkdir -p tmp")) {
         fprintf(stderr,"could not make ./tmp");

@@ -46,8 +46,8 @@ double gmix_wmomsum(struct gmix* gmix);
 //void gmix_wmean_covar(const struct gmix* gmix, struct mtx2 *cov);
 
 /* convolution results in an nobj*npsf total gaussians */
-struct gmix *gmix_convolve(struct gmix *obj_gmix, 
-                           struct gmix *psf_gmix);
+struct gmix *gmix_convolve(const struct gmix *obj_gmix, 
+                           const struct gmix *psf_gmix);
 
 
 /* full parameters list
@@ -82,7 +82,7 @@ struct gmix *gmix_from_coellip_Tfrac(double *pars, int size);
 
    The p and F values are chosen to make this so
 */
-struct gmix *gmix_from_pars_exp(double *pars, int size);
+int gmix_fill_exp(struct gmix *self, const double *pars, int size);
 /* 
    Generate a gmix from the inputs pars assuming an appoximate
    3-gaussian representation of a devauc profile. It's only
@@ -96,9 +96,9 @@ struct gmix *gmix_from_pars_exp(double *pars, int size);
 
    The p and F values are chosen to make this so
 */
-struct gmix *gmix_from_pars_dev(double *pars, int size);
+int gmix_fill_dev(struct gmix *self,const double *pars, int size);
 
 /* similar to above but for a turbulent psf */
-struct gmix *gmix_from_pars_turb(double *pars, int size);
+int gmix_fill_turb(struct gmix *self,const double *pars, int size);
 
 #endif

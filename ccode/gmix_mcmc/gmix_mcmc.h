@@ -34,6 +34,8 @@ struct mca_chain *gmix_mcmc_make_guess_coellip(double *centers,
 /* 
    this is for models with a single scale and normalization
    The center guess for e1,e2 is 0,0
+
+   pars are [row,col,e1,e2,T,p]
 */
 
 struct mca_chain *gmix_mcmc_guess_simple(double row, double col,
