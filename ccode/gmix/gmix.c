@@ -91,7 +91,7 @@ int gmix_copy(const struct gmix *self, struct gmix* dest)
     return 1;
 }
 
-void gmix_print(struct gmix *self, FILE* fptr)
+void gmix_print(const struct gmix *self, FILE* fptr)
 {
     struct gauss *gptr = self->data;
     size_t i=0;
@@ -352,7 +352,7 @@ int _gapprox_fill(struct gmix *self,
         return 0;
     }
     if (size != 6) {
-        fprintf(stderr,"approx gmix pars must have pars size 6\n");
+        fprintf(stderr,"approx gmix pars must have size 6\n");
         return 0;
     }
 

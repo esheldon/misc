@@ -38,7 +38,7 @@ void gmix_set_total_moms(struct gmix *self);
 struct gmix *gmix_new_copy(const struct gmix *self);
 int gmix_copy(const struct gmix *self, struct gmix* dest);
 
-void gmix_print(struct gmix *self, FILE* fptr);
+void gmix_print(const struct gmix *self, FILE* fptr);
 
 // calculate the weighted sum of the moments
 //  sum_gi( p*(irr + icc )

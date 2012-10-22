@@ -4,7 +4,7 @@
 #include "gmix.h"
 #include "gmix_mcmc.h"
 
-struct mca_chain *gmix_mcmc_guess_gapprox(
+struct mca_chain *gmix_mcmc_guess_simple(
         double row, double col,
         double T, double counts,
         size_t nwalkers)
@@ -20,7 +20,7 @@ struct mca_chain *gmix_mcmc_guess_gapprox(
     centers[2]=0.;
     centers[3]=0.;
     centers[4]=T;
-    centers[6]=counts;
+    centers[5]=counts;
 
     widths[0] = 0.1;
     widths[1] = 0.1;

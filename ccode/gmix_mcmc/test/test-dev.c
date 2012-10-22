@@ -55,6 +55,15 @@ double lnprob_dev(const double *pars,
     }
 
     struct gmix *conv=gmix_convolve(data->obj, data->psf);
+    /*
+    wlog("obj:\n");
+    gmix_print(data->obj,stderr);
+    wlog("psf:\n");
+    gmix_print(data->psf,stderr);
+    wlog("conv:\n");
+    gmix_print(conv,stderr);
+    exit(1);
+    */
 
     // flags are only set for conditions we want to
     // propagate back through the likelihood
@@ -119,12 +128,10 @@ int main(int argc, char** argv)
     char psf_chain_fname[] = "tmp/chain-psf.dat";
 
 
-    /*
     char image_fname[] = "tmp/test-image.dat";
     char noisy_image_fname[] = "tmp/test-image-noisy.dat";
     char burn_fname[] = "tmp/chain-burnin.dat";
     char chain_fname[] = "tmp/chain.dat";
-    */
     //char fit_fname[] = "test-image-fit.dat";
 
     //size_t nrow=25, ncol=25;
@@ -155,21 +162,31 @@ int main(int argc, char** argv)
     struct gmix *gmix_psf=gmix_make_turb(pars_psf_true, npars_psf_true);
     struct gmix *gmix_conv=gmix_convolve(gmix_true,gmix_psf);
 
-    wlog("making psf sim\n");
+    wlog("making sims\n");
     struct gmix_sim *psf_sim=gmix_sim_cocen_new(gmix_psf,nsub);
-    wlog("making dev convolved sim\n");
     struct gmix_sim *obj_sim=gmix_sim_cocen_new(gmix_conv,nsub);
 
-    // make the image and noisy image
-    wlog("storing image in '%s'\n", psf_image_fname);
-    image_write_file(obj_sim->image, psf_image_fname);
-
+    wlog("adding noise\n");
     gmix_sim_add_noise(psf_sim, psf_s2n);
     gmix_sim_add_noise(obj_sim, s2n);
 
-    wlog("storing noisy image in '%s'\n", psf_noisy_image_fname);
-    image_write_file(obj_sim->image, psf_noisy_image_fname);
+    wlog("storing psf image in '%s'\n", psf_image_fname);
+    image_write_file(psf_sim->image, psf_image_fname);
+    wlog("storing noisy psf image in '%s'\n", psf_noisy_image_fname);
+    image_write_file(psf_sim->image, psf_noisy_image_fname);
+    wlog("storing image in '%s'\n", image_fname);
+    image_write_file(obj_sim->image, image_fname);
+    wlog("storing noisy image in '%s'\n", noisy_image_fname);
+    image_write_file(obj_sim->image, noisy_image_fname);
 
+
+    //
+    // process psf
+    //
+
+    psf_data.image = (const struct image*) psf_sim->image;
+    psf_data.psf=gmix_new(2);
+    psf_data.ivar=1./(psf_sim->skysig*psf_sim->skysig);
 
     wlog("building turb guesses for %lu walkers\n", nwalkers);
     struct mca_chain *psf_start_chain = gmix_mcmc_guess_turb_full(
@@ -187,9 +204,6 @@ int main(int argc, char** argv)
         mca_chain_new(nwalkers, steps_per_walker, npars_psf_fit);
 
 
-    psf_data.image = (const struct image*) psf_sim->image;
-    psf_data.psf=gmix_new(2);
-    psf_data.ivar=1./(psf_sim->skysig*psf_sim->skysig);
 
     wlog("    running psf burn-in\n");
     mca_run(psf_burnin_chain, a, psf_start_chain, &lnprob_psf, &psf_data);
@@ -201,6 +215,9 @@ int main(int argc, char** argv)
     mca_stats_write_brief(psf_stats, stderr);
 
 
+    //
+    // process convolved image
+    //
 
     obj_data.image = (const struct image*) obj_sim->image;
     obj_data.psf=(const struct gmix *) psf_data.psf;
@@ -208,13 +225,31 @@ int main(int argc, char** argv)
     obj_data.ivar=1./(obj_sim->skysig*obj_sim->skysig);
 
 
-
-
     wlog("building dev guesses for %lu walkers\n", nwalkers);
-    struct mca_chain *start_chain = gmix_mcmc_guess_gapprox(
+    struct mca_chain *start_chain = gmix_mcmc_guess_simple(
             obj_sim->gmix->data[0].row,
             obj_sim->gmix->data[0].col,
             T,counts,nwalkers);
+
+    wlog("creating burn-in chain for %lu steps per walker\n", 
+         burn_per_walker);
+    size_t npars_fit=MCA_CHAIN_NPARS(start_chain);
+    struct mca_chain *burnin_chain=mca_chain_new(
+            nwalkers, burn_per_walker, npars_fit);
+    wlog("creating chain for %lu steps per walker\n", steps_per_walker);
+    struct mca_chain *chain=
+        mca_chain_new(nwalkers, steps_per_walker, npars_fit);
+
+
+
+    wlog("    running burn-in\n");
+    mca_run(burnin_chain, a, start_chain, &lnprob_dev, &obj_data);
+    wlog("    running chain\n");
+    mca_run(chain, a, burnin_chain, &lnprob_dev, &obj_data);
+
+    wlog("brief stats\n");
+    struct mca_stats *stats = mca_chain_stats(chain);
+    mca_stats_write_brief(stats, stderr);
 
 
 
@@ -227,6 +262,12 @@ int main(int argc, char** argv)
     mca_chain_write_file(psf_burnin_chain, psf_burn_fname);
     wlog("    writing psf chain to %s\n", psf_chain_fname);
     mca_chain_write_file(psf_chain, psf_chain_fname);
+
+    wlog("    writing burn chain to %s\n", burn_fname);
+    mca_chain_write_file(burnin_chain, burn_fname);
+    wlog("    writing chain to %s\n", chain_fname);
+    mca_chain_write_file(chain, chain_fname);
+
 
     return 0;
 }
