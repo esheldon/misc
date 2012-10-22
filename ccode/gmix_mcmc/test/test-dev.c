@@ -7,7 +7,8 @@
 #include "../gmix.h"
 #include "../gmix_image.h"
 #include "../gmix_mcmc.h"
-#include "../admom.h"
+#include "../gmix_sim.h"
+#include "../mca.h"
 
 // these will hold pointers to data used in the fits
 const struct image *_global_image_tmp;
@@ -76,6 +77,28 @@ size_t get_pars_and_guess(int nrow, int ncol,
     return npars;
 }
 
+/*
+struct gmix *fit_psf(struct image *image,
+                     double row, double col,
+                     double T,
+                     size_t nwalkers,
+                     size_t burn_per_walker,
+                     size_t steps_per_walker)
+{
+    size_t ngauss=2;
+    size_t npars=2*ngauss+4;
+
+    double counts=IM_COUNTS(image);
+    struct mca_chain *guess=
+        gmix_mcmc_guess_turb_full( row, col, T, counts, nwalkers);
+
+    struct mca_chain *burn_chain=mca_chain_new(
+            nwalkers, burn_per_walker, npars);
+    guess=mca_chain_del(guess);
+    burn_chain=mca_chain_del(burn_chain);
+    //chain=mca_chain_del(chain);
+}
+*/
 int main(int argc, char** argv)
 {
     if (argc < 2) {
@@ -83,20 +106,23 @@ int main(int argc, char** argv)
         exit(1);
     }
     double s2n=atof(argv[1]);
+    double psf_s2n=1.e8;
+
+    //double Tpsf=4.;
+    //double T=Tpsf*2;
 
     char image_fname[] = "tmp/test-image.dat";
     char noisy_image_fname[] = "tmp/test-image-noisy.dat";
     char burn_fname[] = "tmp/chain-burnin.dat";
     char chain_fname[] = "tmp/chain.dat";
     //char fit_fname[] = "test-image-fit.dat";
+
     size_t nrow=25, ncol=25;
     int nsub=16;
     size_t nwalkers=20;
     size_t burn_per_walker=200;
     size_t steps_per_walker=200;
     double a=2;
-    double skysig=0;
-    double s2n_meas=0;
 
     time_t tm;
     (void) time(&tm);
@@ -123,17 +149,16 @@ int main(int argc, char** argv)
     wlog("storing image in '%s'\n", image_fname);
     image_write_file(obj_sim->image, image_fname);
 
-    struct image *noisy_im = image_newcopy(gmix_sim->image);
-    // need to fix this program
-    admom_add_noise(noisy_im, s2n, &gmix_true->data[0], &skysig, &s2n_meas);
-    double ivar = 1./(skysig*skysig);
-    wlog("storing noisy image in '%s'\n", noisy_image_fname);
-    image_write_file(noisy_im, noisy_image_fname);
+    gmix_sim_add_noise(psf_sim, psf_s2n);
+    gmix_sim_add_noise(obj_sim, s2n);
 
-    // global variables hold pointers to data
-    _global_image_tmp = (const struct image*) noisy_im;
+    wlog("storing noisy image in '%s'\n", noisy_image_fname);
+    image_write_file(obj_sim->image, noisy_image_fname);
+
+    // global variables for fit
+    _global_image_tmp = (const struct image*) obj_sim->image;
     _global_gmix_tmp = gmix_new(3);
-    _global_ivar_tmp = ivar;
+    _global_ivar_tmp = 1./(obj_sim->skysig*obj_sim->skysig);
 
     wlog("building guesses for %lu walkers\n", nwalkers);
     struct mca_chain *start_chain = gmix_mcmc_make_guess_coellip(guess, 

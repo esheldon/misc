@@ -11,13 +11,10 @@
 */
 static int get_imsize(const struct gmix *gmix, double nsigma)
 {
+
     double T=gmix_get_T(gmix);
     double sigma = sqrt(T/2.);
-
-    int imsize = int(round(2*nsigma*sigma));
-    if (imsize < 10) {
-        imsize=10;
-    }
+    int imsize = (int)(round(2*nsigma*sigma));
     return imsize;
 }
 struct gmix_sim *gmix_sim_new(const struct gmix *gmix, int nsub) 
@@ -30,11 +27,11 @@ struct gmix_sim *gmix_sim_new(const struct gmix *gmix, int nsub)
         exit(EXIT_FAILURE);
     }
 
-    int imsize=get_imsize(gmix);
+    self->nsigma=GMIX_SIM_NSIGMA;
+    int imsize=get_imsize(gmix,self->nsigma);
 
     self->image=gmix_image_new(gmix,imsize,imsize,nsub);
     self->gmix=gmix;
-    self->nsigma=GMIX_SIM_NSIGMA;
     self->nsub=nsub;
 
     self->s2n=-9999;
@@ -43,10 +40,10 @@ struct gmix_sim *gmix_sim_new(const struct gmix *gmix, int nsub)
     return self;
 }
 
-struct gmix_sim *gmix_sim_del(struct gmix *self)
+struct gmix_sim *gmix_sim_del(struct gmix_sim *self)
 {
     if (self) {
-        self->image=image_del(self->image);
+        self->image=image_free(self->image);
         free(self);
         self=NULL;
     }
@@ -54,3 +51,23 @@ struct gmix_sim *gmix_sim_del(struct gmix *self)
 }
 
 
+int gmix_sim_add_noise(struct gmix_sim *self, double s2n)
+{
+
+    double s2n_meas=0;
+    int flags=
+        gmix_image_add_noise(self->image, 
+                             s2n,
+                             self->gmix,
+                             &self->skysig, 
+                             &s2n_meas);
+    fprintf(stderr,"measured s2n: %.16g\n", s2n_meas);
+    if (flags != 0) {
+        fprintf(stderr,"error adding noise to image: %d\n", flags);
+        return flags;
+    }
+
+    self->s2n=s2n;
+
+    return 0;
+}

@@ -1,8 +1,8 @@
 #ifndef _GMIX_SIM_HEADER_GUARD
 #define _GMIX_SIM_HEADER_GUARD
 
-#import "gmix.h"
-#import "image.h"
+#include "gmix.h"
+#include "image.h"
 
 // images will be 2*sigma*GMIX_SIM_GAUSS_PADDING
 // on each side
@@ -35,12 +35,6 @@ struct gmix_sim {
     struct image *image;
 };
 
-struct gmix_noisy_sim {
-    const struct gmix_sim *sim;
-    double skysig;
-    double s2n;
-    struct image *image;
-};
 
 
 /*
@@ -48,6 +42,10 @@ struct gmix_noisy_sim {
 */
 struct gmix_sim *gmix_sim_new(const struct gmix *gmix, int nsub);
 
-struct gmix_sim *gmix_sim_del(struct gmix *self);
+struct gmix_sim *gmix_sim_del(struct gmix_sim *self);
+
+
+
+int gmix_sim_add_noise(struct gmix_sim *self, double s2n);
 
 #endif

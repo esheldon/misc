@@ -18,7 +18,6 @@
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 #endif
 
-
 /*
    just do some error checking and call mca_make_guess
 
@@ -30,6 +29,15 @@ struct mca_chain *gmix_mcmc_make_guess_coellip(double *centers,
                                                double *widths,
                                                size_t npars, 
                                                size_t nwalkers);
+
+/* 
+   make a turb psf guess with two fully free gaussians
+*/
+
+struct mca_chain *gmix_mcmc_guess_turb_full(
+        double row, double col,
+        double T, double counts,
+        size_t nwalkers);
 
 /* 
 
