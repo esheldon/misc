@@ -54,10 +54,10 @@ struct mca_chain *gmix_mcmc_guess_turb_full(
 */
 
 
-struct mca_chain *gmix_mcmc_guess_gapprox(
+struct mca_chain *gmix_mcmc_guess_simple(
         double row, double col,
         double T, double counts,
-        size_t nwalkers)
+        size_t nwalkers);
 
 
 struct lognormal {
