@@ -33,6 +33,43 @@ struct mca_chain *gmix_mcmc_guess_simple(double row, double col,
                           nwalkers);
 }
 
+
+struct mca_chain *gmix_mcmc_guess_turb_full(
+        double row, double col,
+        double T, double counts,
+        size_t nwalkers)
+{
+    size_t ngauss=2;
+    size_t npars=2*ngauss+4;
+
+    // note alloca, stack allocated
+    double *centers=alloca(npars*sizeof(double));
+    double *widths=alloca(npars*sizeof(double));
+
+    centers[0]=row;
+    centers[1]=col;
+    centers[2]=0.;
+    centers[3]=0.;
+    centers[4]=T*0.58;
+    centers[5]=T*1.62;
+    centers[6]=counts*0.60;
+    centers[7]=counts*0.40;
+
+    widths[0] = 0.1;
+    widths[1] = 0.1;
+    widths[2] = 0.05;
+    widths[3] = 0.05;
+    widths[4] = 0.1*centers[4];
+    widths[5] = 0.1*centers[5];
+    widths[6] = 0.1*centers[6];
+    widths[7] = 0.1*centers[7];
+
+    return mca_make_guess(centers,
+                          widths,
+                          npars, 
+                          nwalkers);
+}
+
 // this is the more generic one
 struct mca_chain *gmix_mcmc_make_guess_coellip(double *centers, 
                                                double *widths,
@@ -79,4 +116,6 @@ double lognormal_prob(
 {
     return exp(lognormal_lnprob(self,x));
 }
+
+
 

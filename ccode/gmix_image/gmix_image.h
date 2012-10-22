@@ -41,4 +41,12 @@ double gmix_image_loglike(const struct image *image,
                           double ivar,
                           int *flags);
 
+
+
+int gmix_image_add_noise(struct image *image, 
+                         double s2n,
+                         const struct gmix *gmix,
+                         double *skysig, 
+                         double *s2n_meas);
+
 #endif

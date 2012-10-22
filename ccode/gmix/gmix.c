@@ -120,10 +120,11 @@ double gmix_wmomsum(struct gmix* gmix)
 double gmix_get_T(const struct gmix *self)
 {
     double T=0, psum=0;
-
+    struct gauss *gauss=self->data;
     for (size_t i=0; i<self->size; i++) {
-        T += self->p*(self->irr+self->icc);
-        psum += self->p;
+        T += gauss->p*(gauss->irr+gauss->icc);
+        psum += gauss->p;
+        gauss++;
     }
 
     T = T/psum;
@@ -381,13 +382,12 @@ int _gapprox_fill(struct gmix *self,
 }
 
 
-struct gmix *gmix_make_exp(const double *pars,
- {
+struct gmix *gmix_make_exp(const double *pars, int size)
+{
     struct gmix *self=gmix_new(3);
     gmix_fill_exp(self, pars, size);
     return self;
 }
-                          int size)
 int gmix_fill_exp(struct gmix *self,
                   const double *pars,
                   int size)

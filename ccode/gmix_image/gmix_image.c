@@ -5,7 +5,7 @@
 #include "image.h"
 #include "gauss.h"
 #include "gmix.h"
-#include "rand.h"
+#include "randn.h"
 
 struct image *gmix_image_new(const struct gmix *gmix, 
                              size_t nrows, 
@@ -159,14 +159,15 @@ int gmix_image_add_noise(struct image *image,
     double u=0, v=0;
     double chi2=0;
     size_t i=0, col=0, row=0;
-    double sum=0, wsum=0, wt=0;
+    double sum=0, wsum=0, wt=0, *rowdata=NULL;
+    int flags=0;
 
     if (!gmix_verify(gmix)) {
         flags |= GMIX_IMAGE_NEGATIVE_DET;
         goto _gmix_image_add_noise_bail;
     }
 
-    for (pass=1;pass<=2;pass++) {
+    for (int pass=1;pass<=2;pass++) {
         for (row=0; row<nrows; row++) {
             rowdata=IM_ROW(image, row);
             for (col=0; col<ncols; col++) {
