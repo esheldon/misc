@@ -141,9 +141,9 @@ int main(int argc, char** argv)
     struct gmix *gmix_conv=gmix_convolve(gmix_true,gmix_psf);
 
     wlog("making psf sim\n");
-    struct gmix_sim *psf_sim=gmix_sim_new(gmix_psf,nsub);
+    struct gmix_sim *psf_sim=gmix_sim_cocen_new(gmix_psf,nsub);
     wlog("making dev convolved sim\n");
-    struct gmix_sim *obj_sim=gmix_sim_new(gmix_conv,nsub);
+    struct gmix_sim *obj_sim=gmix_sim_cocen_new(gmix_conv,nsub);
 
     // make the image and noisy image
     wlog("storing image in '%s'\n", image_fname);

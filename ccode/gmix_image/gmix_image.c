@@ -147,19 +147,71 @@ _gmix_image_loglike_bail:
     return loglike;
 }
 
-int gmix_image_add_noise(struct image *image, 
-                         double s2n,
-                         const struct gmix *gmix,
-                         double *skysig, 
-                         double *s2n_meas)
+double gmix_image_s2n(const struct image *image, 
+                      double skysig, 
+                      const struct gmix *weight,
+                      int *flags)
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
 
     struct gauss *gauss=NULL;
-    double u=0, v=0;
-    double chi2=0;
     size_t i=0, col=0, row=0;
     double sum=0, wsum=0, wt=0, *rowdata=NULL;
+    double s2n=-9999;
+
+    (*flags)=0;
+
+    if (!gmix_verify(weight)) {
+        (*flags) |= GMIX_IMAGE_NEGATIVE_DET;
+        goto _gmix_image_s2n_noise_bail;
+    }
+
+    for (row=0; row<nrows; row++) {
+        rowdata=IM_ROW(image, row);
+        for (col=0; col<ncols; col++) {
+
+            wt=0;
+            gauss=weight->data;
+            for (i=0; i<weight->size; i++) {
+                wt += GAUSS_EVAL(gauss,row,col);
+                gauss++;
+            } // gmix
+
+            sum += (*rowdata)*wt;
+            wsum += wt;
+
+            rowdata++;
+        } // cols
+    } // rows
+
+    s2n = sum/sqrt(wsum)/skysig;
+
+_gmix_image_s2n_noise_bail:
+    return s2n;
+
+}
+
+void _image_add_noise(struct image *image, double skysig)
+{
+    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
+
+    size_t col=0, row=0;
+    double *rowdata=NULL;
+
+    for (row=0; row<nrows; row++) {
+        rowdata=IM_ROW(image, row);
+        for (col=0; col<ncols; col++) {
+            (*rowdata) += skysig*randn();
+            rowdata++;
+        } // cols
+    } // rows
+}
+
+int gmix_image_add_noise(struct image *image, 
+                         double s2n,
+                         const struct gmix *gmix,
+                         double *skysig) 
+{
     int flags=0;
 
     if (!gmix_verify(gmix)) {
@@ -167,48 +219,14 @@ int gmix_image_add_noise(struct image *image,
         goto _gmix_image_add_noise_bail;
     }
 
-    for (int pass=1;pass<=2;pass++) {
-        for (row=0; row<nrows; row++) {
-            rowdata=IM_ROW(image, row);
-            for (col=0; col<ncols; col++) {
-
-                if (pass==1) {
-                    wt=0;
-                    gauss=gmix->data;
-                    for (i=0; i<gmix->size; i++) {
-
-                        u = row-gauss->row;
-                        v = col-gauss->col;
-
-                        chi2 =
-                            gauss->dcc*u*u 
-                            + gauss->drr*v*v 
-                            - 2.0*gauss->drc*u*v;
-
-                        wt +=  gauss->norm*gauss->p*exp( -0.5*chi2 );
-
-                        gauss++;
-                    } // gmix
-
-                    sum += (*rowdata)*wt;
-                    wsum += wt;
-
-                } else  {
-                    (*rowdata) += (*skysig) * randn();
-                }
-                rowdata++;
-            } // cols
-        } // rows
-
-        if (pass==1) {
-            // this new skysig should give us the requested S/N
-            (*skysig) = (*s2n_meas)/s2n * (*skysig);
-        } else {
-            (*s2n_meas) = sum/sqrt(wsum)/(*skysig);
-        }
-
+    double tskysig=1;
+    double s2n_first_pass=gmix_image_s2n(image,tskysig,gmix,&flags);
+    if (flags!=0) {
+        goto _gmix_image_add_noise_bail;
     }
+    (*skysig) = s2n_first_pass/s2n * tskysig;
 
+    _image_add_noise(image, (*skysig));
 
 _gmix_image_add_noise_bail:
     return flags;

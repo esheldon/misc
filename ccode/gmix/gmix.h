@@ -35,8 +35,8 @@ double gmix_get_T(const struct gmix *self);
 void gmix_set_total_moms(struct gmix *self);
 
 
-struct gmix *gmix_new_copy(struct gmix *self);
-int gmix_copy(struct gmix *self, struct gmix* dest);
+struct gmix *gmix_new_copy(const struct gmix *self);
+int gmix_copy(const struct gmix *self, struct gmix* dest);
 
 void gmix_print(struct gmix *self, FILE* fptr);
 

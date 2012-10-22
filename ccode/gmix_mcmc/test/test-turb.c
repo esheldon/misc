@@ -9,7 +9,7 @@
 #include "../gmix_mcmc.h"
 #include "../admom.h"
 
-#include "gmix_sim.h"
+#include "../gmix_sim.h"
 
 // these will hold pointers to data used in the fits
 const struct image *_global_image_tmp;
@@ -34,21 +34,21 @@ double lnprob(const double *pars, size_t npars, const void *void_data)
 
     return lnprob;
 }
-double *get_pars(double row, double col, double T, size_t *npars)
+double *get_pars(double T, double counts,size_t *npars)
 {
     size_t ngauss=2;
     (*npars)=2*ngauss+4;
 
     double *pars=calloc((*npars), sizeof(double));
 
-    pars[0] = row;
-    pars[1] = col;
+    pars[0] = -1;
+    pars[1] = -1;
     pars[2] = 0.0;
     pars[3] = 0.0;
     pars[4] = T*0.58;
     pars[5] = T*1.62;
-    pars[6] = 0.60;
-    pars[7] = 0.40;
+    pars[6] = 0.60*counts;
+    pars[7] = 0.40*counts;
 
     return pars;
 }
@@ -66,9 +66,6 @@ int main(int argc, char** argv)
     char burn_fname[] = "tmp/chain-burnin.dat";
     char chain_fname[] = "tmp/chain.dat";
     //char fit_fname[] = "test-image-fit.dat";
-    size_t nrow=25, ncol=25;
-    double row=0.5*(nrow-1);
-    double col=0.5*(ncol-1);
     double counts=1;
 
     int nsub=16;
@@ -76,8 +73,6 @@ int main(int argc, char** argv)
     size_t burn_per_walker=200;
     size_t steps_per_walker=200;
     double a=2;
-    double skysig=0;
-    double s2n_meas=0;
 
     time_t tm;
     (void) time(&tm);
@@ -87,7 +82,7 @@ int main(int argc, char** argv)
     double T=4;
 
     size_t npars=0;
-    pars_true = get_pars(row,col,T,&npars);
+    pars_true = get_pars(T,counts,&npars);
     size_t ngauss=(npars-4)/2;
 
     if (0 != system("mkdir -p tmp")) {
@@ -98,7 +93,8 @@ int main(int argc, char** argv)
     gmix_print(gmix_true,stderr);
 
     wlog("making turb sim\n");
-    struct gmix_sim *sim=gmix_sim_new(gmix_true,nsub);
+    struct gmix_sim *sim=gmix_sim_cocen_new(gmix_true,nsub);
+    gmix_print(sim->gmix,stderr);
 
     wlog("storing image in '%s'\n", image_fname);
     image_write_file(sim->image, image_fname);
@@ -116,7 +112,9 @@ int main(int argc, char** argv)
 
     wlog("building guesses for %lu walkers\n", nwalkers);
     struct mca_chain *start_chain = gmix_mcmc_guess_turb_full(
-            row,col,T,counts,nwalkers);
+            sim->gmix->data[0].row,
+            sim->gmix->data[0].col,
+            T,counts,nwalkers);
 
     wlog("creating burn-in chain for %lu steps per walker\n", burn_per_walker);
     struct mca_chain *burnin_chain=mca_chain_new(nwalkers, burn_per_walker, 
@@ -141,8 +139,8 @@ int main(int argc, char** argv)
     struct mca_stats *stats = mca_chain_stats(chain);
     mca_stats_write_brief(stats, stderr);
 
-    gmix_true=gmix_del(gmix_true);
-    _global_gmix_tmp=gmix_del(_global_gmix_tmp);
+    gmix_true=gmix_free(gmix_true);
+    _global_gmix_tmp=gmix_free(_global_gmix_tmp);
     sim=gmix_sim_del(sim);
     start_chain=mca_chain_del(start_chain);
     burnin_chain=mca_chain_del(burnin_chain);

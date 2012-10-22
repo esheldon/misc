@@ -14,9 +14,7 @@
 
 */
 struct gmix_sim {
-    // the gmix is not owned by this structure, will be an input
-    // from the user
-    const struct gmix *gmix;
+    struct gmix *gmix;
 
     // the number of "sigma" used to determine the size
     // can be non-integer
@@ -39,8 +37,11 @@ struct gmix_sim {
 
 /*
    Create a new simulation object for the input gmix
+
+   The center is ignored.  The dimensions of the image
+   will be determined internally, as will the center.
 */
-struct gmix_sim *gmix_sim_new(const struct gmix *gmix, int nsub);
+struct gmix_sim *gmix_sim_cocen_new(const struct gmix *gmix, int nsub);
 
 struct gmix_sim *gmix_sim_del(struct gmix_sim *self);
 

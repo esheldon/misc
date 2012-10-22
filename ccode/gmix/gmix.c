@@ -73,7 +73,7 @@ int gmix_verify(const struct gmix *self)
     return 1;
 }
 
-struct gmix *gmix_new_copy(struct gmix *self)
+struct gmix *gmix_new_copy(const struct gmix *self)
 {
     struct gmix *dest=gmix_new(self->size);
     gmix_copy(self, dest);
@@ -81,7 +81,7 @@ struct gmix *gmix_new_copy(struct gmix *self)
 }
 
 
-int gmix_copy(struct gmix *self, struct gmix* dest)
+int gmix_copy(const struct gmix *self, struct gmix* dest)
 {
     if (dest->size != self->size) {
         fprintf(stderr,"gmix are not same size\n");
