@@ -66,14 +66,14 @@ int gmix_sim_add_noise(struct gmix_sim *self, double s2n)
                              s2n,
                              self->gmix,
                              &self->skysig);
-    if (1) {
-        int flags2=0;
-        double s2n_meas=gmix_image_s2n(self->image,
-                                       self->skysig,
-                                       self->gmix,
-                                       &flags2);
-        fprintf(stderr,"measured s2n: %.16g\n", s2n_meas);
-    }
+#if 0
+    int flags2=0;
+    double s2n_meas=gmix_image_s2n(self->image,
+                                   self->skysig,
+                                   self->gmix,
+                                   &flags2);
+    fprintf(stderr,"measured s2n: %.16g\n", s2n_meas);
+#endif
     if (flags != 0) {
         fprintf(stderr,"error adding noise to image: %d\n", flags);
         return flags;

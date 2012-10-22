@@ -39,6 +39,7 @@ struct mca_chain *gmix_mcmc_guess_turb_full(
         double T, double counts,
         size_t nwalkers);
 
+
 /* 
 
    this is a quick guess maker for models with a single scale and normalization
@@ -48,13 +49,16 @@ struct mca_chain *gmix_mcmc_guess_turb_full(
    widths on cen and ellip are 0.1. Width on T and p are 10 percent of the
    guess.
 
-   center/pars are [row,col,e1,e2,T,p]
+   center/pars are [row,col,e1,e2,T,counts]
 
 */
 
-struct mca_chain *gmix_mcmc_guess_simple(double row, double col,
-                                         double T, double p,
-                                         size_t nwalkers);
+
+struct mca_chain *gmix_mcmc_guess_gapprox(
+        double row, double col,
+        double T, double counts,
+        size_t nwalkers)
+
 
 struct lognormal {
     double mean;
