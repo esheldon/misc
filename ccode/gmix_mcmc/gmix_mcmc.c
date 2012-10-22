@@ -4,11 +4,13 @@
 #include "gmix.h"
 #include "gmix_mcmc.h"
 
-struct mca_chain *gmix_mcmc_guess_simple(double row, double col,
-                                         double T, double p,
-                                         size_t nwalkers)
+struct mca_chain *gmix_mcmc_guess_gapprox(
+        double row, double col,
+        double T, double counts,
+        size_t nwalkers)
 {
-    int npars=6;
+    size_t npars=6;
+
     // note alloca, stack allocated
     double *centers=alloca(npars*sizeof(double));
     double *widths=alloca(npars*sizeof(double));
@@ -18,20 +20,23 @@ struct mca_chain *gmix_mcmc_guess_simple(double row, double col,
     centers[2]=0.;
     centers[3]=0.;
     centers[4]=T;
-    centers[5]=p;
+    centers[6]=counts;
 
     widths[0] = 0.1;
     widths[1] = 0.1;
     widths[2] = 0.05;
     widths[3] = 0.05;
-    widths[4] = 0.1*T;
-    widths[5] = 0.1*p;
+    widths[4] = 0.1*centers[4];
+    widths[5] = 0.1*centers[5];
 
     return mca_make_guess(centers,
                           widths,
                           npars, 
                           nwalkers);
 }
+
+
+
 
 
 struct mca_chain *gmix_mcmc_guess_turb_full(
@@ -69,6 +74,8 @@ struct mca_chain *gmix_mcmc_guess_turb_full(
                           npars, 
                           nwalkers);
 }
+
+
 
 // this is the more generic one
 struct mca_chain *gmix_mcmc_make_guess_coellip(double *centers, 

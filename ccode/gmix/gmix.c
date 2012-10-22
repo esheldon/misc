@@ -255,7 +255,9 @@ int gmix_fill_coellip(struct gmix *gmix,
     }
     int ngauss=(npars-4)/2;
     if (ngauss != gmix->size) {
-        fprintf(stderr,"input pars wrong length for input gmix struct\n");
+        fprintf(stderr,
+          "error: input pars[%d] wrong length for input gmix struct[%lu]: "
+          "%s line %d\n", npars, gmix->size, __FILE__, __LINE__);
         return 0;
     }
 
