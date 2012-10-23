@@ -10,61 +10,112 @@
 #include "../gmix_sim.h"
 #include "../mca.h"
 
-struct psf_data {
-    const struct image *image;
-    double ivar;
-    struct gmix *psf;
-};
-struct obj_data {
-    const struct image *image;
-    double ivar;
-    const struct gmix *psf;
-    struct gmix *obj;
+struct fit_data {
+
+    const struct image *image; // the input image
+    double ivar;               // ivar for the image
+
+    enum gmix_par_type par_type; // parameter array type
+
+    const struct gmix *psf;      // pre-determined psf gmix
+    struct gmix *obj;            // to be filled from pars array
+    struct gmix *conv;           // convolved gmix to be filled 
+                                 // from psf and obj
 };
 
-
-double lnprob_psf(const double *pars, 
-                  size_t npars, 
-                  const void *void_data)
+struct fit_data 
+*fit_data_new(const struct image *image,
+               double ivar,
+               enum gmix_par_type par_type,
+               int ngauss, 
+               const struct gmix *psf) // can be NULL
 {
-    double lnprob=0;
-    int flags=0;
-
-    struct psf_data *data=(struct psf_data*) void_data;
-    if (!gmix_fill_coellip(data->psf, pars, npars) ) {
+    struct fit_data *self=NULL;
+    self=calloc(1,sizeof(struct fit_data));
+    if (!self) {
+        wlog("error: could not allocate struct "
+             "fit_data.  %s: %d\n",__FILE__,__LINE__);
         exit(EXIT_FAILURE);
     }
-    lnprob=gmix_image_loglike(data->image,
-                              data->psf,
-                              data->ivar,
-                              &flags);
+    self->image=image;
+    self->ivar=ivar;
+    self->par_type=par_type;
+    self->psf=psf;
 
-    return lnprob;
+    self->obj=gmix_new(ngauss);
+    if (!self->obj) {
+        wlog("error: could not allocate %d gmix "
+             "%s: %d\n",ngauss,__FILE__,__LINE__);
+        exit(EXIT_FAILURE);
+    }
+
+    if (self->psf) {
+
+        int ngauss_psf=self->psf->size;
+        int ntot=ngauss*ngauss_psf;
+        self->conv=gmix_new(ntot);
+
+        if (!self->conv) {
+            wlog("error: could not allocate %d gmix "
+                 "%s: %d\n",ntot,__FILE__,__LINE__);
+            exit(EXIT_FAILURE);
+        }
+    }
+    return self;
 }
 
-double lnprob_dev(const double *pars, 
-                  size_t npars, 
-                  const void *void_data)
+struct fit_data 
+*fit_data_free(struct fit_data *self)
 {
-    double lnprob=0;
+    if (self) {
+        self->obj=gmix_free(self->obj);
+        self->conv=gmix_free(self->conv);
+        free(self);
+    }
+    return NULL;
+}
+
+
+double lnprob(const double *pars, 
+              size_t npars, 
+              const void *void_data)
+{
+    double lnp=0;
     int flags=0;
 
-    struct obj_data *data=(struct obj_data*) void_data;
-    if (!gmix_fill_dev(data->obj, pars, npars) ) {
+    struct fit_data *data=(struct fit_data*) void_data;
+
+    const struct gmix *gmix=NULL;
+
+    if (data->par_type == GMIX_APPROX_DEV) {
+        if (!gmix_fill_dev(data->obj, pars, npars) ) {
+            exit(EXIT_FAILURE);
+        }
+        if (!gmix_fill_convolve(data->conv, data->obj, data->psf)) {
+            exit(EXIT_FAILURE);
+        }
+        gmix=data->conv;
+    } else if (data->par_type == GMIX_COELLIP) {
+        if (!gmix_fill_coellip(data->obj, pars, npars) ) {
+            exit(EXIT_FAILURE);
+        }
+        gmix=data->obj;
+    } else {
+        wlog("error: expected par_type of approx dev or coellip "
+             "but got %d. %s: %d\n",
+             data->par_type,__FILE__,__LINE__);
         exit(EXIT_FAILURE);
     }
 
-    struct gmix *conv=gmix_convolve(data->obj, data->psf);
 
     // flags are only set for conditions we want to
     // propagate back through the likelihood
-    lnprob=gmix_image_loglike(data->image,
-                              conv,
-                              data->ivar,
-                              &flags);
+    lnp=gmix_image_loglike(data->image,
+                           gmix,
+                           data->ivar,
+                           &flags);
 
-    conv=gmix_free(conv);
-    return lnprob;
+    return lnp;
 }
 
 // true parameters for a gapprox turb profile
@@ -108,8 +159,8 @@ int main(int argc, char** argv)
     double psf_s2n=atof(argv[1]);
     double s2n=atof(argv[2]);
 
-    struct psf_data psf_data = {0};
-    struct obj_data obj_data = {0};
+    struct fit_data *psf_data = NULL;
+    struct fit_data *obj_data = NULL;
 
     double Tpsf=4.;
     double T=Tpsf*2;
@@ -176,9 +227,13 @@ int main(int argc, char** argv)
     // process psf
     //
 
-    psf_data.image = (const struct image*) psf_sim->image;
-    psf_data.psf=gmix_new(2);
-    psf_data.ivar=1./(psf_sim->skysig*psf_sim->skysig);
+    int ngauss_psf=2;
+    double psf_ivar=1./(psf_sim->skysig*psf_sim->skysig);
+    psf_data=fit_data_new(psf_sim->image,
+                          psf_ivar,
+                          GMIX_COELLIP,
+                          ngauss_psf,
+                          NULL);
 
     wlog("building turb guesses for %lu walkers\n", nwalkers);
     struct mca_chain *psf_start_chain = gmix_mcmc_guess_turb_full(
@@ -198,9 +253,9 @@ int main(int argc, char** argv)
 
 
     wlog("    running psf burn-in\n");
-    mca_run(psf_burnin_chain, a, psf_start_chain, &lnprob_psf, &psf_data);
+    mca_run(psf_burnin_chain, a, psf_start_chain, &lnprob, psf_data);
     wlog("    running psf chain\n");
-    mca_run(psf_chain, a, psf_burnin_chain, &lnprob_psf, &psf_data);
+    mca_run(psf_chain, a, psf_burnin_chain, &lnprob, psf_data);
 
     wlog("psf brief stats\n");
     struct mca_stats *psf_stats = mca_chain_stats(psf_chain);
@@ -211,10 +266,14 @@ int main(int argc, char** argv)
     // process convolved image
     //
 
-    obj_data.image = (const struct image*) obj_sim->image;
-    obj_data.psf=(const struct gmix *) psf_data.psf;
-    obj_data.obj=gmix_new(3);
-    obj_data.ivar=1./(obj_sim->skysig*obj_sim->skysig);
+    int ngauss_obj=3;
+
+    double ivar=1./(obj_sim->skysig*obj_sim->skysig);
+    obj_data=fit_data_new(obj_sim->image,
+                          ivar,
+                          GMIX_APPROX_DEV,
+                          ngauss_obj,
+                          psf_data->obj);
 
 
     wlog("building dev guesses for %lu walkers\n", nwalkers);
@@ -235,9 +294,9 @@ int main(int argc, char** argv)
 
 
     wlog("    running burn-in\n");
-    mca_run(burnin_chain, a, start_chain, &lnprob_dev, &obj_data);
+    mca_run(burnin_chain, a, start_chain, &lnprob, obj_data);
     wlog("    running chain\n");
-    mca_run(chain, a, burnin_chain, &lnprob_dev, &obj_data);
+    mca_run(chain, a, burnin_chain, &lnprob, obj_data);
 
     wlog("brief stats\n");
     struct mca_stats *stats = mca_chain_stats(chain);
@@ -260,6 +319,8 @@ int main(int argc, char** argv)
     wlog("    writing chain to %s\n", chain_fname);
     mca_chain_write_file(chain, chain_fname);
 
+    psf_data=fit_data_free(psf_data);
+    obj_data=fit_data_free(obj_data);
 
     return 0;
 }

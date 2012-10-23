@@ -16,9 +16,14 @@ struct gmix {
     double psum;
 };
 
-enum gapprox {
-    GAPPROX_EXP,
-    GAPPROX_DEV
+/* types for parameter arrays */
+enum gmix_par_type {
+    GMIX_FULL,        // all 6 pars for each gauss
+    GMIX_COELLIP,     // [cen1,cen2,e1,e2,T1,T2,T3,....,p1,p2,p3....]
+    GMIX_APPROX_SIMPLE,  // [cen1,cen2,e1,e2,T,p]
+    GMIX_APPROX_EXP,  // specialized simple for exp
+    GMIX_APPROX_DEV,  // specialized simple for dev
+    GMIX_APPROX_TURB  // specialized simple for turb
 };
  
 struct gmix *gmix_new(size_t n);
@@ -49,10 +54,20 @@ double gmix_wmomsum(struct gmix* gmix);
 
 //void gmix_wmean_covar(const struct gmix* gmix, struct mtx2 *cov);
 
-/* convolution results in an nobj*npsf total gaussians */
+/* 
+   convolution results in an nobj*npsf total gaussians 
+   NULL is returned on error.   
+*/
 struct gmix *gmix_convolve(const struct gmix *obj_gmix, 
                            const struct gmix *psf_gmix);
 
+/* 
+   fill in the gmix with the convolved gmix 
+   0 is returned on error, 1 otherwise   
+*/
+int gmix_fill_convolve(struct gmix *self,
+                       const struct gmix *obj_gmix, 
+                       const struct gmix *psf_gmix);
 
 /* full parameters list
    [pi,rowi,coli,irri,irci,icci,...]
