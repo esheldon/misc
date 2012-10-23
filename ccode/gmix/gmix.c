@@ -39,7 +39,7 @@ struct gmix *gmix_free(struct gmix *self)
         free(self);
         self=NULL;
     }
-    return self;
+    return NULL;
 }
 
 void gmix_set_dets(struct gmix *self)
@@ -157,10 +157,22 @@ void gmix_set_total_moms(struct gmix *self)
     self->psum=psum;
 }
 
-
 /* convolution results in an nobj*npsf total gaussians */
 struct gmix *gmix_convolve(const struct gmix *obj_gmix, 
                            const struct gmix *psf_gmix)
+{
+    size_t ntot=obj_gmix->size*psf_gmix->size;
+    struct gmix *self = gmix_new(ntot);
+    if (!gmix_fill_convolve(self, obj_gmix, psf_gmix)) {
+        self=gmix_free(self);
+        return NULL;
+    }
+    return self;
+}
+/* convolution results in an nobj*npsf total gaussians */
+int gmix_fill_convolve(struct gmix *self,
+                       const struct gmix *obj_gmix, 
+                       const struct gmix *psf_gmix)
 {
     struct gauss *psf=NULL, *obj=NULL, *comb=NULL;
 
@@ -168,7 +180,12 @@ struct gmix *gmix_convolve(const struct gmix *obj_gmix,
     double irr=0, irc=0, icc=0, psum=0;
 
     ntot = obj_gmix->size*psf_gmix->size;
-    struct gmix *gmix = gmix_new(ntot);
+    if (self->size != ntot) {
+        fprintf(stderr,
+                "error: convolved gmix must have size npsf*nobj: %s: %d\n",
+                __FILE__,__LINE__);
+        return 0;
+    }
 
     for (ipsf=0; ipsf<psf_gmix->size; ipsf++) {
         psf = &psf_gmix->data[ipsf];
@@ -176,7 +193,7 @@ struct gmix *gmix_convolve(const struct gmix *obj_gmix,
     }
 
     obj = obj_gmix->data;
-    comb = gmix->data;
+    comb = self->data;
     for (iobj=0; iobj<obj_gmix->size; iobj++) {
 
         psf = psf_gmix->data;
@@ -198,7 +215,7 @@ struct gmix *gmix_convolve(const struct gmix *obj_gmix,
         obj++;
     }
 
-    return gmix;
+    return 1;
 }
 
 
