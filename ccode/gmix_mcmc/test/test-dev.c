@@ -55,15 +55,6 @@ double lnprob_dev(const double *pars,
     }
 
     struct gmix *conv=gmix_convolve(data->obj, data->psf);
-    /*
-    wlog("obj:\n");
-    gmix_print(data->obj,stderr);
-    wlog("psf:\n");
-    gmix_print(data->psf,stderr);
-    wlog("conv:\n");
-    gmix_print(conv,stderr);
-    exit(1);
-    */
 
     // flags are only set for conditions we want to
     // propagate back through the likelihood
@@ -76,7 +67,7 @@ double lnprob_dev(const double *pars,
     return lnprob;
 }
 
-// this is for gapprox turb profile
+// true parameters for a gapprox turb profile
 size_t get_psf_pars(double T, double **pars)
 {
     size_t npars=6;
@@ -91,6 +82,7 @@ size_t get_psf_pars(double T, double **pars)
 
     return npars;
 }
+// true parameters for a gapprox dev profile
 size_t get_pars(double T, double **pars)
 {
     size_t npars=6;
