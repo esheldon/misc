@@ -9,7 +9,7 @@ customization: -color
 !xterm*boldMode: false
 xterm*allowBoldFonts: false
 
-xterm*faceName: Terminus:pixelsize=12
+!xterm*faceName: Terminus:pixelsize=12
 
 ! This means just display a different color, dont use the bold font
 !xterm*colorBDMode: true
