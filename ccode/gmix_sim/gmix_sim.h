@@ -43,7 +43,7 @@ struct gmix_sim {
 */
 struct gmix_sim *gmix_sim_cocen_new(const struct gmix *gmix, int nsub);
 
-struct gmix_sim *gmix_sim_del(struct gmix_sim *self);
+struct gmix_sim *gmix_sim_free(struct gmix_sim *self);
 
 
 

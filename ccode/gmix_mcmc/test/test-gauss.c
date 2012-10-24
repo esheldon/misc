@@ -145,10 +145,10 @@ int main(int argc, char** argv)
     mca_stats_write_brief(stats, stderr);
 
 
-    start_chain=mca_chain_del(start_chain);
-    burnin_chain=mca_chain_del(burnin_chain);
-    chain=mca_chain_del(chain);
-    stats=mca_stats_del(stats);
+    start_chain=mca_chain_free(start_chain);
+    burnin_chain=mca_chain_free(burnin_chain);
+    chain=mca_chain_free(chain);
+    stats=mca_stats_free(stats);
 
     return 0;
 }
