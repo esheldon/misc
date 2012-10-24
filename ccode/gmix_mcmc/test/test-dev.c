@@ -27,10 +27,10 @@ struct fit_data {
 
 struct fit_data 
 *fit_data_new(const struct image *image,
-               double ivar,
-               enum gmix_par_type par_type,
-               int ngauss, 
-               const struct gmix *psf) // can be NULL
+              double ivar,
+              enum gmix_par_type par_type,
+              int ngauss, 
+              const struct gmix *psf) // can be NULL
 {
     struct fit_data *self=NULL;
     self=calloc(1,sizeof(struct fit_data));
