@@ -15,9 +15,12 @@ LINKFLAGS=['-lcfitsio','-lm']
 #CFLAGS=['-std=gnu99','-Wall','-Werror','-O2','-mfpmath=sse']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
+sources=['gmix-galsim','gmix_image','gmix_image_fits',
+         'gmix','gmix_mcmc','image','mca','gauss','randn']
 test_read_sources = ['test/test-read','image']
 
-programs = [{'name':'test/test-read', 'sources':test_read_sources}]
+programs = [{'name':'gmix-galsim', 'sources':sources},
+            {'name':'test/test-read', 'sources':test_read_sources}]
 
 def build():
     compile()
