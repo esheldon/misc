@@ -58,7 +58,7 @@ int gmix_verify(const struct gmix *self)
     struct gauss *gauss=NULL;
 
     if (!self) {
-        fprintf(stderr,"gmix is not initialized\n");
+        fprintf(stderr,"gmix_verify error: gmix is not initialized\n");
         return 0;
     }
 

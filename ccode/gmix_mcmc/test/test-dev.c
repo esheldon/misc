@@ -17,8 +17,10 @@ struct fit_data {
 
     enum gmix_par_type par_type; // parameter array type
 
-    const struct gmix *psf;      // pre-determined psf gmix
     struct gmix *obj;            // to be filled from pars array
+
+    // optional
+    const struct gmix *psf;      // pre-determined psf gmix
     struct gmix *conv;           // convolved gmix to be filled 
                                  // from psf and obj
 };
@@ -87,27 +89,32 @@ double lnprob(const double *pars,
 
     const struct gmix *gmix=NULL;
 
-    if (data->par_type == GMIX_APPROX_DEV) {
-        if (!gmix_fill_dev(data->obj, pars, npars) ) {
-            exit(EXIT_FAILURE);
-        }
-        if (!gmix_fill_convolve(data->conv, data->obj, data->psf)) {
-            exit(EXIT_FAILURE);
-        }
-        gmix=data->conv;
-    } else if (data->par_type == GMIX_COELLIP) {
+    if (data->par_type == GMIX_COELLIP) {
         if (!gmix_fill_coellip(data->obj, pars, npars) ) {
             exit(EXIT_FAILURE);
         }
         gmix=data->obj;
     } else {
-        wlog("error: expected par_type of approx dev or coellip "
-             "but got %d. %s: %d\n",
-             data->par_type,__FILE__,__LINE__);
-        exit(EXIT_FAILURE);
+        if (data->par_type == GMIX_APPROX_DEV) {
+            if (!gmix_fill_dev(data->obj, pars, npars) ) {
+                exit(EXIT_FAILURE);
+            }
+        } else if (data->par_type == GMIX_APPROX_EXP) {
+            if (!gmix_fill_dev(data->obj, pars, npars) ) {
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            wlog("error: expected par_type of approx dev,exp or coellip "
+                    "but got %d. %s: %d\n",
+                    data->par_type,__FILE__,__LINE__);
+            exit(EXIT_FAILURE);
+        }
+
+        if (!gmix_fill_convolve(data->conv, data->obj, data->psf)) {
+            exit(EXIT_FAILURE);
+        }
+        gmix=data->conv;
     }
-
-
     // flags are only set for conditions we want to
     // propagate back through the likelihood
     lnp=gmix_image_loglike(data->image,
@@ -117,6 +124,9 @@ double lnprob(const double *pars,
 
     return lnp;
 }
+
+
+
 
 // true parameters for a gapprox turb profile
 size_t get_psf_pars(double T, double **pars)
@@ -305,9 +315,12 @@ int main(int argc, char** argv)
 
 
 
-
-
-
+    int flags=0;
+    double s2n_meas=gmix_image_s2n(obj_sim->image,
+                                   obj_sim->skysig,
+                                   obj_data->conv,
+                                   &flags);
+    wlog("s2n measured: %.2f\n", s2n_meas);
 
     wlog("    writing psf burn chain to %s\n", psf_burn_fname);
     mca_chain_write_file(psf_burnin_chain, psf_burn_fname);
