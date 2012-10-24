@@ -1,0 +1,15 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"galsim install straight from git repo"
+conflict galsim
+
+eval set  [ array get env HOME ]
+
+set GALSIM_DIR $HOME/exports/galsim-work
+
+prepend-path PYTHONPATH $GALSIM_DIR/lib/python2.7/site-packages/
+prepend-path PATH $GALSIM_DIR/bin
+
+setenv GALSIM_DIR $GALSIM_DIR
+
