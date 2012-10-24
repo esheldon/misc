@@ -50,8 +50,8 @@ static cl_context context;
 
 static cl_platform_id platform_id;
 
-static const int nrow=64;
-static const int ncol=64;
+static const int nrow=1024;
+static const int ncol=1024;
 
 void compare_data(int nrow, int ncol, float *gpudata, float *cpudata)
 {
@@ -97,7 +97,7 @@ void do_c_map(int nrow,
             float v = col-cencol;
             float chi2=icc*u*u + irr*v*v - 2.0*irc*u*v;
             chi2 *= idet;
-            data[idx] += exp( -0.5*chi2 );
+            data[idx] += expf( -0.5*chi2 );
 
         }
     }
@@ -132,8 +132,13 @@ int main(int argc, char** argv)
     // both 100 and 256 gave same.  Doesn't seem to matter much
     //size_t szLocalWorkSize = 10;
     //size_t szLocalWorkSize = 256;
+    //size_t szLocalWorkSize = 1024;
+
+    //size_t szLocalWorkSize = 64;
+    //size_t szGlobalWorkSize = shrRoundUp((int)szLocalWorkSize, (int)(nrow*ncol));  // rounded up to the nearest multiple of the LocalWorkSize
     size_t szLocalWorkSize = nrow;
     size_t szGlobalWorkSize = shrRoundUp((int)szLocalWorkSize, (int)(nrow*ncol));  // rounded up to the nearest multiple of the LocalWorkSize
+
     printf("nelem: %d\n", nelem);
     printf("local work size: %lu\n", szLocalWorkSize);
     printf("global work size: %lu\n", szGlobalWorkSize);
@@ -157,8 +162,14 @@ int main(int argc, char** argv)
     cl_int err = CL_SUCCESS;
 
     clock_t t0,t1;
-    size_t numiter=100000;
+    size_t numiter=8000;
 
+    int device_type=0;
+    if (1) {
+        device_type=CL_DEVICE_TYPE_GPU;
+    } else {
+        device_type=CL_DEVICE_TYPE_CPU;
+    }
 
     //SETUP PLATFORM
     err = clGetPlatformIDs(0, NULL, &numPlatforms);
@@ -177,6 +188,7 @@ int main(int argc, char** argv)
             exit(EXIT_FAILURE);
         }
 
+        fprintf(stderr,"Found %d platforms\n", numPlatforms);
         platform_id = platforms[0];
         //delete[] platforms;
         free(platforms);
@@ -195,13 +207,15 @@ int main(int argc, char** argv)
 
     context = clCreateContextFromType(
             cps,
-            CL_DEVICE_TYPE_GPU,
+            device_type,
             NULL,
             NULL,
             &err);
     //END CONTEXT
 
-    err = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_ids, NULL);
+    int num_devices=0;
+    err = clGetDeviceIDs(platform_id, device_type, 1, &device_ids, &num_devices);
+    fprintf(stderr,"found %d devices\n", num_devices);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not get device ids\n");
         exit(EXIT_FAILURE);
@@ -354,6 +368,7 @@ int main(int argc, char** argv)
     t1=clock();
     double tstandard = ((double)(t1-t0))/CLOCKS_PER_SEC;
     printf("time for C loop: %lf\n", tstandard);
+
     printf("opencl was %.16g times faster\n", tstandard/topencl);
     /*
     for (int row=cenrow-2; row<cenrow+2; row++) {
