@@ -17,5 +17,7 @@ int main(int argc, char **argv)
     struct shape *new=shape_add(shape,shear);
     shape_show(new,stdout);
 
+    shape=shape_free(shape);
+    shear=shape_free(shear);
     return 0;
 }
