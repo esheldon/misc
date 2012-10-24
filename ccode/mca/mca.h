@@ -5,7 +5,7 @@
    I took some implementation inspiration from the Emcee python version.
 
    I made a choice to use have mca_run() take in the value a as a parameter
-   rather than put this in some "self" struct.  If we decide to keep more such
+   rather than put this in some "self" struct.  If I decide to keep more such
    data around *between* runs, I might start using a self.
 
    Example
@@ -22,46 +22,51 @@
    // for each walker.   This gets stored in a 1-step mca_chain
    double widths[NPARS];
    widths[0] = ...;  // fill in widths
-   struct mca_chain *guesses=mca_make_guess(guess, widths, npars, nwalkers);
+   size_t nwalkers=20;
+   struct mca_chain *start_chain=mca_make_guess(guess, widths, NPARS, nwalkers);
 
    // now lets run a burn-in.  We will make a new chain to be filled
+   size_t burn_per_walker=200;
    struct mca_chain *burn_chain=mca_chain_new(nwalkers,burn_per_walker,npars);
 
    // Run the mcmc and fill the chain.  The value of a controls the acceptance
    // rate.  a=2 gives about .5 and a=4 gives lower, maybe .3-.4
    // the lnprob function takes (pars, npars, userdata) as inputs
 
-   mca_run(a, guesses, &lnprob, &mydata, burnin_chain);
+   double a=2;
+   mca_run(burnin_chain, a, start_chain, &lnprob, &mydata);
 
    // now a production run.  We can feed the burn chain as the new starting
    // point
 
+   size_t steps_per_walker=200;
    struct mca_chain *chain=mca_chain_new(nwalkers,steps_per_walker,npars);
-   mca_run(a, burn_chain, &lnprob, &mydata, chain);
+   mca_run(chain, a, burnin_chain, &lnprob, &mydata);
 
    // now extract some statistics
    struct mca_stats *stats=mca_chain_stats(chain);
 
    // print to a stream, can be stdout/stderr or an opened file object
-   mca_stats_write_brief(stats,stderr);
+   mca_stats_write_brief(stats,stdout);
 
-   mean_par2 = MCA_STATS_MEAN(stats,2);
-   err_par2 = sqrt(MCA_STATS_COV(stats,2,2))
+   double mean_par2 = MCA_STATS_MEAN(stats,2);
+   double err_par2 = sqrt(MCA_STATS_COV(stats,2,2))
 
-   // This will give a machine readable printout
-   mca_stats_write(stats,stderr);
+   // This will give a machine readable printout to the FILE* object
+   // here just using stdout
+   mca_stats_write(stats,stdout);
 
-   // Finally, we can store the chain in a file for reading later
-   // here stdout but you can use an opened file stream
-   mca_chain_write(chain, stdout);
+   // can also write to filename
+   mca_chain_write_file(chain, filename);
 
-
+   // read a chain
+   struct mca_chain *chain=mca_chain_read(filename);
 
    // clean up
-   guesses=mca_chain_del(guesses);
-   burn_chain=mca_chain_del(burn_chain);
-   chain=mca_chain_del(chain);
-   stats=mca_stats_del(stats);
+   guesses=mca_chain_free(guesses);
+   burn_chain=mca_chain_free(burn_chain);
+   chain=mca_chain_free(chain);
+   stats=mca_stats_free(stats);
 
 
     Copyright (C) 2012  Erin Sheldon
@@ -162,10 +167,11 @@ struct mca_chain {
 struct mca_chain *mca_chain_new(size_t nwalkers,
                                 size_t steps_per_walker,
                                 size_t npars);
-struct mca_chain *mca_chain_del(struct mca_chain *self);
+struct mca_chain *mca_chain_free(struct mca_chain *self);
 
 int mca_chain_write_file(const struct mca_chain *self, const char *fname);
 void mca_chain_write(const struct mca_chain *chain, FILE *stream);
+struct mca_chain *mca_chain_read(const char *fname);
 
 struct mca_chain *mca_make_guess(double *centers, 
                                  double *widths,
@@ -221,7 +227,7 @@ struct mca_stats {
 
 
 struct mca_stats *mca_stats_new(size_t npar);
-struct mca_stats *mca_stats_del(struct mca_stats *self);
+struct mca_stats *mca_stats_free(struct mca_stats *self);
 
 /*
    Calculate means of each parameter and full covariance matrix
