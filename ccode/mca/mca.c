@@ -14,6 +14,7 @@
     GNU General Public License for more details.
 */
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include "mca.h"
@@ -52,7 +53,7 @@ struct mca_chain *mca_chain_new(size_t nwalkers,
     return self;
 
 }
-struct mca_chain *mca_chain_del(struct mca_chain *self)
+struct mca_chain *mca_chain_free(struct mca_chain *self)
 {
     if (self) {
         free(self->pars);
@@ -66,7 +67,7 @@ int mca_chain_write_file(const struct mca_chain *self, const char *fname)
 {
     FILE *fobj=fopen(fname,"w");
     if (fobj==NULL) {
-        fprintf(stderr,"Could not open file '%s'\n", fname);
+        fprintf(stderr,"chain_writ error: Could not open file '%s'\n", fname);
         return 0;
     }
 
@@ -95,6 +96,60 @@ void mca_chain_write(const struct mca_chain *chain, FILE *stream)
     }
 }
 
+struct mca_chain *mca_chain_read(const char* fname)
+{
+    int status=1;
+    struct mca_chain *chain=NULL;
+    FILE *fptr=fopen(fname,"r");
+    if (fptr==NULL) {
+        fprintf(stderr,"chain_read error: Could not open file '%s'\n", fname);
+        return NULL;
+    }
+    int nread=0;
+
+    size_t nwalkers=0, steps_per_walker=0, npars=0;
+    nread=fscanf(fptr,"%lu %lu %lu",
+                 &nwalkers,&steps_per_walker,&npars);
+    if (nread!=3) {
+        fprintf(stderr,"Failed to read chain from %s",fname);
+        status=0;
+        goto _mca_chain_read_bail;
+    }
+
+    size_t nsteps_tot=nwalkers*steps_per_walker;
+    chain=mca_chain_new(nwalkers,steps_per_walker,npars);
+
+    for (size_t istep=0; istep<nsteps_tot; istep++) {
+        nread=fscanf(
+                fptr,
+                "%d %lf", 
+                &MCA_CHAIN_ACCEPT(chain,istep), 
+                &MCA_CHAIN_LNPROB(chain,istep));
+        if (nread != 2) {
+            fprintf(stderr,"Failed to read chain from %s",fname);
+            status=0;
+            goto _mca_chain_read_bail;
+        }
+
+        nread=0;
+        for (size_t ipar=0; ipar<npars; ipar++) {
+            nread+=fscanf(fptr,"%lf", &MCA_CHAIN_PAR(chain, istep, ipar));
+        }
+        if (nread!=npars) {
+            fprintf(stderr,"Failed to read chain from %s",fname);
+            status=0;
+            goto _mca_chain_read_bail;
+        }
+    }
+_mca_chain_read_bail:
+    if (status != 1) {
+        // chain is null
+        chain=mca_chain_free(chain);
+    }
+    fclose(fptr);
+
+    return chain;
+}
 struct mca_chain *mca_make_guess(double *centers, 
                                  double *widths,
                                  size_t npars, 
@@ -140,7 +195,7 @@ struct mca_stats *mca_stats_new(size_t npars)
     return self;
 }
 
-struct mca_stats *mca_stats_del(struct mca_stats *self)
+struct mca_stats *mca_stats_free(struct mca_stats *self)
 {
     if (self) {
         free(self->mean);

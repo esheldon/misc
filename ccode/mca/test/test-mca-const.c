@@ -92,11 +92,41 @@ int main(int argc, char **argv)
     fprintf(stderr,"writing chain to %s\n", fname);
     mca_chain_write_file(chain, fname);
 
-    guesses=mca_chain_del(guesses);
-    burnin_chain=mca_chain_del(burnin_chain);
-    chain=mca_chain_del(chain);
+    fprintf(stderr,"reading and checking chain\n");
+    struct mca_chain *tchain=mca_chain_read(fname);
+    if (MCA_CHAIN_NSTEPS(chain)!=MCA_CHAIN_NSTEPS(tchain)) {
+        fprintf(stderr,"expected steps: %lu, got %lu\n",
+                MCA_CHAIN_NSTEPS(chain),MCA_CHAIN_NSTEPS(tchain));
+        exit(EXIT_FAILURE);
+    }
+    for (size_t istep=0; istep<MCA_CHAIN_NSTEPS(chain); istep++) {
+        if (MCA_CHAIN_ACCEPT(chain,istep) != MCA_CHAIN_ACCEPT(tchain,istep)) {
+            fprintf(stderr,"step %lu expected accept: %d, got %d\n",
+                    istep,
+                    MCA_CHAIN_ACCEPT(chain,istep),
+                    MCA_CHAIN_ACCEPT(tchain,istep));
+            exit(EXIT_FAILURE);
+        }
 
-    stats=mca_stats_del(stats);
+        for (size_t ipar=0; ipar<npars; ipar++) {
+            double pardiff=
+                fabs( MCA_CHAIN_PAR(chain,istep,ipar)-
+                        MCA_CHAIN_PAR(tchain,istep,ipar) );
+            pardiff /= MCA_CHAIN_PAR(chain,istep,ipar);
+            if (pardiff > 1.e-15) {
+                fprintf(stderr,"step %lu par %lu rel diff %lf\n",
+                        istep,ipar,pardiff);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+    }
+
+    guesses=mca_chain_free(guesses);
+    burnin_chain=mca_chain_free(burnin_chain);
+    chain=mca_chain_free(chain);
+
+    stats=mca_stats_free(stats);
     free(data);
 }
 
