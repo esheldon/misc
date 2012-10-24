@@ -130,7 +130,6 @@ double gmix_image_loglike(const struct image *image,
                 gauss++;
             } // gmix
 
-            //fprintf(stderr,"Model val: %.16g rowdata: %.16g\n", model_val, (*rowdata));
             diff = model_val -(*rowdata);
             loglike += diff*diff*ivar;
 
@@ -146,6 +145,81 @@ _gmix_image_loglike_bail:
 
     return loglike;
 }
+
+double gmix_image_loglike_margamp(
+        const struct image *image, 
+        const struct gmix *gmix, 
+        double ivar,
+        int *flags)
+{
+    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
+
+    struct gauss *gauss=NULL;
+    double u=0, v=0;
+    double chi2=0;
+    size_t i=0, col=0, row=0;
+
+    double loglike = 0;
+    double model_val=0;
+    double *rowdata=NULL;
+
+    double ierr=sqrt(ivar);
+    double A=1;
+    double ymodsum=0; // sum of (image/err)
+    double ymod2sum=0; // sum of (image/err)^2
+    double B=0.; // sum(model*image/err^2)/A
+
+    (*flags)=0;
+
+    if (!gmix_verify(gmix)) {
+        (*flags) |= GMIX_IMAGE_NEGATIVE_DET;
+        loglike = GMIX_IMAGE_LOW_VAL;
+        goto _gmix_image_loglike_margamp_bail;
+    }
+
+
+    for (row=0; row<nrows; row++) {
+        rowdata=IM_ROW(image, row);
+        for (col=0; col<ncols; col++) {
+
+            model_val=0;
+            gauss=gmix->data;
+            for (i=0; i<gmix->size; i++) {
+                u = row-gauss->row;
+                v = col-gauss->col;
+
+                chi2=gauss->dcc*u*u + gauss->drr*v*v - 2.0*gauss->drc*u*v;
+                model_val += gauss->norm*gauss->p*exp( -0.5*chi2 );
+
+                gauss++;
+            } // gmix
+
+            ymodsum += model_val;
+            ymod2sum += model_val*model_val;
+            B += (*rowdata)*model_val;
+
+            rowdata++;
+        } // cols
+    } // rows
+
+
+    ymodsum *= ierr;
+    ymod2sum *= ivar;
+    double norm = sqrt(ymodsum*ymodsum*A/ymod2sum);
+
+    // renorm so A is fixed; also extra factor of 1/err^2 and 1/A
+    B *= (norm/ymodsum*ivar/A);
+
+    loglike = 0.5*A*B*B;
+
+
+_gmix_image_loglike_margamp_bail:
+
+    return loglike;
+}
+
+
+
 
 double gmix_image_s2n(const struct image *image, 
                       double skysig, 

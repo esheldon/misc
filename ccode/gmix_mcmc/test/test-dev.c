@@ -122,8 +122,8 @@ double lnprob(const double *pars,
 size_t get_psf_pars(double T, double **pars)
 {
     size_t npars=6;
-    (*pars)=calloc(npars, sizeof(double));
 
+    (*pars)=calloc(npars, sizeof(double));
     (*pars)[0] = -1;
     (*pars)[1] = -1;
     (*pars)[2] = 0.0;

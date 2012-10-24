@@ -41,6 +41,12 @@ double gmix_image_loglike(const struct image *image,
                           double ivar,
                           int *flags);
 
+/* analytically marginalize over amplitude */
+double gmix_image_loglike_margamp(
+        const struct image *image, 
+        const struct gmix *gmix, 
+        double ivar,
+        int *flags);
 
 double gmix_image_s2n(const struct image *image, 
                       double skysig, 
