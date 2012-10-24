@@ -204,11 +204,11 @@ double gmix_image_loglike_margamp(
 
 
     ymodsum *= ierr;
-    ymod2sum *= ivar;
+    ymod2sum *= ierr*ierr;
     double norm = sqrt(ymodsum*ymodsum*A/ymod2sum);
 
     // renorm so A is fixed; also extra factor of 1/err^2 and 1/A
-    B *= (norm/ymodsum*ivar/A);
+    B *= (norm/ymodsum*ierr*ierr/A);
 
     loglike = 0.5*A*B*B;
 
