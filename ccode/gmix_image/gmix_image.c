@@ -265,7 +265,7 @@ _gmix_image_s2n_noise_bail:
 
 }
 
-void _image_add_noise(struct image *image, double skysig)
+static void _image_add_noise(struct image *image, double skysig)
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
 

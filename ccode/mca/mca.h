@@ -233,7 +233,11 @@ struct mca_stats *mca_stats_free(struct mca_stats *self);
    Calculate means of each parameter and full covariance matrix
 */
 
-struct mca_stats *mca_chain_stats(struct mca_chain *chain);
+struct mca_stats *mca_chain_stats(const struct mca_chain *chain);
+// return 0 on failure, 1 otherwise
+int mca_chain_stats_fill(
+        struct mca_stats *self,
+        const struct mca_chain *chain);
 
 /* 
    mca_stats_write_brief

@@ -50,11 +50,15 @@ struct image *image_read_fits(const char *fname, int ext)
     }
 
 _test_read_bail:
-    image=image_free(image);
+    if (status) {
+        image=image_free(image);
+    }
     if (fits_close_file(fits, &status)) {
         fits_report_error(stderr, status);
         exit(EXIT_FAILURE);
     }
+
+    image_calc_counts(image);
 
     return image;
 }

@@ -205,12 +205,30 @@ struct mca_stats *mca_stats_free(struct mca_stats *self)
     return NULL;
 }
 
-struct mca_stats *mca_chain_stats(struct mca_chain *chain)
+struct mca_stats *mca_chain_stats(const struct mca_chain *chain)
+{
+    size_t npars = MCA_CHAIN_NPARS(chain);
+    struct mca_stats *self=mca_stats_new(npars);
+
+    if (!mca_chain_stats_fill(self,chain)) {
+        self=mca_stats_free(self);
+    }
+    return self;
+}
+
+int mca_chain_stats_fill(
+        struct mca_stats *self,
+        const struct mca_chain *chain)
 {
     size_t npars = MCA_CHAIN_NPARS(chain);
     size_t nsteps = MCA_CHAIN_NSTEPS(chain);
     double ival=0, jval=0;
-    struct mca_stats *self=mca_stats_new(npars);
+
+    if (self->npars != npars) {
+        fprintf(stderr,"mca_chain_stats error: Expected "
+                       "npars %lu got %lu\n", npars, self->npars);
+        return 0;
+    }
 
     double arate=0;
     for (size_t istep=0; istep<nsteps; istep++) {
@@ -257,7 +275,7 @@ struct mca_stats *mca_chain_stats(struct mca_chain *chain)
     }
 
     self->arate = arate/nsteps;
-    return self;
+    return 1;
 }
 
 void mca_stats_write_brief(struct mca_stats *self, FILE *stream)

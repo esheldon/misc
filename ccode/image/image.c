@@ -175,7 +175,9 @@ static void fix_mask(size_t dim, ssize_t *minval, ssize_t *maxval)
         *maxval = *minval;
     }
 }
-void image_add_mask(struct image *self, const struct image_mask* mask, int update_counts)
+void image_add_mask(struct image *self, 
+                    const struct image_mask* mask, 
+                    int update_counts)
 {
     ssize_t tminval=0, tmaxval=0;
 
