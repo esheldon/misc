@@ -9,6 +9,7 @@ eval set  [ array get env HOME ]
 set GALSIM_DIR $HOME/exports/galsim-local
 
 prepend-path PYTHONPATH $GALSIM_DIR/lib/python2.7/site-packages/
+prepend-path PATH $GALSIM_DIR/bin
 
 setenv GALSIM_DIR $GALSIM_DIR
 
