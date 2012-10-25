@@ -11,10 +11,26 @@
 #include "fitsio.h"
 
 struct object {
+    size_t orow;
+    size_t ocol;
+    double rowguess;
+    double colguess;
+
     struct image_mask mask;
-    double row;
-    double col;
+
+    struct mca_stats *stats;
 };
+// read the bound info into the object
+int object_bound_read(struct object *self, FILE* fptr)
+{
+    int nread=
+        fscanf(stdin,"%lu %lu %lf %lf %lu %lu %lu %lu",
+                &self->orow,&self->ocol,
+                &self->rowguess, &self->colguess,
+                &self->mask.rowmin,&self->mask.rowmax,
+                &self->mask.colmin,&self->mask.colmax);
+    return (nread==8);
+}
 
 struct fit_data {
 
@@ -152,6 +168,16 @@ int main(int argc, char **argv)
     struct image *image=image_read_fits(image_file,0);
     struct image *psf=image_read_fits(psf_file,0);
 
+    struct object object={0};
+    while (object_bound_read(&object,stdin)) {
+
+        struct mca_stats *stats=object_process(&object,image,psf);
+
+        fprintf(stdout,"%lu %lu ",object->orow,object->ocol);
+        mca_stats_write_flat(self->stats,stdout);
+        printf("\n");
+    }
+                     
     psf=image_free(psf);
     image=image_free(image);
 

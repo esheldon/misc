@@ -262,6 +262,8 @@ struct mca_stats *mca_chain_stats(struct mca_chain *chain)
 
 void mca_stats_write_brief(struct mca_stats *self, FILE *stream)
 {
+    if (!self)
+        return;
     size_t npars = MCA_STATS_NPARS(self);
 
     fprintf(stream,"%.16g\n", MCA_STATS_ARATE(self));
@@ -272,15 +274,18 @@ void mca_stats_write_brief(struct mca_stats *self, FILE *stream)
         fprintf(stream,"%.16g +/- %.16g\n",mn,err);
     }
 }
+
 void mca_stats_write(struct mca_stats *self, FILE *stream)
 {
+    if (!self)
+        return;
     size_t npars = MCA_STATS_NPARS(self);
 
     fprintf(stream,"%lu\n", npars);
     fprintf(stream,"%.16g\n", MCA_STATS_ARATE(self));
     for (size_t ipar=0; ipar< npars; ipar++) {
         double mn=MCA_STATS_MEAN(self,ipar);
-        fprintf(stream,"%.16g", mn);
+        fprintf(stream,"%.16g ", mn);
     }
     fprintf(stream,"\n");
     for (size_t ipar=0; ipar< npars; ipar++) {
@@ -291,6 +296,27 @@ void mca_stats_write(struct mca_stats *self, FILE *stream)
         fprintf(stream,"\n");
     }
 }
+// write space separated, no new line at all
+void mca_stats_write_flat(struct mca_stats *self, FILE *stream)
+{
+    if (!self)
+        return;
+    size_t npars = MCA_STATS_NPARS(self);
+
+    fprintf(stream,"%lu ", npars);
+    fprintf(stream,"%.16g ", MCA_STATS_ARATE(self));
+    for (size_t ipar=0; ipar< npars; ipar++) {
+        double mn=MCA_STATS_MEAN(self,ipar);
+        fprintf(stream,"%.16g ", mn);
+    }
+    for (size_t ipar=0; ipar< npars; ipar++) {
+        for (size_t jpar=0; jpar< npars; jpar++) {
+            double cov=MCA_STATS_COV(self,ipar,jpar);
+            fprintf(stream,"%.16g ",cov);
+        }
+    }
+}
+
 
 
 static void copy_pars(const double *self, double *pars_dst, size_t npars)

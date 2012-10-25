@@ -17,9 +17,11 @@ CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
 sources=['gmix-galsim','gmix_image','gmix_image_fits',
          'gmix','gmix_mcmc','image','mca','gauss','randn']
+objlist_sources=['gmix-galsim-objlist']
 test_read_sources = ['test/test-read','image']
 
 programs = [{'name':'gmix-galsim', 'sources':sources},
+            {'name':'gmix-galsim-objlist', 'sources':objlist_sources},
             {'name':'test/test-read', 'sources':test_read_sources}]
 
 def build():

@@ -264,6 +264,11 @@ void mca_stats_write_brief(struct mca_stats *self, FILE *stream);
 void mca_stats_write(struct mca_stats *self, FILE *stream);
 
 /*
+   npar acceptrate mean1 mean2 .... cov11 cov12... cov21 cov22... cov31..
+*/
+void mca_stats_write_flat(struct mca_stats *self, FILE *stream);
+
+/*
 
    mca_run
 
