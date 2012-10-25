@@ -1,3 +1,11 @@
+/*
+
+   This is a quick app to run on some high s/n galsim 
+   images.
+
+   Only coellip for now.
+
+*/
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -11,26 +19,17 @@
 #include "fitsio.h"
 
 struct object {
+    // location on object grid
     size_t orow;
     size_t ocol;
+
+    // guess at center, just middle of region for each object
     double rowguess;
     double colguess;
 
+    // boundary in main image
     struct image_mask mask;
-
-    struct mca_stats *stats;
 };
-// read the bound info into the object
-int object_bound_read(struct object *self, FILE* fptr)
-{
-    int nread=
-        fscanf(stdin,"%lu %lu %lf %lf %lu %lu %lu %lu",
-                &self->orow,&self->ocol,
-                &self->rowguess, &self->colguess,
-                &self->mask.rowmin,&self->mask.rowmax,
-                &self->mask.colmin,&self->mask.colmax);
-    return (nread==8);
-}
 
 struct fit_data {
 
@@ -46,6 +45,37 @@ struct fit_data {
     struct gmix *conv;           // convolved gmix to be filled 
                                  // from psf and obj
 };
+
+
+struct fitter {
+    double a;
+
+    int burn_per_walker;
+    int steps_per_walker;
+
+    // we can keep these around
+    struct mca_chain *burnin_chain;
+    struct mca_chain *chain;
+
+    // replace each time?
+    struct mca_stats *stats;
+
+    // replace each time?
+    struct fit_data *psf_fit_data;
+    struct fit_data *fit_data;
+};
+
+// read the bound info into the object
+int object_bound_read(struct object *self, FILE* fptr)
+{
+    int nread=
+        fscanf(stdin,"%lu %lu %lf %lf %lu %lu %lu %lu",
+                &self->orow,&self->ocol,
+                &self->rowguess, &self->colguess,
+                &self->mask.rowmin,&self->mask.rowmax,
+                &self->mask.colmin,&self->mask.colmax);
+    return (nread==8);
+}
 
 struct fit_data 
 *fit_data_new(const struct image *image,
@@ -151,7 +181,11 @@ double lnprob(const double *pars,
 }
 
 
+void process_object(struct object *obj)
+{
 
+    obj->flags=0;
+}
 
 
 
