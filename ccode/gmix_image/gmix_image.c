@@ -5,7 +5,6 @@
 #include "image.h"
 #include "gauss.h"
 #include "gmix.h"
-#include "randn.h"
 
 struct image *gmix_image_new(const struct gmix *gmix, 
                              size_t nrows, 
@@ -89,6 +88,7 @@ _gmix_image_fill_model_bail:
     return flags;
 }
 
+// the gaussian position should be in the parent image
 double gmix_image_loglike(const struct image *image, 
                           const struct gmix *gmix, 
                           double ivar,
@@ -105,6 +105,9 @@ double gmix_image_loglike(const struct image *image,
     double model_val=0;
     double *rowdata=NULL;
 
+    double row0 = IM_ROW0(image);
+    double col0 = IM_COL0(image);
+
     (*flags)=0;
 
     if (!gmix_verify(gmix)) {
@@ -115,14 +118,16 @@ double gmix_image_loglike(const struct image *image,
 
 
     for (row=0; row<nrows; row++) {
+        // always use IM_ROW incase the image is masked
         rowdata=IM_ROW(image, row);
         for (col=0; col<ncols; col++) {
 
             model_val=0;
             gauss=gmix->data;
             for (i=0; i<gmix->size; i++) {
-                u = row-gauss->row;
-                v = col-gauss->col;
+                // relative to row0,col0 in case the image is masked
+                u = row-(gauss->row-row0);
+                v = col-(gauss->col-col0);
 
                 chi2=gauss->dcc*u*u + gauss->drr*v*v - 2.0*gauss->drc*u*v;
                 model_val += gauss->norm*gauss->p*exp( -0.5*chi2 );
@@ -263,47 +268,6 @@ double gmix_image_s2n(const struct image *image,
 _gmix_image_s2n_noise_bail:
     return s2n;
 
-}
-
-static void _image_add_noise(struct image *image, double skysig)
-{
-    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
-
-    size_t col=0, row=0;
-    double *rowdata=NULL;
-
-    for (row=0; row<nrows; row++) {
-        rowdata=IM_ROW(image, row);
-        for (col=0; col<ncols; col++) {
-            (*rowdata) += skysig*randn();
-            rowdata++;
-        } // cols
-    } // rows
-}
-
-int gmix_image_add_noise(struct image *image, 
-                         double s2n,
-                         const struct gmix *gmix,
-                         double *skysig) 
-{
-    int flags=0;
-
-    if (!gmix_verify(gmix)) {
-        flags |= GMIX_IMAGE_NEGATIVE_DET;
-        goto _gmix_image_add_noise_bail;
-    }
-
-    double tskysig=1;
-    double s2n_first_pass=gmix_image_s2n(image,tskysig,gmix,&flags);
-    if (flags!=0) {
-        goto _gmix_image_add_noise_bail;
-    }
-    (*skysig) = s2n_first_pass/s2n * tskysig;
-
-    _image_add_noise(image, (*skysig));
-
-_gmix_image_add_noise_bail:
-    return flags;
 }
 
 

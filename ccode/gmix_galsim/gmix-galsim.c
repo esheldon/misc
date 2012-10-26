@@ -13,12 +13,12 @@
 
 #include "admom.h"
 #include "image.h"
+#include "image_rand.h"
 #include "gmix.h"
 #include "gmix_image.h"
 #include "gmix_image_fits.h"
 #include "gmix_mcmc.h"
 #include "mca.h"
-#include "randn.h"
 #include "shape.h"
 
 #include "fitsio.h"
@@ -132,22 +132,6 @@ int object_bound_read(struct object *self, FILE* fptr)
                 &self->mask.rowmin,&self->mask.rowmax,
                 &self->mask.colmin,&self->mask.colmax);
     return (nread==8);
-}
-
-void _image_add_noise(struct image *image, double skysig)
-{
-    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
-
-    size_t col=0, row=0;
-    double *rowdata=NULL;
-
-    for (row=0; row<nrows; row++) {
-        rowdata=IM_ROW(image, row);
-        for (col=0; col<ncols; col++) {
-            (*rowdata) += skysig*randn();
-            rowdata++;
-        } // cols
-    } // rows
 }
 
 void coellip_g2e(const double *parsin, double *parsout, int npars)
@@ -267,6 +251,7 @@ struct am do_admom(struct image *image,
     am.sky=0.0;
     am.skysig = skysig;
 
+    fprintf(stderr,"row0: %lu col0: %lu\n",image->row0,image->col0);
     gauss_set(&am.guess,
             1., rowguess, colguess, 
             Tguess/2., 0.0, Tguess/2.);
@@ -340,8 +325,8 @@ void do_mca_run(struct fitter_ce *fitter, struct object *obj)
     double *widths=alloca(npars*sizeof(double));
 
     // get local image coords
-    double rowguess=obj->rowguess-obj->mask.rowmin;
-    double colguess=obj->colguess-obj->mask.colmin;
+    //double rowguess=obj->rowguess-obj->mask.rowmin;
+    //double colguess=obj->colguess-obj->mask.colmin;
 
     //fprintf(stderr,"im[31,32]: %.16g\n", IM_GET(fitter->image,31,32));
     //exit(1);
@@ -349,7 +334,7 @@ void do_mca_run(struct fitter_ce *fitter, struct object *obj)
     // argh, this wants an unmasked image
     double Tstart=10.;
     struct am am = do_admom(fitter->image,
-                            rowguess, colguess,
+                            obj->rowguess, obj->colguess,
                             Tstart, sqrt(1./fitter->ivar));
 
     admom_print(&am, stderr);
@@ -465,9 +450,10 @@ struct fitters_ce *fitters_new(
     int ngauss=1;
     int ngauss_psf=2;
 
+    // super high s/n takes a lot more burn-in
     int psf_nwalkers=20;
-    int psf_burn_per_walker=2000;
-    //int psf_burn_per_walker=20000;
+    //int psf_burn_per_walker=200;
+    int psf_burn_per_walker=20000;
     int psf_steps_per_walker=200;
 
 
@@ -536,10 +522,9 @@ int main(int argc, char **argv)
     struct image *psf=image_read_fits(psf_file,0);
 
     // need some noise in the psf image
-    //double psf_skysig=1.e-5;
-    double psf_skysig=1.e-4;
+    double psf_skysig=1.e-4; // gives admom s/n ~1300
     double psf_ivar=1/(psf_skysig*psf_skysig);
-    _image_add_noise(psf, psf_skysig);
+    image_add_randn(psf, psf_skysig);
 
     // from mike, need to put in a config file
     double skysig=281.;
