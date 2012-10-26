@@ -253,7 +253,6 @@ struct gmix *gmix_from_pars(double *pars, int size)
     return gmix;
 }
 
-
 struct gmix *gmix_from_coellip(const double *pars, int npars)
 {
     size_t ngauss = (npars-4)/2;
