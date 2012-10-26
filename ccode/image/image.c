@@ -16,13 +16,13 @@ struct image *_image_new(size_t nrows, size_t ncols, int alloc_data)
     struct image *self=NULL;
     size_t nel = nrows*ncols, i=0;
     if (nel == 0) {
-        fprintf(stderr,"image size must be > 0\n");
+        fprintf(stderr,"error: image size must be > 0\n");
         exit(EXIT_FAILURE);
     }
 
     self = calloc(1, sizeof(struct image));
     if (self==NULL) {
-        fprintf(stderr,"could not allocate struct image\n");
+        fprintf(stderr,"error: could not allocate struct image\n");
         exit(EXIT_FAILURE);
     }
 
@@ -271,7 +271,39 @@ struct image* image_from_array(double* data, size_t nrows, size_t ncols)
 // get a new image that just references the data in another image.
 // in this case we own the rows only, not the data to which they point
 // good for applying masks 
+
 struct image* image_getref(const struct image* image)
+{
+    size_t nrows=image->_nrows;
+    size_t ncols=image->_ncols;
+
+    struct image *self=calloc(1, sizeof(struct image));
+    if (!self) {
+        fprintf(stderr,"error: could not allocate struct image\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // copy over the metadata
+    (*self) = (*image);
+    self->is_owner = 0;
+
+    // we want our own version of the rows pointers
+    self->rows = calloc(nrows,sizeof(double *));
+    if (self->rows==NULL) {
+        fprintf(stderr,"could not allocate image of dimensions [%lu,%lu]\n",
+                nrows,ncols);
+        exit(EXIT_FAILURE);
+    }
+
+    self->rows[0] = image->rows[0];
+    for(size_t i = 1; i < nrows; i++) {
+        self->rows[i] = self->rows[i-1] + self->_ncols;
+    }
+
+    return self;
+}
+/*
+struct image* image_getref_old(const struct image* image)
 {
     size_t i=0;
     struct image *self=NULL;
@@ -289,6 +321,7 @@ struct image* image_getref(const struct image* image)
     IM_SET_COUNTS(self, IM_COUNTS(image));
     return self;
 }
+*/
 
 
 void image_calc_counts(struct image *self)
