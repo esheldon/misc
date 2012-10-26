@@ -460,8 +460,7 @@ struct fitters_ce *fitters_new(
         struct image *image, double ivar,
         struct image *psf, double psf_ivar)
 {
-    // high s/n
-    double a=3.7;
+    double a=2;
     // put in a config!
     int ngauss=1;
     int ngauss_psf=2;
