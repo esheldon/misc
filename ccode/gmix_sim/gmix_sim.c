@@ -3,6 +3,7 @@
 #include <math.h>
 #include "gmix.h"
 #include "gmix_image.h"
+#include "gmix_image_rand.h"
 #include "gmix_sim.h"
 
 
@@ -62,7 +63,7 @@ int gmix_sim_add_noise(struct gmix_sim *self, double s2n)
 {
 
     int flags=
-        gmix_image_add_noise(self->image, 
+        gmix_image_add_randn(self->image, 
                              s2n,
                              self->gmix,
                              &self->skysig);

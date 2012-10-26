@@ -274,8 +274,8 @@ struct image* image_from_array(double* data, size_t nrows, size_t ncols)
 
 struct image* image_getref(const struct image* image)
 {
-    size_t nrows=image->_nrows;
-    size_t ncols=image->_ncols;
+    size_t nrows=IM_PARENT_NROWS(image);
+    size_t ncols=IM_PARENT_NCOLS(image);
 
     struct image *self=calloc(1, sizeof(struct image));
     if (!self) {
@@ -290,14 +290,14 @@ struct image* image_getref(const struct image* image)
     // we want our own version of the rows pointers
     self->rows = calloc(nrows,sizeof(double *));
     if (self->rows==NULL) {
-        fprintf(stderr,"could not allocate image of dimensions [%lu,%lu]\n",
-                nrows,ncols);
+        fprintf(stderr,"could not rows of dimensions %lu\n",
+                nrows);
         exit(EXIT_FAILURE);
     }
 
     self->rows[0] = image->rows[0];
     for(size_t i = 1; i < nrows; i++) {
-        self->rows[i] = self->rows[i-1] + self->_ncols;
+        self->rows[i] = self->rows[i-1] + ncols;
     }
 
     return self;

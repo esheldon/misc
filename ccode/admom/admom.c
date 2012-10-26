@@ -25,10 +25,10 @@ static void get_mask(const struct image *image,
 
     grad = nsigma*sqrt(fmax(gauss->irr,gauss->icc));
     rowmin = lround(fmax( gauss->row-grad-0.5,0.) );
-    rowmax = lround(fmin( gauss->row+grad+0.5, (double)IM_NROWS(image)-1 ) );
+    rowmax = lround(fmin( gauss->row+grad+0.5, (double)IM_PARENT_NROWS(image)-1 ) );
 
     colmin = lround(fmax( gauss->col-grad-0.5,0.) );
-    colmax = lround(fmin( gauss->col+grad+0.5, (double)IM_NCOLS(image)-1 ) );
+    colmax = lround(fmin( gauss->col+grad+0.5, (double)IM_PARENT_NCOLS(image)-1 ) );
 
     image_mask_set(mask, rowmin, rowmax, colmin, colmax);
 
@@ -56,6 +56,7 @@ static void calc_moments(struct am *am, const struct image *image)
     wt=&am->wt;
 
     for (pass=1; pass<=2; pass++ ) {
+        // weight row/col are still in main image coordinates
         wtrow=wt->row - IM_ROW0(image);
         wtcol=wt->col - IM_COL0(image);
 
