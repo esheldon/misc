@@ -16,7 +16,7 @@ LINKFLAGS=['-lcfitsio','-lm']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
 sources=['gmix-galsim','gmix_image','gmix_image_fits',
-         'gmix','gmix_mcmc','image','mca','gauss','randn']
+         'gmix','gmix_mcmc','image','mca','gauss','randn','admom']
 objlist_sources=['gmix-galsim-objlist']
 test_read_sources = ['test/test-read','image']
 
