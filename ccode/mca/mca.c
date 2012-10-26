@@ -216,6 +216,16 @@ struct mca_stats *mca_chain_stats(const struct mca_chain *chain)
     return self;
 }
 
+void mca_stats_clear(struct mca_stats *self)
+{
+    if (!self)
+        return;
+
+    memset(self->mean, 0, self->npars*sizeof(double));
+    memset(self->cov, 0, self->npars*self->npars*sizeof(double));
+    self->arate=0;
+
+}
 int mca_chain_stats_fill(
         struct mca_stats *self,
         const struct mca_chain *chain)
@@ -229,6 +239,8 @@ int mca_chain_stats_fill(
                        "npars %lu got %lu\n", npars, self->npars);
         return 0;
     }
+
+    mca_stats_clear(self);
 
     double arate=0;
     for (size_t istep=0; istep<nsteps; istep++) {

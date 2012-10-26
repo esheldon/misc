@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include "admom.h"
 #include "image.h"
@@ -18,6 +19,7 @@
 #include "gmix_mcmc.h"
 #include "mca.h"
 #include "randn.h"
+#include "shape.h"
 
 #include "fitsio.h"
 
@@ -148,6 +150,17 @@ void _image_add_noise(struct image *image, double skysig)
     } // rows
 }
 
+void coellip_g2e(const double *parsin, double *parsout, int npars)
+{
+    struct shape sh = {0};
+
+    memcpy(parsout, parsin, npars*sizeof(double));
+    shape_set_g1g2(&sh, parsout[2], parsout[3]);
+
+    parsout[2] = sh.e1;
+    parsout[3] = sh.e2;
+}
+
 
 double coellip_lnprob(const double *pars, 
               size_t npars, 
@@ -156,11 +169,17 @@ double coellip_lnprob(const double *pars,
     double lnp=0;
     int flags=0;
 
+    // stack allocated
+    double *epars=alloca(npars*sizeof(double));
+
+    // gmix coellip and the like code work in e1,e2 space
+    coellip_g2e(pars, epars, npars);
+
     struct fitter_ce *data=(struct fitter_ce*) void_data;
 
     const struct gmix *gmix=NULL;
 
-    if (!gmix_fill_coellip(data->obj, pars, npars) ) {
+    if (!gmix_fill_coellip(data->obj, epars, npars) ) {
         exit(EXIT_FAILURE);
     }
 
@@ -180,20 +199,6 @@ double coellip_lnprob(const double *pars,
                            data->ivar,
                            &flags);
 
-    /*
-    fprintf(stderr,"%.16g\n", lnp);
-    gmix_print(gmix, stderr);
-    */
-    /*
-    if (flags != 0) {
-        fprintf(stderr,"flags: %d lnp: %.16g\n", flags, lnp);
-    }
-    */
-    /*
-    double cenp1 = (pars[0]-31.5)/3.;
-    double cenp2 = (pars[1]-31.5)/3.;
-    lnp += -0.5*(cenp1*cenp1 + cenp2*cenp2);
-    */
     return lnp;
 }
 
@@ -347,8 +352,11 @@ void do_mca_run(struct fitter_ce *fitter, struct object *obj)
                             rowguess, colguess,
                             Tstart, sqrt(1./fitter->ivar));
 
+    admom_print(&am, stderr);
+    /*
     wlog("Tadmom:    %.16g\n", am.wt.irr+am.wt.icc);
     wlog("s/n admom: %.16g\n", am.s2n);
+    */
     if (am.flags != 0) {
         wlog("admom flags: %d\n", am.flags);
         exit(EXIT_FAILURE);
@@ -385,7 +393,8 @@ void do_mca_run(struct fitter_ce *fitter, struct object *obj)
 
 }
 void process_object(struct fitters_ce *fitters,
-                    struct object *obj)
+                    struct object *obj, 
+                    int dopsf)
 {
     int update_counts=1;
     struct fitter_ce *psf_fitter=fitters->psf_fitter;
@@ -394,21 +403,35 @@ void process_object(struct fitters_ce *fitters,
     image_add_mask(fitter->image, &obj->mask, update_counts);
     fprintf(stderr,"image sub counts: %.16g\n", IM_COUNTS(fitter->image));
 
-    // note both psf_fitter and fitter have pointers to psf
-    // image, both will see the update
-    image_add_mask(psf_fitter->image, &obj->mask, update_counts);
+    if (dopsf) {
+        // note both psf_fitter and fitter have pointers to psf
+        // image, both will see the update
+        image_add_mask(psf_fitter->image, &obj->mask, update_counts);
 
-    // see if it is a mask problem
-    //psf_fitter->image=image_newcopy(psf_fitter->image);
+        // see if it is a mask problem
+        //psf_fitter->image=image_newcopy(psf_fitter->image);
 
-    //exit(1);
+        //exit(1);
 
-    // this updates psf_fitter->obj, pointed to by
-    // fitter->psf
-    fprintf(stderr,"doing psf\n");
-    do_mca_run(psf_fitter, obj);
-    mca_stats_write_brief(psf_fitter->stats,stderr);
+        // this updates psf_fitter->obj, pointed to by
+        // fitter->psf
+        fprintf(stderr,"doing psf\n");
+        do_mca_run(psf_fitter, obj);
+        mca_stats_write_brief(psf_fitter->stats,stderr);
 
+        mca_chain_write_file(psf_fitter->burnin_chain, "tmp/psf-burn-chain.dat");
+        mca_chain_write_file(psf_fitter->chain, "tmp/psf-chain.dat");
+
+        image_write_file(psf_fitter->image, "tmp/psfim.dat");
+        struct image *psf_fit_im=gmix_image_new(
+                psf_fitter->obj, 
+                IM_NROWS(psf_fitter->image),
+                IM_NCOLS(psf_fitter->image),
+                16);
+        image_write_file(psf_fit_im, "tmp/psfim-fit.dat");
+        psf_fit_im=image_free(psf_fit_im);
+
+    }
     // will now use the psf
     fprintf(stderr,"doing convolved object\n");
     do_mca_run(fitter, obj);
@@ -416,15 +439,6 @@ void process_object(struct fitters_ce *fitters,
 
 
     image_write_file(fitter->image, "tmp/im.dat");
-    image_write_file(psf_fitter->image, "tmp/psfim.dat");
-    struct image *psf_fit_im=gmix_image_new(
-            psf_fitter->obj, 
-            IM_NROWS(psf_fitter->image),
-            IM_NCOLS(psf_fitter->image),
-            16);
-    image_write_file(psf_fit_im, "tmp/psfim-fit.dat");
-    psf_fit_im=image_free(psf_fit_im);
-
 
     struct image *fit_im=gmix_image_new(
             fitter->conv, 
@@ -435,8 +449,6 @@ void process_object(struct fitters_ce *fitters,
     fit_im=image_free(fit_im);
 
 
-    mca_chain_write_file(psf_fitter->burnin_chain, "tmp/psf-burn-chain.dat");
-    mca_chain_write_file(psf_fitter->chain, "tmp/psf-chain.dat");
     mca_chain_write_file(fitter->burnin_chain, "tmp/burn-chain.dat");
     mca_chain_write_file(fitter->chain, "tmp/chain.dat");
 
@@ -448,19 +460,20 @@ struct fitters_ce *fitters_new(
         struct image *image, double ivar,
         struct image *psf, double psf_ivar)
 {
-    double a=2;
+    // high s/n
+    double a=3.7;
     // put in a config!
     int ngauss=1;
     int ngauss_psf=2;
 
     int psf_nwalkers=20;
-    //int psf_burn_per_walker=20000;
     int psf_burn_per_walker=2000;
+    //int psf_burn_per_walker=20000;
     int psf_steps_per_walker=200;
 
 
     int nwalkers=20;
-    int burn_per_walker=400;
+    int burn_per_walker=200;
     int steps_per_walker=200;
 
     fprintf(stderr,
@@ -536,17 +549,12 @@ int main(int argc, char **argv)
 
     struct object object={0};
 
+    // only do psf on first object
+    int dopsf=1;
     while (object_bound_read(&object,stdin)) {
-        /*
-        object.mask.rowmin=object.rowguess-8;
-        object.mask.rowmax=object.rowguess+8;
-        object.mask.colmin=object.colguess-8;
-        object.mask.colmax=object.colguess+8;
-        object_write(&object,stderr);
-        fprintf(stderr,"%lu %lu\n",object.orow,object.ocol);
-        */
 
-        process_object(fitters,&object);
+        process_object(fitters,&object,dopsf);
+        dopsf=0;
 
         fprintf(stdout,"%lu %lu ",object.orow,object.ocol);
         mca_stats_write_flat(fitters->fitter->stats,stdout);

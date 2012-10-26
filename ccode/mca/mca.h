@@ -239,6 +239,8 @@ int mca_chain_stats_fill(
         struct mca_stats *self,
         const struct mca_chain *chain);
 
+void mca_stats_clear(struct mca_stats *self);
+
 /* 
    mca_stats_write_brief
 
