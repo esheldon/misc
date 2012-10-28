@@ -68,7 +68,8 @@ Copyright (C) 2010  Erin Sheldon (erin dot sheldon at gmail dot com)
 #include <fcntl.h>
 
 #define MAXFILELEN 255
-#define POLLTIME 100000
+// 1 second
+#define POLLTIME 1000000
 
 struct tail {
 
