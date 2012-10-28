@@ -18,6 +18,10 @@ int get_npars(const char *fit_type, int ngauss)
 int main(int argc, char **argv)
 {
 
+    int human=0;
+    if (argc > 1) {
+        human=1;
+    }
     char fit_type[32]={0};
     char fit_type_psf[32]={0};
 
@@ -106,10 +110,15 @@ int main(int argc, char **argv)
     double g1err = .5*sqrt(1./e1_ivar_sum)/R;
     double g2err = .5*sqrt(1./e2_ivar_sum)/R;
 
-    printf("nobj:  %lu\n", n);
-    printf("arate: %.16g\n", arate);
-    printf("R:     %.16g\n", R);
-    printf("g1:    %.16g +/- %.16g\n", g1,g1err);
-    printf("g2:    %.16g +/- %.16g\n", g2,g2err);
+    if (human) {
+        printf("nobj:  %lu\n", n);
+        printf("arate: %.16g\n", arate);
+        printf("R:     %.16g\n", R);
+        printf("g1:    %.16g +/- %.16g\n", g1,g1err);
+        printf("g2:    %.16g +/- %.16g\n", g2,g2err);
+    } else {
+        printf("%lu %.16g %.16g %.16g %.16g %.16g %.16g\n",
+               n, arate, R, g1, g1err, g2, g2err);
+    }
 }
 
