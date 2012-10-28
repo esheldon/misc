@@ -202,7 +202,7 @@ struct mca_stats {
     if ((i) >= (stats)->npars) {                                              \
         fprintf(stderr,                                                       \
             "stats error: mean index %lu out of bounds [0,%lu)\n",            \
-                        (i), (stats)->npars);                                 \
+                        (size_t)(i), (stats)->npars);                                 \
         fprintf(stderr,"returning %.16g\n", _mn);                             \
     } else {                                                                  \
         _mn = (stats)->mean[(i)];                                             \
@@ -215,7 +215,7 @@ struct mca_stats {
     if ((i) >= (stats)->npars || (j) >= (stats)->npars) {                     \
         fprintf(stderr,                                                       \
             "stats error: cov index (%lu,%lu) out of bounds [0,%lu)\n",       \
-                        (i), (j),(stats)->npars);                             \
+            (size_t)(i), (size_t)(j),(stats)->npars);             \
         fprintf(stderr,"returning %.16g\n", _cov);                            \
     } else {                                                                  \
         _cov= (stats)->cov[(i)*(stats)->npars + (j)];                         \

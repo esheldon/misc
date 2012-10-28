@@ -347,8 +347,6 @@ void mca_stats_write_flat(struct mca_stats *self, FILE *stream)
     }
 }
 
-
-
 static void copy_pars(const double *self, double *pars_dst, size_t npars)
 {
     memcpy(pars_dst, self, npars*sizeof(double));

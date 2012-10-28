@@ -153,17 +153,22 @@ double coellip_lnprob(const double *pars,
     double lnp=0;
     int flags=0;
 
-    // stack allocated
-    double *epars=alloca(npars*sizeof(double));
-
-    // gmix coellip and the like code work in e1,e2 space
-    coellip_g2e(pars, epars, npars);
-
     struct fitter_ce *data=(struct fitter_ce*) void_data;
-
     const struct gmix *gmix=NULL;
 
+
+    // use this if g1,g2 are vars
+    /*
+    // stack allocated
+    double *epars=alloca(npars*sizeof(double));
+    coellip_g2e(pars, epars, npars);
+
+
     if (!gmix_fill_coellip(data->obj, epars, npars) ) {
+        exit(EXIT_FAILURE);
+    }
+    */
+    if (!gmix_fill_coellip(data->obj, pars, npars) ) {
         exit(EXIT_FAILURE);
     }
 
@@ -315,7 +320,37 @@ void fill_coellip_guess(
 }
 
 
-void do_mca_run(struct fitter_ce *fitter, struct object *obj)
+/* second  object we use previous finish for start */
+void do_mca_run_uselast(struct fitter_ce *fitter, struct object *obj)
+{
+
+    /* need to set center but otherwise use last */
+    size_t nwalkers=MCA_CHAIN_NWALKERS(fitter->chain);
+    size_t nsteps=MCA_CHAIN_WNSTEPS(fitter->chain);
+    for (size_t iwalker=0; iwalker<nwalkers; iwalker++) {
+        double *pars=MCA_CHAIN_WPARS(fitter->chain, iwalker, (nsteps-1));
+        pars[0] = obj->rowguess*(1.+0.01*2.*(drand48()-0.5));
+        pars[1] = obj->colguess*(1.+0.01*2.*(drand48()-0.5));
+    }
+
+    mca_run(fitter->burnin_chain,fitter->a,
+            fitter->chain, &coellip_lnprob,
+            fitter);
+
+    mca_run(fitter->chain,fitter->a,
+            fitter->burnin_chain, &coellip_lnprob,
+            fitter);
+
+
+    mca_chain_stats_fill(fitter->stats, fitter->chain);
+
+
+}
+
+
+
+/* first object we get a start from admom */
+void do_mca_run_scratch(struct fitter_ce *fitter, struct object *obj)
 {
     int npars=MCA_CHAIN_NPARS(fitter->chain);
     int nwalkers=MCA_CHAIN_NWALKERS(fitter->chain);
@@ -371,6 +406,60 @@ void do_mca_run(struct fitter_ce *fitter, struct object *obj)
             fitter->burnin_chain, &coellip_lnprob,
             fitter);
 
+    mca_chain_stats_fill(fitter->stats, fitter->chain);
+
+    // do extra times on scratch run
+    size_t nsteps=MCA_CHAIN_NSTEPS(fitter->chain);
+    double e1mean_old = MCA_STATS_MEAN(fitter->stats, 2);
+    double e2mean_old = MCA_STATS_MEAN(fitter->stats, 3);
+    double Tmean_old = MCA_STATS_MEAN(fitter->stats, 4);
+
+    double e1sum=e1mean_old*nsteps;
+    double e2sum=e2mean_old*nsteps;
+    double Tsum=Tmean_old*nsteps;
+
+    size_t n=nsteps;
+
+    //double etol=1.e-3;
+    //double Ttol=0.01;
+    double etol=1.e-3;
+    double Ttol=0.01;
+    int i=1;
+    while (1) {
+        //wlog(".");
+        mca_run(fitter->chain,fitter->a,
+                fitter->chain, &coellip_lnprob,
+                fitter);
+        mca_chain_stats_fill(fitter->stats, fitter->chain);
+        double tmean1 = MCA_STATS_MEAN(fitter->stats, 2);
+        double tmean2 = MCA_STATS_MEAN(fitter->stats, 3);
+        // first T
+        double tmeanT = MCA_STATS_MEAN(fitter->stats, 4);
+
+        e1sum += tmean1*nsteps;
+        e2sum += tmean2*nsteps;
+        Tsum += tmeanT*nsteps;
+
+        n+=nsteps;
+        double e1mean = e1sum/n;
+        double e2mean = e2sum/n;
+        double Tmean = Tsum/n;
+
+        double e1diff=fabs( e1mean-e1mean_old );
+        double e2diff=fabs( e2mean-e2mean_old );
+        double Tfdiff=fabs( Tmean/Tmean_old - 1.);
+
+        wlog("%d mean %.6g (%.6g) %.6g (%.6g) %.6g (%.6g)\n", 
+                i, e1mean, e1diff, e2mean, e2diff, Tmean, Tfdiff);
+
+        if (e1diff < etol && e2diff < etol && Tfdiff < Ttol) {
+            break;
+        }
+        e1mean_old=e1mean;
+        e2mean_old=e2mean;
+        Tmean_old=Tmean;
+        i+=1;
+    }
 
     mca_chain_stats_fill(fitter->stats, fitter->chain);
 
@@ -378,8 +467,7 @@ void do_mca_run(struct fitter_ce *fitter, struct object *obj)
 
 }
 void process_object(struct fitters_ce *fitters,
-                    struct object *obj, 
-                    int dopsf)
+                    struct object *obj)
 {
     int update_counts=1;
     struct fitter_ce *psf_fitter=fitters->psf_fitter;
@@ -388,38 +476,37 @@ void process_object(struct fitters_ce *fitters,
     image_add_mask(fitter->image, &obj->mask, update_counts);
     fprintf(stderr,"image sub counts: %.16g\n", IM_COUNTS(fitter->image));
 
-    if (dopsf) {
-        // note both psf_fitter and fitter have pointers to psf
-        // image, both will see the update
-        image_add_mask(psf_fitter->image, &obj->mask, update_counts);
+    // note both psf_fitter and fitter have pointers to psf
+    // image, both will see the update
+    image_add_mask(psf_fitter->image, &obj->mask, update_counts);
 
-        // see if it is a mask problem
-        //psf_fitter->image=image_newcopy(psf_fitter->image);
+    // see if it is a mask problem
+    //psf_fitter->image=image_newcopy(psf_fitter->image);
 
-        //exit(1);
+    //exit(1);
 
-        // this updates psf_fitter->obj, pointed to by
-        // fitter->psf
-        fprintf(stderr,"doing psf\n");
-        do_mca_run(psf_fitter, obj);
-        mca_stats_write_brief(psf_fitter->stats,stderr);
+    // this updates psf_fitter->obj, pointed to by
+    // fitter->psf
+    fprintf(stderr,"doing psf\n");
+    do_mca_run_scratch(psf_fitter, obj);
 
-        mca_chain_write_file(psf_fitter->burnin_chain, "tmp/psf-burn-chain.dat");
-        mca_chain_write_file(psf_fitter->chain, "tmp/psf-chain.dat");
+    mca_stats_write_brief(psf_fitter->stats,stderr);
 
-        image_write_file(psf_fitter->image, "tmp/psfim.dat");
-        struct image *psf_fit_im=gmix_image_new(
-                psf_fitter->obj, 
-                IM_NROWS(psf_fitter->image),
-                IM_NCOLS(psf_fitter->image),
-                16);
-        image_write_file(psf_fit_im, "tmp/psfim-fit.dat");
-        psf_fit_im=image_free(psf_fit_im);
+    mca_chain_write_file(psf_fitter->burnin_chain, "tmp/psf-burn-chain.dat");
+    mca_chain_write_file(psf_fitter->chain, "tmp/psf-chain.dat");
 
-    }
+    image_write_file(psf_fitter->image, "tmp/psfim.dat");
+    struct image *psf_fit_im=gmix_image_new(
+            psf_fitter->obj, 
+            IM_NROWS(psf_fitter->image),
+            IM_NCOLS(psf_fitter->image),
+            16);
+    image_write_file(psf_fit_im, "tmp/psfim-fit.dat");
+    psf_fit_im=image_free(psf_fit_im);
+
     // will now use the psf
     fprintf(stderr,"doing convolved object\n");
-    do_mca_run(fitter, obj);
+    do_mca_run_scratch(fitter, obj);
     mca_stats_write_brief(fitter->stats,stderr);
 
 
@@ -451,13 +538,13 @@ struct fitters_ce *fitters_new(
     int ngauss_psf=2;
 
     // super high s/n takes a lot more burn-in
-    int psf_nwalkers=20;
-    //int psf_burn_per_walker=200;
-    int psf_burn_per_walker=20000;
+    int psf_nwalkers=40;
+    int psf_burn_per_walker=200;
+    //int psf_burn_per_walker=20000;
     int psf_steps_per_walker=200;
 
 
-    int nwalkers=20;
+    int nwalkers=40;
     int burn_per_walker=200;
     int steps_per_walker=200;
 
@@ -522,7 +609,7 @@ int main(int argc, char **argv)
     struct image *psf=image_read_fits(psf_file,0);
 
     // need some noise in the psf image
-    double psf_skysig=1.e-4; // gives admom s/n ~1300
+    double psf_skysig=1.e-3; // gives admom s/n ~1300
     double psf_ivar=1/(psf_skysig*psf_skysig);
     image_add_randn(psf, psf_skysig);
 
@@ -533,12 +620,12 @@ int main(int argc, char **argv)
 
     struct object object={0};
 
+    // head of stdout will be the fit type of obj and psf
+    printf("coellip coellip\n"); 
     // only do psf on first object
-    int dopsf=1;
     while (object_bound_read(&object,stdin)) {
 
-        process_object(fitters,&object,dopsf);
-        dopsf=0;
+        process_object(fitters,&object);
 
         fprintf(stdout,"%lu %lu ",object.orow,object.ocol);
         mca_stats_write_flat(fitters->fitter->stats,stdout);

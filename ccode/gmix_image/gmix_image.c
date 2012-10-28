@@ -235,7 +235,7 @@ double gmix_image_s2n(const struct image *image,
 
     struct gauss *gauss=NULL;
     size_t i=0, col=0, row=0;
-    double sum=0, wsum=0, wt=0, *rowdata=NULL;
+    double sum=0, w2sum=0, wt=0, *rowdata=NULL;
     double s2n=-9999;
 
     (*flags)=0;
@@ -257,13 +257,13 @@ double gmix_image_s2n(const struct image *image,
             } // gmix
 
             sum += (*rowdata)*wt;
-            wsum += wt;
+            w2sum += wt;
 
             rowdata++;
         } // cols
     } // rows
 
-    s2n = sum/sqrt(wsum)/skysig;
+    s2n = sum/sqrt(w2sum)/skysig;
 
 _gmix_image_s2n_noise_bail:
     return s2n;
