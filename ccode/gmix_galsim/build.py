@@ -22,9 +22,12 @@ sources=['gmix-galsim','gmix_image','gmix_image_fits',
 objlist_sources=['gmix-galsim-objlist']
 test_read_sources = ['test/test-read','image']
 
+pstats_sources=['gmix-galsim-pstats']
+
 programs = [{'name':'gmix-galsim', 'sources':sources},
             {'name':'gmix-galsim-objlist', 'sources':objlist_sources},
-            {'name':'test/test-read', 'sources':test_read_sources}]
+            {'name':'test/test-read', 'sources':test_read_sources},
+            {'name':'gmix-galsim-pstats', 'sources':pstats_sources}]
 
 def build():
     compile()

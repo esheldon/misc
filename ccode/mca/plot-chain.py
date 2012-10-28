@@ -4,6 +4,11 @@ import biggles
 import numpy
 import esutil as eu
 
+#from optparse import OptionParser
+#parser=OptionParser(__doc__)
+#parser.add_option("-p","--plist", default=None,
+#                  help="which paramts to p")
+
 def read_chain(fname):
     with open(fname) as fobj:
         l=fobj.readline().split()
@@ -23,27 +28,49 @@ def read_chain(fname):
             for j in xrange(2,2+npar):
                 data['pars'][i,j-2] = float(l[j])
         return data
+
 def main(fname):
+    biggles.configure('default','fontsize_min',0.8)
+    biggles.configure("screen","width",1700)
+    biggles.configure("screen","height",1100)
     data=read_chain(fname)
 
     xdata=numpy.arange(data.size)
+
+    npars=data['pars'][0,:].size
+    if npars in [6,7,8]:
+        nrows=3
+        ncols=3
+    elif npars in [9,10,11]:
+        nrows=4
+        ncols=3
+    else:
+        raise ValueError("support mor npars")
+    tab=biggles.Table(nrows, ncols)
 
     plt=biggles.FramedPlot()
     lnprob = data['lnprob']-data['lnprob'].max()
     plt.add(biggles.Curve(xdata,lnprob) )
     plt.xlabel='step'
     plt.ylabel='ln(prob)'
-    plt.show()
+
+    tab[0,0] = plt
 
     npar=data['pars'].shape[1]
 
+    iplt=1
     for i in xrange(npar):
         std=data['pars'][:,i].std()
         binsize=0.2*std
 
-        eu.plotting.bhist(data['pars'][:,i], binsize=binsize,
-                          xlabel='par %s' % (i+1))
+        plt=eu.plotting.bhist(data['pars'][:,i], binsize=binsize,
+                              xlabel='par %s' % (i+1),show=False)
 
+        prow = iplt / ncols
+        pcol = iplt % ncols
+        tab[prow,pcol] = plt
+        iplt+=1
+    tab.show()
 
 if len(sys.argv) < 2:
     print 'python plot-chain.py filename'

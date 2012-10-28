@@ -275,7 +275,7 @@ void admom_add_noise(struct image *image, double s2n, const struct gauss *wt,
     double u=0,u2=0,v=0,v2=0,uv=0,chi2=0;
     double weight=0;
     double *rowdata=NULL;
-    double sum=0, wsum=0;
+    double sum=0, w2sum=0;
 
     nrows=IM_NROWS(image);
     ncols=IM_NCOLS(image);
@@ -286,7 +286,7 @@ void admom_add_noise(struct image *image, double s2n, const struct gauss *wt,
     for (pass=1;pass<=2;pass++) {
 
         sum=0;
-        wsum=0;
+        w2sum=0;
         for (row=0; row<nrows; row++) {
             rowdata=IM_ROW(image, row);
             u = row-wt->row;
@@ -302,7 +302,7 @@ void admom_add_noise(struct image *image, double s2n, const struct gauss *wt,
                 weight = exp( -0.5*chi2 );
 
                 sum += (*rowdata)*weight;
-                wsum += weight;
+                w2sum += weight*weight;
 
                 if (pass==2) {
                     (*rowdata) += (*skysig) * randn();
@@ -311,7 +311,7 @@ void admom_add_noise(struct image *image, double s2n, const struct gauss *wt,
             } // cols
         } // rows
 
-        (*s2n_meas) = sum/sqrt(wsum)/(*skysig);
+        (*s2n_meas) = sum/sqrt(w2sum)/(*skysig);
         if (pass==1) {
             // this new skysig should give us the requested S/N
             (*skysig) = (*s2n_meas)/s2n * (*skysig);
