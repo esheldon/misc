@@ -21,7 +21,32 @@
 #include "mca.h"
 #include "shape.h"
 
+#include "config.h"
+
 #include "fitsio.h"
+
+struct config {
+    double a;
+
+    char *obj_model;
+    enum gmix_par_type obj_type;
+    char *psf_model;
+    enum gmix_par_type psf_type;
+
+    int ngauss;
+    int ngauss_psf;
+
+    int nwalkers_psf;
+    int burn_per_walker_psf;
+    int steps_per_walker_psf;
+
+    int nwalkers;
+    int burn_per_walker;
+    int steps_per_walker;
+
+    double skysig;
+    double skysig_psf;
+};
 
 struct object {
     // location on object grid
@@ -292,14 +317,21 @@ void fill_coellip_guess(
     } else if (ngauss==2) {
         centers[4] = T;
         centers[5] = T*3./2.;  // arbitrary
-        centers[6] = 0.6*counts;
-        centers[7] = 0.4*counts;
+        centers[6] = 0.55*counts;
+        centers[7] = 0.45*counts;
 
         widths[4] = 0.1*centers[4];
         widths[5] = 0.1*centers[5];
         widths[6] = 0.1*centers[6];
         widths[7] = 0.1*centers[7];
     } else if (ngauss==3) {
+        // dev
+        // 2.12
+        // 34.4
+        // 340
+        //1.05
+        //1.66
+        //2.04
         // exp guess
         centers[4] = T*4.e-5;
         centers[5] = T*0.5;
@@ -308,6 +340,16 @@ void fill_coellip_guess(
         centers[7] = 0.06*counts;
         centers[8] = 0.56*counts;
         centers[9] = 0.38*counts;
+        /*
+        Tsum = (2.12+34.4+340.0)
+        psum = (1.06 + 1.66 + 2.04)
+        centers[4] = 2.12;
+        centers[5] = 34.4;
+        centers[6] = 340.;
+        centers[7] = 1.05*counts/psum;
+        centers[8] = 1.66*counts/psum;
+        centers[9] = 2.04*counts/psum;
+        */
 
         widths[4] = 0.1*centers[4];
         widths[5] = 0.1*centers[5];
@@ -529,40 +571,48 @@ void process_object(struct fitters_ce *fitters,
 
 // hard wired for now
 struct fitters_ce *fitters_new(
-        struct image *image, double ivar,
-        struct image *psf, double psf_ivar)
+        struct config *config,
+        struct image *image, 
+        struct image *psf)
 {
+    /*
     double a=2;
     // put in a config!
     int ngauss=1;
     int ngauss_psf=2;
 
     // super high s/n takes a lot more burn-in
-    int psf_nwalkers=40;
-    int psf_burn_per_walker=200;
-    //int psf_burn_per_walker=20000;
-    int psf_steps_per_walker=200;
-
+    int nwalkers_psf=40;
+    int burn_per_walker_psf=200;
+    //int burn_per_walker_psf=20000;
+    int steps_per_walker_psf=200;
 
     int nwalkers=40;
     int burn_per_walker=200;
     int steps_per_walker=200;
+    */
 
     fprintf(stderr,
+            "a:          %.2lf\n"
             "psf:\n"
+            "  ngauss:   %d\n"
             "  nwalkers: %d\n"
             "  burn:     %d\n"
             "  steps:    %d\n"
             "obj\n"
+            "  ngauss:   %d\n"
             "  nwalkers: %d\n"
             "  burn:     %d\n"
             "  steps:    %d\n",
-            psf_nwalkers,
-            psf_burn_per_walker,
-            psf_steps_per_walker,
-            nwalkers,
-            burn_per_walker,
-            steps_per_walker);
+            config->a,
+            config->ngauss_psf,
+            config->nwalkers_psf,
+            config->burn_per_walker_psf,
+            config->steps_per_walker_psf,
+            config->nwalkers,
+            config->ngauss,
+            config->burn_per_walker,
+            config->steps_per_walker);
 
 
 
@@ -572,23 +622,130 @@ struct fitters_ce *fitters_new(
         exit(EXIT_FAILURE);
     }
 
+    double ivar = 1./(config->skysig*config->skysig);
+    double psf_ivar = 1./(config->skysig_psf*config->skysig_psf);
+
     self->psf_fitter=fitter_ce_new(
-            psf, psf_ivar, a,
-            psf_nwalkers, psf_burn_per_walker, psf_steps_per_walker,
-            ngauss_psf, NULL);
+            psf, psf_ivar, config->a,
+            config->nwalkers_psf, 
+            config->burn_per_walker_psf, 
+            config->steps_per_walker_psf,
+            config->ngauss_psf, NULL);
     self->fitter=fitter_ce_new(
-            image, ivar, a,
-            nwalkers, burn_per_walker, steps_per_walker,
-            ngauss, 
+            image, ivar, config->a,
+            config->nwalkers, 
+            config->burn_per_walker, 
+            config->steps_per_walker,
+            config->ngauss, 
             self->psf_fitter->obj); // const reference
 
     return self;
 }
 
+void read_config(struct config *config, const char *fname)
+{
+    enum cfg_status status=0;
+    struct cfg *cfg=cfg_read(fname, &status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"error parsing config "
+                       "'%s': %s\n", fname, cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+
+    config->a = cfg_get_double(cfg, "a", &status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting a as double: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+
+    config->obj_model = cfg_get_string(cfg, "model",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting model as string: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+    config->psf_model = cfg_get_string(cfg, "model_psf",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting model_psf as string: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+
+
+
+    if (0 == strcmp(config->obj_model,"coellip")) {
+        config->obj_type = GMIX_COELLIP;
+        config->ngauss = (int)cfg_get_long(cfg, "ngauss",&status);
+        if (status != CFG_SUCCESS) {
+            fprintf(stderr,"config error getting ngauss as long: %s\n", cfg_status_string(status));
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        fprintf(stderr,"error: only coellip for now\n");
+        exit(EXIT_FAILURE);
+    }
+    if (0 == strcmp(config->psf_model,"coellip")) {
+        config->psf_type = GMIX_COELLIP;
+        config->ngauss_psf = (int)cfg_get_long(cfg, "ngauss_psf",&status);
+        if (status != CFG_SUCCESS) {
+            fprintf(stderr,"config error getting ngauss_psf as long: %s\n", cfg_status_string(status));
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        fprintf(stderr,"error: only coellip for now\n");
+        exit(EXIT_FAILURE);
+    }
+
+    config->nwalkers = (int)cfg_get_long(cfg, "nwalkers",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting nwalkers as long: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+    config->burn_per_walker = (int)cfg_get_long(cfg, "burn_per_walker",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting burn_per_walker as long: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+    config->steps_per_walker = (int)cfg_get_long(cfg, "steps_per_walker",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting steps_per_walker as long: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+
+    config->nwalkers_psf = (int)cfg_get_long(cfg, "nwalkers_psf",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting nwalkers_psf as long: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+    config->burn_per_walker_psf = (int)cfg_get_long(cfg, "burn_per_walker_psf",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting burn_per_walker_psf as long: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+    config->steps_per_walker_psf = (int)cfg_get_long(cfg, "steps_per_walker_psf",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting steps_per_walker_psf as long: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+
+    config->skysig = cfg_get_double(cfg, "skysig",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting skysig as double: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+    config->skysig_psf = cfg_get_double(cfg, "skysig_psf",&status);
+    if (status != CFG_SUCCESS) {
+        fprintf(stderr,"config error getting skysig_psf as double: %s\n", cfg_status_string(status));
+        exit(EXIT_FAILURE);
+    }
+
+
+
+
+    cfg=cfg_free(cfg);
+}
 int main(int argc, char **argv)
 {
-    if (argc < 3) {
-        fprintf(stderr,"gmix-galsim image psf < objlist > output \n");
+    if (argc < 4) {
+        fprintf(stderr,"gmix-galsim config image psf < objlist > output \n");
         exit(EXIT_FAILURE);
     }
 
@@ -597,9 +754,13 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    struct config config={0};
 
-    const char *image_file=argv[1];
-    const char *psf_file=argv[2];
+    const char *config_file=argv[1];
+    const char *image_file=argv[2];
+    const char *psf_file=argv[3];
+
+    read_config(&config, config_file);
 
     time_t tm;
     (void) time(&tm);
@@ -608,15 +769,11 @@ int main(int argc, char **argv)
     struct image *image=image_read_fits(image_file,0);
     struct image *psf=image_read_fits(psf_file,0);
 
-    // need some noise in the psf image
-    double psf_skysig=1.e-3; // gives admom s/n ~1300
-    double psf_ivar=1/(psf_skysig*psf_skysig);
-    image_add_randn(psf, psf_skysig);
+    // need some noise
+    image_add_randn(psf, config.skysig_psf);
 
     // from mike, need to put in a config file
-    double skysig=281.;
-    double ivar=1/(skysig*skysig);
-    struct fitters_ce *fitters=fitters_new(image,ivar,psf,psf_ivar);
+    struct fitters_ce *fitters=fitters_new(&config,image,psf);
 
     struct object object={0};
 

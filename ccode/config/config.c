@@ -22,7 +22,7 @@ static char *cfg_status_names[]= {
  *
  * Copy an array of strings
  */
-char **cfg_strarr_del(char **arr, size_t size)
+char **cfg_strarr_free(char **arr, size_t size)
 {
     size_t i=0;
     if (arr) {
@@ -51,7 +51,7 @@ const char* cfg_status_string(enum cfg_status status)
 }
 
 
-static struct cfg_string *cfg_string_del(struct cfg_string *str)
+static struct cfg_string *cfg_string_free(struct cfg_string *str)
 {
     if (str) {
         free(str->data);
@@ -122,11 +122,11 @@ static void cfg_strvec_append_nocopy(struct cfg_strvec* vec, char *str)
     vec->data[vec->size-1] = str;
 }
 
-static struct cfg_strvec *cfg_strvec_del(struct cfg_strvec* vec)
+static struct cfg_strvec *cfg_strvec_free(struct cfg_strvec* vec)
 {
     if (vec) {
         if (vec->data) {
-            vec->data = cfg_strarr_del(vec->data, vec->capacity);
+            vec->data = cfg_strarr_free(vec->data, vec->capacity);
         }
         free(vec);
     }
@@ -176,13 +176,13 @@ static struct cfg_field *cfg_field_new()
     return self;
 }
 
-static struct cfg_field *cfg_field_del(struct cfg_field *self)
+static struct cfg_field *cfg_field_free(struct cfg_field *self)
 {
     if (self) {
         // We always zero memory on creation, so this is OK
         free(self->name);
-        self->strvec = cfg_strvec_del(self->strvec);
-        self->sub = cfg_del(self->sub);
+        self->strvec = cfg_strvec_free(self->strvec);
+        self->sub = cfg_free(self->sub);
         free(self);
     }
     return NULL;
@@ -313,13 +313,13 @@ static void cfg_append(struct cfg *self, struct cfg_field *field)
  *
  * Delete a config structure
  */
-struct cfg *cfg_del(struct cfg *self)
+struct cfg *cfg_free(struct cfg *self)
 {
     if (self) {
         if (self->fields) {
             size_t i=0;
             for (i=0; i<self->size; i++) {
-                self->fields[i] = cfg_field_del(self->fields[i]);
+                self->fields[i] = cfg_field_free(self->fields[i]);
             }
         }
         free(self->fields); self->fields=NULL;
@@ -453,7 +453,7 @@ static struct cfg_string *read_whole_file(const char* filename)
 {
     FILE* fp=NULL;
     char *data=NULL;
-    size_t nchar=0;
+    size_t nchar=0, nread=0;
     struct cfg_string *str=NULL;
 
     fp = fopen(filename,"r");
@@ -472,8 +472,8 @@ static struct cfg_string *read_whole_file(const char* filename)
         exit(1);
     }
 
-    fread(data, 1, nchar, fp);
-    if(ferror(fp)){
+    nread=fread(data, 1, nchar, fp);
+    if(ferror(fp) || nread!=nchar){
         fprintf(stderr,"Error reading file\n");
         free(data);
         goto _read_whole_file_bail;
@@ -880,7 +880,7 @@ static struct cfg_field *cfg_get_field(const struct cfg_string *str,
 
 _cfg_get_field_bail:
     if (*status) {
-        field=cfg_field_del(field);
+        field=cfg_field_free(field);
     }
     return field;
 }
@@ -941,7 +941,7 @@ static struct cfg *cfg_parse(const struct cfg_string *str, size_t *current, enum
 
 _cfg_parse_bail:
     if (*status) {
-        cfg=cfg_del(cfg);
+        cfg=cfg_free(cfg);
     }
     return cfg;
 };
@@ -963,7 +963,7 @@ struct cfg *cfg_read(const char* filename, enum cfg_status *status)
     }
 
     cfg=cfg_parse(str, &current, status);
-    str=cfg_string_del(str);
+    str=cfg_string_free(str);
     return cfg;
 }
 
@@ -1254,7 +1254,7 @@ char *cfg_get_string(const struct cfg *self,
  *
  * Extract an array as an array of strings
  *
- * You can use cfg_strarr_del convenience function to free this
+ * You can use cfg_strarr_free convenience function to free this
  */
 char **cfg_get_strarr(const struct cfg *self,
                       const char *name,
