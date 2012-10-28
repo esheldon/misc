@@ -97,7 +97,7 @@ struct cfg *cfg_read(const char* filename, enum cfg_status *status);
 /*
  * Completely destroy the configuration structure
  */
-struct cfg *cfg_del(struct cfg *self);
+struct cfg *cfg_free(struct cfg *self);
 
 /*
  * print the config to the stream.  The result will be a valid config file that
@@ -139,7 +139,7 @@ long *cfg_get_lonarr(const struct cfg *self,
                        const char *name,
                        size_t *size,
                        enum cfg_status *status);
-// You can use cfg_strarr_del convenience function to free this
+// You can use cfg_strarr_free convenience function to free this
 char **cfg_get_strarr(const struct cfg *self,
                       const char *name,
                       size_t *size,
@@ -154,7 +154,7 @@ struct cfg *cfg_get_sub(const struct cfg *self,
 const char* cfg_status_string(enum cfg_status status);
 
 /* convenience function to delete an array of strings */
-char **cfg_strarr_del(char **arr, size_t size);
+char **cfg_strarr_free(char **arr, size_t size);
 
 
 #endif

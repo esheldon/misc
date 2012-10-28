@@ -126,11 +126,11 @@ int main(int argc, char *argv[])
     free(darr); darr=NULL;
     free(dempty); dempty=NULL;
     free(larr); larr=NULL;
-    mixed=cfg_strarr_del(mixed, mixed_size);
+    mixed=cfg_strarr_free(mixed, mixed_size);
     free(str1); str1=NULL;
     free(str2); str2=NULL;
     free(name); name=NULL;
-    cfg=cfg_del(cfg);
+    cfg=cfg_free(cfg);
     return 0;
 
 }
