@@ -7,7 +7,7 @@
 #include "files.h"
 #include "alloc.h"
 #include "match.h"
-#include "VECTOR.h"
+#include "VEC.h"
 
 struct cat* cat_new(size_t n, int64 nside) 
 {
@@ -44,7 +44,7 @@ struct cat* read_cat(const char* fname,
 void cat_match(struct cat* self, 
                double ra, 
                double dec, 
-               VECTOR(Match) matches) // vector of struct match
+               VEC(Match) matches) // vector of struct match
 {
 
     double x=0,y=0,z=0;
@@ -53,14 +53,14 @@ void cat_match(struct cat* self,
 
     Match match;
 
-    VECTOR_CLEAR(matches);
+    VEC_CLEAR(matches);
 
     struct point_hash* pthash = point_hash_find(self->pthash, hpixid);
     if (pthash != NULL) {
 
         hpix_eq2xyz(ra,dec,&x,&y,&z);
 
-        VECTOR_FOREACH(ptp, pthash->points) {
+        VEC_FOREACH(ptp, pthash->points) {
             double cos_angle = ptp->x*x + ptp->y*y + ptp->z*z;
 
             if (cos_angle > ptp->cos_radius) {
@@ -68,7 +68,7 @@ void cat_match(struct cat* self,
                 match.cos_dist = cos_angle;
 
                 // copies the entire structure
-                VECTOR_PUSH(matches, match);
+                VEC_PUSH(matches, match);
             }
         }
 
@@ -88,7 +88,7 @@ struct cat* _cat_read(FILE* fptr,
     double ra=0, dec=0;
     double radius_radians=0;
     double cos_radius_global=0;
-    VECTOR(int64) listpix = VECTOR_NEW(int64);
+    VEC(int64) listpix = VEC_NEW(int64);
 
     size_t index=0;
     int barsize=70;
@@ -127,7 +127,7 @@ struct cat* _cat_read(FILE* fptr,
                             listpix);
 
         // insert this point for each pixel it intersected
-        VECTOR_FOREACH(pix, listpix) {
+        VEC_FOREACH(pix, listpix) {
             pthash=point_hash_insert(pthash, *pix, pt);
         }
 
@@ -138,7 +138,7 @@ struct cat* _cat_read(FILE* fptr,
 
     self->pthash=pthash;
 
-    VECTOR_DEL(listpix);
+    VEC_FREE(listpix);
 
     if (verbose) wlog("\n");
 

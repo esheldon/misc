@@ -4,7 +4,7 @@
 #include "point_hash.h"
 #include "alloc.h"
 #include "uthash.h"
-#include "VECTOR.h"
+#include "VEC.h"
 
 // for when testing hash
 #include <unistd.h>
@@ -12,7 +12,7 @@
 struct point_hash* point_hash_new(int64 hpixid) {
     struct point_hash* pth = 
         alloc_or_die(sizeof(struct point_hash),"hash entry");
-    pth->points = VECTOR_NEW(Point);
+    pth->points = VEC_NEW(Point);
     pth->hpixid=hpixid;
     return pth;
 }
@@ -35,7 +35,7 @@ struct point_hash* point_hash_insert(struct point_hash* self,
         HASH_ADD_INT64(self, hpixid, pth);
     }
 
-    VECTOR_PUSH(pth->points, *point);
+    VEC_PUSH(pth->points, *point);
     return self;
 }
 
