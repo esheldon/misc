@@ -130,6 +130,7 @@ double gmix_get_T(const struct gmix *self)
     T = T/psum;
     return T;
 }
+/*
 void gmix_set_total_moms(struct gmix *self)
 {
     size_t i=0;
@@ -156,6 +157,7 @@ void gmix_set_total_moms(struct gmix *self)
     self->total_icc /= psum;
     self->psum=psum;
 }
+*/
 
 /* convolution results in an nobj*npsf total gaussians */
 struct gmix *gmix_convolve(const struct gmix *obj_gmix, 

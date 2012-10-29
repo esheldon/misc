@@ -7,6 +7,12 @@
 struct gmix {
     size_t size;
     struct gauss* data;
+};
+
+/*
+struct gmix {
+    size_t size;
+    struct gauss* data;
 
     // these only make sense for same-center gaussians
     // e.g. the psf
@@ -15,6 +21,8 @@ struct gmix {
     double total_icc;
     double psum;
 };
+
+*/
 
 /* types for parameter arrays */
 enum gmix_par_type {
@@ -36,7 +44,7 @@ int gmix_verify(const struct gmix *self);
 double gmix_get_T(const struct gmix *self);
 
 // only makes sense for same center, e.g. psf
-void gmix_set_total_moms(struct gmix *self);
+//void gmix_set_total_moms(struct gmix *self);
 
 
 struct gmix *gmix_new_copy(const struct gmix *self);
@@ -75,6 +83,7 @@ struct gmix *gmix_from_pars(double *pars, int size);
 
 //struct gmix *gmix_from_pars(struct f64vector *pars);
 //struct gmix *gmix_from_pars(VECTOR(double) vec);
+//struct gmix *gmix_from_pars(VEC(double) vec);
 
 /* coellip list
    [row,col,e1,e2,T1,T2,T3,...,p1,p2,p3..]
