@@ -349,7 +349,7 @@ struct gmix *gmix_from_coellip_Tfrac(double *pars, int size)
 
 
 /* helper function */
-int _gapprox_fill(struct gmix *self,
+int _gapprox_fill_old(struct gmix *self,
                   const double *pars, 
                   int size,
                   const double *Fvals, 
@@ -400,62 +400,124 @@ int _gapprox_fill(struct gmix *self,
 }
 
 
-struct gmix *gmix_make_exp(const double *pars, int size)
+
+static int _gapprox_fill(struct gmix *self,
+                         const double *pars, size_t size,
+                         const double *Fvals, 
+                         const double *pvals)
 {
-    struct gmix *self=gmix_new(3);
-    gmix_fill_exp(self, pars, size);
+    double row=0, col=0, e1=0, e2=0;
+    double T=0, T_i=0;
+    double counts=0, counts_i=0;
+    struct gauss *gauss=NULL;
+
+    if (size != 6) {
+        fprintf(stderr,"error: approx gmix pars must have size 6\n");
+        return 0;
+    }
+
+    row=pars[0];
+    col=pars[1];
+    e1=pars[2];
+    e2=pars[3];
+    T=pars[4];
+    counts=pars[5];
+
+    gauss=self->data;
+    for (size_t i=0; i<self->size; i++) {
+        T_i      = Fvals[i]*T;
+        counts_i = pvals[i]*counts;
+
+        gauss_set(gauss,
+                  counts_i,
+                  row, col, 
+                  (T_i/2.)*(1-e1), 
+                  (T_i/2.)*e2,
+                  (T_i/2.)*(1+e1));
+        gauss++;
+    }
+
+    return 1;
+}
+
+struct gmix *gmix_make_exp6(const double *pars, int size)
+{
+    struct gmix *self=gmix_new(6);
+    gmix_fill_exp6(self, pars, size);
     return self;
 }
-int gmix_fill_exp(struct gmix *self,
-                  const double *pars,
-                  int size)
+int gmix_fill_exp6(struct gmix *self,
+                   const double *pars,
+                   int size)
 {
-    /* pvals are normalized */
-    static const double Fvals[3] = 
-        {3.947146384343532e-05, 0.5010756804049256, 1.911515572152285};
-        // this is the newer version using high res
-        //{0.2293900119477738,1.01629012204044,2.770958917351007};
-    static const double pvals[3] = 
-        {0.06031348356539361,   0.5645244398053312, 0.3751620766292753};
-        // this is the newer version using high res
-        //{0.3327063609401037,0.5273717628243284,0.1399218762355679};
+
+    // from Hogg & Lang, normalized
+    static const double Fvals[6] = 
+        {0.002467115141477932, 
+         0.018147435573256168, 
+         0.07944063151366336, 
+         0.27137669897479122, 
+         0.79782256866993773, 
+         2.1623306025075739};
+    static const double pvals[6] = 
+        {0.00061601229677880041, 
+         0.0079461395724623237, 
+         0.053280454055540001, 
+         0.21797364640726541, 
+         0.45496740582554868, 
+         0.26521634184240478};
 
     return _gapprox_fill(self,pars,size,Fvals,pvals);
 }
 
-struct gmix *gmix_make_dev(const double *pars,
-                           int size)
+
+struct gmix *gmix_make_dev10(const double *pars, int size)
 {
-    struct gmix *self=gmix_new(3);
-    gmix_fill_dev(self, pars, size);
+    struct gmix *self=gmix_new(10);
+    gmix_fill_dev10(self, pars, size);
     return self;
 }
-int gmix_fill_dev(struct gmix *self,
-                  const double *pars,
-                  int size)
+int gmix_fill_dev10(struct gmix *self,
+                    const double *pars,
+                    int size)
 {
-    /* seems to me more a function of size than for exp */
-    static const double Fvals[3] = 
-        // this is the newer version using high res
-        {0.09707812795975101,1.855263916143735,12.53275155599699};
-        //{0.003718633817323675, 0.9268795541243965, 9.627400726500005};
-    static const double pvals[3] = 
-        // this is the newer version using high res
-        {0.769283048205522,0.1841443288072131,0.04657262298726506};
-        //{0.659318547053916,    0.2623209100496331, 0.07836054289645095};
+    // from Hogg & Lang, normalized
+    static const double Fvals[10] = 
+        {2.9934935706271918e-07, 
+         3.4651596338231207e-06, 
+         2.4807910570562753e-05, 
+         0.00014307404300535354, 
+         0.000727531692982395, 
+         0.003458246439442726, 
+         0.0160866454407191, 
+         0.077006776775654429, 
+         0.41012562102501476, 
+         2.9812509778548648};
+    static const double pvals[10] = 
+        {6.5288960012625658e-05, 
+         0.00044199216814302695, 
+         0.0020859587871659754, 
+         0.0075913681418996841, 
+         0.02260266219257237, 
+         0.056532254390212859, 
+         0.11939049233042602, 
+         0.20969545753234975, 
+         0.29254151133139222, 
+         0.28905301416582552};
 
     return _gapprox_fill(self,pars,size,Fvals,pvals);
+
 }
 
-struct gmix *gmix_make_turb(const double *pars,
-                            int size)
+struct gmix *gmix_make_turb3(const double *pars,
+                             int size)
 {
     struct gmix *self=gmix_new(3);
-    gmix_fill_turb(self, pars, size);
+    gmix_fill_turb3(self, pars, size);
     return self;
 }
 
-int gmix_fill_turb(struct gmix *self,
+int gmix_fill_turb3(struct gmix *self,
                    const double *pars,
                    int size)
 {

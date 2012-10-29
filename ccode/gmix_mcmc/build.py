@@ -15,11 +15,21 @@ LINKFLAGS=['-lm']
 #CFLAGS=['-std=gnu99','-Wall','-Werror','-O2','-mfpmath=sse']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
-test_gauss_sources = ['test/test-gauss','gauss','gmix','image','gmix_mcmc','gmix_image','mca','admom','randn']
-test_turb_sources = ['test/test-turb','gauss','gmix','image','gmix_mcmc','gmix_image','mca','gmix_sim','randn']
-test_dev_sources = ['test/test-dev','gauss','gmix','image','gmix_mcmc','gmix_image','mca',  'gmix_sim','randn']
-test_dev_Tonly_sources = ['test/test-dev-Tonly','gauss','gmix','image','gmix_mcmc','gmix_image','mca',  'gmix_sim','randn']
-test_coellip_sources = ['test/test-coellip','gauss','gmix','image','gmix_mcmc','gmix_image','mca','admom','randn']
+sources=['gmix_mcmc',
+         'gauss',
+         'gmix',
+         'image','image_rand',
+         'gmix_image','gmix_image_rand',
+         'mca',
+         'gmix_sim',
+         'randn']
+
+
+test_gauss_sources = ['test/test-gauss','admom'] + sources
+test_turb_sources = ['test/test-turb'] + sources
+test_dev_sources = ['test/test-dev'] + sources
+test_dev_Tonly_sources = ['test/test-dev-Tonly'] + sources
+test_coellip_sources = ['test/test-coellip','admom'] + sources
 
 programs = [{'name':'test/test-gauss', 'sources':test_gauss_sources},
             {'name':'test/test-turb', 'sources':test_turb_sources},
