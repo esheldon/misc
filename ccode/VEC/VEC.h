@@ -301,18 +301,18 @@ typedef ppvector_##type* p_ppvector_##type
 // Create a new vector.  Note magic leaving the variable at the end of the
 // block
 #define VEC_NEW(type) _VEC_NEW(type)
-#define _VEC_NEW(type) ({                                                 \
-    VEC(type) _v =  calloc(1, sizeof(ppvector_##type));                   \
+#define _VEC_NEW(type) ({                                                    \
+    VEC(type) _v =  calloc(1, sizeof(ppvector_##type));                      \
     if (!_v) {                                                               \
         fprintf(stderr,                                                      \
-                "VectorError: failed to allocate VEC\n");                 \
+                "VectorError: failed to allocate VEC\n");                    \
         exit(EXIT_FAILURE);                                                  \
     }                                                                        \
     _v->owner=1;                                                             \
     _v->data = calloc(1,sizeof(type));                                       \
     if (!_v->data) {                                                         \
         fprintf(stderr,                                                      \
-                "VectorError: failed to initialize VEC data\n");          \
+                "VectorError: failed to initialize VEC data\n");             \
         exit(EXIT_FAILURE);                                                  \
     }                                                                        \
     _v->size = 0;                                                            \
@@ -320,8 +320,34 @@ typedef ppvector_##type* p_ppvector_##type
     _v;                                                                      \
 })
 
+// this is a vector that does not own the data
+#define VEC_REFDATA(type, tdata, nelem) ({                                   \
+    VEC(type) _v =  calloc(1, sizeof(ppvector_##type));                      \
+    if (!_v) {                                                               \
+        fprintf(stderr, "VectorError: failed to allocate VEC\n");            \
+        exit(EXIT_FAILURE);                                                  \
+    }                                                                        \
+    _v->owner=0;                                                             \
+    _v->data = (tdata);                                                      \
+    _v->size = (nelem);                                                      \
+    _v->capacity=(nelem);                                                    \
+    _v;                                                                      \
+})
 
-// Completely destroy the data and container
+
+// assocate with the input data; only works if don't own any data
+#define VEC_ASSOC(vec, tdata, nelem) do {                                    \
+    if ((vec)->owner) {                                                      \
+        fprintf(stderr,"error: attempt to associate data with a "            \
+            "vector that owns data\n");                                      \
+    } else {                                                                 \
+        (vec)->data = (tdata);                                               \
+        (vec)->size = (nelem);                                               \
+        (vec)->capacity=(nelem);                                             \
+    }                                                                        \
+} while(0)
+
+// Completely destroy the container and data, if owned
 // The container is set to NULL
 #define VEC_FREE(vec) do {                                                 \
     if ((vec)) {                                                             \
@@ -369,6 +395,7 @@ typedef ppvector_##type* p_ppvector_##type
 //
 #define VEC_SIZE(vec) (vec)->size
 #define VEC_CAPACITY(vec) (vec)->capacity
+#define VEC_OWNER(vec) (vec)->owner
 
 //
 // safe iterators, even for empty vectors
