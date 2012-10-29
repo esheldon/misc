@@ -4,7 +4,7 @@
 #include "defs.h"
 #include "uthash.h"
 #include "point.h"
-#include "VECTOR.h"
+#include "VEC.h"
 
 #define HASH_FIND_INT64(head,findint64,out)        \
     HASH_FIND(hh,head,findint64,sizeof(int64),out)
@@ -16,7 +16,7 @@
 
 struct point_hash {
     int64 hpixid;
-    VECTOR(Point) points;  // these will be pointers to struct point*
+    VEC(Point) points;  // these will be pointers to struct point*
     UT_hash_handle hh; /* makes this structure hashable */
 };
 

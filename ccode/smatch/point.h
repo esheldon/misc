@@ -2,7 +2,7 @@
 #define _POINT_H
 
 #include "defs.h"
-#include "VECTOR.h"
+#include "VEC.h"
 
 struct point {
     int64 index;
@@ -13,6 +13,6 @@ struct point {
 };
 
 typedef struct point Point;
-VECTOR_DEF(Point);
+VEC_DEF(Point);
 
 #endif

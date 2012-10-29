@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "healpix.h"
 #include "defs.h"
-#include "VECTOR.h"
+#include "VEC.h"
 
 
 
@@ -51,7 +51,7 @@ struct healpix* hpix_delete(struct healpix* hpix) {
 void hpix_disc_intersect_radec(
         const struct healpix* hpix,
         double ra, double dec, double radius, 
-        VECTOR(int64) listpix)
+        VEC(int64) listpix)
 {
 
     double x,y,z;
@@ -62,7 +62,7 @@ void hpix_disc_intersect_radec(
 void hpix_disc_intersect(
         const struct healpix* hpix,
         double x0, double y0, double z0, double radius, 
-        VECTOR(int64) listpix)
+        VEC(int64) listpix)
 {
 
     // this is from the f90 code
@@ -79,7 +79,7 @@ void hpix_disc_intersect(
 void hpix_disc_contains(
         const struct healpix* hpix,
         double x0, double y0, double z0, double radius, 
-        VECTOR(int64) listpix)
+        VEC(int64) listpix)
 {
 
     //double vector0[3];
@@ -87,7 +87,7 @@ void hpix_disc_contains(
     double cosang = cos(radius);
 
     // this does not alter the storage
-    VECTOR_CLEAR(listpix);
+    VEC_CLEAR(listpix);
 
     double dth1 = 1. / (3.0*nside*nside);
     double dth2 = 2. / (3.0*nside);
@@ -181,7 +181,7 @@ void hpix_in_ring(
         int64 iz, 
         double phi0, 
         double dphi, 
-        VECTOR(int64) listpix)
+        VEC(int64) listpix)
 {
 
     int64 nr, ir, ipix1;
@@ -211,7 +211,7 @@ void hpix_in_ring(
 
     if (dphi > (M_PI-1e-7)) {
         for (int64 i=ipix1; i<=ipix2; ++i) {
-            VECTOR_PUSH(listpix, i);
+            VEC_PUSH(listpix, i);
         }
     } else {
 
@@ -226,7 +226,7 @@ void hpix_in_ring(
             if (pixnum>ipix2) {
                 pixnum -= nr;
             }
-            VECTOR_PUSH(listpix, pixnum);
+            VEC_PUSH(listpix, pixnum);
         }
     }
 

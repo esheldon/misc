@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "defs.h"
-#include "VECTOR.h"
+#include "VEC.h"
 
 #define NS_MAX 268435456 // 2^28 : largest nside available
 
@@ -43,11 +43,11 @@ int64 hpix_eq2pix(const struct healpix* hpix, double ra, double dec);
 void hpix_disc_intersect_radec(
         const struct healpix* hpix,
         double ra, double dec, double radius, 
-        VECTOR(int64) listpix);
+        VEC(int64) listpix);
 void hpix_disc_intersect(
         const struct healpix* hpix,
         double x, double y, double z, double radius, 
-        VECTOR(int64) listpix);
+        VEC(int64) listpix);
 /*
  Fill listpix with all pixels whose centers are contained within the disc
 
@@ -62,12 +62,12 @@ int64 i64min(int64 v1, int64 v2);
 void hpix_disc_contains(
         const struct healpix* hpix,
         double x, double y, double z, double radius, 
-        VECTOR(int64) listpix);
+        VEC(int64) listpix);
 
 /*
  
   fill in the list of pixels in RING scheme. pixels are *appended* to listpix
-  so be sure to run VECTOR_CLEAR(listpix) or some such if
+  so be sure to run VEC_CLEAR(listpix) or some such if
   necessary
 
 */
@@ -76,7 +76,7 @@ void hpix_in_ring(
         int64 iz, 
         double phi0, 
         double dphi, 
-        VECTOR(int64) listpix);
+        VEC(int64) listpix);
 
 /*
    returns the ring number in {1, 4*nside-1} from the z coordinate

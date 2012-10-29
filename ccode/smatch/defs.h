@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdint.h>
-#include "VECTOR.h"
+#include "VEC.h"
 
 // these are no longer in math.h for the c99 standard, so 
 // define these if not already defined
@@ -48,6 +48,6 @@ typedef int64_t int64;
 // min lens redshift to consider
 #define MIN_ZLENS 0.05
 
-VECTOR_DEF(int64);
+VEC_DEF(int64);
 
 #endif

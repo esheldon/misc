@@ -30,7 +30,7 @@
 #include <math.h>
 #include <unistd.h>
 #include "match.h"
-#include "VECTOR.h"
+#include "VEC.h"
 #include "cat.h"
 
 
@@ -93,7 +93,7 @@ const char* process_args(
 }
 
 void print_matches(size_t index, 
-                   VECTOR(Match) matches,
+                   VEC(Match) matches,
                    int64 maxmatch, 
                    int64 print_dist) {
 
@@ -102,12 +102,12 @@ void print_matches(size_t index,
         if (maxmatch > 0) {
             if (maxmatch < matches->size) {
                 // not keeping all, sort and keep the closest matches
-                VECTOR_SORT(matches, &match_compare);
-                VECTOR_RESIZE(matches, maxmatch);
+                VEC_SORT(matches, &match_compare);
+                VEC_RESIZE(matches, maxmatch);
             }
         }
 
-        VECTOR_FOREACH(match, matches) { 
+        VEC_FOREACH(match, matches) { 
             printf("%lu %ld", index, match->index);
             if (print_dist) {
                 cdistmod = 1.0-match->cos_dist;
@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
 
     if (verbose) wlog("processing stream\n");
 
-    VECTOR(Match) matches = VECTOR_NEW(Match);
+    VEC(Match) matches = VEC_NEW(Match);
     size_t index=0;
     double ra=0, dec=0;
     while (2 == fscanf(stdin,"%lf %lf", &ra, &dec)) {

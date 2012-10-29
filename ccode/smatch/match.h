@@ -2,7 +2,7 @@
 #define _MATCH_H_TOKEN
 
 #include <stdlib.h>
-#include "VECTOR.h"
+#include "VEC.h"
 
 struct match {
     size_t index;
@@ -10,7 +10,7 @@ struct match {
 };
 
 typedef struct match Match;
-VECTOR_DEF(Match);
+VEC_DEF(Match);
 
 int match_compare(const void *a, const void *b);
 

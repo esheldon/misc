@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include "healpix.h"
 #include "defs.h"
-#include "VECTOR.h"
+#include "VEC.h"
 
 /* need -std=gnu99 since c99 doesn't have getopt */
 void process_args(int argc, char** argv, 
@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
 
     struct healpix* hpix = hpix_new(nside);
 
-    VECTOR(int64) pixlist = VECTOR_NEW(int64);
+    VEC(int64) pixlist = VEC_NEW(int64);
 
     double ra=0, dec=0;
     while (2 == fscanf(stdin,"%lf %lf", &ra, &dec)) {
@@ -72,8 +72,8 @@ int main(int argc, char** argv) {
 
         hpix_disc_intersect_radec(hpix, ra, dec, rad_radians, pixlist);
 
-        printf("%.16g %.16g %lu", ra, dec, VECTOR_SIZE(pixlist);
-        VECTOR_FOREACH(pix_ptr, pixlist) {
+        printf("%.16g %.16g %lu", ra, dec, VEC_SIZE(pixlist);
+        VEC_FOREACH(pix_ptr, pixlist) {
             printf(" %ld", *pix_ptr);
         }
         printf("\n");

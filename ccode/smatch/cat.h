@@ -6,7 +6,7 @@
 #include "healpix.h"
 #include "point_hash.h"
 #include "match.h"
-#include "VECTOR.h"
+#include "VEC.h"
 
 struct cat {
     size_t size;
@@ -30,7 +30,7 @@ struct cat* _cat_read(FILE* fptr,
 void cat_match(struct cat* self, 
                double ra, 
                double dec,
-               VECTOR(Match) matches);
+               VEC(Match) matches);
  
 int _cat_get_radius(double radius_arcsec, 
                     double* radius_radians,
