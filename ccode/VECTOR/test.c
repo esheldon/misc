@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include "VECTOR.h"
+#include "VEC.h"
 
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 
@@ -13,10 +13,10 @@ typedef struct mystruct {
 
 typedef MyStruct* MyStruct_p;
 
-VECTOR_DEF(long);
-VECTOR_DEF(MyStruct);
-VECTOR_DEF(MyStruct_p);
-VECTOR_DEF(VECTOR(long));
+VEC_DEF(long);
+VEC_DEF(MyStruct);
+VEC_DEF(MyStruct_p);
+VEC_DEF(VEC(long));
 
 int compare_test(const void* t1, const void* t2) {
     int temp = 
@@ -33,100 +33,100 @@ int compare_test(const void* t1, const void* t2) {
 }
 
 void test_sort() {
-    VECTOR(MyStruct) v = VECTOR_NEW(MyStruct);
+    VEC(MyStruct) v = VEC_NEW(MyStruct);
 
     MyStruct t;
 
     t.id = 4;
-    VECTOR_PUSH(v, t);
+    VEC_PUSH(v, t);
     t.id = 1;
-    VECTOR_PUSH(v, t);
+    VEC_PUSH(v, t);
     t.id = 2;
-    VECTOR_PUSH(v, t);
+    VEC_PUSH(v, t);
     t.id = 0;
-    VECTOR_PUSH(v, t);
+    VEC_PUSH(v, t);
     t.id = 3;
-    VECTOR_PUSH(v, t);
+    VEC_PUSH(v, t);
     t.id = 6;
-    VECTOR_PUSH(v, t);
+    VEC_PUSH(v, t);
     t.id = 5;
-    VECTOR_PUSH(v, t);
+    VEC_PUSH(v, t);
 
-    VECTOR_SORT(v, &compare_test);
+    VEC_SORT(v, &compare_test);
 
     size_t i=0;
-    MyStruct* iter = VECTOR_BEGIN(v);
-    MyStruct* end  = VECTOR_END(v);
+    MyStruct* iter = VEC_BEGIN(v);
+    MyStruct* end  = VEC_END(v);
     for (; iter != end; iter++) {
         assert(iter->id == i);
         i++;
     }
 }
 
-void test_pass_struct(VECTOR(MyStruct) v) {
-    struct mystruct *t=VECTOR_GETPTR(v,2);
+void test_pass_struct(VEC(MyStruct) v) {
+    struct mystruct *t=VEC_GETPTR(v,2);
     assert(2 == t->id);
     assert(2*2 == t->x);
 }
 void test_struct() {
     size_t n=10, cap=16, i=0;
 
-    VECTOR(MyStruct) v = VECTOR_NEW(MyStruct);
+    VEC(MyStruct) v = VEC_NEW(MyStruct);
 
     struct mystruct tmp;
     for (i=0; i<n; i++) {
         tmp.id = i;
         tmp.x = 2*i;
-        VECTOR_PUSH(v,tmp);
-        assert((i+1) == VECTOR_SIZE(v));
+        VEC_PUSH(v,tmp);
+        assert((i+1) == VEC_SIZE(v));
     }
 
-    assert(cap == VECTOR_CAPACITY(v));
-    assert(n == VECTOR_SIZE(v));
+    assert(cap == VEC_CAPACITY(v));
+    assert(n == VEC_SIZE(v));
 
 
-    MyStruct val = VECTOR_POP(v);
+    MyStruct val = VEC_POP(v);
     assert((n-1) == val.id);
-    assert((n-1) == VECTOR_SIZE(v));
+    assert((n-1) == VEC_SIZE(v));
     n--;
 
     // faster but unsafe
-    val = VECTOR_POPFAST(v);
+    val = VEC_POPFAST(v);
     assert((n-1) == val.id);
-    assert((n-1) == VECTOR_SIZE(v));
+    assert((n-1) == VEC_SIZE(v));
     n--;
 
 
     i=0;
-    VECTOR_FOREACH_BEG(iter, v)
+    VEC_FOREACH_BEG(iter, v)
         assert(i == iter->id);
         assert(2*i == iter->x);
         i++;
-    VECTOR_FOREACH_END
+    VEC_FOREACH_END
 
     i=0;
-    VECTOR_FOREACH(iter, v) {
+    VEC_FOREACH(iter, v) {
         assert(i == iter->id);
         assert(2*i == iter->x);
         i++;
     }
 
     // no copy
-    struct mystruct *tp = VECTOR_GETPTR(v,5);
+    struct mystruct *tp = VEC_GETPTR(v,5);
     assert(tp->id == 5);
     assert(tp->x == 2*5);
 
     // copy made
-    tmp = VECTOR_GET(v,5);
+    tmp = VEC_GET(v,5);
     assert(tmp.id == 5);
     assert(tmp.x == 2*5);
 
-    tmp = VECTOR_GETFRONT(v);
+    tmp = VEC_GETFRONT(v);
     assert(tmp.id == 0);
     assert(tmp.x == 0);
 
-    n=VECTOR_SIZE(v);
-    tmp = VECTOR_GETBACK(v);
+    n=VEC_SIZE(v);
+    tmp = VEC_GETBACK(v);
     assert(tmp.id == (n-1));
     assert(tmp.x == 2*(n-1));
 
@@ -135,31 +135,31 @@ void test_struct() {
 
     tmp.id = 3423;
     tmp.x = 500;
-    VECTOR_SET(v, 3) = tmp;
-    tp = VECTOR_GETPTR(v,3);
+    VEC_SET(v, 3) = tmp;
+    tp = VEC_GETPTR(v,3);
     assert(tp->id == tmp.id);
     assert(tp->x == tmp.x);
 
 
-    VECTOR_RESIZE(v, 10);
-    assert(cap == VECTOR_CAPACITY(v));
-    assert(10 == VECTOR_SIZE(v));
+    VEC_RESIZE(v, 10);
+    assert(cap == VEC_CAPACITY(v));
+    assert(10 == VEC_SIZE(v));
 
-    VECTOR_CLEAR(v);
-    assert(cap == VECTOR_CAPACITY(v));
-    assert(0 == VECTOR_SIZE(v));
+    VEC_CLEAR(v);
+    assert(cap == VEC_CAPACITY(v));
+    assert(0 == VEC_SIZE(v));
 
-    VECTOR_DROP(v);
-    assert(1 == VECTOR_CAPACITY(v));
-    assert(0 == VECTOR_SIZE(v));
+    VEC_DROP(v);
+    assert(1 == VEC_CAPACITY(v));
+    assert(0 == VEC_SIZE(v));
 
     // nothing left, so popping should give a zeroed struct
-    val = VECTOR_POP(v);
+    val = VEC_POP(v);
     assert(0 == val.id);
     assert(0 == val.x);
-    assert(0 == VECTOR_SIZE(v));
+    assert(0 == VEC_SIZE(v));
 
-    VECTOR_DEL(v);
+    VEC_FREE(v);
     assert(NULL==v);
 }
 
@@ -167,17 +167,17 @@ void test_long() {
 
     long n=10, cap=16, i=0;
 
-    VECTOR(long) v = VECTOR_NEW(long);
+    VEC(long) v = VEC_NEW(long);
 
     for (i=0; i<n; i++) {
-        VECTOR_PUSH(v,i);
-        assert((i+1) == VECTOR_SIZE(v));
+        VEC_PUSH(v,i);
+        assert((i+1) == VEC_SIZE(v));
     }
-    assert(cap == VECTOR_CAPACITY(v));
-    assert(n == VECTOR_SIZE(v));
+    assert(cap == VEC_CAPACITY(v));
+    assert(n == VEC_SIZE(v));
 
-    long *iter=VECTOR_BEGIN(v);
-    long *end=VECTOR_END(v);
+    long *iter=VEC_BEGIN(v);
+    long *end=VEC_END(v);
     i=0;
     while (iter != end) {
         assert(*iter == i);
@@ -187,97 +187,97 @@ void test_long() {
 
 
     size_t newsize=10;
-    VECTOR_RESIZE(v, newsize);
-    assert(cap == VECTOR_CAPACITY(v));
-    assert(newsize == VECTOR_SIZE(v));
+    VEC_RESIZE(v, newsize);
+    assert(cap == VEC_CAPACITY(v));
+    assert(newsize == VEC_SIZE(v));
 
-    // different ways to set.  VECTOR_SET is the
-    // same as VECTOR_GET but reads better when setting
-    VECTOR_SET(v,3) = 12;
-    assert(12 == VECTOR_GET(v,3));
+    // different ways to set.  VEC_SET is the
+    // same as VEC_GET but reads better when setting
+    VEC_SET(v,3) = 12;
+    assert(12 == VEC_GET(v,3));
 
-    long *p = VECTOR_GETPTR(v,3);
+    long *p = VEC_GETPTR(v,3);
     assert(12 == *p);
 
-    long val = VECTOR_POP(v);
+    long val = VEC_POP(v);
     assert((newsize-1) == val);
-    assert((newsize-1) == VECTOR_SIZE(v));
+    assert((newsize-1) == VEC_SIZE(v));
 
-    VECTOR_RESIZE(v, 3);
-    assert(cap == VECTOR_CAPACITY(v));
-    assert(3 == VECTOR_SIZE(v));
+    VEC_RESIZE(v, 3);
+    assert(cap == VEC_CAPACITY(v));
+    assert(3 == VEC_SIZE(v));
 
 
-    VECTOR_CLEAR(v);
-    assert(cap == VECTOR_CAPACITY(v));
-    assert(0 == VECTOR_SIZE(v));
-    VECTOR_DROP(v);
-    assert(1 == VECTOR_CAPACITY(v));
-    assert(0 == VECTOR_SIZE(v));
+    VEC_CLEAR(v);
+    assert(cap == VEC_CAPACITY(v));
+    assert(0 == VEC_SIZE(v));
+    VEC_DROP(v);
+    assert(1 == VEC_CAPACITY(v));
+    assert(0 == VEC_SIZE(v));
 
-    VECTOR_DEL(v);
+    VEC_FREE(v);
     assert(NULL == v);
 }
 
 void test_vector_of_vectors() {
 
-    // vector of vectors.  Each is a reference type, so we must use VECTOR_NEW
+    // vector of vectors.  Each is a reference type, so we must use VEC_NEW
     // to initialize. Also we have to destroy the data pointed at by these
     // before destroying the vector
 
-    VECTOR(VECTOR(long)) v = VECTOR_NEW(VECTOR(long));;
+    VEC(VEC(long)) v = VEC_NEW(VEC(long));;
 
-    VECTOR_PUSH(v, VECTOR_NEW(long));
-    VECTOR_PUSH(v, VECTOR_NEW(long));
+    VEC_PUSH(v, VEC_NEW(long));
+    VEC_PUSH(v, VEC_NEW(long));
 
-    assert(2 == VECTOR_SIZE(v));
-    assert(NULL != VECTOR_GET(v,0));
-    assert(NULL != VECTOR_GET(v,1));
+    assert(2 == VEC_SIZE(v));
+    assert(NULL != VEC_GET(v,0));
+    assert(NULL != VEC_GET(v,1));
 
-    VECTOR_RESIZE(v,3);
-    VECTOR_SET(v,2) = VECTOR_NEW(long);
-    assert(NULL != VECTOR_GET(v,2));
+    VEC_RESIZE(v,3);
+    VEC_SET(v,2) = VEC_NEW(long);
+    assert(NULL != VEC_GET(v,2));
 
     // add data to one of the sub-vectors
-    VECTOR(long) tmp = VECTOR_GET(v,0);
-    VECTOR_PUSH(tmp, 3);
+    VEC(long) tmp = VEC_GET(v,0);
+    VEC_PUSH(tmp, 3);
 
-    assert(1 == VECTOR_SIZE(VECTOR_GET(v,0)) );
-    long x = VECTOR_GETFRONT(VECTOR_GET(v,0));
+    assert(1 == VEC_SIZE(VEC_GET(v,0)) );
+    long x = VEC_GETFRONT(VEC_GET(v,0));
     assert(x == 3);
 
     // special method to delete vectors of vectors
-    VECTOR_VEC_DEL(v);
+    VEC_VEC_FREE(v);
     assert(NULL==v);
 
 }
 
 void test_raii() {
 
-    VECTOR_RAII(long, lvec) {
-        VECTOR_RAII(MyStruct, msvec) {
-            VECTOR_PUSH(lvec,3);
-            VECTOR_PUSH(lvec,5);
+    VEC_RAII(long, lvec) {
+        VEC_RAII(MyStruct, msvec) {
+            VEC_PUSH(lvec,3);
+            VEC_PUSH(lvec,5);
 
-            long t = VECTOR_POP(lvec);
+            long t = VEC_POP(lvec);
             assert(t == 5);
-            t = VECTOR_POP(lvec);
+            t = VEC_POP(lvec);
             assert(t == 3);
-            assert(0==VECTOR_SIZE(lvec));
+            assert(0==VEC_SIZE(lvec));
 
             MyStruct ms;
             ms.id = 3;
             ms.x = -3.;
-            VECTOR_PUSH(msvec,ms);
+            VEC_PUSH(msvec,ms);
             ms.id = 5;
             ms.x = -5.;
-            VECTOR_PUSH(msvec,ms);
+            VEC_PUSH(msvec,ms);
 
-            MyStruct tms = VECTOR_POP(msvec);
+            MyStruct tms = VEC_POP(msvec);
             assert(tms.id == 5);
-            tms = VECTOR_POP(msvec);
+            tms = VEC_POP(msvec);
             assert(tms.id == 3);
-            assert(0==VECTOR_SIZE(msvec));
+            assert(0==VEC_SIZE(msvec));
         } // msvec cleanup
     } // lvec  cleanup
 }
@@ -285,19 +285,19 @@ void test_raii() {
 void test_reserve() {
     size_t n=10, cap=0;
 
-    VECTOR(long) v = VECTOR_NEW(long);
+    VEC(long) v = VEC_NEW(long);
 
-    VECTOR_RESERVE(v, n);
-    cap = VECTOR_CAPACITY(v);
+    VEC_RESERVE(v, n);
+    cap = VEC_CAPACITY(v);
 
-    assert(0 == VECTOR_SIZE(v));
+    assert(0 == VEC_SIZE(v));
     assert(n <= cap);
 
-    VECTOR_PUSH(v, 3);
-    assert(1 == VECTOR_SIZE(v));
-    assert(cap == VECTOR_CAPACITY(v));
+    VEC_PUSH(v, 3);
+    assert(1 == VEC_SIZE(v));
+    assert(cap == VEC_CAPACITY(v));
 
-    VECTOR_DEL(v);
+    VEC_FREE(v);
     assert(NULL == v);
 }
 /*
@@ -310,7 +310,7 @@ void test_reserve() {
 void test_ptr() {
     size_t i=0, n=10;
 
-    VECTOR(MyStruct_p) v = VECTOR_NEW(MyStruct_p);
+    VEC(MyStruct_p) v = VEC_NEW(MyStruct_p);
 
     // note we never own the pointers in the vector! So we must allocat and
     // free them separately
@@ -322,11 +322,11 @@ void test_ptr() {
         t->x = 2*i;
 
         // this copies the pointer to t
-        VECTOR_PUSH(v, t);
+        VEC_PUSH(v, t);
     }
 
     for (i=0; i<n; i++) {
-        struct mystruct *t = VECTOR_GET(v, i);
+        struct mystruct *t = VEC_GET(v, i);
         assert(t->id == i);
         assert(t->x == 2*i);
     }
@@ -334,14 +334,14 @@ void test_ptr() {
     // iteration
     // note different pointer declarations
     i=0;
-    MyStruct_p *iter = VECTOR_BEGIN(v);
-    MyStruct **end  = VECTOR_END(v);
+    MyStruct_p *iter = VEC_BEGIN(v);
+    MyStruct **end  = VEC_END(v);
     while (iter != end) {
         assert((*iter)->id == i);
         iter++;
         i++;
     }
-    VECTOR_DEL(v);
+    VEC_FREE(v);
 
     // make sure the data still exist!
     assert(3 == tvec[3].id);
