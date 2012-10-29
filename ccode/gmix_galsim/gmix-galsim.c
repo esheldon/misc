@@ -68,6 +68,33 @@ void object_write(struct object *self, FILE *fptr)
     image_mask_print(&self->mask, fptr);
 }
 
+
+struct fitter {
+
+    struct image *image; // data not owned, only change the mask!
+    double ivar;         // ivar for the image
+
+    double a;
+
+    enum gmix_par_type par_type;
+
+    // we can keep these around
+    struct mca_chain *burnin_chain;
+    struct mca_chain *chain;
+
+    // replace each time?
+    struct mca_stats *stats;
+
+    struct gmix *obj;            // to be filled from pars array
+
+    // optional
+    const struct gmix *psf;      // pre-determined psf gmix
+    struct gmix *conv;           // convolved gmix to be filled 
+                                 // from psf and obj
+
+};
+
+
 struct fitter_ce {
 
     struct image *image; // data not owned, only change the mask!
@@ -189,10 +216,6 @@ double coellip_lnprob(const double *pars,
     coellip_g2e(pars, epars, npars);
 
 
-    if (!gmix_fill_coellip(data->obj, epars, npars) ) {
-        exit(EXIT_FAILURE);
-    }
-    */
     if (!gmix_fill_coellip(data->obj, pars, npars) ) {
         exit(EXIT_FAILURE);
     }
@@ -363,10 +386,11 @@ void fill_coellip_guess(
 
 
 /* second  object we use previous finish for start */
+/*
 void do_mca_run_uselast(struct fitter_ce *fitter, struct object *obj)
 {
 
-    /* need to set center but otherwise use last */
+    // need to set center but otherwise use last
     size_t nwalkers=MCA_CHAIN_NWALKERS(fitter->chain);
     size_t nsteps=MCA_CHAIN_WNSTEPS(fitter->chain);
     for (size_t iwalker=0; iwalker<nwalkers; iwalker++) {
@@ -388,7 +412,7 @@ void do_mca_run_uselast(struct fitter_ce *fitter, struct object *obj)
 
 
 }
-
+*/
 
 
 /* first object we get a start from admom */
@@ -575,45 +599,32 @@ struct fitters_ce *fitters_new(
         struct image *image, 
         struct image *psf)
 {
-    /*
-    double a=2;
-    // put in a config!
-    int ngauss=1;
-    int ngauss_psf=2;
-
-    // super high s/n takes a lot more burn-in
-    int nwalkers_psf=40;
-    int burn_per_walker_psf=200;
-    //int burn_per_walker_psf=20000;
-    int steps_per_walker_psf=200;
-
-    int nwalkers=40;
-    int burn_per_walker=200;
-    int steps_per_walker=200;
-    */
 
     fprintf(stderr,
             "a:          %.2lf\n"
             "psf:\n"
+            "  model:    %s\n"
             "  ngauss:   %d\n"
             "  nwalkers: %d\n"
             "  burn:     %d\n"
             "  steps:    %d\n"
             "obj\n"
+            "  model:    %s\n"
             "  ngauss:   %d\n"
             "  nwalkers: %d\n"
             "  burn:     %d\n"
             "  steps:    %d\n",
             config->a,
+            config->psf_model,
             config->ngauss_psf,
             config->nwalkers_psf,
             config->burn_per_walker_psf,
             config->steps_per_walker_psf,
-            config->nwalkers,
+            config->obj_model,
             config->ngauss,
+            config->nwalkers,
             config->burn_per_walker,
             config->steps_per_walker);
-
 
 
     struct fitters_ce *self=calloc(1,sizeof(struct fitters_ce));
@@ -670,7 +681,6 @@ void read_config(struct config *config, const char *fname)
     }
 
 
-
     if (0 == strcmp(config->obj_model,"coellip")) {
         config->obj_type = GMIX_COELLIP;
         config->ngauss = (int)cfg_get_long(cfg, "ngauss",&status);
@@ -678,6 +688,7 @@ void read_config(struct config *config, const char *fname)
             fprintf(stderr,"config error getting ngauss as long: %s\n", cfg_status_string(status));
             exit(EXIT_FAILURE);
         }
+    } else if (0 == strcmp(config->obj_model,"gdev")) {
     } else {
         fprintf(stderr,"error: only coellip for now\n");
         exit(EXIT_FAILURE);

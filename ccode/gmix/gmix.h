@@ -73,6 +73,9 @@ int gmix_fill_convolve(struct gmix *self,
 */
 struct gmix *gmix_from_pars(double *pars, int size);
 
+//struct gmix *gmix_from_pars(struct f64vector *pars);
+//struct gmix *gmix_from_pars(VECTOR(double) vec);
+
 /* coellip list
    [row,col,e1,e2,T1,T2,T3,...,p1,p2,p3..]
  */
