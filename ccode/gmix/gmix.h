@@ -18,12 +18,11 @@ struct gmix {
 
 /* types for parameter arrays */
 enum gmix_par_type {
-    GMIX_FULL,        // all 6 pars for each gauss
-    GMIX_COELLIP,     // [cen1,cen2,e1,e2,T1,T2,T3,....,p1,p2,p3....]
-    GMIX_APPROX_SIMPLE,  // [cen1,cen2,e1,e2,T,p]
-    GMIX_APPROX_EXP,  // specialized simple for exp
-    GMIX_APPROX_DEV,  // specialized simple for dev
-    GMIX_APPROX_TURB  // specialized simple for turb
+    GMIX_FULL,          // all 6 pars for each gauss
+    GMIX_COELLIP,       // [cen1,cen2,e1,e2,T1,T2,T3,....,p1,p2,p3....]
+    GMIX_APPROX_EXP6,
+    GMIX_APPROX_DEV10,
+    GMIX_APPROX_TURB3
 };
  
 struct gmix *gmix_new(size_t n);
@@ -93,7 +92,7 @@ struct gmix *gmix_from_coellip_Tfrac(double *pars, int size);
    3-gaussian representation of an exponential profile. See
    gmix_fill_exp for more info. 
 */
-struct gmix *gmix_make_exp(const double *pars, int size);
+struct gmix *gmix_make_exp6(const double *pars, int size);
 
 
 /* 
@@ -109,14 +108,14 @@ struct gmix *gmix_make_exp(const double *pars, int size);
 
    The p and F values are chosen to make this so
 */
-int gmix_fill_exp(struct gmix *self, const double *pars, int size);
+int gmix_fill_exp6(struct gmix *self, const double *pars, int size);
 
 /* 
    Generate new a gmix from the inputs pars assuming an appoximate
    3-gaussian representation of a devauc profile. See
    gmix_fill_dev for more info. 
 */
-struct gmix *gmix_make_dev(const double *pars, int size);
+struct gmix *gmix_make_dev10(const double *pars, int size);
 
 /*
    fill a gmix from the inputs pars assuming an appoximate
@@ -131,11 +130,11 @@ struct gmix *gmix_make_dev(const double *pars, int size);
 
    The p and F values are chosen to make this so
 */
-int gmix_fill_dev(struct gmix *self,const double *pars, int size);
+int gmix_fill_dev10(struct gmix *self,const double *pars, int size);
 
 /* similar to above but for a turbulent psf */
 
-struct gmix *gmix_make_turb(const double *pars, int size);
-int gmix_fill_turb(struct gmix *self,const double *pars, int size);
+struct gmix *gmix_make_turb3(const double *pars, int size);
+int gmix_fill_turb3(struct gmix *self,const double *pars, int size);
 
 #endif

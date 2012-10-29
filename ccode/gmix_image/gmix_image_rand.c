@@ -1,6 +1,7 @@
 #include "image.h"
 #include "image_rand.h"
 #include "gmix.h"
+#include "gmix_image.h"
 #include "gmix_image_rand.h"
 
 int gmix_image_add_randn(struct image *image, 

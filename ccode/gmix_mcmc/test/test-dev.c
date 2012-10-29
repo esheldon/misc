@@ -95,12 +95,12 @@ double lnprob(const double *pars,
         }
         gmix=data->obj;
     } else {
-        if (data->par_type == GMIX_APPROX_DEV) {
-            if (!gmix_fill_dev(data->obj, pars, npars) ) {
+        if (data->par_type == GMIX_APPROX_DEV10) {
+            if (!gmix_fill_dev10(data->obj, pars, npars) ) {
                 exit(EXIT_FAILURE);
             }
-        } else if (data->par_type == GMIX_APPROX_EXP) {
-            if (!gmix_fill_dev(data->obj, pars, npars) ) {
+        } else if (data->par_type == GMIX_APPROX_EXP6) {
+            if (!gmix_fill_exp6(data->obj, pars, npars) ) {
                 exit(EXIT_FAILURE);
             }
         } else {
@@ -211,8 +211,8 @@ int main(int argc, char** argv)
         exit(1);
     }
 
-    struct gmix *gmix_true=gmix_make_dev(pars_true, npars_true);
-    struct gmix *gmix_psf=gmix_make_turb(pars_psf_true, npars_psf_true);
+    struct gmix *gmix_true=gmix_make_dev10(pars_true, npars_true);
+    struct gmix *gmix_psf=gmix_make_turb3(pars_psf_true, npars_psf_true);
     struct gmix *gmix_conv=gmix_convolve(gmix_true,gmix_psf);
 
     wlog("making sims\n");
@@ -281,7 +281,7 @@ int main(int argc, char** argv)
     double ivar=1./(obj_sim->skysig*obj_sim->skysig);
     obj_data=fit_data_new(obj_sim->image,
                           ivar,
-                          GMIX_APPROX_DEV,
+                          GMIX_APPROX_DEV10,
                           ngauss_obj,
                           psf_data->obj);
 
