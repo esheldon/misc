@@ -163,6 +163,44 @@ void test_struct() {
     assert(NULL==v);
 }
 
+void test_not_owned() {
+    long v[3];
+    long z[4];
+
+    v[0]=-32;
+    v[1]=8;
+    v[2]=234;
+
+    z[0]=25;
+    z[1]=3;
+    z[2]=7;
+    z[3]=9;
+
+    // not owned
+    VEC(long) vref=VEC_REFDATA(long, v, 3);
+
+    assert(0 == VEC_OWNER(vref));
+    assert(3 == VEC_SIZE(vref));
+    assert(3 == VEC_CAPACITY(vref));
+    assert(-32 == VEC_GET(vref,0));
+    assert(8 == VEC_GET(vref,1));
+    assert(234 == VEC_GET(vref,2));
+
+    // associate new data
+    VEC_ASSOC(vref, z, 4);
+    assert(0 == VEC_OWNER(vref));
+    assert(4 == VEC_SIZE(vref));
+    assert(4 == VEC_CAPACITY(vref));
+    assert(25 == VEC_GET(vref,0));
+    assert(3 == VEC_GET(vref,1));
+    assert(7 == VEC_GET(vref,2));
+    assert(9 == VEC_GET(vref,3));
+
+    fprintf(stderr,"  expect error message here: ");
+    VEC_RESIZE(vref,20);
+
+    VEC_FREE(vref);
+}
 void test_long() {
 
     long n=10, cap=16, i=0;
@@ -359,6 +397,8 @@ int main(int argc, char** argv) {
     test_long();
     wlog("testing pointers to structs\n");
     test_ptr();
+    wlog("testing not owned\n");
+    test_not_owned();
     wlog("testing reserve\n");
     test_reserve();
     wlog("testing vector of vectors\n");
