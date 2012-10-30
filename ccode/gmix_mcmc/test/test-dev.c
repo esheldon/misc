@@ -29,7 +29,7 @@ struct fit_data
 *fit_data_new(const struct image *image,
               double ivar,
               enum gmix_par_type par_type,
-              int ngauss, 
+              int ngauss, // ignored if par type is an approximate model
               const struct gmix *psf) // can be NULL
 {
     struct fit_data *self=NULL;
@@ -44,17 +44,16 @@ struct fit_data
     self->par_type=par_type;
     self->psf=psf;
 
-    self->obj=gmix_new(ngauss);
-    if (!self->obj) {
-        wlog("error: could not allocate %d gmix "
-             "%s: %d\n",ngauss,__FILE__,__LINE__);
-        exit(EXIT_FAILURE);
+    if (par_type==GMIX_APPROX_DEV10) {
+        self->obj=gmix_new(10);
+    } else {
+        self->obj=gmix_new(ngauss);
     }
 
     if (self->psf) {
 
         int ngauss_psf=self->psf->size;
-        int ntot=ngauss*ngauss_psf;
+        int ntot=self->obj->size*ngauss_psf;
         self->conv=gmix_new(ntot);
 
         if (!self->conv) {

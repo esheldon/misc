@@ -29,10 +29,21 @@ def read_chain(fname):
                 data['pars'][i,j-2] = float(l[j])
         return data
 
+def getres():
+    import Tkinter
+
+    root = Tkinter.Tk()
+
+    width = root.winfo_screenwidth()
+    height = root.winfo_screenheight() 
+
+    return width,height
+
 def main(fname):
+    w,h=getres()
     biggles.configure('default','fontsize_min',0.8)
-    biggles.configure("screen","width",1700)
-    biggles.configure("screen","height",1100)
+    biggles.configure("screen","width",w*0.9)
+    biggles.configure("screen","height",h*0.9)
     data=read_chain(fname)
 
     xdata=numpy.arange(data.size)

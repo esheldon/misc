@@ -196,6 +196,9 @@ void test_not_owned() {
     assert(7 == VEC_GET(vref,2));
     assert(9 == VEC_GET(vref,3));
 
+    VEC_SET(vref,2) = -9999;
+    assert(-9999 == z[2]);
+
     fprintf(stderr,"  expect error message here: ");
     VEC_RESIZE(vref,20);
 
