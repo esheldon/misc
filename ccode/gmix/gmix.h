@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include "gauss.h"
 
+//typedef struct gauss Gauss;
+//VEC_DEF(Gauss);
+//VEC(Gauss) gmix_new(size_t n);
+
 struct gmix {
     size_t size;
     struct gauss* data;
@@ -80,10 +84,7 @@ int gmix_fill_convolve(struct gmix *self,
    [pi,rowi,coli,irri,irci,icci,...]
 */
 struct gmix *gmix_from_pars(double *pars, int size);
-
-//struct gmix *gmix_from_pars(struct f64vector *pars);
-//struct gmix *gmix_from_pars(VECTOR(double) vec);
-//struct gmix *gmix_from_pars(VEC(double) vec);
+//struct gmix *gmix_from_pars(gsl_vector *pars);
 
 /* coellip list
    [row,col,e1,e2,T1,T2,T3,...,p1,p2,p3..]
