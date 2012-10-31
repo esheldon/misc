@@ -3,25 +3,31 @@ Build the admom test program
 """
 from fabricate import *
 import sys, os
+import optparse
 
-import glob
+
+
+parser = optparse.OptionParser()
+# make an options list, also send to fabricate
+optlist=[optparse.Option('--make-dtbl',action="store_true",help="turn off compiler optimizations")]
+parser.add_options(optlist)
+options,args = parser.parse_args()
 
 
 CC='gcc'
-
 LINKFLAGS=['-lm']
-
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
-programs=[]
 
-make_dtbl_src = ['make-dtbl']
-test_acc_src =['test-accuracy']
-test_speed_src =['test-speed']
+if options.make_dtbl:
+    make_dtbl_src = ['make-dtbl']
+    programs=[{'name':'make-dtbl','sources':make_dtbl_src}]
+else:
+    test_acc_src =['test-accuracy']
+    test_speed_src =['test-speed']
 
-programs=[{'name':'make-dtbl','sources':make_dtbl_src},
-          {'name':'test-accuracy','sources':test_acc_src},
-          {'name':'test-speed','sources':test_speed_src}]
+    programs=[{'name':'test-accuracy','sources':test_acc_src},
+              {'name':'test-speed','sources':test_speed_src}]
 
 
 def build():
@@ -41,5 +47,5 @@ def link():
 def clean():
     autoclean()
 
-main()
-
+# send options so it won't crash on us
+main(extra_options=optlist)

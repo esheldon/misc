@@ -12,6 +12,11 @@ static inline uint64_t fmath_mask64(int x)
 {
     return (1ULL << x) - 1;
 }
+static inline unsigned int fmath_mask(int x)
+{
+    return (1U << x) - 1;
+}
+
 
 
 int main(int argc, char **argv)
@@ -27,11 +32,14 @@ int main(int argc, char **argv)
     double a = s/log(2.0);
     double ra = 1.0/a;
 
+    uint64_t sbit_masked = fmath_mask(sbit);
+
     union fmath_di di;
     printf("#ifndef _FMATH_DTBL_GUARD\n");
     printf("#define _FMATH_DTBL_GUARD\n");
     printf("\n");
     printf("static const size_t sbit = %d;\n", sbit);
+    printf("static const uint64_t sbit_masked = %lu;\n", sbit_masked);
     //printf("static const size_t s = %lu;\n", s);
     printf("static const size_t adj = %d;\n", adj);
     printf("static const double a = %.16g;\n", a);

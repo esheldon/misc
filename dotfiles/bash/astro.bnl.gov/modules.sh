@@ -78,6 +78,8 @@ if [[ $check == "" ]]; then
     # also numpy if not using system
     module unload wl && module load wl/local   # *
 
+    module load galsim/local
+
 
     module load esidl
     module load sdssidl

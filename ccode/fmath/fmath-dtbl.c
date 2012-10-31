@@ -2,6 +2,7 @@
 #define _FMATH_DTBL_GUARD
 
 static const size_t sbit = 11;
+static const uint64_t sbit_masked = 2047;
 static const size_t adj = 2095104;
 static const double a = 2954.639443740597;
 static const double ra = 0.0003384507717577858;
