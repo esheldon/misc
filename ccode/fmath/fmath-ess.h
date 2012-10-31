@@ -1,3 +1,13 @@
+/*
+
+   Fast exponential function for doubles.  Code adapted from
+   here
+
+        https://github.com/herumi/fmath
+
+    On modern compilers, a factor of 5 faster with accuracy
+    good to about 1.55e-15
+*/
 #ifndef _FMATH_ESS_HEADER_GUARD
 #define _FMATH_ESS_HEADER_GUARD
 
@@ -21,7 +31,6 @@ static inline double expd(double x)
 
     double t = (di.d - b) * ra - x;
     uint64_t u = ((di.i + adj) >> sbit) << 52;
-    //double y = (C3[0] - t) * (t * t) * C2[0] - t + C1[0];
     double y = (C3 - t) * (t * t) * C2 - t + C1;
 
     di.i = u | iax;
