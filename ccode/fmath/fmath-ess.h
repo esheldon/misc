@@ -7,6 +7,17 @@
 
     On modern compilers, a factor of 5 faster with accuracy
     good to about 1.55e-15
+
+
+    To build the tests:
+        python build.py
+
+    If the code is slow or inaccurate, try remaking the
+    lookup table.  Run
+        python build.py --make-dtbl
+        ./make-dtbl > fmath-dtbl.c
+        python build.py
+    and rerun the tests.
 */
 #ifndef _FMATH_ESS_HEADER_GUARD
 #define _FMATH_ESS_HEADER_GUARD
