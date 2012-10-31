@@ -19,8 +19,8 @@
         python build.py
     and rerun the tests.
 */
-#ifndef _FMATH_ESS_HEADER_GUARD
-#define _FMATH_ESS_HEADER_GUARD
+#ifndef _FMATH_HEADER_GUARD
+#define _FMATH_HEADER_GUARD
 
 #include <stdint.h>
 

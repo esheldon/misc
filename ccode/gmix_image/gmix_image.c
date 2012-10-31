@@ -5,6 +5,7 @@
 #include "image.h"
 #include "gauss.h"
 #include "gmix.h"
+#include "fmath.h"
 
 struct image *gmix_image_new(const struct gmix *gmix, 
                              size_t nrows, 
@@ -61,7 +62,8 @@ int gmix_image_fill(struct image *image,
                         v = tcol-gauss->col;
 
                         chi2=gauss->dcc*u*u + gauss->drr*v*v - 2.0*gauss->drc*u*v;
-                        tval += gauss->norm*gauss->p*exp( -0.5*chi2 );
+                        //tval += gauss->norm*gauss->p*exp( -0.5*chi2 );
+                        tval += gauss->norm*gauss->p*expd( -0.5*chi2 );
 
                         tcol += stepsize;
                     }
@@ -130,7 +132,8 @@ double gmix_image_loglike(const struct image *image,
                 v = col-(gauss->col-col0);
 
                 chi2=gauss->dcc*u*u + gauss->drr*v*v - 2.0*gauss->drc*u*v;
-                model_val += gauss->norm*gauss->p*exp( -0.5*chi2 );
+                //model_val += gauss->norm*gauss->p*exp( -0.5*chi2 );
+                model_val += gauss->norm*gauss->p*expd( -0.5*chi2 );
 
                 gauss++;
             } // gmix
@@ -194,7 +197,8 @@ double gmix_image_loglike_margamp(
                 v = col-gauss->col;
 
                 chi2=gauss->dcc*u*u + gauss->drr*v*v - 2.0*gauss->drc*u*v;
-                model_val += gauss->norm*gauss->p*exp( -0.5*chi2 );
+                //model_val += gauss->norm*gauss->p*exp( -0.5*chi2 );
+                model_val += gauss->norm*gauss->p*expd( -0.5*chi2 );
 
                 gauss++;
             } // gmix
