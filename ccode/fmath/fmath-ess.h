@@ -8,18 +8,6 @@ union fmath_di {
     uint64_t i;
 };
 
-/*
-static inline unsigned int fmath_mask(int x)
-{
-    return (1U << x) - 1;
-}
-
-static inline uint64_t fmath_mask64(int x)
-{
-    return (1ULL << x) - 1;
-}
-*/
-
 static inline double expd(double x)
 {
 
@@ -33,7 +21,8 @@ static inline double expd(double x)
 
     double t = (di.d - b) * ra - x;
     uint64_t u = ((di.i + adj) >> sbit) << 52;
-    double y = (C3[0] - t) * (t * t) * C2[0] - t + C1[0];
+    //double y = (C3[0] - t) * (t * t) * C2[0] - t + C1[0];
+    double y = (C3 - t) * (t * t) * C2 - t + C1;
 
     di.i = u | iax;
     return y * di.d;

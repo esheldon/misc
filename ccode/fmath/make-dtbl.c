@@ -45,9 +45,14 @@ int main(int argc, char **argv)
     printf("static const double a = %.16g;\n", a);
     printf("static const double ra = %.16g;\n", ra);
     printf("static const uint64_t b = 3ULL << 51;\n");
+    /*
     printf("static const double C1[2]={1.0, 1.0};\n"
            "static const double C2[2]={0.16666666685227835064,0.16666666685227835064};\n"
            "static const double C3[2]={3.0000000027955394,3.0000000027955394};\n");
+    */
+    printf("static const double C1=1.0;\n"
+           "static const double C2=0.16666666685227835064;\n"
+           "static const double C3=3.0000000027955394;\n");
     printf("\n");
     printf("static const uint64_t dtbl[%d] = {\n", s);
     for (int i=0; i<s; i++) {
