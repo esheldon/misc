@@ -41,7 +41,7 @@ static void get_mask(const struct image *image,
 static void calc_moments(struct am *am, const struct image *image)
 {
     size_t row=0,col=0, nrows=0, ncols=0;
-    double sum=0,rowsum=0,colsum=0,wsum=0,row2sum=0,col2sum=0,rowcolsum=0;
+    double sum=0,rowsum=0,colsum=0,w2sum=0,row2sum=0,col2sum=0,rowcolsum=0;
     double rowm=0,rowm2=0,colm=0,colm2=0,ymod=0,weight=0,expon=0;
     double sums4=0,det25=0;
     double wtrow=0, wtcol=0;
@@ -60,7 +60,7 @@ static void calc_moments(struct am *am, const struct image *image)
         wtrow=wt->row - IM_ROW0(image);
         wtcol=wt->col - IM_COL0(image);
 
-        sum=0; wsum=0; rowsum=0; colsum=0; row2sum=0; 
+        sum=0; w2sum=0; rowsum=0; colsum=0; row2sum=0; 
         col2sum=0; rowcolsum=0; sums4=0;
         for (row=0; row<nrows; row++) {
             // use IM_ROW because the image can be masked
@@ -81,7 +81,7 @@ static void calc_moments(struct am *am, const struct image *image)
                 ymod *= weight;
 
                 sum += ymod;
-                wsum += weight;
+                w2sum += weight*weight;
 
                 if (pass==1) {
                     rowsum += row*ymod;
@@ -96,8 +96,8 @@ static void calc_moments(struct am *am, const struct image *image)
                 rowdata++;
             }
         }
-        if (sum <= 0 || wsum <= 0) { 
-            DBG fprintf(stderr,"error: sum <= 0 || wsum <= 0\n");
+        if (sum <= 0 || w2sum <= 0) { 
+            DBG fprintf(stderr,"error: sum <= 0 || w2sum <= 0\n");
             am->flags |= AM_FLAG_FAINT;
             break;
         }
@@ -117,7 +117,7 @@ static void calc_moments(struct am *am, const struct image *image)
                 break;
             }
         } else {
-            am->s2n=sum/sqrt(wsum)/am->skysig;
+            am->s2n=sum/sqrt(w2sum)/am->skysig;
             am->irr_tmp = row2sum/sum;
             am->irc_tmp = rowcolsum/sum;
             am->icc_tmp = col2sum/sum;

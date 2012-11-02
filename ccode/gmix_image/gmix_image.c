@@ -261,7 +261,7 @@ double gmix_image_s2n(const struct image *image,
             } // gmix
 
             sum += (*rowdata)*wt;
-            w2sum += wt;
+            w2sum += wt*wt;
 
             rowdata++;
         } // cols
