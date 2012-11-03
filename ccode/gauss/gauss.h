@@ -37,7 +37,7 @@ struct gauss {
         + (gauss)->drr*_v*_v                                   \
         - 2.0*(gauss)->drc*_u*_v;                              \
                                                                \
-    double _val = (gauss)->norm*(gauss)->p*exp( -0.5*_chi2 );  \
+    double _val = (gauss)->norm*(gauss)->p*expd( -0.5*_chi2 );  \
                                                                \
     _val;                                                      \
 })
