@@ -47,7 +47,7 @@ alias mv='mv -i'
 alias cp='cp -i' 
 alias less='less -R'
 
-alias gvim='gvim -geometry 90x55'
+#alias gvim='gvim -geometry 90x55'
 
 
 alias lib='cd ~/idl.lib/pro'
