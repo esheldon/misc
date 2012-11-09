@@ -134,7 +134,8 @@ if &t_Co > 2 || has("gui_running")
 		" I don't want clicking in the window to put the mouse there!
 		"set mouse=""
 
-        set gfn=Monaco\ 10
+        "set gfn=Monaco\ 10
+        set gfn=peep
 
         " turn off annoying cursor blinking
         set gcr=a:blinkon0
