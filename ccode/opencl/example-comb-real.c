@@ -1,4 +1,4 @@
-/* this one is timing.  This is more optimized than 2*/
+/* try to add some realistic overhead */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -238,19 +238,37 @@ void do_c_map(int iwalker,
     }
 }
 
+/* overkill writing and reading the data */
 cl_float *get_new_image(int nrow, int ncol)
 {
-    cl_float *image=calloc(nrow*ncol,sizeof(cl_float));
+    FILE *fobj=fopen("data/test-image.dat","w");
+    fprintf(fobj,"%d %d\n", nrow, ncol);
     for (int row=0; row<nrow; row++) {
         for (int col=0; col<ncol; col++) {
-            image[row*ncol + col] = 3 + 0.01*drand48();
+            float val = 3 + 0.01*drand48();
+            fprintf(fobj,"%.7g ", val);
+        }
+        fprintf(fobj,"\n");
+    }
+    fclose(fobj);
+
+
+    fobj=fopen("data/test-image.dat","r");
+    int tnrow=0, tncol=0;
+    int nread=0;
+    nread += fscanf(fobj, "%d %d", &tnrow, &tncol);
+    cl_float *image=calloc(tnrow*tncol,sizeof(cl_float));
+    for (int row=0; row<tnrow; row++) {
+        for (int col=0; col<tncol; col++) {
+            nread += fscanf(fobj,"%f", &image[row*ncol + col]);
         }
     }
+    fclose(fobj);
 
     return image;
 }
 
-void fill_rows(int nwalkers, int nrow, int ncol, cl_float *rows, cl_float *cols)
+void fill_rows_cols(int nwalkers, int nrow, int ncol, cl_float *rows, cl_float *cols)
 {
     for (int iwalk=0; iwalk<nwalkers; iwalk++) {
         for (int row=0; row<nrow; row++) {
@@ -267,14 +285,12 @@ void fill_rows(int nwalkers, int nrow, int ncol, cl_float *rows, cl_float *cols)
 int main(int argc, char** argv)
 {
 
-    if (argc < 5) {
-        printf("%s nrepeat docpu device\n", argv[0]);
+    if (argc < 2) {
+        printf("%s nrepeat\n", argv[0]);
         exit(1);
     }
 
     int nrepeat=atoi(argv[1]);
-    int docpu=atoi(argv[2]);
-    int devnum=atoi(argv[3]);
 
     // Storage for the arrays.
     static cl_mem output;
@@ -286,8 +302,6 @@ int main(int argc, char** argv)
     static cl_context context;
 
     static cl_platform_id platform_id;
-
-
 
     cl_int nrow=25;
     cl_int ncol=25;
@@ -369,7 +383,6 @@ int main(int argc, char** argv)
         exit(1);
     }
 
-    //int devnum=-1;
     for (int i=0; i<num_devices; i++) {
         size_t len=0;
         cl_uint avail=0;
@@ -378,19 +391,8 @@ int main(int argc, char** argv)
         clGetDeviceInfo(device_ids[i], CL_DEVICE_AVAILABLE, sizeof(cl_uint), &avail, &len);
         clGetDeviceInfo(device_ids[i], CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &id, &len);
         printf("device #: %d id: %d avail: %d\n", i, id, avail);
-        /*
-        if (avail && devnum==-1) {
-            //devnum=i;
-            //break;
-        }
-        */
     }
-    /*
-    if (devnum==-1) {
-        printf("no available devices\n");
-        exit(1);
-    }
-    */
+    int devnum=0;
     printf("choosing device %d\n", devnum);
 
     cl_program program = clCreateProgramWithSource(context, 1, &kernel_source , NULL, &err);
@@ -439,18 +441,12 @@ int main(int argc, char** argv)
     printf("setting global work size: %lu\n", szGlobalWorkSize);
 
 
-    cl_float *data_from_gpu = calloc(szGlobalWorkSize, sizeof(cl_float));
-    cl_float *data_from_cpu = calloc(szGlobalWorkSize, sizeof(cl_float));
-
-    cl_float *rows=calloc(szGlobalWorkSize,sizeof(cl_float));
-    cl_float *cols=calloc(szGlobalWorkSize,sizeof(cl_float));
-
-    fill_rows(nwalkers, nrow, ncol, rows, cols);
 
     //queue = clCreateCommandQueue(context, device_ids, 0, &err);
     queue = clCreateCommandQueue(context, 
                                  device_ids[devnum],
-                                 CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 
+                                 //CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 
+                                 0,
                                  &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create command queue\n");
@@ -458,27 +454,6 @@ int main(int argc, char** argv)
     }
 
 
-    cl_mem rows_in = clCreateBuffer(context,  
-            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, rows, &err);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not create rows buffer\n");
-        exit(EXIT_FAILURE);
-    }
-    cl_mem cols_in = clCreateBuffer(context,  
-            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, cols, &err);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not create cols buffer\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // we copy because we want the memory to be zerod
-    // read-write because we will reduce it!
-    output = clCreateBuffer(context,  
-            CL_MEM_READ_WRITE,  sizeof(cl_float)*szGlobalWorkSize, NULL, &err);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not create buffer\n");
-        exit(EXIT_FAILURE);
-    }
 
     //OPTIMIZATION OPTIONS FOUND AT http://www.khronos.org/registry/cl/sdk/1.0/docs/man/xhtml/clBuildProgram.html
 
@@ -506,45 +481,59 @@ int main(int argc, char** argv)
     double tstandard=0;
     double topencl=0;
 
-    err =  clSetKernelArg(kernel, 0, sizeof(cl_int), &ntot);
-    err |= clSetKernelArg(kernel, 1, sizeof(cl_int), &ncol);
 
 
-    err |= clSetKernelArg(kernel, 9, sizeof(cl_mem), &rows_in);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not set rows arg\n");
-        exit(EXIT_FAILURE);
-    }
-    err |= clSetKernelArg(kernel, 10, sizeof(cl_mem), &cols_in);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not set cols arg\n");
-        exit(EXIT_FAILURE);
-    }
-    err |=  clSetKernelArg(kernel, 11, sizeof(cl_mem), &output);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not set output arg\n");
-        exit(EXIT_FAILURE);
-    }
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not set kernel args\n");
-        exit(EXIT_FAILURE);
-    }
-
-    cl_float *image=get_new_image(nrow,ncol);
+    cl_float *image=NULL;
 
     srand48(10);
     t0=clock();
     for (int rep=0; rep<nrepeat; rep++) {
 
-        // each repeat represents pushing a new image in
+        // we can probably instead re-use rows so this
+        // is overkill simulating overhead
+        image=get_new_image(nrow,ncol);
+
+        cl_float *data_from_gpu = calloc(szGlobalWorkSize, sizeof(cl_float));
+        cl_float *rows=calloc(szGlobalWorkSize,sizeof(cl_float));
+        cl_float *cols=calloc(szGlobalWorkSize,sizeof(cl_float));
+
+        fill_rows_cols(nwalkers, nrow, ncol, rows, cols);
+
         err=0;
         cl_mem image_in = clCreateBuffer(context,  
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*nrow*ncol, image, &err);
-        err |= clSetKernelArg(kernel, 8, sizeof(cl_mem), &image_in);
         if (err != CL_SUCCESS) {
             fprintf(stderr,"could not create image buffer\n");
             exit(EXIT_FAILURE);
         }
+
+        cl_mem rows_in = clCreateBuffer(context,  
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, rows, &err);
+        if (err != CL_SUCCESS) {
+            fprintf(stderr,"could not create rows buffer\n");
+            exit(EXIT_FAILURE);
+        }
+        cl_mem cols_in = clCreateBuffer(context,  
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, cols, &err);
+        if (err != CL_SUCCESS) {
+            fprintf(stderr,"could not create cols buffer\n");
+            exit(EXIT_FAILURE);
+        }
+
+        output = clCreateBuffer(context,  
+                CL_MEM_READ_WRITE,  sizeof(cl_float)*szGlobalWorkSize, NULL, &err);
+        if (err != CL_SUCCESS) {
+            fprintf(stderr,"could not create buffer\n");
+            exit(EXIT_FAILURE);
+        }
+
+        err =  clSetKernelArg(kernel, 0, sizeof(cl_int), &ntot);
+        err |= clSetKernelArg(kernel, 1, sizeof(cl_int), &ncol);
+        err |= clSetKernelArg(kernel, 8, sizeof(cl_mem), &image_in);
+        err |= clSetKernelArg(kernel, 9, sizeof(cl_mem), &rows_in);
+        err |= clSetKernelArg(kernel, 10, sizeof(cl_mem), &cols_in);
+        err |=  clSetKernelArg(kernel, 11, sizeof(cl_mem), &output);
+
 
         for (int step=0; step<nsteps; step++) {
 
@@ -586,6 +575,14 @@ int main(int argc, char** argv)
 
         }
         clReleaseMemObject(image_in);
+        clReleaseMemObject(rows_in);
+        clReleaseMemObject(cols_in);
+        clReleaseMemObject(output);
+
+        free(image);
+        free(rows);
+        free(cols);
+        free(data_from_gpu);
     }
     t1=clock();
     topencl = ((double)(t1-t0))/CLOCKS_PER_SEC;
@@ -594,53 +591,11 @@ int main(int argc, char** argv)
     printf("time for GPU: %lf\n", topencl);
     printf("time per repeat: %lf\n", topencl/nrepeat);
 
-    if (docpu) {
-        printf("doing cpu\n");
-        srand48(10);
-        t0=clock();
-        for (int rep=0; rep<nrepeat; rep++) {
-            for (int step=0; step<nsteps; step++) {
-                float cenrow = cenrow0 + 0.01*(drand48()-0.5);
-                float cencol = cencol0 + 0.01*(drand48()-0.5);
-                float irr = irr0+0.01*(drand48()-0.5);
-                float irc = irc0+0.01*(drand48()-0.5);
-                float icc = icc0+0.01*(drand48()-0.5);
-                float det = irr*icc - irc*irc;
-                float idet = 1./det;
-
-                for (int iwalk=0; iwalk<nwalkers; iwalk++) {
-                    do_c_map(iwalk, nrow, ncol, cenrow, cencol, idet, irr, irc, icc, data_from_cpu,image);
-                }
-            }
-
-        }
-        t1=clock();
-        tstandard += ((double)(t1-t0))/CLOCKS_PER_SEC;
-        printf("time for CPU: %lf\n", tstandard);
-        printf("time per repeat: %lf\n", tstandard/nrepeat);
-        printf("opencl was %.16g times faster\n", tstandard/topencl);
-
-
-        err = clEnqueueReadBuffer(queue, output, CL_TRUE, 0, sizeof(cl_float)*szGlobalWorkSize, data_from_gpu, 0, 
-                NULL, NULL );
-        if (err != CL_SUCCESS) {
-            fprintf(stderr,"error reading buffer into local\n");
-            exit(EXIT_FAILURE);
-        }
-
-
-        compare_data(nwalkers, nrow, ncol, data_from_gpu, data_from_cpu);
-    }
-
-
-
-    free(image);
-    clReleaseMemObject(rows_in);
-    clReleaseMemObject(cols_in);
-    clReleaseMemObject(output);
+    /*
     clReleaseKernel(kernel);
     clReleaseCommandQueue(queue);
     clReleaseContext(context);
+    */
 
     return 0;
 }
