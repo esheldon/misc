@@ -3,139 +3,34 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <sys/stat.h>
 #include <CL/opencl.h>
 #include "fmath.h"
 
-//simulate 3 gaussians by doing the calculations 3 times
-const char *kernel_source =
-"__kernel void gmix(int nelem, \n"
-"                   int ncol,  \n"
-"                   float cenrow, \n"
-"                   float cencol, \n"
-"                   float idet, \n"
-"                   float irr, \n"
-"                   float irc, \n"
-"                   float icc, \n"
-"                   __constant float *image, \n"
-"                   __constant float *rows, \n"
-"                   __constant float *cols, \n"
-"                   global float *output)                            \n"
-"{                                                                     \n"
-"   int idx = get_global_id(0);                                        \n"
-"   if (idx >= nelem)                            \n"
-"       return;                                  \n"
-"   float tmp=0;                                 \n"
-"   float row = rows[idx];                       \n"
-"   float col = cols[idx];                       \n"
-"   int im_idx = row*ncol + col;                 \n"
-"   float imval = image[im_idx];                 \n"
-"   float u = row-cenrow;                        \n" 
-"   float v = col-cencol;                        \n"
-"   float chi2=icc*u*u + irr*v*v - 2.0*irc*u*v;  \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
-"\n"
-"   u = row-1.1*cenrow;                              \n" 
-"   v = col-1.1*cencol;                              \n"
-"   chi2=1.01*icc*u*u + 0.98*irr*v*v - .999*2.0*irc*u*v;    \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
-"\n"
-"   u = row-0.99*cenrow;                              \n" 
-"   v = col-0.99*cencol;                              \n"
-"   chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;    \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
 
-"\n"
-"   u = row-0.97*cenrow;                              \n" 
-"   v = col-0.93*cencol;                              \n"
-"   chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;    \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
+static char *
+load_program_source(const char *filename)
+{
+    struct stat statbuf;
+    FILE        *fh;
+    char        *source;
+    size_t nread=0;
 
-"\n"
-"   u = row-1.01*cenrow;                              \n" 
-"   v = col-1.03*cencol;                              \n"
-"   chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;    \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
+    fh = fopen(filename, "r");
+    if (fh == 0)
+        return 0;
 
-"\n"
-"   u = row-.9991*cenrow;                              \n" 
-"   v = col-1.0009*cencol;                              \n"
-"   chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;    \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
+    stat(filename, &statbuf);
+    source = (char *) malloc(statbuf.st_size + 1);
+    nread=fread(source, statbuf.st_size, 1, fh);
+    source[statbuf.st_size] = '\0';
 
-"\n"
-"   u = row-.983*cenrow;                              \n" 
-"   v = col-1.31*cencol;                              \n"
-"   chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;    \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
-
-"\n"
-"   u = row-0.993*cenrow;                              \n" 
-"   v = col-0.99999*cencol;                              \n"
-"   chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;    \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
-
-"\n"
-"   u = row-1.11*cenrow;                              \n" 
-"   v = col-1.14*cencol;                              \n"
-"   chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;    \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
-
-"\n"
-"   u = row-.975*cenrow;                              \n" 
-"   v = col-1.00*cencol;                              \n"
-"   chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;    \n"
-"   chi2 *= idet;                                \n"
-"   tmp += exp( -0.5*chi2 );  \n"
-
-
-
-"\n"
-"   tmp = tmp-imval;             \n"
-"   output[idx] = -0.5*tmp*tmp;  \n"
-
-"}                                                                     \n";
-//END KERNEL
-const char *kernel_source_old =
-"__kernel void simple(                                                   \n"
-"   global float* output, int nel)                                       \n"
-"{                                                                       \n"
-"   int index = get_global_id(0);                                        \n"
-"   if (index >= nel)                                                    \n"
-"       return;                                                          \n"
-"   output[index] = exp( 0.5*log((float)index));                         \n"
-"}                                                                       \n";
-
+    return source;
+}
 
 // we expect this many
 #define NDEV 4
 
-void compare_data(int nwalkers, int nrow, int ncol, float *gpudata, float *cpudata)
-{
-    float maxdiff=0.;
-    float diff=0;
-    for (int iwalk=0; iwalk<nwalkers; iwalk++) {
-        for (int row=0; row<nrow; row++) {
-            for (int col=0; col<ncol; col++) {
-                //printf("walk: %d row: %d col: %d diff: %g\n", iwalk,row,col,diff);
-                int idx=iwalk*nrow*ncol + row*ncol + col;
-                diff=fabs( gpudata[idx]-cpudata[idx]);
-                if (diff > maxdiff) {
-                    maxdiff=diff;
-                }
-            }
-        }
-    }
-    printf("max diff: %.16g\n", maxdiff);
-}
 // Round Up Division function
 size_t shrRoundUp(int group_size, int global_size) 
 {
@@ -149,94 +44,6 @@ size_t shrRoundUp(int group_size, int global_size)
     }
 }
 
-void do_c_map(int iwalker,
-              int nrow, 
-              int ncol, 
-              float cenrow,
-              float cencol,
-              float idet,
-              float irr,
-              float irc,
-              float icc,
-              float *data, 
-              float *image)
-{
-    for (int row=0; row<nrow; row++) {
-        for (int col=0; col<ncol; col++) {
-
-            float imval=image[row*ncol + col];
-
-            int idx=iwalker*nrow*ncol + row*ncol + col;
-
-            float u = row-cenrow;
-            float v = col-cencol;
-            float chi2=icc*u*u + irr*v*v - 2.0*irc*u*v;
-            float tmp=0;
-            chi2 *= idet;
-            tmp = expd( -0.5*chi2 );
-
-            u = row-1.1*cenrow;
-            v = col-1.1*cencol;
-            chi2=1.01*icc*u*u + 0.98*irr*v*v - .999*2.0*irc*u*v;
-            chi2 *= idet;
-            tmp += expd( -0.5*chi2 );
-
-            u = row-0.99*cenrow;
-            v = col-0.99*cencol;
-            chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;
-            chi2 *= idet;
-            tmp += expd( -0.5*chi2 );
-
-            u = row-0.97*cenrow;
-            v = col-0.93*cencol;
-            chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;
-            chi2 *= idet;
-            tmp += expd( -0.5*chi2 );
-
- 
-            u = row-1.01*cenrow;
-            v = col-1.03*cencol;
-            chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;
-            chi2 *= idet;
-            tmp += expd( -0.5*chi2 );
-
-
-            u = row-0.9991*cenrow;
-            v = col-1.0009*cencol;
-            chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;
-            chi2 *= idet;
-            tmp += expd( -0.5*chi2 );
-
-            u = row-0.983*cenrow;
-            v = col-1.31*cencol;
-            chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;
-            chi2 *= idet;
-            tmp += expd( -0.5*chi2 );
-
-            u = row-0.993*cenrow;
-            v = col-0.99999*cencol;
-            chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;
-            chi2 *= idet;
-            tmp += expd( -0.5*chi2 );
-
-            u = row-1.11*cenrow;
-            v = col-1.14*cencol;
-            chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;
-            chi2 *= idet;
-            tmp += expd( -0.5*chi2 );
-
-            u = row-0.975*cenrow;
-            v = col-1.00*cencol;
-            chi2=1.1*icc*u*u + .979*irr*v*v - 1.001*2.0*irc*u*v;
-            chi2 *= idet;
-            tmp += expd( -0.5*chi2 );
-
-            tmp = tmp-imval;
-            data[idx] = -0.5*tmp*tmp;
-
-        }
-    }
-}
 
 /* write and read the data to add some overhead */
 cl_float *get_new_image(int nrow, int ncol)
@@ -287,15 +94,19 @@ void fill_rows_cols(int nwalkers, int nrow, int ncol, cl_float *rows, cl_float *
     }
 }
 
+#define NPARS_PSF 18
+#define NPARS 6
+
 int main(int argc, char** argv)
 {
 
-    if (argc < 2) {
-        printf("%s nrepeat\n", argv[0]);
+    if (argc < 3) {
+        printf("exmaple-gprof ngauss nrepeat\n");
         exit(1);
     }
 
-    int nrepeat=atoi(argv[1]);
+    int ngauss=atoi(argv[1]);
+    int nrepeat=atoi(argv[2]);
 
     // Storage for the arrays.
     static cl_mem output;
@@ -308,13 +119,15 @@ int main(int argc, char** argv)
 
     static cl_platform_id platform_id;
 
+
     cl_int nrow=25;
     cl_int ncol=25;
     float cenrow0=12.;
     float cencol0=12.;
-    float irr0=2.;
-    float irc0=0.;
-    float icc0=3.;
+    float e10 = 0.2;
+    float e20 = -0.3;
+    float T0 = 7.8;
+    float counts0 = 1.0;
 
     int nelem=nrow*ncol;
 
@@ -400,7 +213,21 @@ int main(int argc, char** argv)
     int devnum=0;
     printf("choosing device %d\n", devnum);
 
-    cl_program program = clCreateProgramWithSource(context, 1, &kernel_source , NULL, &err);
+    const char *kernel_file=NULL;
+    char *kernel_source=NULL;
+    if (ngauss==3) {
+        kernel_file="kern3gauss.c";
+    } else if (ngauss==6) {
+        kernel_file="kern6gauss.c";
+    } else if (ngauss==10) {
+        kernel_file="kern10gauss.c";
+    } else {
+        printf("ngauss 3,6,10\n");
+        exit(1);
+    }
+    printf("loading kernel: %s\n", kernel_file);
+    kernel_source = load_program_source(kernel_file);
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)&kernel_source , NULL, &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create program\n");
         exit(EXIT_FAILURE);
@@ -463,10 +290,26 @@ int main(int argc, char** argv)
     //OPTIMIZATION OPTIONS FOUND AT http://www.khronos.org/registry/cl/sdk/1.0/docs/man/xhtml/clBuildProgram.html
 
     err = clBuildProgram(program, 0, NULL, "-cl-fast-relaxed-math", NULL, NULL);
+    /*
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not build program\n");
         exit(EXIT_FAILURE);
     }
+    */
+    if (err != CL_SUCCESS)
+    {
+        size_t length;
+        char build_log[50000];
+        //char build_log[256]={0};
+        //printf("%s\n", block_source);
+        printf("Error: Failed to build program executable!\n");
+        clGetProgramBuildInfo(program, device_ids[devnum], CL_PROGRAM_BUILD_LOG, sizeof(build_log), build_log, &length);
+        printf("%lu\n", length);
+        printf("%s\n", build_log);
+        return EXIT_FAILURE;
+    }
+
+ 
 
 
 
@@ -492,6 +335,15 @@ int main(int argc, char** argv)
 
     srand48(10);
     t0=clock();
+
+    cl_float pars[NPARS]={0};
+
+    // values don't matter
+    cl_float psf_pars[NPARS_PSF] = {
+        0.33,-1., -1., 1.0, 0.0, 1.0,
+        0.33,-1., -1., 1.0, 0.0, 1.0,
+        0.33,-1., -1., 1.0, 0.0, 1.0};
+
     for (int rep=0; rep<nrepeat; rep++) {
 
         // we can probably instead re-use rows so this
@@ -504,6 +356,15 @@ int main(int argc, char** argv)
 
         fill_rows_cols(nwalkers, nrow, ncol, rows, cols);
 
+
+        cl_mem psf_pars_in = clCreateBuffer(context,  
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*NPARS_PSF, psf_pars, &err);
+        if (err != CL_SUCCESS) {
+            fprintf(stderr,"could not create psf buffer\n");
+            exit(EXIT_FAILURE);
+        }
+
+
         err=0;
         cl_mem image_in = clCreateBuffer(context,  
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*nrow*ncol, image, &err);
@@ -511,6 +372,8 @@ int main(int argc, char** argv)
             fprintf(stderr,"could not create image buffer\n");
             exit(EXIT_FAILURE);
         }
+
+
 
         cl_mem rows_in = clCreateBuffer(context,  
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, rows, &err);
@@ -534,34 +397,54 @@ int main(int argc, char** argv)
 
         err =  clSetKernelArg(kernel, 0, sizeof(cl_int), &ntot);
         err |= clSetKernelArg(kernel, 1, sizeof(cl_int), &ncol);
-        err |= clSetKernelArg(kernel, 8, sizeof(cl_mem), &image_in);
-        err |= clSetKernelArg(kernel, 9, sizeof(cl_mem), &rows_in);
-        err |= clSetKernelArg(kernel, 10, sizeof(cl_mem), &cols_in);
-        err |=  clSetKernelArg(kernel, 11, sizeof(cl_mem), &output);
+        err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &image_in);
+        err |= clSetKernelArg(kernel, 3, sizeof(cl_mem), &rows_in);
+        err |= clSetKernelArg(kernel, 4, sizeof(cl_mem), &cols_in);
+        err |= clSetKernelArg(kernel, 5, sizeof(cl_mem), &psf_pars_in);
+        err |=  clSetKernelArg(kernel, 6, sizeof(cl_mem), &output);
+        if (err != CL_SUCCESS) {
+            fprintf(stderr,"could not set kernel args\n");
+            exit(EXIT_FAILURE);
+        }
 
 
         for (int step=0; step<nsteps; step++) {
 
+            /*
+            pars[0] = cenrow0 + 0.01*(drand48()-0.5);
+            pars[1] = cencol0 + 0.01*(drand48()-0.5);
+            pars[2] = e10 + 0.01*(drand48()-0.5);
+            pars[3] = e20 + 0.01*(drand48()-0.5);
+            pars[4] = T0 + 0.01*(drand48()-0.5);
+            pars[5] = p0 + 0.01*(drand48()-0.5);
+            */
+
             float cenrow = cenrow0 + 0.01*(drand48()-0.5);
             float cencol = cencol0 + 0.01*(drand48()-0.5);
-            float irr = irr0+0.01*(drand48()-0.5);
-            float irc = irc0+0.01*(drand48()-0.5);
-            float icc = icc0+0.01*(drand48()-0.5);
-            float det = irr*icc - irc*irc;
-            float idet = 1./det;
+            float e1 = e10 + 0.01*(drand48()-0.5);
+            float e2 = e20 + 0.01*(drand48()-0.5);
+            float T = T0 + 0.01*(drand48()-0.5);
+            float counts = counts0 + 0.01*(drand48()-0.5);
 
-            // a copy of the kernel is made each time, so we can add new arguments
-            err |=  clSetKernelArg(kernel, 2, sizeof(cl_float), (void*)&cenrow);
-            err |=  clSetKernelArg(kernel, 3, sizeof(cl_float), (void*)&cencol);
-            err |=  clSetKernelArg(kernel, 4, sizeof(cl_float), (void*)&idet);
-            err |=  clSetKernelArg(kernel, 5, sizeof(cl_float), (void*)&irr);
-            err |=  clSetKernelArg(kernel, 6, sizeof(cl_float), (void*)&irc);
-            err |=  clSetKernelArg(kernel, 7, sizeof(cl_float), (void*)&icc);
-
+            err |=  clSetKernelArg(kernel, 7, sizeof(cl_float), (void*)&cenrow);
+            err |=  clSetKernelArg(kernel, 8, sizeof(cl_float), (void*)&cencol);
+            err |=  clSetKernelArg(kernel, 9, sizeof(cl_float), (void*)&e1);
+            err |=  clSetKernelArg(kernel, 10, sizeof(cl_float), (void*)&e2);
+            err |=  clSetKernelArg(kernel, 11, sizeof(cl_float), (void*)&T);
+            err |=  clSetKernelArg(kernel, 12, sizeof(cl_float), (void*)&counts);
+            /*
+            cl_mem pars_in = clCreateBuffer(context,  
+                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*NPARS, pars, &err);
             if (err != CL_SUCCESS) {
-                fprintf(stderr,"could not set step kernel args\n");
+                fprintf(stderr,"could not create pars buffer\n");
                 exit(EXIT_FAILURE);
             }
+            */
+            if (err != CL_SUCCESS) {
+                fprintf(stderr,"could not set kernel pars\n");
+                exit(EXIT_FAILURE);
+            }
+
 
             err = clEnqueueNDRangeKernel(queue, 
                     kernel, 
@@ -578,7 +461,9 @@ int main(int argc, char** argv)
                 exit(EXIT_FAILURE);
             }
 
+            //clReleaseMemObject(pars_in);
         }
+        clReleaseMemObject(psf_pars_in);
         clReleaseMemObject(image_in);
         clReleaseMemObject(rows_in);
         clReleaseMemObject(cols_in);
@@ -593,6 +478,8 @@ int main(int argc, char** argv)
     topencl = ((double)(t1-t0))/CLOCKS_PER_SEC;
 
 
+    printf("\n%d gaussians\n", ngauss);
+    printf("-----------------------------------\n");
     printf("time for GPU: %lf\n", topencl);
     printf("time per repeat: %lf\n", topencl/nrepeat);
 
