@@ -7,6 +7,44 @@
 #include <CL/opencl.h>
 #include "fmath.h"
 
+void check_err(int err, const char* mess)
+{
+    if (err != CL_SUCCESS) {
+        fprintf(stderr,"%s: ",mess);
+        if (err==CL_OUT_OF_RESOURCES) {
+            fprintf(stderr,"CL_OUT_OF_RESOURCES\n");
+        } else if (err== CL_INVALID_WORK_GROUP_SIZE) {
+            fprintf(stderr,"CL_INVALID_WORK_GROUP_SIZE\n");
+        } else if (err==CL_INVALID_WORK_ITEM_SIZE) {
+            fprintf(stderr,"CL_INVALID_WORK_ITEM_SIZE\n");
+        } else if (err==CL_INVALID_GLOBAL_OFFSET) {
+            fprintf(stderr,"CL_INVALID_GLOBAL_OFFSET\n");
+        } else if (err==CL_OUT_OF_RESOURCES) {
+            fprintf(stderr,"CL_OUT_OF_RESOURCES\n");
+        } else if (err==CL_MEM_OBJECT_ALLOCATION_FAILURE) {
+            fprintf(stderr,"CL_MEM_OBJECT_ALLOCATION_FAILURE\n");
+        } else if (err==CL_INVALID_EVENT_WAIT_LIST) {
+            fprintf(stderr,"CL_INVALID_EVENT_WAIT_LIST\n");
+        } else if (err==CL_OUT_OF_HOST_MEMORY) {
+            fprintf(stderr,"CL_OUT_OF_HOST_MEMORY\n");
+        } else if (err==CL_INVALID_PROGRAM_EXECUTABLE) {
+            fprintf(stderr,"CL_INVALID_PROGRAM_EXECUTABLE\n");
+        } else if (err==CL_INVALID_COMMAND_QUEUE) {
+            fprintf(stderr,"CL_INVALID_COMMAND_QUEUE\n");
+        } else if (err==CL_INVALID_KERNEL) {
+            fprintf(stderr,"CL_INVALID_KERNEL\n");
+        } else if (err==CL_INVALID_CONTEXT) {
+            fprintf(stderr,"CL_INVALID_CONTEXT\n");
+        } else if (err==CL_INVALID_KERNEL_ARGS) {
+            fprintf(stderr,"CL_INVALID_KERNEL_ARGS\n");
+        } else if (err==CL_INVALID_WORK_DIMENSION) {
+            fprintf(stderr,"CL_INVALID_WORK_DIMENSION\n");
+        } else {
+            fprintf(stderr,"unknown: %d\n", err);
+        }
+        exit(EXIT_FAILURE);
+    }
+}
 
 static char *
 load_program_source(const char *filename)
@@ -94,19 +132,25 @@ void fill_rows_cols(int nwalkers, int nrow, int ncol, cl_float *rows, cl_float *
     }
 }
 
+// three gaussians
 #define NPARS_PSF 18
-#define NPARS 6
 
 int main(int argc, char** argv)
 {
 
     if (argc < 3) {
-        printf("exmaple-gprof ngauss nrepeat\n");
+        printf("exmaple-gprof ngauss nrepeat devnum\n");
         exit(1);
     }
 
     int ngauss=atoi(argv[1]);
     int nrepeat=atoi(argv[2]);
+
+    int devnum=0;
+    if (argc > 3) {
+        devnum=atoi(argv[3]);
+    }
+
 
     // Storage for the arrays.
     static cl_mem output;
@@ -131,14 +175,19 @@ int main(int argc, char** argv)
 
     int nelem=nrow*ncol;
 
+    //int nwalkers=20;
+    //int nsteps=600;
     int nwalkers=20;
+    int nsteps=600;
+    int npars=6;
+    int npars_tot=nwalkers*npars;
+
     int ntot=nrow*ncol*nwalkers;
 
     cl_uint numPlatforms;
     cl_int err = CL_SUCCESS;
 
     clock_t t0,t1;
-    int nsteps=600;
 
     int device_type=0;
     if (1) {
@@ -210,7 +259,6 @@ int main(int argc, char** argv)
         clGetDeviceInfo(device_ids[i], CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &id, &len);
         printf("device #: %d id: %d avail: %d\n", i, id, avail);
     }
-    int devnum=0;
     printf("choosing device %d\n", devnum);
 
     const char *kernel_file=NULL;
@@ -261,7 +309,8 @@ int main(int argc, char** argv)
     size_t szLocalWorkSize = nrow;
     //size_t szLocalWorkSize = 512;
     // make sure multiple of 32
-    szLocalWorkSize=shrRoundUp((int)256, (int)szLocalWorkSize);
+    int szLocalWorkSize0=256;
+    szLocalWorkSize=shrRoundUp(szLocalWorkSize0, (int)szLocalWorkSize);
     // rounded up to the nearest multiple of the LocalWorkSize
     size_t szGlobalWorkSize = shrRoundUp((int)szLocalWorkSize, (int)ntot);
 
@@ -271,14 +320,15 @@ int main(int argc, char** argv)
     printf("setting ntot: %d\n", ntot);
     printf("setting local work size: %lu\n", szLocalWorkSize);
     printf("setting global work size: %lu\n", szGlobalWorkSize);
+    printf("bytes global work size: %lu\n", szGlobalWorkSize*sizeof(float));
 
 
 
     //queue = clCreateCommandQueue(context, device_ids, 0, &err);
     queue = clCreateCommandQueue(context, 
                                  device_ids[devnum],
-                                 //CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 
-                                 0,
+                                 CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 
+                                 //0,
                                  &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create command queue\n");
@@ -324,8 +374,6 @@ int main(int argc, char** argv)
     clReleaseProgram(program); // no longer needed
 
 
-    printf("processing %dx%d image %d walkers %d steps nrepeat %d\n",
-           nrow,ncol,nwalkers,nsteps,nrepeat);
     double tstandard=0;
     double topencl=0;
 
@@ -336,7 +384,24 @@ int main(int argc, char** argv)
     srand48(10);
     t0=clock();
 
-    cl_float pars[NPARS]={0};
+    /*
+    if (1) {
+        for (int iwalk=0; iwalk<nwalkers; iwalk++) {
+            int widx=iwalk*6;
+            pars[widx+0] = cenrow0 + 0.01*(drand48()-0.5);
+            pars[widx+1] = cencol0 + 0.01*(drand48()-0.5);
+            pars[widx+2] = e10 + 0.01*(drand48()-0.5);
+            pars[widx+3] = e20 + 0.01*(drand48()-0.5);
+            pars[widx+4] = T0 + 0.01*(drand48()-0.5);
+            pars[widx+5] = counts0 + 0.01*(drand48()-0.5);
+        }
+    }
+    */
+
+    cl_float *pars=NULL;
+    cl_mem pars_in=NULL;
+
+    pars=calloc(npars_tot,sizeof(cl_float));
 
     // values don't matter
     cl_float psf_pars[NPARS_PSF] = {
@@ -344,6 +409,12 @@ int main(int argc, char** argv)
         0.33,-1., -1., 1.0, 0.0, 1.0,
         0.33,-1., -1., 1.0, 0.0, 1.0};
 
+    pars_in = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  
+            sizeof(cl_float)*npars_tot, pars, &err);
+    check_err(err, "could not create pars buffer");
+
+    printf("processing %dx%d image %d walkers %d steps nrepeat %d\n",
+           nrow,ncol,nwalkers,nsteps,nrepeat);
     for (int rep=0; rep<nrepeat; rep++) {
 
         // we can probably instead re-use rows so this
@@ -355,7 +426,6 @@ int main(int argc, char** argv)
         cl_float *cols=calloc(szGlobalWorkSize,sizeof(cl_float));
 
         fill_rows_cols(nwalkers, nrow, ncol, rows, cols);
-
 
         cl_mem psf_pars_in = clCreateBuffer(context,  
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*NPARS_PSF, psf_pars, &err);
@@ -389,62 +459,43 @@ int main(int argc, char** argv)
         }
 
         output = clCreateBuffer(context,  
-                CL_MEM_READ_WRITE,  sizeof(cl_float)*szGlobalWorkSize, NULL, &err);
+                CL_MEM_WRITE_ONLY,  sizeof(cl_float)*szGlobalWorkSize, NULL, &err);
         if (err != CL_SUCCESS) {
             fprintf(stderr,"could not create buffer\n");
             exit(EXIT_FAILURE);
         }
 
         err =  clSetKernelArg(kernel, 0, sizeof(cl_int), &ntot);
-        err |= clSetKernelArg(kernel, 1, sizeof(cl_int), &ncol);
-        err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &image_in);
-        err |= clSetKernelArg(kernel, 3, sizeof(cl_mem), &rows_in);
-        err |= clSetKernelArg(kernel, 4, sizeof(cl_mem), &cols_in);
-        err |= clSetKernelArg(kernel, 5, sizeof(cl_mem), &psf_pars_in);
-        err |=  clSetKernelArg(kernel, 6, sizeof(cl_mem), &output);
-        if (err != CL_SUCCESS) {
-            fprintf(stderr,"could not set kernel args\n");
-            exit(EXIT_FAILURE);
-        }
-
+        err |= clSetKernelArg(kernel, 1, sizeof(cl_int), &nrow);
+        err |= clSetKernelArg(kernel, 2, sizeof(cl_int), &ncol);
+        err |= clSetKernelArg(kernel, 3, sizeof(cl_mem), &image_in);
+        err |= clSetKernelArg(kernel, 4, sizeof(cl_mem), &rows_in);
+        err |= clSetKernelArg(kernel, 5, sizeof(cl_mem), &cols_in);
+        err |= clSetKernelArg(kernel, 6, sizeof(cl_mem), &output);
+        err |= clSetKernelArg(kernel, 7, sizeof(cl_mem), &psf_pars_in);
+        err |= clSetKernelArg(kernel, 8, sizeof(cl_mem), &pars_in); // the buffer values will change as we go
+        check_err(err, "could not set kernel args");
 
         for (int step=0; step<nsteps; step++) {
 
-            /*
-            pars[0] = cenrow0 + 0.01*(drand48()-0.5);
-            pars[1] = cencol0 + 0.01*(drand48()-0.5);
-            pars[2] = e10 + 0.01*(drand48()-0.5);
-            pars[3] = e20 + 0.01*(drand48()-0.5);
-            pars[4] = T0 + 0.01*(drand48()-0.5);
-            pars[5] = p0 + 0.01*(drand48()-0.5);
-            */
-
-            float cenrow = cenrow0 + 0.01*(drand48()-0.5);
-            float cencol = cencol0 + 0.01*(drand48()-0.5);
-            float e1 = e10 + 0.01*(drand48()-0.5);
-            float e2 = e20 + 0.01*(drand48()-0.5);
-            float T = T0 + 0.01*(drand48()-0.5);
-            float counts = counts0 + 0.01*(drand48()-0.5);
-
-            err |=  clSetKernelArg(kernel, 7, sizeof(cl_float), (void*)&cenrow);
-            err |=  clSetKernelArg(kernel, 8, sizeof(cl_float), (void*)&cencol);
-            err |=  clSetKernelArg(kernel, 9, sizeof(cl_float), (void*)&e1);
-            err |=  clSetKernelArg(kernel, 10, sizeof(cl_float), (void*)&e2);
-            err |=  clSetKernelArg(kernel, 11, sizeof(cl_float), (void*)&T);
-            err |=  clSetKernelArg(kernel, 12, sizeof(cl_float), (void*)&counts);
-            /*
-            cl_mem pars_in = clCreateBuffer(context,  
-                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*NPARS, pars, &err);
-            if (err != CL_SUCCESS) {
-                fprintf(stderr,"could not create pars buffer\n");
-                exit(EXIT_FAILURE);
+            for (int iwalk=0; iwalk<nwalkers; iwalk++) {
+                int widx=iwalk*6;
+                pars[widx+0] = cenrow0 + 0.01*(drand48()-0.5);
+                pars[widx+1] = cencol0 + 0.01*(drand48()-0.5);
+                pars[widx+2] = e10 + 0.01*(drand48()-0.5);
+                pars[widx+3] = e20 + 0.01*(drand48()-0.5);
+                pars[widx+4] = T0 + 0.01*(drand48()-0.5);
+                pars[widx+5] = counts0 + 0.01*(drand48()-0.5);
             }
-            */
-            if (err != CL_SUCCESS) {
-                fprintf(stderr,"could not set kernel pars\n");
-                exit(EXIT_FAILURE);
-            }
-
+            err= clEnqueueWriteBuffer(queue,
+                    pars_in,
+                    CL_TRUE, // blocking write
+                    0, // zero offset
+                    sizeof(cl_float)*npars_tot,
+                    pars,
+                    0, // no events to wait for
+                    NULL, // no events to wait for
+                    NULL);  // no even associated with this call
 
             err = clEnqueueNDRangeKernel(queue, 
                     kernel, 
@@ -456,12 +507,8 @@ int main(int argc, char** argv)
                     NULL, 
                     NULL);
 
-            if (err != CL_SUCCESS) {
-                fprintf(stderr,"error executing kernel\n");
-                exit(EXIT_FAILURE);
-            }
+            check_err(err,"error executing kernel");
 
-            //clReleaseMemObject(pars_in);
         }
         clReleaseMemObject(psf_pars_in);
         clReleaseMemObject(image_in);
@@ -474,6 +521,9 @@ int main(int argc, char** argv)
         free(cols);
         free(data_from_gpu);
     }
+
+    clReleaseMemObject(pars_in);
+
     t1=clock();
     topencl = ((double)(t1-t0))/CLOCKS_PER_SEC;
 
@@ -483,11 +533,10 @@ int main(int argc, char** argv)
     printf("time for GPU: %lf\n", topencl);
     printf("time per repeat: %lf\n", topencl/nrepeat);
 
-    /*
+    free(pars);
     clReleaseKernel(kernel);
     clReleaseCommandQueue(queue);
     clReleaseContext(context);
-    */
 
     return 0;
 }
