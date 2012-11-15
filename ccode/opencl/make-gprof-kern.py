@@ -2,38 +2,40 @@ import sys
 from sys import stdout
 
 
-# passing the pars array was *much* slower than passing
-# individual floats!
-_kern_head_old="""
+_kern_head="""
 #ifndef ONE_OVER_2PI
 #define ONE_OVER_2PI 0.15915494309189535
 #endif
 
 
 __kernel void gmix(int nelem, 
+                   int nrow,
                    int ncol,  
-                   __constant float *pars,  
-                   __constant float *psf_pars,  
                    __constant float *image, 
                    __constant float *rows, 
                    __constant float *cols, 
-                   global float *output)                            
+                   global float *output,
+                   __constant float *psf_pars,  
+                   __constant float *pars_all)
 {                                                                     
-   int idx = get_global_id(0);                                        
-   if (idx >= nelem)                            
-       return;                                  
+   int idx = get_global_id(0);
+   if (idx >= nelem)
+       return;
+   int iwalker=idx/(nrow*ncol);
+   int pidx=iwalker*6;
+
    float tmp=0, tmp2=0, T2i=0, pi=0;
    float icc=0, irr=0, irc=0, icc_tot=0, irr_tot=0, irc_tot=0;
-   float chi2=0, idet=0, norm=0;                                 
+   float chi2=0, idet=0, norm=0;
    float tmpi=0, psum_psf=0, ppsf=0;
-   int pidx=0;
+   int ppidx=0;
 
-   float cenrow=pars[0];
-   float cencol=pars[1];
-   float e1=pars[2];
-   float e2=pars[3];
-   float T=pars[4];
-   float counts=pars[5];
+   float cenrow=pars_all[pidx+0];
+   float cencol=pars_all[pidx+1];
+   float e1=pars_all[pidx+2];
+   float e2=pars_all[pidx+3];
+   float T=pars_all[pidx+4];
+   float counts=pars_all[pidx+5];
 
    float ome1=(1-e1);
    float ope1=(1+e1);
@@ -46,14 +48,21 @@ __kernel void gmix(int nelem,
    float v = col-cencol;                        
 """
 
+_kern_tail="""
+   tmp *= counts;
+   tmp = tmp-imval;             
+   output[idx] = -0.5*tmp*tmp;  
+} 
+"""
 
-_kern_head="""
+_kern_head_old="""
 #ifndef ONE_OVER_2PI
 #define ONE_OVER_2PI 0.15915494309189535
 #endif
 
 
 __kernel void gmix(int nelem, 
+                   int nrow,
                    int ncol,  
                    __constant float *image, 
                    __constant float *rows, 
@@ -74,7 +83,7 @@ __kernel void gmix(int nelem,
    float icc=0, irr=0, irc=0, icc_tot=0, irr_tot=0, irc_tot=0;
    float chi2=0, idet=0, norm=0;                                 
    float tmpi=0, psum_psf=0, ppsf=0;
-   int pidx=0;
+   int ppidx=0;
 
    float ome1=(1-e1);
    float ope1=(1+e1);
@@ -87,12 +96,7 @@ __kernel void gmix(int nelem,
    float v = col-cencol;                        
 """
 
-_kern_tail="""
-   tmp *= counts;
-   tmp = tmp-imval;             
-   output[idx] = -0.5*tmp*tmp;  
-} 
-"""
+
 def main():
     if len(sys.argv) < 3:
         print 'make-dev-kern.py ngauss ngauss_npsf'
@@ -157,13 +161,13 @@ def main():
 
         for ipsf in xrange(npsf):
             text="""
-            pidx = %(ipsf)s*6;
-            ppsf=psf_pars[pidx+0];
+            ppidx = %(ipsf)s*6;
+            ppsf=psf_pars[ppidx+0];
             psum_psf += ppsf;
 
-            irr_tot = irr+psf_pars[pidx+3];
-            irc_tot = irc+psf_pars[pidx+4];
-            icc_tot = icc+psf_pars[pidx+5];
+            irr_tot = irr+psf_pars[ppidx+3];
+            irc_tot = irc+psf_pars[ppidx+4];
+            icc_tot = icc+psf_pars[ppidx+5];
 
             idet = 1./(irr_tot*icc_tot - irc_tot*irc_tot);
             chi2=icc_tot*u*u + irr_tot*v*v - 2.0*irc_tot*u*v;

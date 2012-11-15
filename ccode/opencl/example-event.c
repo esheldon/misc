@@ -119,7 +119,7 @@ const char *kernel_source_old =
 // Storage for the arrays.
 static cl_mem output[NWALKERS];
 // OpenCL state
-static cl_command_queue queue;
+static cl_command_queue queues[NWALKERS];
 static cl_kernel kernel;
 
 // we expect this many
@@ -129,8 +129,8 @@ static cl_context context;
 
 static cl_platform_id platform_id;
 
-static const int nrow=32;
-static const int ncol=32;
+static const int nrow=25;
+static const int ncol=25;
 
 void compare_data(int nrow, int ncol, float *gpudata, float *cpudata)
 {
@@ -428,10 +428,13 @@ int main(int argc, char** argv)
 
 
     //queue = clCreateCommandQueue(context, device_ids, 0, &err);
-    queue = clCreateCommandQueue(context, 
-                                 device_ids[devnum],
-                                 CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 
-                                 &err);
+
+    for (int i=0; i<NWALKERS; i++) {
+        queues[i] = clCreateCommandQueue(context, 
+                                         device_ids[devnum],
+                                         CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 
+                                         &err);
+    }
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create command queue\n");
         exit(EXIT_FAILURE);
@@ -543,7 +546,7 @@ int main(int argc, char** argv)
                 }
 
                 t0enq=clock();
-                err = clEnqueueNDRangeKernel(queue, 
+                err = clEnqueueNDRangeKernel(queues[i], 
                         kernel, 
                         1, 
                         NULL, 
@@ -562,7 +565,7 @@ int main(int argc, char** argv)
             t0wait=clock();
             err=clWaitForEvents(NWALKERS, events);
             if (err != CL_SUCCESS) {
-                fprintf(stderr,"error waiting on events\n");
+                fprintf(stderr,"error waiting on walkers\n");
                 exit(EXIT_FAILURE);
             }
             t1wait += clock()-t0wait;
@@ -571,15 +574,6 @@ int main(int argc, char** argv)
                 clReleaseEvent(events[i]);
             }
 
-            // note not reading all elements
-            /*
-               err = clEnqueueReadBuffer(queue, output, CL_TRUE, 0, sizeof(cl_float)*nrow*ncol, data_from_gpu, 0, 
-               NULL, NULL );
-               if (err != CL_SUCCESS) {
-               fprintf(stderr,"error reading buffer into local\n");
-               exit(EXIT_FAILURE);
-               }
-               */
         }
         clReleaseMemObject(image_in);
     }
@@ -590,6 +584,7 @@ int main(int argc, char** argv)
 
 
     printf("time for GPU: %lf\n", topencl);
+    printf("time for GPU per: %lf\n", topencl/nrepeat);
     printf("time for wait: %lf\n", twait);
     printf("time for enq: %lf\n", tenq);
 
@@ -628,7 +623,9 @@ int main(int argc, char** argv)
         clReleaseMemObject(output[i]);
     }
     clReleaseKernel(kernel);
-    clReleaseCommandQueue(queue);
+    for (int i=0; i<NWALKERS; i++) {
+        clReleaseCommandQueue(queues[i]);
+    }
     clReleaseContext(context);
     //END CLEANUP
 
