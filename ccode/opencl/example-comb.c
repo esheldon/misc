@@ -9,14 +9,16 @@
 //simulate 3 gaussians by doing the calculations 3 times
 const char *kernel_source =
 "__kernel void gmix(int nelem, \n"
+"                   int ncol,  \n"
 "                   float cenrow, \n"
 "                   float cencol, \n"
 "                   float idet, \n"
 "                   float irr, \n"
 "                   float irc, \n"
 "                   float icc, \n"
-"                   global float *rows, \n"
-"                   global float *cols, \n"
+"                   __constant float *image, \n"
+"                   __constant float *rows, \n"
+"                   __constant float *cols, \n"
 "                   global float *output)                            \n"
 "{                                                                     \n"
 "   int idx = get_global_id(0);                                        \n"
@@ -25,6 +27,8 @@ const char *kernel_source =
 "   float tmp=0;                                 \n"
 "   float row = rows[idx];                       \n"
 "   float col = cols[idx];                       \n"
+"   int im_idx = row*ncol + col;                 \n"
+"   float imval = image[im_idx];                 \n"
 "   float u = row-cenrow;                        \n" 
 "   float v = col-cencol;                        \n"
 "   float chi2=icc*u*u + irr*v*v - 2.0*irc*u*v;  \n"
@@ -95,7 +99,8 @@ const char *kernel_source =
 
 
 "\n"
-"   output[idx] = tmp;  \n"
+"   tmp = tmp-imval;             \n"
+"   output[idx] = -0.5*tmp*tmp;  \n"
 
 "}                                                                     \n";
 //END KERNEL
@@ -109,28 +114,24 @@ const char *kernel_source_old =
 "   output[index] = exp( 0.5*log((float)index));                         \n"
 "}                                                                       \n";
 
-// Storage for the arrays.
-static cl_mem output;
-// OpenCL state
-static cl_command_queue queue;
-static cl_kernel kernel;
-static cl_device_id device_ids;
-static cl_context context;
 
-static cl_platform_id platform_id;
+// we expect this many
+#define NDEV 4
 
-static const int nrow=25;
-static const int ncol=25;
-
-void compare_data(int nrow, int ncol, float *gpudata, float *cpudata)
+void compare_data(int nwalkers, int nrow, int ncol, float *gpudata, float *cpudata)
 {
-    int ntot=nrow*ncol;
     float maxdiff=0.;
-    float diff;
-    for (int i=0; i<ntot; i++) {
-        diff=fabs( gpudata[i]-cpudata[i]);
-        if (diff > maxdiff) {
-            maxdiff=diff;
+    float diff=0;
+    for (int iwalk=0; iwalk<nwalkers; iwalk++) {
+        for (int row=0; row<nrow; row++) {
+            for (int col=0; col<ncol; col++) {
+                //printf("walk: %d row: %d col: %d diff: %g\n", iwalk,row,col,diff);
+                int idx=iwalk*nrow*ncol + row*ncol + col;
+                diff=fabs( gpudata[idx]-cpudata[idx]);
+                if (diff > maxdiff) {
+                    maxdiff=diff;
+                }
+            }
         }
     }
     printf("max diff: %.16g\n", maxdiff);
@@ -148,7 +149,8 @@ size_t shrRoundUp(int group_size, int global_size)
     }
 }
 
-void do_c_map(int nrow, 
+void do_c_map(int iwalker,
+              int nrow, 
               int ncol, 
               float cenrow,
               float cencol,
@@ -156,12 +158,16 @@ void do_c_map(int nrow,
               float irr,
               float irc,
               float icc,
-              float *data)
+              float *data, 
+              float *image)
 {
     for (int row=0; row<nrow; row++) {
         for (int col=0; col<ncol; col++) {
 
-            int idx=row*nrow + col;
+            float imval=image[row*ncol + col];
+
+            int idx=iwalker*nrow*ncol + row*ncol + col;
+
             float u = row-cenrow;
             float v = col-cencol;
             float chi2=icc*u*u + irr*v*v - 2.0*irc*u*v;
@@ -225,64 +231,82 @@ void do_c_map(int nrow,
             chi2 *= idet;
             tmp += expd( -0.5*chi2 );
 
-            data[idx] = tmp;
+            tmp = tmp-imval;
+            data[idx] = -0.5*tmp*tmp;
 
         }
     }
 }
 
+cl_float *get_new_image(int nrow, int ncol)
+{
+    cl_float *image=calloc(nrow*ncol,sizeof(cl_float));
+    for (int row=0; row<nrow; row++) {
+        for (int col=0; col<ncol; col++) {
+            image[row*ncol + col] = 3 + 0.01*drand48();
+        }
+    }
+
+    return image;
+}
+
+void fill_rows(int nwalkers, int nrow, int ncol, cl_float *rows, cl_float *cols)
+{
+    for (int iwalk=0; iwalk<nwalkers; iwalk++) {
+        for (int row=0; row<nrow; row++) {
+            for (int col=0; col<ncol; col++) {
+                int idx = iwalk*(nrow*ncol) + row*ncol + col;
+                rows[idx] = row;
+                cols[idx] = col;
+            }
+        }
+    }
+}
 //END PROFILING
 
 int main(int argc, char** argv)
 {
 
-    float cenrow=20.;
-    float cencol=20.;
-    float irr=2.;
-    float irc=0.;
-    float icc=3.;
-    float det = irr*icc - irc*irc;
-    float idet = 1./det;
+    if (argc < 5) {
+        printf("%s nrepeat docpu device\n", argv[0]);
+        exit(1);
+    }
+
+    int nrepeat=atoi(argv[1]);
+    int docpu=atoi(argv[2]);
+    int devnum=atoi(argv[3]);
+
+    // Storage for the arrays.
+    static cl_mem output;
+    // OpenCL state
+    static cl_command_queue queue;
+    //static cl_kernel kernel;
+
+    static cl_device_id device_ids[NDEV];
+    static cl_context context;
+
+    static cl_platform_id platform_id;
+
+
+
+    cl_int nrow=25;
+    cl_int ncol=25;
+    float cenrow0=12.;
+    float cencol0=12.;
+    float irr0=2.;
+    float irc0=0.;
+    float icc0=3.;
 
     int nelem=nrow*ncol;
 
-    // both 100 and 256 gave same.  Doesn't seem to matter much
-    //size_t szLocalWorkSize = 10;
-    //size_t szLocalWorkSize = 256;
-    //size_t szLocalWorkSize = 1024;
-
-    //size_t szLocalWorkSize = 64;
-    //size_t szGlobalWorkSize = shrRoundUp((int)szLocalWorkSize, (int)(nrow*ncol));  // rounded up to the nearest multiple of the LocalWorkSize
-    size_t szLocalWorkSize = nrow;
-    size_t szGlobalWorkSize = shrRoundUp((int)szLocalWorkSize, (int)(nrow*ncol));  // rounded up to the nearest multiple of the LocalWorkSize
-
-    printf("nelem: %d\n", nelem);
-    printf("local work size: %lu\n", szLocalWorkSize);
-    printf("global work size: %lu\n", szGlobalWorkSize);
-
-
-    cl_float *data_from_gpu = calloc(szGlobalWorkSize, sizeof(cl_float));
-    cl_float *data_from_cpu = calloc(nrow*ncol, sizeof(cl_float));
-
-    cl_float *rows=calloc(szGlobalWorkSize,sizeof(cl_float));
-    cl_float *cols=calloc(szGlobalWorkSize,sizeof(cl_float));
-    for (int row=0; row<nrow; row++) {
-        for (int col=0; col<ncol; col++) {
-            rows[row*nrow + col] = row;
-            cols[row*nrow + col] = col;
-        }
-    }
-
-
+    int nwalkers=20;
+    int ntot=nrow*ncol*nwalkers;
 
     cl_uint numPlatforms;
     cl_int err = CL_SUCCESS;
 
     clock_t t0,t1;
-    int numiter=8000;
-    //int nrepeat=2000;
-    //int numiter=100;
-    int nrepeat=200;
+    int nsteps=600;
 
     int device_type=0;
     if (1) {
@@ -334,20 +358,105 @@ int main(int argc, char** argv)
     //END CONTEXT
 
     int num_devices=0;
-    err = clGetDeviceIDs(platform_id, device_type, 1, &device_ids, &num_devices);
+    err = clGetDeviceIDs(platform_id, device_type, NDEV, device_ids, &num_devices);
     fprintf(stderr,"found %d devices\n", num_devices);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not get device ids\n");
         exit(EXIT_FAILURE);
     }
+    if (NDEV != num_devices) {
+        printf("expected %d devices\n", NDEV);
+        exit(1);
+    }
 
+    //int devnum=-1;
+    for (int i=0; i<num_devices; i++) {
+        size_t len=0;
+        cl_uint avail=0;
+        cl_uint id=0;
+        
+        clGetDeviceInfo(device_ids[i], CL_DEVICE_AVAILABLE, sizeof(cl_uint), &avail, &len);
+        clGetDeviceInfo(device_ids[i], CL_DEVICE_VENDOR_ID, sizeof(cl_uint), &id, &len);
+        printf("device #: %d id: %d avail: %d\n", i, id, avail);
+        /*
+        if (avail && devnum==-1) {
+            //devnum=i;
+            //break;
+        }
+        */
+    }
+    /*
+    if (devnum==-1) {
+        printf("no available devices\n");
+        exit(1);
+    }
+    */
+    printf("choosing device %d\n", devnum);
+
+    cl_program program = clCreateProgramWithSource(context, 1, &kernel_source , NULL, &err);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr,"could not create program\n");
+        exit(EXIT_FAILURE);
+    }
+
+
+
+
+    size_t len;
+    char buffer[2048];
+    clGetProgramBuildInfo(program, device_ids[devnum], CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+
+    clGetDeviceInfo(device_ids[devnum], CL_DEVICE_NAME, sizeof(buffer), buffer, &len);
+    cl_ulong memsize;
+    clGetDeviceInfo(device_ids[devnum], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_ulong), &memsize, &len);
+    cl_uint nunits;
+    clGetDeviceInfo(device_ids[devnum], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &nunits, &len);
+    cl_ulong max_work_group_size;
+    clGetDeviceInfo(device_ids[devnum], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(cl_ulong), &max_work_group_size, &len);
+    //cl_uint warp_size;
+    //clGetDeviceInfo(device_ids[devnum], CL_NV_DEVICE_WARP_SIZE, sizeof(cl_uint), &warp_size, &len);
+     
+    printf("CL_DEVICE_NAME:                    '%s'\n", buffer);
+    printf("CL_DEVICE_GLOBAL_MEM_SIZE:          %lu\n", memsize);
+    // compute unit is a lump of hardware that executes 'work groups'
+    printf("CL_DEVICE_MAX_COMPUTE_UNITS:        %u\n", nunits);
+    // max number of items per work group
+    printf("CL_DEVICE_MAX_WORK_GROUP_SIZE: %lu\n", max_work_group_size);
+    //printf("CL_NV_DEVICE_WARP_SIZE:             %u\n", warp_size);
+
+    size_t szLocalWorkSize = nrow;
+    //size_t szLocalWorkSize = 512;
+    // make sure multiple of 32
+    szLocalWorkSize=shrRoundUp((int)256, (int)szLocalWorkSize);
+    // rounded up to the nearest multiple of the LocalWorkSize
+    size_t szGlobalWorkSize = shrRoundUp((int)szLocalWorkSize, (int)ntot);
+
+    printf("nrow: %d\n", nrow);
+    printf("ncol %d\n", ncol);
+    printf("setting nelem: %d\n", nelem);
+    printf("setting ntot: %d\n", ntot);
+    printf("setting local work size: %lu\n", szLocalWorkSize);
+    printf("setting global work size: %lu\n", szGlobalWorkSize);
+
+
+    cl_float *data_from_gpu = calloc(szGlobalWorkSize, sizeof(cl_float));
+    cl_float *data_from_cpu = calloc(szGlobalWorkSize, sizeof(cl_float));
+
+    cl_float *rows=calloc(szGlobalWorkSize,sizeof(cl_float));
+    cl_float *cols=calloc(szGlobalWorkSize,sizeof(cl_float));
+
+    fill_rows(nwalkers, nrow, ncol, rows, cols);
 
     //queue = clCreateCommandQueue(context, device_ids, 0, &err);
-    queue = clCreateCommandQueue(context, device_ids,CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err);
+    queue = clCreateCommandQueue(context, 
+                                 device_ids[devnum],
+                                 CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 
+                                 &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create command queue\n");
         exit(EXIT_FAILURE);
     }
+
 
     cl_mem rows_in = clCreateBuffer(context,  
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, rows, &err);
@@ -364,34 +473,12 @@ int main(int argc, char** argv)
 
     // we copy because we want the memory to be zerod
     // read-write because we will reduce it!
-    //output = clCreateBuffer(context,  
-    //        CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, data_from_gpu, &err);
     output = clCreateBuffer(context,  
-            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*szGlobalWorkSize, data_from_gpu, &err);
+            CL_MEM_READ_WRITE,  sizeof(cl_float)*szGlobalWorkSize, NULL, &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr,"could not create buffer\n");
         exit(EXIT_FAILURE);
     }
-
-    // true here is for blocking write,0 for 0 offset. End stuff is event oriented
-    /*
-    err=clEnqueueWriteBuffer(queue,rows_in,CL_TRUE,0,(size_t)(sizeof(float)*nrow*ncol),rows,0,NULL,NULL);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not copy rows\n");
-        exit(EXIT_FAILURE);
-    }
-    err=clEnqueueWriteBuffer(queue,cols_in,CL_TRUE,0,(size_t)(sizeof(float)*nrow*ncol),cols,0,NULL,NULL);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not copy cols\n");
-        exit(EXIT_FAILURE);
-    }
-    */
-    cl_program program = clCreateProgramWithSource(context, 1, &kernel_source , NULL, &err);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr,"could not create program\n");
-        exit(EXIT_FAILURE);
-    }
-
 
     //OPTIMIZATION OPTIONS FOUND AT http://www.khronos.org/registry/cl/sdk/1.0/docs/man/xhtml/clBuildProgram.html
 
@@ -402,19 +489,6 @@ int main(int argc, char** argv)
     }
 
 
-    size_t len;
-    char buffer[2048];
-    clGetProgramBuildInfo(program, device_ids, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
-
-    clGetDeviceInfo(device_ids, CL_DEVICE_NAME, sizeof(buffer), buffer, &len);
-    cl_ulong memsize;
-    clGetDeviceInfo(device_ids, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_ulong), &memsize, &len);
-    cl_uint nunits;
-    clGetDeviceInfo(device_ids, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &nunits, &len);
-     
-    printf("device name:  '%s'\n", buffer);
-    printf("memory:        %lu\n", memsize);
-    printf("compute units: %u\n", nunits);
 
     //SETUP KERNEL
     cl_kernel kernel = clCreateKernel(program, "gmix", &err);
@@ -427,96 +501,146 @@ int main(int argc, char** argv)
     clReleaseProgram(program); // no longer needed
 
 
-    printf("processing %dx%d image %d times with %d repeats\n",
-           nrow,ncol,numiter,nrepeat);
+    printf("processing %dx%d image %d walkers %d steps nrepeat %d\n",
+           nrow,ncol,nwalkers,nsteps,nrepeat);
     double tstandard=0;
     double topencl=0;
-    for (int repeat=0; repeat<nrepeat; repeat++) {
-        t0=clock();
-        err =  clSetKernelArg(kernel, 0, sizeof(cl_int), (void*)&nelem);
-        err |=  clSetKernelArg(kernel, 1, sizeof(cl_float), (void*)&cenrow);
-        err |=  clSetKernelArg(kernel, 2, sizeof(cl_float), (void*)&cencol);
-        err |=  clSetKernelArg(kernel, 3, sizeof(cl_float), (void*)&idet);
-        err |=  clSetKernelArg(kernel, 4, sizeof(cl_float), (void*)&irr);
-        err |=  clSetKernelArg(kernel, 5, sizeof(cl_float), (void*)&irc);
-        err |=  clSetKernelArg(kernel, 6, sizeof(cl_float), (void*)&icc);
 
-        err |= clSetKernelArg(kernel, 7, sizeof(cl_mem), &rows_in);
-        err |= clSetKernelArg(kernel, 8, sizeof(cl_mem), &cols_in);
-        err |= clSetKernelArg(kernel, 9, sizeof(cl_mem), &output);
+    err =  clSetKernelArg(kernel, 0, sizeof(cl_int), &ntot);
+    err |= clSetKernelArg(kernel, 1, sizeof(cl_int), &ncol);
+
+
+    err |= clSetKernelArg(kernel, 9, sizeof(cl_mem), &rows_in);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr,"could not set rows arg\n");
+        exit(EXIT_FAILURE);
+    }
+    err |= clSetKernelArg(kernel, 10, sizeof(cl_mem), &cols_in);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr,"could not set cols arg\n");
+        exit(EXIT_FAILURE);
+    }
+    err |=  clSetKernelArg(kernel, 11, sizeof(cl_mem), &output);
+    if (err != CL_SUCCESS) {
+        fprintf(stderr,"could not set output arg\n");
+        exit(EXIT_FAILURE);
+    }
+    if (err != CL_SUCCESS) {
+        fprintf(stderr,"could not set kernel args\n");
+        exit(EXIT_FAILURE);
+    }
+
+    cl_float *image=get_new_image(nrow,ncol);
+
+    srand48(10);
+    t0=clock();
+    for (int rep=0; rep<nrepeat; rep++) {
+
+        // each repeat represents pushing a new image in
+        err=0;
+        cl_mem image_in = clCreateBuffer(context,  
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  sizeof(cl_float)*nrow*ncol, image, &err);
+        err |= clSetKernelArg(kernel, 8, sizeof(cl_mem), &image_in);
         if (err != CL_SUCCESS) {
-            fprintf(stderr,"could not set kernel args\n");
+            fprintf(stderr,"could not create image buffer\n");
             exit(EXIT_FAILURE);
         }
-        /*
-        err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &output);
-        err |=  clSetKernelArg(kernel, 1, sizeof(cl_int), (void*)&nelem);
-        if (err != CL_SUCCESS) {
-            fprintf(stderr,"could not set kernel args\n");
-            exit(EXIT_FAILURE);
-        }
-        */
 
+        for (int step=0; step<nsteps; step++) {
 
-        //END KERNEL
+            float cenrow = cenrow0 + 0.01*(drand48()-0.5);
+            float cencol = cencol0 + 0.01*(drand48()-0.5);
+            float irr = irr0+0.01*(drand48()-0.5);
+            float irc = irc0+0.01*(drand48()-0.5);
+            float icc = icc0+0.01*(drand48()-0.5);
+            float det = irr*icc - irc*irc;
+            float idet = 1./det;
 
-        // leaving local work size alone
-        for (size_t iter=0; iter<numiter; iter++) {
-            err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &szGlobalWorkSize, &szLocalWorkSize, 0, NULL, NULL);
+            // a copy of the kernel is made each time, so we can add new arguments
+            err |=  clSetKernelArg(kernel, 2, sizeof(cl_float), (void*)&cenrow);
+            err |=  clSetKernelArg(kernel, 3, sizeof(cl_float), (void*)&cencol);
+            err |=  clSetKernelArg(kernel, 4, sizeof(cl_float), (void*)&idet);
+            err |=  clSetKernelArg(kernel, 5, sizeof(cl_float), (void*)&irr);
+            err |=  clSetKernelArg(kernel, 6, sizeof(cl_float), (void*)&irc);
+            err |=  clSetKernelArg(kernel, 7, sizeof(cl_float), (void*)&icc);
+
+            if (err != CL_SUCCESS) {
+                fprintf(stderr,"could not set step kernel args\n");
+                exit(EXIT_FAILURE);
+            }
+
+            err = clEnqueueNDRangeKernel(queue, 
+                    kernel, 
+                    1, 
+                    NULL, 
+                    &szGlobalWorkSize, 
+                    &szLocalWorkSize, 
+                    0, 
+                    NULL, 
+                    NULL);
+
             if (err != CL_SUCCESS) {
                 fprintf(stderr,"error executing kernel\n");
                 exit(EXIT_FAILURE);
             }
-        }
 
-        // not not reading all elements
-        err = clEnqueueReadBuffer(queue, output, CL_TRUE, 0, sizeof(cl_float)*nrow*ncol, data_from_gpu, 0, NULL, NULL );
+        }
+        clReleaseMemObject(image_in);
+    }
+    t1=clock();
+    topencl = ((double)(t1-t0))/CLOCKS_PER_SEC;
+
+
+    printf("time for GPU: %lf\n", topencl);
+    printf("time per repeat: %lf\n", topencl/nrepeat);
+
+    if (docpu) {
+        printf("doing cpu\n");
+        srand48(10);
+        t0=clock();
+        for (int rep=0; rep<nrepeat; rep++) {
+            for (int step=0; step<nsteps; step++) {
+                float cenrow = cenrow0 + 0.01*(drand48()-0.5);
+                float cencol = cencol0 + 0.01*(drand48()-0.5);
+                float irr = irr0+0.01*(drand48()-0.5);
+                float irc = irc0+0.01*(drand48()-0.5);
+                float icc = icc0+0.01*(drand48()-0.5);
+                float det = irr*icc - irc*irc;
+                float idet = 1./det;
+
+                for (int iwalk=0; iwalk<nwalkers; iwalk++) {
+                    do_c_map(iwalk, nrow, ncol, cenrow, cencol, idet, irr, irc, icc, data_from_cpu,image);
+                }
+            }
+
+        }
+        t1=clock();
+        tstandard += ((double)(t1-t0))/CLOCKS_PER_SEC;
+        printf("time for CPU: %lf\n", tstandard);
+        printf("time per repeat: %lf\n", tstandard/nrepeat);
+        printf("opencl was %.16g times faster\n", tstandard/topencl);
+
+
+        err = clEnqueueReadBuffer(queue, output, CL_TRUE, 0, sizeof(cl_float)*szGlobalWorkSize, data_from_gpu, 0, 
+                NULL, NULL );
         if (err != CL_SUCCESS) {
             fprintf(stderr,"error reading buffer into local\n");
             exit(EXIT_FAILURE);
         }
 
-        t1=clock();
-        topencl += ((double)(t1-t0))/CLOCKS_PER_SEC;
 
-        /*
-        for (int row=cenrow-2; row<cenrow+2; row++) {
-            for (int col=cencol-2; col<cencol+2; col++) {
-                printf("VALUE AT [%d,%d]:\t %.16g\n", row, col, data_from_gpu[row*nrow + col]);
-            }
-        }
-        */
-
-        t0=clock();
-        for (size_t iter=0; iter<numiter; iter++) {
-            do_c_map(nrow, ncol, cenrow, cencol, idet, irr, irc, icc, data_from_cpu);
-        }
-        t1=clock();
-        tstandard += ((double)(t1-t0))/CLOCKS_PER_SEC;
+        compare_data(nwalkers, nrow, ncol, data_from_gpu, data_from_cpu);
     }
-    printf("time for GPU: %lf\n", topencl);
-    printf("time for C loop: %lf\n", tstandard);
-    printf("opencl was %.16g times faster\n", tstandard/topencl);
-    /*
-    for (int row=cenrow-2; row<cenrow+2; row++) {
-        for (int col=cencol-2; col<cencol+2; col++) {
-            printf("VALUE AT [%d,%d]:\t %.16g\n", row, col, data_from_cpu[row*nrow + col]);
-        }
-    }
-    */
 
 
 
-    compare_data(nrow, ncol, data_from_gpu, data_from_cpu);
-
-    //BEGIN CLEANUP
+    free(image);
     clReleaseMemObject(rows_in);
     clReleaseMemObject(cols_in);
     clReleaseMemObject(output);
     clReleaseKernel(kernel);
     clReleaseCommandQueue(queue);
     clReleaseContext(context);
-    //END CLEANUP
 
     return 0;
 }
