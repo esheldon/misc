@@ -14,6 +14,8 @@ alias astrox='ssh -x esheldon@astro.physics.nyu.edu'
 alias bias='ssh esheldon@bias.cosmo.fas.nyu.edu'
 alias biasx='ssh -x esheldon@bias.cosmo.fas.nyu.edu'
 
+alias webfaction='ssh esheldon.webfactional.com'
+
 alias treebeard='ssh esheldon@192.168.127.108'
 
 alias des='ssh esheldon@deslogin.cosmology.illinois.edu'
