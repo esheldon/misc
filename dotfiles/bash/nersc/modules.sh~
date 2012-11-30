@@ -17,7 +17,7 @@ module load numpy-hpcp
 module load scipy-hpcp
 
 # my privatemodules
-module load esutil/local
+module load esutil-ess/local
 
 # this is for the module-install script
 export MODULE_INSTALLS=/global/project/projectdirs/des/wl/modules/${hname}/module-installs

@@ -16,6 +16,8 @@ module load python-hpcp
 module load numpy-hpcp
 module load scipy-hpcp
 
+module load git
+
 # my privatemodules
 module load esutil-ess/local
 
