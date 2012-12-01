@@ -59,14 +59,15 @@ function connect
 
     if [[ "$alltunnels" == "yes" ]]; then
 		echo "Setting up all tunnels"
+        #ssh -f -N -p 22 -c 3des "${username}@${fullhost}" \
+        #        -L 3128:rlnx00.rhic.bnl.gov:3127 -
         ssh -f -N -p 22 -c 3des "${username}@${fullhost}" \
-                -L 3128:rlnx00.rhic.bnl.gov:3127 -
+                -L 3128:130.199.23.54:3128 \
+				-L 1631/cups.phy.bnl.gov/631
         
 
         ssh -f -N -p 22 -c 3des "${username}@${rsshfullhost}" \
-				-L 3129/192.168.1.130/3129 - \
-				-L 1389/ldap.bnl.gov/389 \
-				-L 1631/cups.phy.bnl.gov/631
+				-L 3129/192.168.1.130/3129
         setproxy
 	fi
 }
