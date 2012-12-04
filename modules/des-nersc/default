@@ -4,6 +4,8 @@
 module-whatis	"des data locations at nersc"
 conflict des-nersc
 
+# this is set in the global rc files
+eval set [ array get env NERSC_HOST ]
 
 set DESROOT /global/project/projectdirs/des
 set DESDATA $DESROOT/wl/DES
