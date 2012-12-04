@@ -1,0 +1,30 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"des data locations at nersc"
+conflict des-nersc
+
+
+set DESROOT /global/project/projectdirs/des
+set DESDATA $DESROOT/wl/DES
+set DES_MODULES_ROOT $DESROOT/wl/modules/$NERSC_HOST
+
+setenv DESROOT $DESROOT
+setenv DESDATA $DESDATA
+setenv DES_MODULES_ROOT $DES_MODULES_ROOT 
+
+setenv DESREMOTE ftp://desar.cosmology.illinois.edu/DESFiles/desardata/DES
+
+setenv DES_MODULES $DES_MODULES_ROOT/modulefiles
+setenv DES_MODULES_CONFIG $DES_MODULES_ROOT/install-config
+
+# this is for the module-install script
+setenv MODULE_INSTALLS $DES_MODULES_ROOT/module-installs
+
+# what file system is the default?  nfs at nersc, hdfs at bnl
+setenv DES_DEFAULT_FS nfs
+setenv DES_SCRATCH $DESDATA/scratch
+
+# location of file lists for input to codes. Derived from
+# the database
+setenv DES_FILE_LISTS $DESDATA/file-lists
