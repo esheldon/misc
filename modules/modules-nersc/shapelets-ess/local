@@ -1,19 +1,20 @@
 #%Module
 # vim: set filetype=tcl :
 
-module-whatis	"WL, local install"
-conflict wl
+module-whatis	"SHAPELETS, local install"
+conflict shapelets
 
 eval set [ array get env HOME ]
 
-set WL_DIR $HOME/exports/wl-local
+set SHAPELETS_DIR $HOME/exports/shapelets-local
 
-prepend-path PATH            $WL_DIR/bin
-prepend-path LD_LIBRARY_PATH $WL_DIR/lib
-prepend-path LIBRARY_PATH    $WL_DIR/lib
-prepend-path C_INCLUDE_PATH  $WL_DIR/include
-prepend-path CPATH           $WL_DIR/include
+prepend-path PATH            $SHAPELETS_DIR/bin
+prepend-path LD_LIBRARY_PATH $SHAPELETS_DIR/lib
+prepend-path LIBRARY_PATH    $SHAPELETS_DIR/lib
+prepend-path C_INCLUDE_PATH  $SHAPELETS_DIR/include
+prepend-path CPATH           $SHAPELETS_DIR/include
 
-prepend-path PYTHONPATH      $WL_DIR/lib/python2.7/site-packages
+prepend-path PYTHONPATH      $SHAPELETS_DIR/lib/python2.7/site-packages
 
-setenv WL_DIR $WL_DIR
+setenv SHAPELETS_DIR $SHAPELETS_DIR
+setenv SHAPELETS_VERS local

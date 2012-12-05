@@ -66,7 +66,7 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
 
     module unload esutil && module load esutil-ess/local
 
-    module unload wl-ess && module load wl-ess/local   # *
+    module unload shapelets-ess && module load shapelets-ess/local   # *
 
     #module load recfile    # *
 
