@@ -61,10 +61,12 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
 
 
     module load fitsio-ess/local
+    module load cfitsio-ess/3310
+    module load ccfits-ess/2.4
 
     module unload esutil && module load esutil-ess/local
 
-    #module unload wl-ess && module load wl-ess/local   # *
+    module unload wl-ess && module load wl-ess/local   # *
 
     #module load recfile    # *
 
