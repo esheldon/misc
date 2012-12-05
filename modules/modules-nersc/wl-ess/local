@@ -4,11 +4,6 @@
 module-whatis	"WL, local install"
 conflict wl
 
-prereq tmv
-prereq ccfits
-prereq esutil
-prereq desfiles
-
 eval set [ array get env HOME ]
 
 set WL_DIR $HOME/exports/wl-local
