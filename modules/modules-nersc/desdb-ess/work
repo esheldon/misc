@@ -12,3 +12,4 @@ prepend-path PATH $DESDB_DIR/bin
 prepend-path PYTHONPATH $DESDB_DIR/lib/python2.7/site-packages/
 
 setenv DESDB_DIR $DESDB_DIR
+setenv DESDB_VERS work
