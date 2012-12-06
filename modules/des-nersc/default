@@ -35,3 +35,6 @@ setenv DES_SCRATCH $DESDATA/scratch
 # location of file lists for input to codes. Derived from
 # the database
 setenv DES_FILE_LISTS $DESDATA/file-lists
+
+
+

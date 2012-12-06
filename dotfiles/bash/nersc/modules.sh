@@ -46,6 +46,10 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
 
     module load desoracle
     module load desdb-ess/local
+    module load deswl-ess/local
+
+    # local git checkout
+    module load deswl-checkout/local
 
     #module load desfiles
     #module load des # create this
