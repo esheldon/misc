@@ -34,19 +34,20 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
     module load ipython-hpcp
     #module load pyyaml-hpcp
 
-    module load cfitsio-hpcp
+    #module load cfitsio-hpcp
     #module load ccfits-hpcp
 
     #
     # des module installs
     #
 
+    module load pyyaml
     module load libaio                          # * for oracle
     module unload tmv && module load tmv/0.71   # *
 
     module load desoracle
-    module load desdb-ess/local
-    module load deswl-ess/local
+    module load desdb/local
+    module load deswl/local
 
     # local git checkout
     module load deswl-checkout/local
@@ -62,15 +63,16 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
     module load shell_scripts
     module unload espy && module load espy/local
 
-
-
+    # need to move away from fitsio-ess
     module load fitsio-ess/local
+
+    # -ess required because of missing include paths in hpcp stuff
     module load cfitsio-ess/3310
     module load ccfits-ess/2.4
 
-    module unload esutil && module load esutil-ess/local
+    module load esutil/local
 
-    module unload shapelets-ess && module load shapelets-ess/local   # *
+    module load shapelets/local   # *
 
     #module load recfile    # *
 
@@ -88,5 +90,6 @@ elif [[ $hname == "datatran" ]]; then
     module load shell_scripts
     module load parallel
     module load espy/local
+    # need this case modules not avail on dtn*
     module load desdb-ess/local
 fi
