@@ -18,6 +18,7 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
     module load gcc
     module load mkl                             # needed for numpy/lapack
     module load git
+    module load openmpi-gnu
 
     #
     # the special hpcp line
@@ -37,6 +38,7 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
     #module load cfitsio-hpcp
     #module load ccfits-hpcp
 
+
     #
     # des module installs
     #
@@ -46,14 +48,16 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
     module unload tmv && module load tmv/0.71   # *
 
     module load desoracle
-    module load desdb/local
-    module load deswl/local
+    module unload desdb && module load desdb/local
+    module unload deswl && module load deswl/local
 
     # local git checkout
     module load deswl-checkout/local
 
-    #module load desfiles
-    #module load des # create this
+    module load plotutils
+    module load biggles
+
+    module load mkl-des
 
     #
     # installs in my home
@@ -70,9 +74,9 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
     module load cfitsio-ess/3310
     module load ccfits-ess/2.4
 
-    module load esutil/local
+    module unload esutil && module load esutil/local
 
-    module load shapelets/local   # *
+    module unload shapelets && module load shapelets/local   # *
 
     #module load recfile    # *
 
