@@ -1,0 +1,17 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"ccfits"
+conflict ccfits 
+
+eval set [ array get env HOME ]
+
+set CCFITS_DIR $HOME/exports/ccfits-2.4
+
+prepend-path LD_LIBRARY_PATH $CCFITS_DIR/lib
+prepend-path LIBRARY_PATH    $CCFITS_DIR/lib
+prepend-path C_INCLUDE_PATH  $CCFITS_DIR/include
+prepend-path CPATH           $CCFITS_DIR/include
+
+setenv CCFITS_DIR $CCFITS_DIR
+

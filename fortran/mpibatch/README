@@ -1,0 +1,33 @@
+Author: peter nugent, LBL  slight modifications Erin Sheldon, BNL
+
+ESS: See runit2 and namelist for how I run it.  I generate the namelist ahead
+of time and don't use cmd(1) but cmd=
+
+An example of how to split up individual shell commands, perhaps shell scripts,
+serial codes, etc. so that they are run in parallel over a system that
+has MPI.
+
+The code uses freeform F95 as well as perl, make sure you have the options
+set up right for the machine you are on. 
+
+To make the mpibatch code:
+
+make
+
+In the example batch script, runit, you will notice that you need the 
+mpibatch code as well as mknamelist.pl
+
+The commands are in an ascii file, here script.tot, which is then
+converted into a fortran namelist vis the perl scipt mknamelist.pl and
+moved to a mknamelist file, here script.JOB_ID_NUMBER. Then we put the
+name of this file into the temporary file file.JOB_ID_NUMBER that is
+read by the code mpibatch. It assumes that there are < 10000 total
+commands and that each command is < 150 characters.  You can of course
+edit this to be as big/small as you want in the fortran code.
+
+These commands are read by the master processor, which then spits them out
+to the slaves via simple send-receive commands. As each processor finishes a
+command, it asks for another until the list is exhausted.
+
+On carver.nersc.gov use the runit file, modified with your repo and wherever 
+you stick this code for the directory.

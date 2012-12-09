@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [[ $# -lt 1 ]]; then
+    echo "nersc-install module [vers]"
+    exit 1
+fi
+
+module=$1
+# vers can be empty
+vers=$2
+
+MODULESHOME=$DES_MODULES_ROOT module-install $module $vers
