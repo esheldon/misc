@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"sh"
+conflict sh
+
+eval set  [ array get env HOME ]
+
+set SH_DIR $HOME/exports/sh-1.07
+
+prepend-path PYTHONPATH $SH_DIR/lib/python2.7/site-packages/
+
+setenv SH_DIR $SH_DIR
+

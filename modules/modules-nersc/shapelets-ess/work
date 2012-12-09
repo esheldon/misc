@@ -1,0 +1,13 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"SHAPELETS, untagged work runs"
+conflict shapelets
+
+eval set [ array get env HOME ]
+
+set SHAPELETS_DIR $HOME/exports/shapelets-work
+
+# this will force us to give full path to executables
+setenv SHAPELETS_DIR $SHAPELETS_DIR
+setenv SHAPELETS_VERS work

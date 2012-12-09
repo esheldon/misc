@@ -38,6 +38,7 @@ if [[ $check == "" ]]; then
     module load ccfits     # *
 
     module load emcee
+    module load acor
 
     # these are under my ~/privatemodules
     # and installed generally under ~/exports
@@ -76,7 +77,7 @@ if [[ $check == "" ]]; then
 
     # prereq: ccfits, tmv, desfiles, esutil
     # also numpy if not using system
-    module unload wl && module load wl/local   # *
+    module unload wl-ess && module load wl-ess/local   # *
 
     module load galsim/local
 
