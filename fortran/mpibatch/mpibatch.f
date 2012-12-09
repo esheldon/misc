@@ -40,12 +40,11 @@
 !        master initializes and then dispatches         
 !
          do i = 1, ncr
-          blk(i:i) = ' '
+            blk(i:i) = ' '
          end do  
 
          cmd = blk
 
-         !read(*,*) filename
          read(*,'(a)') filename
 
          write(*,*)"filename: ",filename
@@ -115,17 +114,16 @@
          
 
          if (status(MPI_TAG) == 0) then
-            go to 200
-
+             go to 200
          else
 
-	    j = status(MPI_TAG)
+             j = status(MPI_TAG)
 
-            call system(trim(cmdex))
+             call system(trim(cmdex))
 
-            call MPI_SEND(done, 4, MPI_CHARACTER, master, &
-                          j, MPI_COMM_WORLD, ierr)
-            go to 90
+             call MPI_SEND(done, 4, MPI_CHARACTER, master, &
+                           j, MPI_COMM_WORLD, ierr)
+             go to 90
          endif
 
  200     continue
