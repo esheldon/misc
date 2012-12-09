@@ -4,11 +4,6 @@
 module-whatis	"SHAPELETS, untagged work runs"
 conflict shapelets
 
-prereq tmv
-prereq ccfits
-prereq esutil
-prereq desfiles
-
 eval set [ array get env HOME ]
 
 set SHAPELETS_DIR $HOME/exports/shapelets-work

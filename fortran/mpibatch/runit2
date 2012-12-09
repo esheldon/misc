@@ -1,0 +1,11 @@
+#!/bin/bash
+#PBS -S /bin/bash
+#PBS -N car_test
+#PBS -j eo 
+#PBS -l nodes=2:ppn=8,walltime=00:01:00
+#PBS -q debug
+#PBS -A des
+
+cd $PBS_O_WORKDIR
+
+echo namelist.txt |  mpirun -np 16 ./mpibatch

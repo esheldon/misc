@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -S /bin/bash
+#PBS -N car_test
+#PBS -j eo 
+#PBS -l nodes=2:ppn=8,walltime=00:01:00
+#PBS -q debug
+#PBS -A des
+
+JOB_ID=`echo $PBS_JOBID | /usr/bin/perl -p -e "s/\D*//g;"`
+
+nml='script.'${JOB_ID}
+file='file.'${JOB_ID}
+
+echo $nml
+echo $file
+echo ${JOB_ID}
+
+cd $PBS_O_WORKDIR
+
+echo $nml > $file 
+./mknamelist.pl script.tot > $nml 
+mpirun -np 16 ./mpibatch < $file
+
+rm $nml $file 
