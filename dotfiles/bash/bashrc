@@ -8,6 +8,8 @@
 # use vi commands on the prompt
 set -o vi
 # shells append to history, don't overwrite
+export HISTSIZE=1000000
+export HISTFILESIZE=1000000
 shopt -s histappend
 
 export PAGER='less -R'
