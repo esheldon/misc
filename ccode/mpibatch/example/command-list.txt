@@ -3,10 +3,12 @@
 ./example/script.run3
 ./example/script.run4
 ./example/script.run5
+echo hello world with blanks
 ./example/script.run6
 ./example/script.run7
 ./example/script.run8
 ./example/script.run9
+
 ./example/script.run10
 ./example/script.run11
 ./example/script.run12
