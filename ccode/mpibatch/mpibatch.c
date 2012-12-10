@@ -1,3 +1,16 @@
+/*
+
+   Read and execute commands from standard input, one per line.
+
+   Examples for 4 processes
+
+   Read commands from a file
+     mpirun -np 4 mpibatch < list-of-commands.txt
+
+   Run all shell scripts in the current directory
+     ls *.sh | mpirun -np 4 mpibatch
+
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
@@ -6,110 +19,102 @@
 #define SEND_DATA_TAG 2001
 #define RETURN_DATA_TAG 2002
 #define DONE_TAG 0
+#define MASTER 0
 
+int run_master(int n_workers)
+{
+    //char command[MAX_NAME_SIZE]={0};
+    char *command=NULL;
+    size_t size=0;
+    int worker=0, ierr=0, imess=0; // dummy
+    MPI_Status status;
+
+    int nrunning=0;
+    int nread=getline(&command,&size,stdin);
+    int have_command=(nread>0);
+    while (have_command || nrunning > 0) {
+
+        if (nread > MAX_NAME_SIZE) {
+            fprintf(stderr,"command too long: %d\n", nread);
+            break;
+        }
+        command[nread-1]='\0';  // nread-1 is the newline
+        if (!have_command || nrunning >= (n_workers)) {
+            // either no commands left or the queue is full
+            ierr = MPI_Recv(&imess, 1, MPI_INT, MPI_ANY_SOURCE, 
+                            MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            worker = status.MPI_SOURCE;
+            nrunning--;
+
+            // if we are out of commands, tell this worker we are done
+            if (!have_command) {
+                ierr = MPI_Send("nothing", 8, MPI_CHAR, worker, DONE_TAG,
+                                MPI_COMM_WORLD);
+            }
+        } else {
+            // yet to use all workers: send to next in order
+            worker += 1;
+        }
+        if (have_command) {
+            ierr = MPI_Send(command, nread, MPI_CHAR, worker,
+                            SEND_DATA_TAG, MPI_COMM_WORLD);
+            nrunning++;
+
+            nread=getline(&command,&size,stdin);
+            have_command=(nread>0);
+        }
+    }
+    free(command);
+    return ierr;
+}
+
+int run_worker() {
+    char command[MAX_NAME_SIZE]={0};
+    MPI_Status status;
+    int ierr=0, imess=0; // imess is dummy
+    while (1) {
+        ierr = MPI_Recv(command, MAX_NAME_SIZE, MPI_CHAR, MASTER,
+                MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+        if (status.MPI_TAG==DONE_TAG) {
+            break;
+        }
+
+        system(command);
+
+        ierr = MPI_Send(&imess, 1, MPI_INT, MASTER, DONE_TAG,
+                MPI_COMM_WORLD);
+    }
+    return ierr;
+}
 int main(int argc, char **argv)
 {
-
-    char command[MAX_NAME_SIZE]={0};
-    int ierr=0, this_id=0, n_procs=0;
-    int worker=0;
-    int nrunning=0;
-    int imess=0; // dummy
-    int master=0;
-    MPI_Status status;
+    int this_id=0, n_procs=0, n_workers=0;
+    int status=0, ierr=0; // dummy
 
     ierr=MPI_Init(&argc, &argv);
 
     ierr=MPI_Comm_rank(MPI_COMM_WORLD, &this_id);
     ierr=MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
+    n_workers = n_procs-1;
 
-    fprintf(stderr,"I'm process %d of %d\n", this_id, n_procs);
-    if (n_procs == 1) {
-        fprintf(stderr,"need > 1 processes\n");
-        goto _finish;
-    }
-
-    if (this_id == master) {
-        int have_command=(1==fscanf(stdin,"%s", command));
-        nrunning=0;
-        while (have_command || nrunning > 0) {
-            if (have_command) {
-                fprintf(stderr,"master: command: '%s'\n", command);
-            }
-
-            if (!have_command || nrunning >= (n_procs-1)) {
-                // either draining because no commands left
-                // or the queue is full
-                fprintf(stderr,"master: waiting\n");
-                ierr = MPI_Recv(&imess, 
-                                1, 
-                                MPI_INT,
-                                MPI_ANY_SOURCE, 
-                                MPI_ANY_TAG, 
-                                MPI_COMM_WORLD, 
-                                &status);
-                worker = status.MPI_SOURCE;
-                fprintf(stderr,"master: recv from %d\n", worker);
-                nrunning--;
-
-                // if we are out of commands, tell this worker
-                // we are done
-                if (!have_command) {
-                    ierr = MPI_Send("done", 
-                                    5, 
-                                    MPI_CHAR,
-                                    worker, 
-                                    DONE_TAG,
-                                    MPI_COMM_WORLD);
-                }
-            } else {
-                // yet to use all workers: send to next in order
-                worker += 1;
-            }
-            if (have_command) {
-                fprintf(stderr,"master: sending to %d\n", worker);
-                ierr = MPI_Send(command, 
-                                MAX_NAME_SIZE, 
-                                MPI_CHAR,
-                                worker, 
-                                SEND_DATA_TAG, 
-                                MPI_COMM_WORLD);
-                nrunning++;
-                have_command=(1==fscanf(stdin,"%s", command));
-            }
+    if (n_procs > 1) {
+        if (this_id == MASTER) {
+            ierr = run_master(n_workers);
+        } else {
+            ierr = run_worker();
         }
-
     } else {
-        while (1) {
-            ierr = MPI_Recv(command, 
-                    MAX_NAME_SIZE, 
-                    MPI_CHAR,
-                    master, 
-                    MPI_ANY_TAG, 
-                    MPI_COMM_WORLD, 
-                    &status);
-
-            if (status.MPI_TAG==DONE_TAG) {
-                goto _finish;
-            }
-
-            system(command);
-
-            ierr = MPI_Send(&imess, // dumy
-                            1, 
-                            MPI_INT,
-                            master, 
-                            DONE_TAG,
-                            MPI_COMM_WORLD);
-        }
+        status=EXIT_FAILURE;
+        fprintf(stderr,"need > 1 processes (master+workers)\n");
     }
 
-_finish:
     ierr=MPI_Finalize();
 
     if (ierr != 0) {
-        // for the warnings
+        status=EXIT_FAILURE;
         fprintf(stderr,"Encountered error: %d\n", ierr);
     }
+    return status;
 }
 
