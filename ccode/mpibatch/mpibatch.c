@@ -1,6 +1,7 @@
 /*
 
    Read and execute commands from standard input, one per line.
+   Blank lines comments (using #) are allowed
 
    Examples for 4 processes
 
