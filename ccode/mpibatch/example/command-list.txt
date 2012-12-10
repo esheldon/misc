@@ -1,18 +1,19 @@
-./example/script.run1
-./example/script.run2
-./example/script.run3
-./example/script.run4
-./example/script.run5
-echo hello world with blanks
-./example/script.run6
-./example/script.run7
-./example/script.run8
-./example/script.run9
+./example/script01.sh
+./example/script02.sh
+./example/script03.sh
+./example/script04.sh
+./example/script05.sh
+./example/script06.sh
+./example/script07.sh
+echo "example command with spaces"
+./example/script08.sh
+./example/script09.sh
 
-./example/script.run10
-./example/script.run11
-./example/script.run12
-./example/script.run13
-./example/script.run14
-./example/script.run15
-./example/script.run16
+./example/script10.sh
+./example/script11.sh
+./example/script12.sh
+# comment
+./example/script13.sh
+./example/script14.sh
+./example/script15.sh
+./example/script16.sh
