@@ -1,9 +1,8 @@
 /*
 
    Read and execute commands from standard input, one per line.
-   Blank lines comments (using #) are allowed
 
-   Examples for 4 processes
+   Examples using 4 processes
 
    Read commands from a file
      mpirun -np 4 mpibatch < list-of-commands.txt
@@ -11,9 +10,23 @@
    Run all shell scripts in the current directory
      ls *.sh | mpirun -np 4 mpibatch
 
+   The commands executed using 
+   
+     system(command).  
 
-   Note blank lines or fully commented lines still
-   get sent off to the workers as jobs to execute
+   This is equivalent to running
+
+     /bin/sh -c "command" 
+
+   from the shell.  Because of this, blank lines or fully commented lines (#)
+   are perfectly valid commands and will be sent off to the workers as jobs to
+   execute.
+
+   Requirements
+     gnu extension getline()
+
+   Author Erin Sheldon, BNL
+   Inspired by mpibatch.f by Peter Nugent, LBL
 
 */
 #include <stdio.h>
@@ -80,8 +93,8 @@ int run_worker() {
             break;
         }
         if (cmdsize > size) {
-            command=realloc(command, cmdsize+1);
-            size=cmdsize+1;
+            command=realloc(command, 2*cmdsize);
+            size=2*cmdsize;
         }
         ierr = MPI_Recv(command, size, MPI_CHAR, MASTER,
                 MPI_ANY_TAG, MPI_COMM_WORLD, &status);
