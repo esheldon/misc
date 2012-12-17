@@ -1,5 +1,6 @@
 CC=mpicc
-CFLAGS=-std=gnu99 -Wall -Werror
+#CFLAGS=-std=gnu99 -Wall -Werror
+CFLAGS=-std=gnu99
 
 SRC = mpibatch.c
 
