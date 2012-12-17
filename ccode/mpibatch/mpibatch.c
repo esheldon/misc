@@ -1,6 +1,6 @@
 /*
 
-   Read and execute commands from standard input, one per line.
+   Use mpi to read and execute commands from standard input, one per line.
 
    Examples using 4 processes
 
@@ -105,6 +105,7 @@ int run_worker() {
     free(command);
     return ierr;
 }
+
 int main(int argc, char **argv)
 {
     int this_id=0, n_procs=0, n_workers=0;
