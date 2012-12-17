@@ -4,26 +4,26 @@
 
    Examples using 4 processes
 
-   Read commands from a file
-     mpirun -np 4 mpibatch < list-of-commands.txt
+     Read commands from a file
+       mpirun -np 4 mpibatch < list-of-commands.txt
 
-   Run all shell scripts in the current directory
-     ls *.sh | mpirun -np 4 mpibatch
+     Run all shell scripts in the current directory
+       ls *.sh | mpirun -np 4 mpibatch
 
-   The commands executed using 
+   The commands are executed using 
    
-     system(command).  
+     system(command)  
 
    This is equivalent to running
 
      /bin/sh -c "command" 
 
-   from the shell.  Because of this, blank lines or fully commented lines (#)
-   are perfectly valid commands and will be sent off to the workers as jobs to
-   execute.
+   from the shell.  Because of this, blank lines or fully commented lines are
+   perfectly valid but no useful work is done.
 
    Requirements
-     gnu extension getline()
+     getline() - this is present in gcc with the -std=gnu99 but 
+       not for -std=c99 because it is not part of the standard.
 
    Author Erin Sheldon, BNL
    Inspired by mpibatch.f by Peter Nugent, LBL
@@ -36,6 +36,7 @@
 #define SEND_DATA_TAG 2001
 #define RETURN_DATA_TAG 2002
 #define MASTER 0
+#define DONE 0
 
 int run_master(int n_workers)
 {
@@ -45,27 +46,24 @@ int run_master(int n_workers)
     MPI_Status status;
 
     int nrunning=0;
-    int nread=getline(&command,&size,stdin);
+    int nread=getline(&command,&size,stdin); // includes newline
     int have_command=(nread>0);
     while (have_command || nrunning > 0) {
-
         command[nread-1]='\0';  // to cut junk left at end of string
         if (!have_command || nrunning >= n_workers) {
-            // either no commands left or the queue is full
+            // no commands left or queue is full: wait for a worker
             ierr = MPI_Recv(&imess, 1, MPI_INT, MPI_ANY_SOURCE, 
                             MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             worker = status.MPI_SOURCE;
             nrunning--;
 
-            // if we are out of commands, tell this worker we are done
-            // by sending done==0
             if (!have_command) {
+                // are out of commands, tell this worker we are done
                 ierr = MPI_Send(&done, 1, MPI_INT, worker,
                                 SEND_DATA_TAG, MPI_COMM_WORLD);
             }
         } else {
-            // yet to use all workers: send to next in order
-            worker += 1;
+            worker += 1; // first run through workers: call in order
         }
         if (have_command) {
             ierr = MPI_Send(&nread, 1, MPI_INT, worker,
@@ -74,7 +72,7 @@ int run_master(int n_workers)
                             SEND_DATA_TAG, MPI_COMM_WORLD);
             nrunning++;
 
-            nread=getline(&command,&size,stdin);
+            nread=getline(&command,&size,stdin); // includes newline
             have_command=(nread>0);
         }
     }
@@ -89,15 +87,15 @@ int run_worker() {
     while (1) {
         ierr = MPI_Recv(&cmdsize, 1, MPI_INT, MASTER,
                         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        if (cmdsize==0) {
-            break;
+        if (cmdsize==DONE) {
+            break;    // 0 is a signal we are done
         }
         if (cmdsize > size) {
             command=realloc(command, 2*cmdsize);
             size=2*cmdsize;
         }
         ierr = MPI_Recv(command, size, MPI_CHAR, MASTER,
-                MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         system(command);
 
