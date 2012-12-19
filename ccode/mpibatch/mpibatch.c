@@ -34,7 +34,6 @@
 #include <mpi.h>
 
 #define SEND_DATA_TAG 2001
-#define RETURN_DATA_TAG 2002
 #define MASTER 0
 #define DONE 0
 
