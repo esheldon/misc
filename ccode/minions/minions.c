@@ -5,10 +5,10 @@
    Examples using 4 processes
 
      Read commands from a file
-       mpirun -np 4 mpibatch < list-of-commands.txt
+       mpirun -np 4 minions < list-of-commands.txt
 
      Run all shell scripts in the current directory
-       ls *.sh | mpirun -np 4 mpibatch
+       ls *.sh | mpirun -np 4 minions
 
    The commands are executed using 
    

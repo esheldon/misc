@@ -2,16 +2,16 @@ CC=mpicc
 #CFLAGS=-std=gnu99 -Wall -Werror
 CFLAGS=-std=gnu99
 
-SRC = mpibatch.c
+SRC = minions.c
 
-OBJ = mpibatch.o
+OBJ = minions.o
 
 .c.o:
 	$(CC) $(CFLAGS)  -c $<
 
 all: $(OBJ)
-	$(CC) $(OBJ) -o mpibatch
+	$(CC) $(OBJ) -o minions
 
 clean:
-	rm -f  core a.out *.o mpibatch
+	rm -f  core a.out *.o minions
 
