@@ -12,6 +12,7 @@ if [[ -e $f ]]; then
     module load wq
 
     module load emcee
+    module load acor       # *
 
     module load galsim     # *
     module load admom      # *
