@@ -65,4 +65,5 @@ export REGAUSSIM_HDFS_DIR=hdfs:///user/esheldon/lensing/regauss-sim
 
 export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
 
-
+export CLUSTERSTEP=~/oh/cluster-step
+export CLUSTERSTEP_HDFS=hdfs:///user/esheldon/lensing/cluster-step
