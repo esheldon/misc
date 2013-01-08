@@ -55,11 +55,13 @@ struct lcat* lcat_read(const char* lens_url) {
     }
 #endif
 
+    int nread=0;
+
     wlog("Reading lenses from %s\n", lens_url);
     FILE* stream=open_url(lens_url, "r");
     size_t nlens;
 
-    fscanf(stream,"%lu", &nlens);
+    nread=fscanf(stream,"%lu", &nlens);
     wlog("Reading %lu lenses\n", nlens);
     wlog("    creating lcat...");
 
@@ -70,7 +72,7 @@ struct lcat* lcat_read(const char* lens_url) {
     struct lens* lens = &lcat->data[0];
     double ra_rad,dec_rad;
     for (size_t i=0; i<nlens; i++) {
-        int nread=fscanf(stream,"%ld %lf %lf %lf %ld",
+        nread=fscanf(stream,"%ld %lf %lf %lf %ld",
                 &lens->zindex,&lens->ra,&lens->dec,&lens->z,&lens->maskflags);
         if (5 != nread) {
             wlog("Failed to read row %lu from %s\n", i, lens_url);
