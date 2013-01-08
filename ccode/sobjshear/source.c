@@ -49,7 +49,7 @@ int source_read(FILE* stream, struct source* src) {
         }
     } else {
         nexpect = 7+1;
-        fscanf(stream,"%lf", &src->z);
+        nread += fscanf(stream,"%lf", &src->z);
     }
 
     ra_rad = src->ra*D2R;
