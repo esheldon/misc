@@ -23,6 +23,7 @@ if [[ -e $f ]]; then
 
     module load biggles    # *
     module load esutil     # *
+    module load recfile    # *
     module load fitsio     # *
     module load shell_scripts
     module load perllib
