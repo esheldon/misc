@@ -113,7 +113,7 @@ _sconfig_read_bail:
         exit(1);
     }
 
-    cfg=cfg_del(cfg);
+    cfg=cfg_free(cfg);
     return c;
 }
 

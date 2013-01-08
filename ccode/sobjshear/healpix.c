@@ -321,11 +321,11 @@ void hpix_eq2xyz(double ra, double dec, double* x, double* y, double* z) {
 void hpix_radec_degrees_to_thetaphi_radians(double ra, double dec, double* theta, double* phi) {
 
     if (ra < 0.0 || ra > 360.) {
-        printf("ra out of range [0,360.]\n");
+        printf("ra %g out of range [0,360.]\n", ra);
         exit(EXIT_FAILURE);
     }
     if (dec < -90. || dec > 90.) {
-        printf("dec out of range [-90.,90.]\n");
+        printf("dec %g out of range [-90.,90.]\n", dec);
         exit(EXIT_FAILURE);
     }
 
