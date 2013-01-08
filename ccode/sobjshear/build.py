@@ -10,7 +10,7 @@ parser = optparse.OptionParser()
 optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix,help="where to install"),
          optparse.Option('--hdfs',action="store_true",default=False,help="Files are in hdfs"),
          optparse.Option('--noopt',action="store_true",help="turn off compiler optimizations"),
-         optparse.Option('-d','--debug',action="store_true",help="turn on debugging (assert)"),
+         optparse.Option('--dbg',action="store_true",help="turn on debugging (assert)"),
          optparse.Option('--test',action="store_true",help="compile tests")]
 parser.add_options(optlist)
 
@@ -25,7 +25,7 @@ CFLAGS=['-std=gnu99','-Wall','-Werror']
 #CFLAGS=['-std=gnu99','-Wall','-Werror']
 if not options.noopt:
     CFLAGS += ['-O2']
-if not options.debug:
+if not options.dbg:
     CFLAGS += ['-DNDEBUG']
 
 
@@ -88,7 +88,7 @@ def compile():
 def link():
     for prog in programs:
         objects = [s+'.o' for s in prog['sources']]
-        run(CC,LINKFLAGS,'-o', prog['name'], objects)
+        run(CC,'-o', prog['name'], objects, LINKFLAGS)
 
 def clean():
     autoclean()
