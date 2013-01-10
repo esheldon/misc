@@ -46,6 +46,9 @@ xterm*scrollTtyOutput: false
 xterm*charClass: 45-47:48,58:48,126:48
 xterm*cursorColor: yellow
 xterm*rightScrollBar: true
+! just show selected parts of line
+xterm*highlightSelection: true
+xterm*utf8:    2
 
 ! color1: the usual red
 ! color2: the usual green
@@ -119,6 +122,10 @@ xclock*hourColor: green4
 ! zenburn colors
 ! urxvt.geometry: 80x25
 urxvt.font: xft:peep
+
+! needed for monaco.  Also -letsp
+!urxvt.letterSpace: -1
+
 !urxvt.font: xft:Terminus:size=9
 !urxvt*inheritPixmap: true
 urxvt*tintColor: gray30
@@ -205,6 +212,8 @@ urxvt*color13: #dc8cc3
 urxvt*color14: #93e0e3
 urxvt*color15: #ffffff
 
+!urxvt*cutchars: 
+urxvt.cutchars: "`\"'&()*,;:<=>?[]^{|}"
 
 ! old one used for sup mail reading
 !urxvt.font: xft:ubuntu mono:size=14
