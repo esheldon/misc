@@ -8,6 +8,9 @@
 #	bkuprohan P
 # adds the -P option
 #
+# use this for a dry run
+#    bkuprohan n
+#
 #  Note the options
 #   -avx are already used, as well as longer
 # ones --delete --exclude-from --link-dest

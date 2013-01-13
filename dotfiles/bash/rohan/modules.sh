@@ -14,6 +14,8 @@ if [[ -e $f ]]; then
     module load emcee
     module load acor       # *
 
+    module load parallel
+
     module load galsim     # *
     module load admom      # *
     module load fimage/local     # *
