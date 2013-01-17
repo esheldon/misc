@@ -1,6 +1,9 @@
 #%Module
 # vim: set filetype=tcl :
 
+# note this is usually kept in misc/modules/des-nersc
+# on github
+
 module-whatis	"des data locations at nersc"
 conflict des-nersc
 
