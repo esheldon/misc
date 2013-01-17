@@ -95,5 +95,6 @@ elif [[ $hname == "datatran" ]]; then
     module load parallel
     module load espy/local
     # need this case modules not avail on dtn*
-    module load desdb-ess/local
+    #module load desdb-ess/local
+    module load desdb-dtn
 fi
