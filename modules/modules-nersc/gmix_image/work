@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"gaussian mixture models for images"
+conflict gmix_image
+
+eval set  [ array get env HOME ]
+
+set GMIX_IMAGE_DIR $HOME/exports/gmix_image-work
+
+prepend-path PYTHONPATH $GMIX_IMAGE_DIR/lib/python2.7/site-packages/
+
+setenv GMIX_IMAGE_DIR $GMIX_IMAGE_DIR
+
