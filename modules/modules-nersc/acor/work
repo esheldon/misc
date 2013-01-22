@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"acor install straight from git repo"
+conflict acor
+
+eval set  [ array get env HOME ]
+
+set ACOR_DIR $HOME/exports/acor-work
+
+prepend-path PYTHONPATH $ACOR_DIR/lib/python2.7/site-packages/
+
+setenv ACOR_DIR $ACOR_DIR
+

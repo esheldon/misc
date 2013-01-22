@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"emcee install straight from git repo"
+conflict emcee
+
+eval set  [ array get env HOME ]
+
+set EMCEE_DIR $HOME/exports/emcee-work
+
+prepend-path PYTHONPATH $EMCEE_DIR/lib/python2.7/site-packages/
+
+setenv EMCEE_DIR $EMCEE_DIR
+

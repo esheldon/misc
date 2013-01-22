@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"admom install straight from git repo"
+conflict admom
+
+eval set  [ array get env HOME ]
+
+set ADMOM_DIR $HOME/exports/admom-local
+
+prepend-path PYTHONPATH $ADMOM_DIR/lib/python2.7/site-packages/
+
+setenv ADMOM_DIR $ADMOM_DIR
+
