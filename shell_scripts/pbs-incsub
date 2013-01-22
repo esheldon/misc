@@ -15,8 +15,9 @@ function usage {
     the specified number of jobs in the queues.  Will wait 30 seconds between
     job checks
 
-    If {filename}.log exists, the job will not be submitted.  Remove .log files
-    to get jobs to run.
+    If the filename with .pbs replaced with .out exists, the job is not
+    submitted.  Remove .out files to get jobs to run.  Note the assumption
+    that the files end with .pbs
 "
 }
 
@@ -24,14 +25,14 @@ function count_jobs {
     name=$1
     queue=$2
 
-    # since we don't want the header, we demand the user field
-    # equals the user instead of using -u to the qstat
-    awk_name="{if (\$3 == \"$name\") print \$0}"
+    # need to awk the name field to get rid of the header
     if [[ "$queue" == "any" ]]; then
-        njob=$(qstat | awk "$awk_name" | wc -l)
+        awk_script="{if (\$2 == \"$name\" && (\$10 == \"Q\" || \$10 == \"R\")) print \$0}"
+        njob=$(qstat -u "$name" | awk "$awk_script" | wc -l)
     else
-        awk_queue="{if (\$6 == \"$queue\") print \$0}"
-        njob=$(qstat | awk "$awk_queue" | awk "$awk_name" | wc -l)
+        awk_script="{if (\$3 == \"$queue\" && \$2 == \"$name\" && (\$10 == \"Q\" || \$10 == \"R\")) print \$0}"
+        #awk_script="{if (\$2 == \"$name\" && \$3 == \"$queue\") print \$0}"
+        njob=$(qstat -u "$name" | awk "$awk_script" | wc -l)
     fi
     echo "$njob"
 }
@@ -66,10 +67,12 @@ echo "number in list: $#"
 echo "will limit to maxjobs:    $maxjobs"
 
 for file; do
-    logf="$file.log"
+    logf=$(echo $file | sed 's/\.pbs/\.out/')
     if [ ! -e "$logf" ]; then
 
         njob=$(count_jobs $name $queue)
+        #echo "njobs: $njob"
+        #exit
         while [[ "$njob" -ge "$maxjobs" ]]; do
             sleep 30
             njob=$(count_jobs $name $queue)
