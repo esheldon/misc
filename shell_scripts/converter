@@ -76,7 +76,7 @@ if [[ "$debug" == "Y" ]]; then
 fi
 
 # get the arg list
-files=$*
+#files=$*
 
 if [ "$subdir" == "Y" ]; then
     if [ ! -d "$otype" ]
@@ -135,19 +135,19 @@ fi
 
 
 
-for f in $files; do
+for f; do
 
-    if [ ! -e $f ]; then
+    if [[ ! -e $f ]]; then
         echo "File not found: $f"
     else
         # remove existing extensions and add new extension equal to image type
-        newf=${f%.*}.${otype}
+        newf="${f%.*}.${otype}"
 
         # get the extension
         #fext=${f#*.}
-        fext=${f##*.}
+        fext="${f##*.}"
 
-        if [ "$subdir" == "Y" ]; then
+        if [[ "$subdir" == "Y" ]]; then
             newf="$otype/$newf"
         fi
 
@@ -172,16 +172,16 @@ for f in $files; do
                 if [[ "$debug" == "Y" ]]; then
                     echo "epstopdf $f --outfile=$newf"
                 fi
-                epstopdf $f --outfile=$newf
+                epstopdf "$f" --outfile="$newf"
             else
                 if [[ "$debug" == "Y" ]]; then
                     echo "$progname $args $f $newf"
                 fi
-                $progname $args $f $newf 
+                $progname $args "$f" "$newf"
             fi
 
             if [[ "$otype" == "pdf" && "$crop" == "Y" && "$have_pdfcrop" == "Y" ]]; then
-                pdfcrop $pdfcrop_args $newf $newf
+                pdfcrop $pdfcrop_args "$newf" "$newf"
             fi
         else
             if [[ -e $newf ]]; then
