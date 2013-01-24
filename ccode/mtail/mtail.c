@@ -504,15 +504,16 @@ void tail_files(struct mtail* mtst) {
                 exit(45);
             }
             if (sbuf_new.st_size > tst[i].sbuf.st_size) {
-                wrefresh(tst[i].win);
+                //wrefresh(tst[i].win);
                 memcpy(&(tst[i].sbuf), &sbuf_new, sizeof(sbuf_new));
                 do {
 
                     retval = getline(tst[i].fd, ncol, line);
                     waddstr(tst[i].win,line);
-                    wrefresh(tst[i].win);
+                    //wrefresh(tst[i].win);
 
                 } while (retval != -1);
+                wrefresh(tst[i].win);
             }
         }
         usleep(mtst->poll_time);
@@ -531,7 +532,7 @@ int main(int argc, char *argv[])
     ind = parse_command_line(argc, argv, &ncol, &numfiles);
 
     if (numfiles == 0) {
-        printf("Usage: mtail [-c ncol] file1 [file2] [file3] ...\n");
+        printf("Usage: mtail [-c ncol] file1 [file2 file3 ...]\n");
         exit(0);
     }
 
