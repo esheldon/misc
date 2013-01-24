@@ -44,8 +44,8 @@ int run_master(int n_workers)
     int done=0, worker=0, ierr=0, imess=0; // dummy
     MPI_Status status;
 
-    int nrunning=0;
-    int nread=getline(&command,&size,stdin); // includes newline
+    int nrunning=0, nrunmax=0;
+    int nread=getline(&command,&size,stdin); // includes newline, nread >= 1
     int have_command=(nread>0);
     while (have_command || nrunning > 0) {
         command[nread-1]='\0';  // to cut junk left at end of string
@@ -53,33 +53,36 @@ int run_master(int n_workers)
             // no commands left or queue is full: wait for a worker
             ierr = MPI_Recv(&imess, 1, MPI_INT, MPI_ANY_SOURCE, 
                             MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            worker = status.MPI_SOURCE;
+            worker = status.MPI_SOURCE; // this worker is free if we need it
             nrunning--;
-
-            if (!have_command) {
-                // are out of commands, tell this worker we are done
-                ierr = MPI_Send(&done, 1, MPI_INT, worker,
-                                SEND_DATA_TAG, MPI_COMM_WORLD);
-            }
         } else {
-            worker += 1; // first run through workers: call in order
+            worker += 1; // first run through workers: call in order, start with 1
         }
+
         if (have_command) {
             ierr = MPI_Send(&nread, 1, MPI_INT, worker,
                             SEND_DATA_TAG, MPI_COMM_WORLD);
             ierr = MPI_Send(command, nread, MPI_CHAR, worker,
                             SEND_DATA_TAG, MPI_COMM_WORLD);
             nrunning++;
+            if (nrunning > nrunmax) {
+                nrunmax++;
+            }
 
             nread=getline(&command,&size,stdin); // includes newline
             have_command=(nread>0);
         }
     }
+
+    for (worker=1; worker<=n_workers; worker++) {
+        ierr = MPI_Send(&done,1,MPI_INT,worker,SEND_DATA_TAG,MPI_COMM_WORLD);
+    }
+
     free(command);
     return ierr;
 }
 
-int run_worker() {
+int run_worker(int this_id) {
     char *command=NULL;
     MPI_Status status;
     int size=0, cmdsize=0, ierr=0, imess=0; // imess is dummy
@@ -96,7 +99,9 @@ int run_worker() {
         ierr = MPI_Recv(command, size, MPI_CHAR, MASTER,
                         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-        system(command);
+        fprintf(stderr,"minion %d: executing command: '%s'\n",this_id,command);
+        int status=system(command);
+        fprintf(stderr,"minion %d: exit status: %d\n", this_id, status);
 
         ierr = MPI_Send(&imess, 1, MPI_INT, MASTER, SEND_DATA_TAG,
                         MPI_COMM_WORLD);
@@ -119,8 +124,9 @@ int main(int argc, char **argv)
     if (n_procs > 1) {
         if (this_id == MASTER) {
             ierr = run_master(n_workers);
+            fprintf(stderr,"master: running MPI finalize\n");
         } else {
-            ierr = run_worker();
+            ierr = run_worker(this_id);
         }
     } else {
         status=EXIT_FAILURE;
@@ -128,6 +134,9 @@ int main(int argc, char **argv)
     }
 
     ierr=MPI_Finalize();
+    if (this_id == MASTER) {
+        fprintf(stderr,"master: MPI finalized\n");
+    }
 
     if (ierr != 0) {
         status=EXIT_FAILURE;
