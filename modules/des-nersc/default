@@ -1,6 +1,9 @@
 #%Module
 # vim: set filetype=tcl :
 
+# note this is usually kept in misc/modules/des-nersc
+# on github
+
 module-whatis	"des data locations at nersc"
 conflict des-nersc
 
@@ -9,18 +12,17 @@ eval set [ array get env NERSC_HOST ]
 
 set DESROOT /global/project/projectdirs/des
 
-set DESDATA $DESROOT/wl/DES
+set DESDATA $DESROOT/wl/desdata
 
 set DES_MODULES_ROOT $DESROOT/wl/modules/$NERSC_HOST
 
 setenv DESROOT $DESROOT
 setenv DESDATA $DESDATA
-setenv DTSDATA $DESROOT/wl/DTS
+setenv DESPROJ OPS
 
 setenv DES_MODULES_ROOT $DES_MODULES_ROOT 
 
-setenv DESREMOTE ftp://desar.cosmology.illinois.edu/DESFiles/desardata/DES
-setenv DTSREMOTE ftp://desar.cosmology.illinois.edu/DESFiles/desardata/DTS
+setenv DESREMOTE https://desar.cosmology.illinois.edu:7443/DESFiles/desardata
 
 setenv DES_MODULES $DES_MODULES_ROOT/modulefiles
 setenv DES_MODULES_CONFIG $DES_MODULES_ROOT/install-config
@@ -35,6 +37,3 @@ setenv DES_SCRATCH $DESDATA/scratch
 # location of file lists for input to codes. Derived from
 # the database
 setenv DES_FILE_LISTS $DESDATA/file-lists
-
-
-

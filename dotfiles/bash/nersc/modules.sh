@@ -81,13 +81,14 @@ if [[ $hname == "carver" || $hname == "hopper" ]]; then
     #module load recfile    # *
 
     #module load cosmology  # *
-    #module load admom      # *
+    module load admom      # *
     #module load fimage/local     # *
     #module load columns
 
-    #module load gmix_image/local # *
-    #module load emcee
-    #module load acor
+    module load gmix_image/local # *
+    module load emcee
+    module load acor
+
 elif [[ $hname == "datatran" ]]; then
     module load python/2.7.2
     module load perllib
@@ -95,5 +96,6 @@ elif [[ $hname == "datatran" ]]; then
     module load parallel
     module load espy/local
     # need this case modules not avail on dtn*
-    module load desdb-ess/local
+    #module load desdb-ess/local
+    module load desdb-dtn
 fi
