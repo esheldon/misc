@@ -10,6 +10,10 @@
 
 /*
    Add normal random deviates with sigma "skysig"
+
+   The reason we pass in the gmix ( and this is part of gmix_image instead of
+   image) is because we use it to weight the signal.
+
 */
 
 int gmix_image_add_randn(struct image *image, 
