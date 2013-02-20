@@ -15,12 +15,10 @@ struct image {
     size_t ncols;  // masked ncols
     size_t row0;   // corner of mask
     size_t col0;  
-    double counts; // counts of region in mask
 
     size_t _size;   // true size
     size_t _nrows;  // true nrows
     size_t _ncols;  // true ncols
-    double _counts; // total counts
 
     double sky;
     double skysig;
@@ -35,15 +33,9 @@ struct image {
 #define IM_NROWS(im) ((im)->nrows)
 #define IM_NCOLS(im) ((im)->ncols)
 #define IM_SKY(im) ( (im)->sky )
-#define IM_COUNTS(im) ( (im)->counts )
 #define IM_SET_SKY(im, val) ( (im)->sky = (val) )
 
 #define IM_IS_OWNER(im) ( (im)->is_owner )
-
-// counts will be updated consistently in most cases, so
-// this is usually not needed except maybe when using
-// image_from_array, etc.
-#define IM_SET_COUNTS(im, val) ( (im)->counts = (val) )
 
 #define IM_HAS_MASK(im)                              \
     ( (im)->row0 != 0                                \
@@ -57,7 +49,6 @@ struct image {
     (im)->size=(im)->_size;                                                  \
     (im)->nrows=(im)->_nrows;                                                \
     (im)->ncols=(im)->_ncols;                                                \
-    (im)->counts=(im)->_counts;                                              \
 } while(0)
 
 
@@ -65,7 +56,6 @@ struct image {
 #define IM_PARENT_SIZE(im) ((im)->_size)
 #define IM_PARENT_NROWS(im) ((im)->_nrows)
 #define IM_PARENT_NCOLS(im) ((im)->_ncols)
-#define IM_PARENT_COUNTS(im) ( (im)->_counts )
 
 #define IM_ROW0(im) ((im)->row0)
 #define IM_COL0(im) ((im)->col0)
@@ -83,21 +73,11 @@ struct image {
 #define IM_SETFAST(im, row, col, val)                  \
     ( *((im)->rows[(im)->row0 + (row)] + (im)->col0 + col) = (val) )
 
+// in the future this could become bounds checking
+#define IM_SET IM_SETFAST
+
 #define IM_GETP(im, row, col)                 \
     (  ((im)->rows[(im)->row0 + (row)] + (im)->col0 + col) )
-/*
- 
-   Safe way to set pixels, keeping the counts consistent.  If you are doing an
-   update of lots of pixels, better to work at a lower level as this is rather
-   slow.
-
-*/
-#define IM_SET(im, row, col, val) do {                                       \
-    double* ptr=IM_GETP(im,row,col);                                         \
-    (im)->_counts += (val) - (*ptr);                                         \
-    (im)->counts  += (val) - (*ptr);                                         \
-    (*ptr) = (val);                                                          \
-} while (0)
 
 
 // note masks can have negative indices; the image code should deal with it
@@ -134,13 +114,13 @@ struct image *image_read(const char* filename);
 
 struct image *image_free(struct image *self);
 
+double image_get_counts(const struct image *self);
+
 // note the masks will be trimmed to within the image
-void image_add_mask(struct image *self, const struct image_mask* mask, int update_counts);
+void image_add_mask(struct image *self, const struct image_mask* mask);
 
 void image_write(const struct image *self, FILE* stream);
 int image_write_file(const struct image *self, const char *fname);
-
-void image_calc_counts(struct image *self);
 
 // add a scalar to the image, within the mask. Keep the counts
 // consistent

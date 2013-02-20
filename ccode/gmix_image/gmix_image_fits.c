@@ -58,7 +58,5 @@ _test_read_bail:
         exit(EXIT_FAILURE);
     }
 
-    image_calc_counts(image);
-
     return image;
 }

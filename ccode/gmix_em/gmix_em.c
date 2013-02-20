@@ -48,7 +48,7 @@ void gmix_em_run(struct gmix_em* self,
 {
     double wmomlast=0, wmom=0;
     double sky     = IM_SKY(image);
-    double counts  = IM_COUNTS(image);
+    double counts  = image_get_counts(image);
     size_t npoints = IM_SIZE(image);
 
     struct gmix_em_iter *iter_struct = iter_new(gmix->size);
@@ -200,7 +200,7 @@ void gmix_em_cocenter_run(struct gmix_em* self,
 {
     double wmomlast=0, wmom=0;
     double sky     = IM_SKY(image);
-    double counts  = IM_COUNTS(image);
+    double counts  = image_get_counts(image);
     size_t npoints = IM_SIZE(image);
     struct vec2 cen_new;
     struct gmix *gcopy=NULL;
@@ -287,12 +287,13 @@ int gmix_get_sums(struct gmix_em* self,
     struct gauss* gauss=NULL;
     struct gmix_em_sums *sums=NULL;
 
+    double counts=image_get_counts(image);
     gmix_em_iter_clear(iter);
     for (row=0; row<nrows; row++) {
         for (col=0; col<ncols; col++) {
 
             imnorm = IM_GET(image, row, col);
-            imnorm /= IM_COUNTS(image);
+            imnorm /= counts;
 
             gtot=0;
             gauss = &gmix->data[0];

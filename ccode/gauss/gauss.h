@@ -7,6 +7,8 @@
 #define M_TWO_PI   6.28318530717958647693
 #endif
 
+#define EXP_MAX_CHI2 200
+
 struct gauss {
     double p;
     double row;
@@ -28,16 +30,19 @@ struct gauss {
     double norm; // 1/( 2*pi*sqrt(det) )
 };
 
-#define GAUSS_EVAL(gauss, row, col) ({                         \
-    double _u = (row)-(gauss)->row;                            \
-    double _v = (col)-(gauss)->col;                            \
+#define GAUSS_EVAL(gauss, rowval, colval) ({                   \
+    double _u = (rowval)-(gauss)->row;                         \
+    double _v = (colval)-(gauss)->col;                         \
                                                                \
     double _chi2 =                                             \
         (gauss)->dcc*_u*_u                                     \
         + (gauss)->drr*_v*_v                                   \
         - 2.0*(gauss)->drc*_u*_v;                              \
                                                                \
-    double _val = (gauss)->norm*(gauss)->p*expd( -0.5*_chi2 );  \
+    double _val=0.0;                                           \
+    if (_chi2 < EXP_MAX_CHI2) {                                \
+        _val = (gauss)->norm*(gauss)->p*expd( -0.5*_chi2 );    \
+    }                                                          \
                                                                \
     _val;                                                      \
 })
