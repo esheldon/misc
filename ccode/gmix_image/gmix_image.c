@@ -13,20 +13,24 @@ struct image *gmix_image_new(const struct gmix *gmix,
                              int nsub)
 {
     struct image *im = image_new(nrows, ncols);
-    gmix_image_fill(im, gmix, nsub);
+    gmix_image_put(im, gmix, nsub);
     return im;
 }
 
-int gmix_image_fill(struct image *image, 
+/*
+   Add the gaussian mixture to the image.
+
+   The values are *added* so be sure to initialize
+   properly.
+
+*/
+int gmix_image_put(struct image *image, 
                     const struct gmix *gmix, 
                     int nsub)
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
 
-    struct gauss *gauss=NULL;
-    double u=0, v=0;
-    double chi2=0;//, b=0;
-    size_t i=0, col=0, row=0, irowsub=0, icolsub=0;
+    size_t col=0, row=0, irowsub=0, icolsub=0;
     double onebynsub2 = 1./(nsub*nsub);
     double counts=0;
 
@@ -36,7 +40,7 @@ int gmix_image_fill(struct image *image,
 
     if (!gmix_verify(gmix)) {
         flags |= GMIX_IMAGE_NEGATIVE_DET;
-        goto _gmix_image_fill_model_bail;
+        goto _gmix_image_put_model_bail;
     }
     if (nsub < 1) {
         nsub=1;
@@ -47,36 +51,22 @@ int gmix_image_fill(struct image *image,
     for (row=0; row<nrows; row++) {
         for (col=0; col<ncols; col++) {
 
-            model_val=0;
-            gauss=gmix->data;
-            for (i=0; i<gmix->size; i++) {
 
-                // work over the subgrid
-                tval=0;
-                trow = row-offset;
-                for (irowsub=0; irowsub<nsub; irowsub++) {
-                    tcol = col-offset;
-                    for (icolsub=0; icolsub<nsub; icolsub++) {
-
-                        u = trow-gauss->row;
-                        v = tcol-gauss->col;
-
-                        chi2=gauss->dcc*u*u + gauss->drr*v*v - 2.0*gauss->drc*u*v;
-                        //tval += gauss->norm*gauss->p*exp( -0.5*chi2 );
-                        tval += gauss->norm*gauss->p*expd( -0.5*chi2 );
-
-                        tcol += stepsize;
-                    }
-                    trow += stepsize;
+            tval=0;
+            trow = row-offset;
+            for (irowsub=0; irowsub<nsub; irowsub++) {
+                tcol = col-offset;
+                for (icolsub=0; icolsub<nsub; icolsub++) {
+                    tval += GMIX_EVAL(gmix, trow, tcol);
+                    tcol += stepsize;
                 }
+                trow += stepsize;
+            }
 
-                //b = M_TWO_PI*sqrt(gauss->det);
-                //tval /= (b*nsub*nsub);
-                tval *= onebynsub2;
-                model_val += tval;
+            tval *= onebynsub2;
 
-                gauss++;
-            } // gmix
+            model_val=IM_GET(image, row, col);
+            model_val += tval;
 
             IM_SETFAST(image, row, col, model_val);
             counts += model_val;
@@ -84,13 +74,12 @@ int gmix_image_fill(struct image *image,
         } // cols
     } // rows
 
-    IM_SET_COUNTS(image, counts);
-
-_gmix_image_fill_model_bail:
+_gmix_image_put_model_bail:
     return flags;
 }
 
-// the gaussian position should be in the parent image
+// If this image is masked, the gaussian should be centered
+// properly in the sub-image, not the parent
 double gmix_image_loglike(const struct image *image, 
                           const struct gmix *gmix, 
                           double ivar,
@@ -98,17 +87,14 @@ double gmix_image_loglike(const struct image *image,
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
 
-    struct gauss *gauss=NULL;
-    double u=0, v=0;
-    double chi2=0, diff=0;
-    size_t i=0, col=0, row=0;
+    //struct gauss *gauss=NULL;
+    double diff=0;
+    size_t col=0, row=0;
 
     double loglike = 0;
     double model_val=0;
     double *rowdata=NULL;
 
-    double row0 = IM_ROW0(image);
-    double col0 = IM_COL0(image);
 
     (*flags)=0;
 
@@ -124,20 +110,7 @@ double gmix_image_loglike(const struct image *image,
         rowdata=IM_ROW(image, row);
         for (col=0; col<ncols; col++) {
 
-            model_val=0;
-            gauss=gmix->data;
-            for (i=0; i<gmix->size; i++) {
-                // relative to row0,col0 in case the image is masked
-                u = row-(gauss->row-row0);
-                v = col-(gauss->col-col0);
-
-                chi2=gauss->dcc*u*u + gauss->drr*v*v - 2.0*gauss->drc*u*v;
-                //model_val += gauss->norm*gauss->p*exp( -0.5*chi2 );
-                model_val += gauss->norm*gauss->p*expd( -0.5*chi2 );
-
-                gauss++;
-            } // gmix
-
+            model_val = GMIX_EVAL(gmix, row, col);
             diff = model_val -(*rowdata);
             loglike += diff*diff*ivar;
 
@@ -146,8 +119,6 @@ double gmix_image_loglike(const struct image *image,
     } // rows
 
     loglike *= (-0.5);
-    //fprintf(stderr,"loglike: %.16g\n", loglike);
-    //exit(1);
 
 _gmix_image_loglike_bail:
 
@@ -162,10 +133,7 @@ double gmix_image_loglike_margamp(
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
 
-    struct gauss *gauss=NULL;
-    double u=0, v=0;
-    double chi2=0;
-    size_t i=0, col=0, row=0;
+    size_t col=0, row=0;
 
     double loglike = 0;
     double model_val=0;
@@ -190,18 +158,7 @@ double gmix_image_loglike_margamp(
         rowdata=IM_ROW(image, row);
         for (col=0; col<ncols; col++) {
 
-            model_val=0;
-            gauss=gmix->data;
-            for (i=0; i<gmix->size; i++) {
-                u = row-gauss->row;
-                v = col-gauss->col;
-
-                chi2=gauss->dcc*u*u + gauss->drr*v*v - 2.0*gauss->drc*u*v;
-                //model_val += gauss->norm*gauss->p*exp( -0.5*chi2 );
-                model_val += gauss->norm*gauss->p*expd( -0.5*chi2 );
-
-                gauss++;
-            } // gmix
+            model_val = GMIX_EVAL(gmix, row, col);
 
             ymodsum += model_val;
             ymod2sum += model_val*model_val;
@@ -237,8 +194,7 @@ double gmix_image_s2n(const struct image *image,
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
 
-    struct gauss *gauss=NULL;
-    size_t i=0, col=0, row=0;
+    size_t col=0, row=0;
     double sum=0, w2sum=0, wt=0, *rowdata=NULL;
     double s2n=-9999;
 
@@ -253,12 +209,7 @@ double gmix_image_s2n(const struct image *image,
         rowdata=IM_ROW(image, row);
         for (col=0; col<ncols; col++) {
 
-            wt=0;
-            gauss=weight->data;
-            for (i=0; i<weight->size; i++) {
-                wt += GAUSS_EVAL(gauss,row,col);
-                gauss++;
-            } // gmix
+            wt=GMIX_EVAL(weight, row, col);
 
             sum += (*rowdata)*wt;
             w2sum += wt*wt;
@@ -273,5 +224,4 @@ _gmix_image_s2n_noise_bail:
     return s2n;
 
 }
-
 

@@ -447,10 +447,11 @@ void do_mca_run_scratch(struct fitter_ce *fitter, struct object *obj)
         wlog("admom flags: %d\n", am.flags);
         exit(EXIT_FAILURE);
     }
+    double counts=image_get_counts(fitter->image);
     fill_coellip_guess(
             am.wt.row, am.wt.col,
             am.wt.irr+am.wt.icc,
-            IM_COUNTS(fitter->image),
+            counts,
             centers,widths,npars);
 
     struct mca_chain *start=gmix_mcmc_make_guess_coellip(
@@ -458,11 +459,6 @@ void do_mca_run_scratch(struct fitter_ce *fitter, struct object *obj)
             widths,
             npars,
             nwalkers);
-    /*
-    wlog("counts: %lf\n", IM_COUNTS(fitter->image));
-    wlog("start\n");
-    mca_chain_write(start,stderr);
-    */
 
     mca_run(fitter->burnin_chain,fitter->a,
             start, &coellip_lnprob,
@@ -535,16 +531,16 @@ void do_mca_run_scratch(struct fitter_ce *fitter, struct object *obj)
 void process_object(struct fitters_ce *fitters,
                     struct object *obj)
 {
-    int update_counts=1;
     struct fitter_ce *psf_fitter=fitters->psf_fitter;
     struct fitter_ce *fitter=fitters->fitter;
 
-    image_add_mask(fitter->image, &obj->mask, update_counts);
-    fprintf(stderr,"image sub counts: %.16g\n", IM_COUNTS(fitter->image));
+    image_add_mask(fitter->image, &obj->mask);
+    double counts=image_get_counts(fitter->image);
+    fprintf(stderr,"image sub counts: %.16g\n", counts);
 
     // note both psf_fitter and fitter have pointers to psf
     // image, both will see the update
-    image_add_mask(psf_fitter->image, &obj->mask, update_counts);
+    image_add_mask(psf_fitter->image, &obj->mask);
 
     // see if it is a mask problem
     //psf_fitter->image=image_newcopy(psf_fitter->image);
@@ -759,6 +755,9 @@ int main(int argc, char **argv)
         fprintf(stderr,"gmix-galsim config image psf < objlist > output \n");
         exit(EXIT_FAILURE);
     }
+
+    printf("ADAPT TO NEW gmix_image_loglike that works with center in sub image\n");
+    exit(0);
 
     if (0 != system("mkdir -p tmp")) {
         fprintf(stderr,"could not make ./tmp");

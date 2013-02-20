@@ -90,19 +90,21 @@ int main(int argc, char** argv)
     // this is purposefully bad in general
     struct gmix *gmix = get_guess_gmix(ngauss, nrow, ncol); 
 
+    counts=image_get_counts(image);
     wlog("before sky image[15,15]: %.16g\n", IM_GET(image, 15, 15));
     wlog("before sky image[9,7]: %.16g\n", IM_GET(image, 9, 7));
-    wlog("before sky counts: %.16g\n", IM_COUNTS(image));
+    wlog("before sky counts: %.16g\n", counts);
 
     // now add some sky needed by the gmix alorithm
     image_add_scalar(image, 1.0/IM_SIZE(image));
+    counts=image_get_counts(image);
 
     wlog("nrows: %lu\n", IM_NROWS(image));
     wlog("ncols: %lu\n", IM_NCOLS(image));
     wlog("sky: %.16g\n", IM_SKY(image));
     wlog("image[15,15]: %.16g\n", IM_GET(image, 15, 15));
     wlog("image[9,7]: %.16g\n", IM_GET(image, 9, 7));
-    wlog("counts: %.16g\n", IM_COUNTS(image));
+    wlog("counts: %.16g\n", counts);
 
     // for comparison; gmix will change
     wlog("\ntrue\n");

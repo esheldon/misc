@@ -6,8 +6,7 @@
 #include <stdlib.h>
 #include "gmix.h"
 
-//#define GMIX_IMAGE_LOW_VAL (-DBL_MAX+1000)
-#define GMIX_IMAGE_LOW_VAL (-9999.e9)
+#define GMIX_IMAGE_LOW_VAL (-9999.e49)
 
 /*
 
@@ -27,9 +26,9 @@ struct image *gmix_image_new(const struct gmix *gmix,
 
 */
 
-int gmix_image_fill(struct image *image, 
-                    const struct gmix *gmix, 
-                    int nsub);
+int gmix_image_put(struct image *image, 
+                   const struct gmix *gmix, 
+                   int nsub);
 
 /*
 

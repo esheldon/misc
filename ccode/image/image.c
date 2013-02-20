@@ -99,7 +99,6 @@ struct image *image_read(const char* filename)
 
     size_t row=0, col=0;
     double *ptr=NULL;
-    double counts=0;
     for (row=0; row<nrows; row++) {
         for (col=0; col<ncols; col++) {
 
@@ -111,12 +110,9 @@ struct image *image_read(const char* filename)
                 image=image_free(image);
                 return NULL;
             }
-
-            counts += (*ptr);
         }
     }
 
-    IM_SET_COUNTS(image, counts);
     return image;
 }
 
@@ -176,8 +172,7 @@ static void fix_mask(size_t dim, ssize_t *minval, ssize_t *maxval)
     }
 }
 void image_add_mask(struct image *self, 
-                    const struct image_mask* mask, 
-                    int update_counts)
+                    const struct image_mask* mask)
 {
     ssize_t tminval=0, tmaxval=0;
 
@@ -196,11 +191,6 @@ void image_add_mask(struct image *self,
 
     self->size = self->nrows*self->ncols;
 
-    // we keep the counts for the sub-image region
-    // the parent counts are still available in _counts
-    if (update_counts) {
-        image_calc_counts(self);
-    }
 }
 
 int image_copy(const struct image *image, struct image *imout)
@@ -242,8 +232,6 @@ struct image *image_newcopy(const struct image *image)
         memcpy(rowdata_out, rowdata, ncols*sizeof(double));
     }
 
-    imout->counts=image->counts;
-    imout->_counts=image->_counts;
     imout->sky=image->sky;
     imout->skysig=image->skysig;
 
@@ -264,7 +252,6 @@ struct image* image_from_array(double* data, size_t nrows, size_t ncols)
         self->rows[i] = self->rows[i-1] + ncols;
     }
 
-    image_calc_counts(self);
     return self;
 }
 
@@ -302,29 +289,8 @@ struct image* image_getref(const struct image* image)
 
     return self;
 }
-/*
-struct image* image_getref_old(const struct image* image)
-{
-    size_t i=0;
-    struct image *self=NULL;
-    size_t nrows=0, ncols=0;
 
-    nrows=IM_NROWS(image);
-    ncols=IM_NCOLS(image);
-    self = _image_new(nrows, ncols, 0);
-
-    self->rows[0] = image->rows[0];
-    for(i = 1; i < IM_NROWS(self); i++) {
-        self->rows[i] = self->rows[i-1] + ncols;
-    }
-
-    IM_SET_COUNTS(self, IM_COUNTS(image));
-    return self;
-}
-*/
-
-
-void image_calc_counts(struct image *self)
+double image_get_counts(const struct image *self)
 {
     double counts=0;
     double *col=NULL, *end=NULL;
@@ -338,11 +304,7 @@ void image_calc_counts(struct image *self)
             counts += (*col);
         }
     }
-    self->counts=counts;
-
-    if (!IM_HAS_MASK(self)) {
-        self->_counts=counts;
-    }
+    return counts;
 }
 
 void image_add_scalar(struct image *self, double val)
@@ -353,8 +315,6 @@ void image_add_scalar(struct image *self, double val)
         col = IM_ROW_ITER(self,row);
         end = IM_ROW_END(self,row);
         for (; col != end; col++) {
-            self->counts  += val;
-            self->_counts += val;
             (*col) += val;
         }
     }

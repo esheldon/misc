@@ -228,7 +228,7 @@ void admom(struct am *am, const struct image *image)
         am->numiter++;
 
         get_mask(image, wt, am->nsigma, &mask);
-        image_add_mask(maskim, &mask, 0); // 0 means don't update counts
+        image_add_mask(maskim, &mask);
 
         //update_cen(am, maskim);
         calc_moments(am, maskim);

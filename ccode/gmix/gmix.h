@@ -28,6 +28,18 @@ struct gmix {
 
 */
 
+#define GMIX_EVAL(gmix, rowval, colval) ({                     \
+    double _val=0.0;                                           \
+    struct gauss *_gauss=(gmix)->data;                         \
+    for (int _i=0; _i<(gmix)->size; _i++) {                    \
+        _val += GAUSS_EVAL(_gauss, (rowval), (colval));        \
+        _gauss++;                                              \
+    }                                                          \
+    _val;                                                      \
+})
+
+
+
 /* types for parameter arrays */
 enum gmix_par_type {
     GMIX_FULL,          // all 6 pars for each gauss
