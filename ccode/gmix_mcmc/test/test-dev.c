@@ -7,7 +7,7 @@
 #include "../gmix.h"
 #include "../gmix_image.h"
 #include "../gmix_mcmc.h"
-#include "../gmix_sim.h"
+#include "../gmix_sim1.h"
 #include "../mca.h"
 
 struct fit_data {
@@ -215,12 +215,12 @@ int main(int argc, char** argv)
     struct gmix *gmix_conv=gmix_convolve(gmix_true,gmix_psf);
 
     wlog("making sims\n");
-    struct gmix_sim *psf_sim=gmix_sim_cocen_new(gmix_psf,nsub);
-    struct gmix_sim *obj_sim=gmix_sim_cocen_new(gmix_conv,nsub);
+    struct gmix_sim1 *psf_sim=gmix_sim1_cocen_new(gmix_psf,nsub);
+    struct gmix_sim1 *obj_sim=gmix_sim1_cocen_new(gmix_conv,nsub);
 
     wlog("adding noise\n");
-    gmix_sim_add_noise(psf_sim, psf_s2n);
-    gmix_sim_add_noise(obj_sim, s2n);
+    gmix_sim1_add_noise(psf_sim, psf_s2n);
+    gmix_sim1_add_noise(obj_sim, s2n);
 
     wlog("storing psf image in '%s'\n", psf_image_fname);
     image_write_file(psf_sim->image, psf_image_fname);

@@ -208,7 +208,7 @@ void admom(struct am *am, const struct image *image)
     struct image_mask mask = {0};
 
     // For masking.  won't own data
-    maskim = image_getref(image);
+    maskim = image_get_ref(image);
 
     wt=&am->wt;
     guess=&am->guess;
