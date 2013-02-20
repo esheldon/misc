@@ -21,7 +21,7 @@ sources=['gmix_mcmc',
          'image','image_rand',
          'gmix_image','gmix_image_rand',
          'mca',
-         'gmix_sim',
+         'gmix_sim1',
          'randn']
 
 
