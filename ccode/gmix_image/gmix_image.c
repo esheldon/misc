@@ -22,11 +22,10 @@ struct image *gmix_image_new(const struct gmix *gmix,
 
    The values are *added* so be sure to initialize
    properly.
-
 */
 int gmix_image_put(struct image *image, 
-                    const struct gmix *gmix, 
-                    int nsub)
+                   const struct gmix *gmix, 
+                   int nsub)
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
 
@@ -75,6 +74,37 @@ int gmix_image_put(struct image *image,
     } // rows
 
 _gmix_image_put_model_bail:
+    return flags;
+}
+
+int gmix_image_put_masked(struct image *image, 
+                          const struct gmix *gmix, 
+                          int nsub,
+                          struct image_mask *mask)
+{
+    int flags=0;
+
+    struct image *masked_image=image_get_ref(image);
+
+    image_add_mask(masked_image, mask);
+
+    struct gmix *masked_gmix = gmix_new_copy(gmix);
+
+    struct gauss *gauss=masked_gmix->data;
+
+    for (int i=0; i<gmix->size; i++) {
+        gauss->row -= mask->rowmin;
+        gauss->col -= mask->colmin;
+        gauss++;
+    }
+
+    flags=gmix_image_put(masked_image,
+                         gmix,
+                         nsub);
+
+    masked_image=image_free(masked_image);
+    masked_gmix=gmix_free(masked_gmix);
+
     return flags;
 }
 

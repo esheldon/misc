@@ -4,6 +4,7 @@
 #define GMIX_IMAGE_NEGATIVE_DET 0x1
 
 #include <stdlib.h>
+#include "image.h"
 #include "gmix.h"
 
 #define GMIX_IMAGE_LOW_VAL (-9999.e49)
@@ -21,14 +22,23 @@ struct image *gmix_image_new(const struct gmix *gmix,
 
 /*
 
-   Render the input gaussian mixture model into the
-   input image.
+   Add the input gaussian mixture model to the input image.
+   Make sure your image is initialized beforehand.
 
 */
 
 int gmix_image_put(struct image *image, 
                    const struct gmix *gmix, 
                    int nsub);
+
+/*
+   Add the gaussian mixture only within the region indicated by the mask.
+*/
+int gmix_image_put_masked(struct image *image, 
+                          const struct gmix *gmix, 
+                          int nsub,
+                          struct image_mask *mask);
+
 
 /*
 

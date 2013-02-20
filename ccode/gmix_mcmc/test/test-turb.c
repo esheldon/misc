@@ -9,7 +9,7 @@
 #include "../gmix_mcmc.h"
 #include "../admom.h"
 
-#include "../gmix_sim.h"
+#include "../gmix_sim1.h"
 
 // these will hold pointers to data used in the fits
 const struct image *_global_image_tmp;
@@ -93,13 +93,13 @@ int main(int argc, char** argv)
     gmix_print(gmix_true,stderr);
 
     wlog("making turb sim\n");
-    struct gmix_sim *sim=gmix_sim_cocen_new(gmix_true,nsub);
+    struct gmix_sim1 *sim=gmix_sim1_cocen_new(gmix_true,nsub);
     gmix_print(sim->gmix,stderr);
 
     wlog("storing image in '%s'\n", image_fname);
     image_write_file(sim->image, image_fname);
 
-    gmix_sim_add_noise(sim, s2n);
+    gmix_sim1_add_noise(sim, s2n);
 
     double ivar = 1./(sim->skysig*sim->skysig);
     wlog("storing noisy image in '%s'\n", noisy_image_fname);
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
 
     gmix_true=gmix_free(gmix_true);
     _global_gmix_tmp=gmix_free(_global_gmix_tmp);
-    sim=gmix_sim_free(sim);
+    sim=gmix_sim1_free(sim);
     start_chain=mca_chain_free(start_chain);
     burnin_chain=mca_chain_free(burnin_chain);
     chain=mca_chain_free(chain);
