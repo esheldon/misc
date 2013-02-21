@@ -191,8 +191,23 @@ void put_object(const struct gconfig *conf, struct image *image, struct object *
     gmix=gmix_free(gmix);
 }
 
+void put_objects(const struct gconfig *conf, struct image *image, struct catalog *cat)
+{
+    fprintf(stderr,"putting objects\n");
+    struct object *object = cat->data;
+    for (ssize_t i=0; i<cat->size; i++) {
+        put_object(conf, image, object);
+        object++;
+    }
+}
+
 void add_noise(const struct gconfig *conf, struct image *image)
 {
+    if (conf->sky <= 0) {
+        fprintf(stderr,"sky is zero, not adding noise\n");
+        return;
+    }
+
     fprintf(stderr,"adding noise\n");
     if (strcmp(conf->noise_type,"poisson")) {
         fprintf(stderr,"Implement poisson noise\n");
@@ -200,8 +215,13 @@ void add_noise(const struct gconfig *conf, struct image *image)
     } else if (strcmp(conf->noise_type,"gauss"))  {
         double skysig=sqrt(conf->sky);
         image_add_randn(image, skysig);
+    } else {
+        // we check the config, so should not get here
+        fprintf(stderr,"unexpected noise_type: '%s'\n", conf->noise_type);
+        exit(EXIT_FAILURE);
     }
 }
+
 
 int main(int argc, char **argv)
 {
@@ -211,21 +231,15 @@ int main(int argc, char **argv)
     }
     const char *config_file=argv[1];
     const char *cat_file=argv[2];
+    //const char *image_file=argv[3];
     
     struct gconfig *conf=gconfig_read(config_file);
     gconfig_write(conf, stderr);
 
     struct catalog *cat=catalog_read(cat_file);
-
     struct image *image=make_image(conf);
 
-    fprintf(stderr,"putting objects\n");
-    struct object *object = cat->data;
-    for (ssize_t i=0; i<cat->size; i++) {
-        put_object(conf, image, object);
-        object++;
-    }
-
+    put_objects(conf, image, cat);
     add_noise(conf, image);
 
     free(conf);

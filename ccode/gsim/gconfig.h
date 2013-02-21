@@ -14,5 +14,6 @@ struct gconfig {
 
 struct gconfig *gconfig_read(const char* filename);
 void gconfig_write(struct gconfig *self, FILE* fobj);
+int gconfig_check(struct gconfig *self);
 
 #endif
