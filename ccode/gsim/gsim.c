@@ -81,25 +81,13 @@
 #include <string.h>
 #include "gconfig.h"
 #include "object.h"
+#include "catalog.h"
 #include "image.h"
 #include "gmix.h"
 #include "gmix_image.h"
 #include "image_rand.h"
 
 #define GMIX_PADDING 5.0
-
-FILE *open_catalog(const char *filename)
-{
-    fprintf(stderr,"opening catalog: %s\n", filename);
-    FILE *catfile = fopen(filename,"r");
-    if (catfile==NULL) {
-        fprintf(stderr,"failed to open catalog: %s\n", filename);
-        exit(EXIT_FAILURE);
-    }
-
-    return catfile;
-
-}
 
 struct image *make_image(const struct gconfig *conf)
 {
@@ -112,7 +100,7 @@ struct image *make_image(const struct gconfig *conf)
 
 struct gmix *make_object_gmix(struct object *object)
 {
-    double pars[6] = {};
+    double pars[6] = {0};
     pars[0] = object->row;
     pars[1] = object->col;
     pars[2] = object->e1;
@@ -136,7 +124,7 @@ struct gmix *make_object_gmix(struct object *object)
 }
 struct gmix *make_psf_gmix(struct object *object)
 {
-    double pars[6] = {};
+    double pars[6] = {0};
     pars[0] = 1;
     pars[1] = 1;
     pars[2] = object->psf_e1;
@@ -226,20 +214,21 @@ int main(int argc, char **argv)
     
     struct gconfig *conf=gconfig_read(config_file);
     gconfig_write(conf, stderr);
-    FILE *cat_fptr=open_catalog(cat_file);
+
+    struct catalog *cat=catalog_read(cat_file);
 
     struct image *image=make_image(conf);
 
-    struct object object = {{0}};
     fprintf(stderr,"putting objects\n");
-    while (object_read_one(&object, cat_fptr)) {
-        put_object(conf, image, &object);
+    struct object *object = cat->data;
+    for (ssize_t i=0; i<cat->size; i++) {
+        put_object(conf, image, object);
+        object++;
     }
 
     add_noise(conf, image);
 
     free(conf);
     image=image_free(image);
-    fclose(cat_fptr);
-
+    cat=catalog_free(cat);
 }
