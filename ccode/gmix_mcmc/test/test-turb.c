@@ -89,7 +89,7 @@ int main(int argc, char** argv)
         fprintf(stderr,"could not make ./tmp");
         exit(1);
     }
-    struct gmix *gmix_true=gmix_from_coellip(pars_true, npars);
+    struct gmix *gmix_true=gmix_make_coellip(pars_true, npars);
     gmix_print(gmix_true,stderr);
 
     wlog("making turb sim\n");

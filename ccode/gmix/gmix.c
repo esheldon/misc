@@ -255,7 +255,7 @@ struct gmix *gmix_from_pars(double *pars, int size)
     return gmix;
 }
 
-struct gmix *gmix_from_coellip(const double *pars, int npars)
+struct gmix *gmix_make_coellip(const double *pars, int npars)
 {
     size_t ngauss = (npars-4)/2;
     struct gmix *gmix = gmix_new(ngauss);
@@ -304,7 +304,7 @@ int gmix_fill_coellip(struct gmix *gmix,
 }
 
 
-struct gmix *gmix_from_coellip_Tfrac(double *pars, int size)
+struct gmix *gmix_make_coellip_Tfrac(double *pars, int size)
 {
     int ngauss=0;
     double row=0, col=0, e1=0, e2=0, Tmax=0, Ti=0, pi=0, Tfrac=0;
