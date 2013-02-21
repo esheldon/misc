@@ -7,6 +7,8 @@ struct gconfig *gconfig_read(const char* filename)
 {
     struct gconfig *gconfig=NULL;
 
+    fprintf(stderr,"reading config: %s\n",filename);
+
     enum cfg_status status=0;
     struct cfg *cfg=cfg_read(filename, &status);
     if (status) {
