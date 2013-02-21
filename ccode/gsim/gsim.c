@@ -84,11 +84,13 @@
 #include "image.h"
 #include "gmix.h"
 #include "gmix_image.h"
+#include "image_rand.h"
 
 #define GMIX_PADDING 5.0
 
 FILE *open_catalog(const char *filename)
 {
+    fprintf(stderr,"opening catalog: %s\n", filename);
     FILE *catfile = fopen(filename,"r");
     if (catfile==NULL) {
         fprintf(stderr,"failed to open catalog: %s\n", filename);
@@ -99,9 +101,11 @@ FILE *open_catalog(const char *filename)
 
 }
 
-struct image *make_image(struct gconfig *conf)
+struct image *make_image(const struct gconfig *conf)
 {
+    fprintf(stderr,"making image\n");
     struct image *im=image_new(conf->nrow, conf->ncol);
+    fprintf(stderr,"adding sky\n");
     image_add_scalar(im,conf->sky);
     return im;
 }
@@ -154,7 +158,6 @@ struct gmix *make_psf_gmix(struct object *object)
 
 }
 
-
 struct gmix *make_gmix(struct object *object)
 {
     struct gmix *gmix0    = make_object_gmix(object);
@@ -181,9 +184,9 @@ void set_mask(struct image_mask *self, const struct gmix *gmix)
     self->rowmax = row+rad;
     self->colmin = col-rad;
     self->colmax = col+rad;
-
 }
-void put_gmix(struct gconfig *conf, struct image *image, const struct gmix *gmix)
+
+void put_gmix(const struct gconfig *conf, struct image *image, const struct gmix *gmix)
 {
     struct image_mask mask={0};
     set_mask(&mask, gmix);
@@ -191,15 +194,25 @@ void put_gmix(struct gconfig *conf, struct image *image, const struct gmix *gmix
     gmix_image_put_masked(image, gmix, conf->nsub, &mask);
 }
 
-
-
-void put_object(struct gconfig *conf, struct image *image, struct object *object)
+void put_object(const struct gconfig *conf, struct image *image, struct object *object)
 {
     struct gmix *gmix=make_gmix(object);
 
     put_gmix(conf, image, gmix);
 
     gmix=gmix_free(gmix);
+}
+
+void add_noise(const struct gconfig *conf, struct image *image)
+{
+    fprintf(stderr,"adding noise\n");
+    if (strcmp(conf->noise_type,"poisson")) {
+        fprintf(stderr,"Implement poisson noise\n");
+        exit(EXIT_FAILURE);
+    } else if (strcmp(conf->noise_type,"gauss"))  {
+        double skysig=sqrt(conf->sky);
+        image_add_randn(image, skysig);
+    }
 }
 
 int main(int argc, char **argv)
@@ -210,7 +223,6 @@ int main(int argc, char **argv)
     }
     const char *config_file=argv[1];
     const char *cat_file=argv[2];
-    //const char *image_file=argv[3];
     
     struct gconfig *conf=gconfig_read(config_file);
     gconfig_write(conf, stderr);
@@ -219,11 +231,15 @@ int main(int argc, char **argv)
     struct image *image=make_image(conf);
 
     struct object object = {{0}};
+    fprintf(stderr,"putting objects\n");
     while (object_read_one(&object, cat_fptr)) {
         put_object(conf, image, &object);
     }
 
+    add_noise(conf, image);
+
     free(conf);
     image=image_free(image);
     fclose(cat_fptr);
+
 }
