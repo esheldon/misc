@@ -86,6 +86,7 @@
 #include "gmix.h"
 #include "gmix_image.h"
 #include "image_rand.h"
+#include "image_fits.h"
 
 #define GMIX_PADDING 5.0
 
@@ -231,7 +232,7 @@ int main(int argc, char **argv)
     }
     const char *config_file=argv[1];
     const char *cat_file=argv[2];
-    //const char *image_file=argv[3];
+    const char *image_file=argv[3];
     
     struct gconfig *conf=gconfig_read(config_file);
     gconfig_write(conf, stderr);
@@ -241,6 +242,9 @@ int main(int argc, char **argv)
 
     put_objects(conf, image, cat);
     add_noise(conf, image);
+
+    fprintf(stderr,"writing %s\n", image_file);
+    image_write_fits(image, image_file);
 
     free(conf);
     image=image_free(image);

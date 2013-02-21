@@ -19,7 +19,7 @@ prefix=os.path.expanduser( options.prefix )
 
 CC='gcc'
 
-LINKFLAGS=['-lm']
+LINKFLAGS=['-lcfitsio','-lm']
 
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 if not options.dbg:
@@ -27,7 +27,8 @@ if not options.dbg:
 
 sources=['gsim','config','gconfig','object','catalog',
          'image','gmix','gauss',
-         'gmix_image','image_rand','randn']
+         'gmix_image','image_rand','randn',
+         'image_fits']
 programs=[{'name':'gsim','sources':sources}]
 
 def build():
