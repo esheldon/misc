@@ -83,6 +83,9 @@
 #include "object.h"
 #include "image.h"
 #include "gmix.h"
+#include "gmix_image.h"
+
+#define GMIX_PADDING 5.0
 
 FILE *open_catalog(const char *filename)
 {
@@ -99,6 +102,7 @@ FILE *open_catalog(const char *filename)
 struct image *make_image(struct gconfig *conf)
 {
     struct image *im=image_new(conf->nrow, conf->ncol);
+    image_add_scalar(im,conf->sky);
     return im;
 }
 
@@ -163,9 +167,37 @@ struct gmix *make_gmix(struct object *object)
     return gmix;
 }
 
-void put_object(struct image *image, struct object *object)
+void set_mask(struct image_mask *self, const struct gmix *gmix)
+{
+    double row=0, col=0;
+
+    double T = gmix_get_T(gmix);
+    double sigma = sqrt(T/2);
+
+    double rad = GMIX_PADDING*sigma;
+
+    gmix_get_cen(gmix, &row, &col);
+    self->rowmin = row-rad;
+    self->rowmax = row+rad;
+    self->colmin = col-rad;
+    self->colmax = col+rad;
+
+}
+void put_gmix(struct gconfig *conf, struct image *image, const struct gmix *gmix)
+{
+    struct image_mask mask={0};
+    set_mask(&mask, gmix);
+
+    gmix_image_put_masked(image, gmix, conf->nsub, &mask);
+}
+
+
+
+void put_object(struct gconfig *conf, struct image *image, struct object *object)
 {
     struct gmix *gmix=make_gmix(object);
+
+    put_gmix(conf, image, gmix);
 
     gmix=gmix_free(gmix);
 }
@@ -188,9 +220,7 @@ int main(int argc, char **argv)
 
     struct object object = {{0}};
     while (object_read_one(&object, cat_fptr)) {
-        put_object(image, &object);
-        //object_write_one(&object, stderr);
-
+        put_object(conf, image, &object);
     }
 
     free(conf);

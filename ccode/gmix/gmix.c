@@ -130,6 +130,27 @@ double gmix_get_T(const struct gmix *self)
     T = T/psum;
     return T;
 }
+
+void gmix_get_cen(const struct gmix *self, double *row, double *col)
+{
+    double psum=0;
+    struct gauss *gauss=self->data;
+
+    (*row)=0;
+    (*col)=0;
+
+    for (size_t i=0; i<self->size; i++) {
+        (*row) += gauss->p*gauss->row;
+        (*col) += gauss->p*gauss->col;
+        psum += gauss->p;
+        gauss++;
+    }
+
+    (*row) /= psum;
+    (*col) /= psum;
+
+}
+
 /*
 void gmix_set_total_moms(struct gmix *self)
 {
