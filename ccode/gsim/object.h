@@ -1,6 +1,8 @@
 #ifndef _OBJECT_HGUARD
 #define _OBJECT_HGUARD
 
+#define OBJECT_NFIELDS 11
+
 struct object {
     char model[20];
     double row;
