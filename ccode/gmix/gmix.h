@@ -58,6 +58,7 @@ int gmix_verify(const struct gmix *self);
 
 // get sum(p_i*T_i)/sum(p_i);
 double gmix_get_T(const struct gmix *self);
+void gmix_get_cen(const struct gmix *self, double *row, double *col);
 
 // only makes sense for same center, e.g. psf
 //void gmix_set_total_moms(struct gmix *self);

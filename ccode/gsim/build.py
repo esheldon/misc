@@ -25,7 +25,7 @@ CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 if not options.dbg:
     CFLAGS += ['-DNDEBUG']
 
-sources=['gsim','config','gconfig','object','image','gmix','gauss']
+sources=['gsim','config','gconfig','object','image','gmix','gauss','gmix_image']
 programs=[{'name':'gsim','sources':sources}]
 
 def build():
