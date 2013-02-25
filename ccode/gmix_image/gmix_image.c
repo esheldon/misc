@@ -88,9 +88,7 @@ int gmix_image_put_masked(struct image *image,
 
     image_add_mask(masked_image, mask);
 
-    struct gmix *masked_gmix = gmix_new_copy(gmix);
-
-    struct gauss *gauss=masked_gmix->data;
+    struct gauss *gauss=gmix->data;
 
     for (int i=0; i<gmix->size; i++) {
         gauss->row -= mask->rowmin;
@@ -103,7 +101,6 @@ int gmix_image_put_masked(struct image *image,
                          nsub);
 
     masked_image=image_free(masked_image);
-    masked_gmix=gmix_free(masked_gmix);
 
     return flags;
 }

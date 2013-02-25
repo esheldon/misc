@@ -27,9 +27,9 @@
         sky = double
             Value for the sky.  Specify zero for no noise.
         nsub = integer
-            the number of points to use for sub-pixel integration over the
-            pixels.  16 is a good value, even overkill in most cases.
-            
+            the number of points in each dimension to use for sub-pixel
+            integration over the pixels.
+
         ellip_type = "string"
             "e" or "g".  if "e" then the ellipticities in the file are given as
             (a^2-b^2)/(a^2+b^2).  If ellip_type is "g" they are (a-b)/(a+b)
@@ -99,6 +99,28 @@ struct image *make_image(const struct gconfig *conf)
     return im;
 }
 
+void add_noise(const struct gconfig *conf, struct image *image)
+{
+    if (conf->sky <= 0) {
+        fprintf(stderr,"sky is zero, not adding noise\n");
+        return;
+    }
+
+    fprintf(stderr,"adding noise\n");
+    if (0==strcmp(conf->noise_type,"poisson")) {
+        fprintf(stderr,"Implement poisson noise\n");
+        exit(EXIT_FAILURE);
+    } else if (0==strcmp(conf->noise_type,"gauss"))  {
+        double skysig=sqrt(conf->sky);
+        image_add_randn(image, skysig);
+    } else {
+        // we check the config, so should not get here
+        fprintf(stderr,"unexpected noise_type: '%s'\n", conf->noise_type);
+        exit(EXIT_FAILURE);
+    }
+}
+
+
 struct gmix *make_object_gmix(struct object *object)
 {
     double pars[6] = {0};
@@ -110,11 +132,11 @@ struct gmix *make_object_gmix(struct object *object)
     pars[5] = object->counts;
 
     struct gmix *gmix=NULL;
-    if ( strcmp(object->model, "exp") ) {
+    if ( 0==strcmp(object->model, "exp") ) {
         gmix=gmix_make_exp6(pars, 6);
-    } else if ( strcmp(object->model, "dev") ) {
+    } else if ( 0==strcmp(object->model, "dev") ) {
         gmix=gmix_make_dev10(pars, 6);
-    } else if ( strcmp(object->model, "gauss") ) {
+    } else if ( 0==strcmp(object->model, "gauss") ) {
         gmix=gmix_make_coellip(pars, 6);
     } else {
         fprintf(stderr,"bad object model: '%s'\n", object->model);
@@ -134,9 +156,9 @@ struct gmix *make_psf_gmix(struct object *object)
     pars[5] = 1;
 
     struct gmix *gmix=NULL;
-    if ( strcmp(object->psf_model, "turb") ) {
+    if ( 0==strcmp(object->psf_model, "turb") ) {
         gmix=gmix_make_turb3(pars, 6);
-    } else if ( strcmp(object->psf_model, "gauss") ) {
+    } else if ( 0==strcmp(object->psf_model, "gauss") ) {
         gmix=gmix_make_coellip(pars, 6);
     } else {
         fprintf(stderr,"bad psf model: '%s'\n", object->psf_model);
@@ -201,28 +223,6 @@ void put_objects(const struct gconfig *conf, struct image *image, struct catalog
         object++;
     }
 }
-
-void add_noise(const struct gconfig *conf, struct image *image)
-{
-    if (conf->sky <= 0) {
-        fprintf(stderr,"sky is zero, not adding noise\n");
-        return;
-    }
-
-    fprintf(stderr,"adding noise\n");
-    if (strcmp(conf->noise_type,"poisson")) {
-        fprintf(stderr,"Implement poisson noise\n");
-        exit(EXIT_FAILURE);
-    } else if (strcmp(conf->noise_type,"gauss"))  {
-        double skysig=sqrt(conf->sky);
-        image_add_randn(image, skysig);
-    } else {
-        // we check the config, so should not get here
-        fprintf(stderr,"unexpected noise_type: '%s'\n", conf->noise_type);
-        exit(EXIT_FAILURE);
-    }
-}
-
 
 int main(int argc, char **argv)
 {

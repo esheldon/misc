@@ -45,6 +45,7 @@ struct catalog *catalog_read(const char *filename)
 
     ssize_t count=catalog_count(fobj);
 
+    self->size=count;
     self->data=calloc(count, sizeof(struct object));
 
 
