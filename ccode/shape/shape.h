@@ -23,7 +23,8 @@ void shape_show(const struct shape *self, FILE *fptr);
 
 // just write e1,e2 to the file
 // %.16g %.16g
-void shape_write(const struct shape *self, FILE *fptr);
+void shape_write_e1e2(const struct shape *self, FILE *fptr);
+void shape_write_g1g2(const struct shape *self, FILE *fptr);
 void shape_read_e1e2(struct shape *self, FILE *fptr);
 void shape_read_g1g2(struct shape *self, FILE *fptr);
 
