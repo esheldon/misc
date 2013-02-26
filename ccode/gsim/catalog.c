@@ -52,7 +52,7 @@ struct catalog *catalog_read(const char *filename)
     object=self->data;
     for (ssize_t i=0; i< count; i++) {
         object_read_one(object, fobj);
-        object ++;
+        object++;
     }
 
     fclose(fobj);
