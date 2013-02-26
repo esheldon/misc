@@ -3,18 +3,18 @@
 
 #define OBJECT_NFIELDS 11
 
+#include "shape.h"
+
 struct object {
     char model[20];
     double row;
     double col;
-    double e1;
-    double e2;
+    struct shape shape;
     double T;
     double counts;
 
     char psf_model[20];
-    double psf_e1;
-    double psf_e2;
+    struct shape psf_shape;
     double psf_T;
 };
 

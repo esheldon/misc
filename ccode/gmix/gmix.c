@@ -6,13 +6,13 @@
 
 struct gmix* gmix_new(size_t ngauss)
 {
-    struct gmix*self=NULL;
     if (ngauss == 0) {
-        fprintf(stderr,"number of gaussians must be > 0\n");
-        return NULL;
+        fprintf(stderr,"number of gaussians must be > 0: %s: %d\n",
+                       __FILE__,__LINE__);
+        exit(EXIT_FAILURE);
     }
 
-    self = calloc(1, sizeof(struct gmix));
+    struct gmix *self= calloc(1, sizeof(struct gmix));
     if (self==NULL) {
         fprintf(stderr,"could not allocate struct gmix\n");
         exit(EXIT_FAILURE);

@@ -3,7 +3,7 @@
 #include <math.h>
 #include "shape.h"
 
-struct shape *shape_new_e1e2(double e1, double e2)
+struct shape *shape_new(void)
 {
     struct shape *self=calloc(1,sizeof(struct shape));
     if (!self) {
@@ -12,20 +12,17 @@ struct shape *shape_new_e1e2(double e1, double e2)
                        __FILE__,__LINE__);
         exit(EXIT_FAILURE);
     }
-
+    return self;
+}
+struct shape *shape_new_e1e2(double e1, double e2)
+{
+    struct shape *self=shape_new();
     shape_set_e1e2(self,e1,e2);
     return self;
 }
 struct shape *shape_new_g1g2(double g1, double g2)
 {
-    struct shape *self=calloc(1,sizeof(struct shape));
-    if (!self) {
-        fprintf(stderr,"error: could not allocate struct "
-                       "shape: %s: %d\n",
-                       __FILE__,__LINE__);
-        exit(EXIT_FAILURE);
-    }
-
+    struct shape *self=shape_new();
     shape_set_g1g2(self,g1,g2);
     return self;
 }
@@ -35,15 +32,39 @@ struct shape *shape_free(struct shape *self)
     return NULL;
 }
 
-void shape_show(struct shape *self, FILE *fptr)
+void shape_show(const struct shape *self, FILE *fptr)
 {
     fprintf(fptr,"e1: %12.9f e2: %12.9f\n", self->e1, self->e2);
     fprintf(fptr,"g1: %12.9f g2: %12.9f\n", self->g1, self->g2);
 }
-void shape_write(struct shape *self, FILE *fptr)
+void shape_write(const struct shape *self, FILE *fptr)
 {
     fprintf(fptr,"%.16g %.16g\n", self->e1, self->e2);
 }
+void shape_read_e1e2(struct shape *self, FILE *fptr)
+{
+    double e1=0,e2=0;
+    int nread=fscanf(fptr,"%lf %lf\n", &e1, &e2);
+    if (nread != 2) {
+        fprintf(stderr,"expected to read 2 doubles, read %d\n",
+                nread);
+        exit(EXIT_FAILURE);
+    }
+    shape_set_e1e2(self, e1, e2);
+}
+void shape_read_g1g2(struct shape *self, FILE *fptr)
+{
+    double g1=0,g2=0;
+    int nread=fscanf(fptr,"%lf %lf\n", &g1, &g2);
+    if (nread != 2) {
+        fprintf(stderr,"expected to read 2 doubles, read %d\n",
+                nread);
+        exit(EXIT_FAILURE);
+    }
+    shape_set_g1g2(self, g1, g2);
+}
+
+
 
 
 static double e2g(double e)
@@ -139,7 +160,6 @@ struct shape *shape_add(struct shape *self, struct shape *shear)
         new=shape_free(new);
         return NULL;
     }
-    
     return new;
 }
 int shape_add_inplace(struct shape *self, struct shape *shear)

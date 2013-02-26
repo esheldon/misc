@@ -28,7 +28,7 @@ if not options.dbg:
 sources=['gsim','config','gconfig','object','catalog',
          'image','gmix','gauss',
          'gmix_image','image_rand','randn',
-         'image_fits']
+         'image_fits','shape']
 programs=[{'name':'gsim','sources':sources}]
 
 def build():

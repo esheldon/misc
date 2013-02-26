@@ -4,27 +4,40 @@
 
 int object_read_one(struct object *self, FILE *fobj)
 {
-    
-    int nread=fscanf(fobj,
-                     "%s %lf %lf %lf %lf %lf %lf %s %lf %lf %lf",
-                     self->model,
-                     &self->row,
-                     &self->col,
-                     &self->e1,
-                     &self->e2,
+    int nread=0;
+
+    nread=fscanf(fobj,
+                 "%s %lf %lf",
+                 self->model,
+                 &self->row,
+                 &self->col);
+
+    if (nread!=3) goto _object_read_one_bail;
+
+    shape_read_e1e2(&self->shape, fobj);
+    nread+=2;
+
+    nread += fscanf(fobj,
+                    "%lf %lf %s",
                      &self->T,
                      &self->counts,
+                     self->psf_model);
+    if (nread!=8) goto _object_read_one_bail;
 
-                     self->psf_model,
-                     &self->psf_e1,
-                     &self->psf_e2,
-                     &self->psf_T);
+    shape_read_e1e2(&self->psf_shape, fobj);
+
+    nread += 2;
+
+    nread += fscanf(fobj,"%lf", &self->psf_T);
+
+
+_object_read_one_bail:
 
     if (nread==EOF) {
         return 0;
     }
-    if (nread !=  11 && nread != 0) {
-        fprintf(stderr,"only read %d items from object line\n", nread);
+    if (nread !=  OBJECT_NFIELDS && nread != 0) {
+        fprintf(stderr,"did not read full object\n");
         exit(EXIT_FAILURE);
     }
 
@@ -39,14 +52,14 @@ void object_write_one(struct object *self, FILE* fobj)
                      self->model,
                      self->row,
                      self->col,
-                     self->e1,
-                     self->e2,
+                     self->shape.e1,
+                     self->shape.e2,
                      self->T,
                      self->counts,
 
                      self->psf_model,
-                     self->psf_e1,
-                     self->psf_e2,
+                     self->psf_shape.e1,
+                     self->psf_shape.e2,
                      self->psf_T);
 
     if (nread != 11) {

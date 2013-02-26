@@ -17,7 +17,7 @@
             Number of columns in the image
         noise_type = "string"
             Type of noise in the image.  Currently
-            "gauss" or "poisson"
+            "gauss" for gaussian noise or "poisson"
 
             For poisson noise, a deviate is drawn based on
             the value sky+flux in each pixel.
@@ -30,8 +30,8 @@
             the number of points in each dimension to use for sub-pixel
             integration over the pixels.
 
-        ellip_type = "string"
-            "e" or "g".  if "e" then the ellipticities in the file are given as
+        ellip_type = "e" or "g"
+            if "e" then the ellipticities in the file are given as
             (a^2-b^2)/(a^2+b^2).  If ellip_type is "g" they are (a-b)/(a+b)
 
         seed = integer
@@ -110,7 +110,7 @@ void add_noise(const struct gconfig *conf, struct image *image)
     if (0==strcmp(conf->noise_type,"poisson")) {
         fprintf(stderr,"Implement poisson noise\n");
         exit(EXIT_FAILURE);
-    } else if (0==strcmp(conf->noise_type,"gauss"))  {
+    } else if (0==strcmp(conf->noise_type,"gauss")) {
         double skysig=sqrt(conf->sky);
         image_add_randn(image, skysig);
     } else {
@@ -120,14 +120,29 @@ void add_noise(const struct gconfig *conf, struct image *image)
     }
 }
 
+/* add a ! to front of name so cfitsio will clobber any existing file */
+void write_image(const struct image *self,
+                 const char *filename)
+{
+    char *oname=NULL;
+    int len=strlen(filename);
+
+    oname = calloc(len+2, sizeof(char));
+    oname[0]='!';
+
+    strncpy(oname+1, filename, len);
+
+    fprintf(stderr,"writing %s\n", filename);
+    image_write_fits(self, oname);
+}
 
 struct gmix *make_object_gmix(struct object *object)
 {
     double pars[6] = {0};
     pars[0] = object->row;
     pars[1] = object->col;
-    pars[2] = object->e1;
-    pars[3] = object->e2;
+    pars[2] = object->shape.e1;
+    pars[3] = object->shape.e2;
     pars[4] = object->T;
     pars[5] = object->counts;
 
@@ -150,8 +165,8 @@ struct gmix *make_psf_gmix(struct object *object)
     double pars[6] = {0};
     pars[0] = 1;
     pars[1] = 1;
-    pars[2] = object->psf_e1;
-    pars[3] = object->psf_e2;
+    pars[2] = object->psf_shape.e1;
+    pars[3] = object->psf_shape.e2;
     pars[4] = object->psf_T;
     pars[5] = 1;
 
@@ -243,8 +258,7 @@ int main(int argc, char **argv)
     put_objects(conf, image, cat);
     add_noise(conf, image);
 
-    fprintf(stderr,"writing %s\n", image_file);
-    image_write_fits(image, image_file);
+    write_image(image, image_file);
 
     free(conf);
     image=image_free(image);

@@ -9,6 +9,7 @@ struct shape {
     double e2;
 };
 
+struct shape *shape_new(void);
 struct shape *shape_new_e1e2(double e1, double e2);
 struct shape *shape_new_g1g2(double g1, double g2);
 
@@ -18,11 +19,13 @@ struct shape *shape_free(struct shape *self);
 // for human viewing, write both
 // e1: %.16g e2: %.16g
 // g1: %.16g g2: %.16g
-void shape_show(struct shape *self, FILE *fptr);
+void shape_show(const struct shape *self, FILE *fptr);
 
 // just write e1,e2 to the file
 // %.16g %.16g
-void shape_write(struct shape *self, FILE *fptr);
+void shape_write(const struct shape *self, FILE *fptr);
+void shape_read_e1e2(struct shape *self, FILE *fptr);
+void shape_read_g1g2(struct shape *self, FILE *fptr);
 
 
 // set e1,e2, also keeping g1,g2 consistent
