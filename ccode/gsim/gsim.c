@@ -2,9 +2,10 @@
 
     gsim config_file catalog image
 
-    for the simulation config, read objects and psf info from the catalog file
-    (one per line), place them in an image with noise and write to the image
-    file.
+    Generate a simulated image with parameters specified in the config file.
+    
+    read object info from the catalog file (one per line), place them in an
+    image with noise and write to the image file.
 
     config file
     -----------
@@ -46,7 +47,7 @@
 
         model row col e1 e2 T counts psfmodel psfe1 psfe2 psfT
 
-    Note that for gaussians, the centroid and counts are not given
+    Note that for psfs, the centroid and counts are not given
 
     column description
 
@@ -55,6 +56,8 @@
             "exp"   - an exponential represented using gaussians
             "dev"   - an devaucouleur represented using gaussians
             "turb"  - turbulent psf represented using gaussians
+            "psf"   - the object ellip/size info is ignored and a psf is placed
+                      at the given location
 
           If you want a bulge+disk, just put two entries in the file.  You can
           add any number of components to an object this way.
@@ -162,15 +165,19 @@ struct gmix *make_object_gmix(struct object *object)
 
     return gmix;
 }
-struct gmix *make_psf_gmix(struct object *object)
+
+
+struct gmix *make_psf_gmix(struct object *object, 
+                           double row, double col, 
+                           double flux)
 {
     double pars[6] = {0};
-    pars[0] = 1;
-    pars[1] = 1;
+    pars[0] = row;
+    pars[1] = col;
     pars[2] = object->psf_shape.e1;
     pars[3] = object->psf_shape.e2;
     pars[4] = object->psf_T;
-    pars[5] = 1;
+    pars[5] = flux;
 
     struct gmix *gmix=NULL;
     if ( 0==strcmp(object->psf_model, "turb") ) {
@@ -186,14 +193,39 @@ struct gmix *make_psf_gmix(struct object *object)
 
 }
 
-struct gmix *make_gmix(struct object *object)
+struct gmix *make_star_gmix(struct object *object)
+{
+    struct gmix *gmix=make_psf_gmix(object,
+                                    object->row, object->col,
+                                    object->counts);
+
+    return gmix;
+
+}
+
+
+struct gmix *make_galaxy_gmix(struct object *object)
 {
     struct gmix *gmix0    = make_object_gmix(object);
-    struct gmix *gmix_psf = make_psf_gmix(object);
+    struct gmix *gmix_psf = make_psf_gmix(object,-9,-9,-9);
     struct gmix *gmix     = gmix_convolve(gmix0, gmix_psf);
 
     gmix0 = gmix_free(gmix0);
     gmix_psf = gmix_free(gmix_psf);
+
+    return gmix;
+}
+
+
+struct gmix *make_gmix(struct object *object)
+{
+    struct gmix *gmix = NULL;
+
+    if (0==strcmp(object->model, "star")) {
+        gmix = make_star_gmix(object);
+    } else {
+        gmix = make_galaxy_gmix(object);
+    }
 
     return gmix;
 }
