@@ -37,9 +37,13 @@ void shape_show(const struct shape *self, FILE *fptr)
     fprintf(fptr,"e1: %12.9f e2: %12.9f\n", self->e1, self->e2);
     fprintf(fptr,"g1: %12.9f g2: %12.9f\n", self->g1, self->g2);
 }
-void shape_write(const struct shape *self, FILE *fptr)
+void shape_write_e1e2(const struct shape *self, FILE *fptr)
 {
     fprintf(fptr,"%.16g %.16g\n", self->e1, self->e2);
+}
+void shape_write_g1g2(const struct shape *self, FILE *fptr)
+{
+    fprintf(fptr,"%.16g %.16g\n", self->g1, self->g2);
 }
 void shape_read_e1e2(struct shape *self, FILE *fptr)
 {

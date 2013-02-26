@@ -134,6 +134,8 @@ void write_image(const struct image *self,
 
     fprintf(stderr,"writing %s\n", filename);
     image_write_fits(self, oname);
+
+    free(oname);
 }
 
 struct gmix *make_object_gmix(struct object *object)
