@@ -52,6 +52,7 @@ export MASK_DIR=~esheldon/masks
 
 export LENSDIR=~esheldon/lensing
 export LENSDIR_HDFS=hdfs:///user/esheldon/lensing
+export GMIX_SDSS=~esheldon/gmix-sdss
 export SHAPESIM_FS=hdfs
 
 export PIXEL_MASK_BASIC=pixel_mask_dr4_basic
@@ -65,5 +66,5 @@ export REGAUSSIM_HDFS_DIR=hdfs:///user/esheldon/lensing/regauss-sim
 
 export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
 
-export CLUSTERSTEP=~/oh/cluster-step
+export CLUSTERSTEP=~/lensing/cluster-step
 export CLUSTERSTEP_HDFS=hdfs:///user/esheldon/lensing/cluster-step

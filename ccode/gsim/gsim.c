@@ -82,6 +82,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "gconfig.h"
 #include "object.h"
 #include "catalog.h"
@@ -93,6 +94,10 @@
 
 #define GMIX_PADDING 5.0
 
+void set_seed(long seed) {
+    srand48(seed);
+}
+
 struct image *make_image(const struct gconfig *conf)
 {
     fprintf(stderr,"making image\n");
@@ -102,6 +107,10 @@ struct image *make_image(const struct gconfig *conf)
     return im;
 }
 
+
+/*
+   for poisson, the image should have sky added already
+*/
 void add_noise(const struct gconfig *conf, struct image *image)
 {
     if (conf->sky <= 0) {
@@ -111,8 +120,7 @@ void add_noise(const struct gconfig *conf, struct image *image)
 
     fprintf(stderr,"adding noise\n");
     if (0==strcmp(conf->noise_type,"poisson")) {
-        fprintf(stderr,"Implement poisson noise\n");
-        exit(EXIT_FAILURE);
+        image_add_poisson(image);
     } else if (0==strcmp(conf->noise_type,"gauss")) {
         double skysig=sqrt(conf->sky);
         image_add_randn(image, skysig);
@@ -207,7 +215,7 @@ struct gmix *make_star_gmix(struct object *object)
 struct gmix *make_galaxy_gmix(struct object *object)
 {
     struct gmix *gmix0    = make_object_gmix(object);
-    struct gmix *gmix_psf = make_psf_gmix(object,-9,-9,-9);
+    struct gmix *gmix_psf = make_psf_gmix(object,1,1,1);
     struct gmix *gmix     = gmix_convolve(gmix0, gmix_psf);
 
     gmix0 = gmix_free(gmix0);
@@ -282,9 +290,12 @@ int main(int argc, char **argv)
     const char *config_file=argv[1];
     const char *cat_file=argv[2];
     const char *image_file=argv[3];
+
     
     struct gconfig *conf=gconfig_read(config_file);
     gconfig_write(conf, stderr);
+
+    set_seed(conf->seed);
 
     struct catalog *cat=catalog_read(cat_file);
     struct image *image=make_image(conf);

@@ -48,7 +48,7 @@ void shape_write_g1g2(const struct shape *self, FILE *fptr)
 void shape_read_e1e2(struct shape *self, FILE *fptr)
 {
     double e1=0,e2=0;
-    int nread=fscanf(fptr,"%lf %lf\n", &e1, &e2);
+    int nread=fscanf(fptr,"%lf %lf", &e1, &e2);
     if (nread != 2) {
         fprintf(stderr,"expected to read 2 doubles, read %d\n",
                 nread);

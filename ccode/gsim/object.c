@@ -12,7 +12,7 @@ int object_read_one(struct object *self, FILE *fobj)
                  &self->row,
                  &self->col);
 
-    if (nread!=3) goto _object_read_one_bail;
+    if (nread != 3) goto _object_read_one_bail;
 
     shape_read_e1e2(&self->shape, fobj);
     nread+=2;
@@ -47,22 +47,22 @@ _object_read_one_bail:
 
 void object_write_one(struct object *self, FILE* fobj)
 {
-    int nread=fprintf(fobj,
-                     "%s %lf %lf %lf %lf %lf %lf %s %lf %lf %lf\n",
-                     self->model,
-                     self->row,
-                     self->col,
-                     self->shape.e1,
-                     self->shape.e2,
-                     self->T,
-                     self->counts,
+    int nwrite=fprintf(fobj,
+                       "%s %lf %lf %lf %lf %lf %lf %s %lf %lf %lf\n",
+                       self->model,
+                       self->row,
+                       self->col,
+                       self->shape.e1,
+                       self->shape.e2,
+                       self->T,
+                       self->counts,
 
-                     self->psf_model,
-                     self->psf_shape.e1,
-                     self->psf_shape.e2,
-                     self->psf_T);
+                       self->psf_model,
+                       self->psf_shape.e1,
+                       self->psf_shape.e2,
+                       self->psf_T);
 
-    if (nread != 11) {
+    if (nwrite != 11) {
         ;
     }
 }
