@@ -10,5 +10,9 @@
    Add normal random deviates with sigma "skysig"
 */
 void image_add_randn(struct image *image, double skysig);
+/*
+   replace the image values with a poisson deviate
+*/
+void image_add_poisson(struct image *image);
 
 #endif

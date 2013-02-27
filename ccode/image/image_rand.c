@@ -18,4 +18,24 @@ void image_add_randn(struct image *image, double skysig)
     } // rows
 }
 
+void image_add_poisson(struct image *image)
+{
+    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
+
+    size_t col=0, row=0;
+    double *rowdata=NULL;
+
+    for (row=0; row<nrows; row++) {
+        rowdata=IM_ROW(image, row);
+        for (col=0; col<ncols; col++) {
+
+            double val=(*rowdata);
+            long pval = poisson(val);
+            (*rowdata) = (double) pval;
+            rowdata++;
+
+        } // cols
+    } // rows
+}
+
 

@@ -48,6 +48,7 @@ if [[ $check == "" ]]; then
     module load espy/local
 
     module load desfiles
+    module load desdb
 
     module load local      # *
 
@@ -60,12 +61,13 @@ if [[ $check == "" ]]; then
     module load cosmology  # *
     module load admom      # *
     module load fimage/local     # *
-    module load fitsio
+    module load fitsio/local
 
     module load numpydb    # *
     module load pgnumpy    # *
 
-    module load scikits_learn # *
+    #module load scikits_learn # *
+    module load scikits_learn/new # *
 
     # python only
     module load sdsspy
