@@ -22,7 +22,10 @@ double randn()
 }
 
 /*
-    from Knuth
+
+    The small lambda one is from Knuth
+
+    The cut/rejection method is based off numerical recipes
 */
 long poisson(double lambda)
 {
@@ -56,7 +59,8 @@ long poisson(double lambda)
         // em is already the integer part
         k = (long) em;
     } else {
-
+        // this works great but for high values of lambda (lambda > 700),
+        // exp(-lambda) is returned as exactly zero
         double p=drand48();
         double target=exp(-lambda);
         while (p > target) {
