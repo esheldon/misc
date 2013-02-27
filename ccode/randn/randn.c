@@ -20,3 +20,20 @@ double randn()
     //y2 = x2*w;
     return y1;
 }
+
+/*
+    from Knuth
+*/
+long poisson(double lambda)
+{
+    long k=0;
+    double target=exp(-lambda);
+    double p=drand48();
+
+    while (p > target) {
+        p*=drand48();
+        k+=1;
+    }
+
+    return k;
+}
