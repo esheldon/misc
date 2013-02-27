@@ -10,3 +10,10 @@
     srand48((long) t1);
 */
 double randn();
+
+/*
+   Generate a poisson deviate.
+
+   This is apparently from Knuth
+*/
+long poisson(double lambda);
