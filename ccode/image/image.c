@@ -151,7 +151,7 @@ void image_write(const struct image *self, FILE* stream)
 
 // mask is gauranteed to be within [0,size).  Also maxval is
 // gauranteed to be >= minval.
-static void fix_mask(size_t dim, ssize_t *minval, ssize_t *maxval)
+void image_fix_mask(size_t dim, ssize_t *minval, ssize_t *maxval)
 {
     if (*minval < 0) {
         *minval=0;
@@ -179,13 +179,13 @@ void image_add_mask(struct image *self,
     tminval=mask->rowmin;
     tmaxval=mask->rowmax;
 
-    fix_mask(IM_PARENT_NROWS(self), &tminval, &tmaxval);
+    image_fix_mask(IM_PARENT_NROWS(self), &tminval, &tmaxval);
     self->row0  = (size_t) tminval;
     self->nrows = (size_t) (tmaxval - tminval + 1);
 
     tminval=mask->colmin;
     tmaxval=mask->colmax;
-    fix_mask(IM_PARENT_NCOLS(self), &tminval, &tmaxval);
+    image_fix_mask(IM_PARENT_NCOLS(self), &tminval, &tmaxval);
     self->col0  = (size_t) tminval;
     self->ncols = (size_t)(tmaxval - tminval + 1);
 

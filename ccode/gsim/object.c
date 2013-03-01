@@ -5,6 +5,7 @@
 int object_read_one(struct object *self, FILE *fobj)
 {
     int nread=0;
+    double sigma=0; // T = sigma1**2 + sigma2**2
 
     nread=fscanf(fobj,
                  "%s %lf %lf",
@@ -19,16 +20,18 @@ int object_read_one(struct object *self, FILE *fobj)
 
     nread += fscanf(fobj,
                     "%lf %lf %s",
-                     &self->T,
+                     &sigma,
                      &self->counts,
                      self->psf_model);
     if (nread!=8) goto _object_read_one_bail;
+    self->T = 2*sigma*sigma;
 
     shape_read_e1e2(&self->psf_shape, fobj);
 
     nread += 2;
 
-    nread += fscanf(fobj,"%lf", &self->psf_T);
+    nread += fscanf(fobj,"%lf", &sigma);
+    self->psf_T = 2*sigma*sigma;
 
 
 _object_read_one_bail:

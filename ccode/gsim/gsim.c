@@ -45,7 +45,7 @@
     The catalog file should be a space-delimited text file with the following
     columns
 
-        model row col e1 e2 T counts psfmodel psfe1 psfe2 psfT
+        model row col e1 e2 sigma counts psfmodel psfe1 psfe2 psf_sigma
 
     Note that for psfs, the centroid and counts are not given
 
@@ -66,11 +66,18 @@
             zero-offset row and column in the image
 
         - e1,e2
-            The ellipticity of the object or the psf.  The convention should
-            match that given by the config file.  You should put
-            shear into this value.
+            The ellipticity of the object or the psf.  This is the version defined 
+            by the <x^2>
 
-        - T is the <x^2> + <y^2> for the object or psf.
+                T=<x^2> + <y^2>
+                e1=(<x^2> - <y^2>)/T
+                e2=2*<xy>/T
+
+            We could just as easily use the reduced shear definition.
+
+        - sigma is the "sigma" of the object or psf, defined as
+            sqrt(  (<x^2> + <y^2>)/2 ) === sqrt(T/2)
+          for a gaussian this is the average of the sigmas in each dimension
    
     output image
     ------------
@@ -92,7 +99,20 @@
 #include "image_rand.h"
 #include "image_fits.h"
 
+// we will only draw the objects out do a radius of GMIX_PADDING*sigma
+//
+// sigma is the average over the gaussians in the mixture
+//
+//     T = <x^2> + <y^2>
+//    <T> = sum(p_i * T_i)/sum(p_i)
+//    sigma = sqrt(T/2)
+//
+// draw_radius = GMIX_PADDING*sigma
 #define GMIX_PADDING 5.0
+
+/* 
+   make sure this is the same random number generator used by image_rand.c
+*/
 
 void set_seed(long seed) {
     srand48(seed);
@@ -102,15 +122,10 @@ struct image *make_image(const struct gconfig *conf)
 {
     fprintf(stderr,"making image\n");
     struct image *im=image_new(conf->nrow, conf->ncol);
-    fprintf(stderr,"adding sky\n");
-    image_add_scalar(im,conf->sky);
     return im;
 }
 
 
-/*
-   for poisson, the image should have sky added already
-*/
 void add_noise(const struct gconfig *conf, struct image *image)
 {
     if (conf->sky <= 0) {
@@ -119,9 +134,14 @@ void add_noise(const struct gconfig *conf, struct image *image)
     }
 
     fprintf(stderr,"adding noise\n");
+    fprintf(stderr,"    adding sky background\n");
+    image_add_scalar(image,conf->sky);
+
     if (0==strcmp(conf->noise_type,"poisson")) {
+        fprintf(stderr,"    adding poisson noise\n");
         image_add_poisson(image);
     } else if (0==strcmp(conf->noise_type,"gauss")) {
+        fprintf(stderr,"    adding gaussian noise\n");
         double skysig=sqrt(conf->sky);
         image_add_randn(image, skysig);
     } else {
@@ -135,18 +155,8 @@ void add_noise(const struct gconfig *conf, struct image *image)
 void write_image(const struct image *self,
                  const char *filename)
 {
-    char *oname=NULL;
-    int len=strlen(filename);
-
-    oname = calloc(len+2, sizeof(char));
-    oname[0]='!';
-
-    strncpy(oname+1, filename, len);
-
-    fprintf(stderr,"writing %s\n", filename);
-    image_write_fits(self, oname);
-
-    free(oname);
+    int clobber=1;
+    image_write_fits(self, filename, clobber);
 }
 
 struct gmix *make_object_gmix(struct object *object)
@@ -204,11 +214,10 @@ struct gmix *make_psf_gmix(struct object *object,
 struct gmix *make_star_gmix(struct object *object)
 {
     struct gmix *gmix=make_psf_gmix(object,
-                                    object->row, object->col,
+                                    object->row, 
+                                    object->col,
                                     object->counts);
-
     return gmix;
-
 }
 
 
@@ -276,6 +285,9 @@ void put_objects(const struct gconfig *conf, struct image *image, struct catalog
     fprintf(stderr,"putting objects\n");
     struct object *object = cat->data;
     for (ssize_t i=0; i<cat->size; i++) {
+        if ( ((i+1) % 500) ==0 || i==0 ) {
+            fprintf(stderr,"%ld/%ld\n", i+1, cat->size);
+        }
         put_object(conf, image, object);
         object++;
     }
