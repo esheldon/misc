@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <fitsio.h>
 #include "image.h"
 
@@ -13,7 +14,26 @@ static void print_error_and_exit(int status)
     exit(EXIT_FAILURE);
 }
 
-void image_write_fits(const struct image *self, const char *filename)
+/* 
+   add a ! to front of name so cfitsio will clobber any existing file 
+   you must free the returned string.
+*/
+static char *get_clobber_name(const char *filename)
+{
+    char *oname=NULL;
+    int len=strlen(filename);
+
+    oname = calloc(len+2, sizeof(char));
+    oname[0]='!';
+
+    strncpy(oname+1, filename, len);
+    return oname;
+}
+
+
+void image_write_fits(const struct image *self,
+                      const char *filename,
+                      int clobber)
 {
     fitsfile* fits=NULL;
     LONGLONG firstpixel=1;
@@ -22,8 +42,16 @@ void image_write_fits(const struct image *self, const char *filename)
     int ndims=2;
     long dims[2]={0};
 
+    char *name=NULL;
+
+    if (clobber) {
+        name=get_clobber_name(filename);
+    } else {
+        name=strdup(filename);
+    }
+
     int status=0;
-    if (fits_create_file(&fits, filename, &status)) {
+    if (fits_create_file(&fits, name, &status)) {
         print_error_and_exit(status);
     }
 
@@ -43,14 +71,13 @@ void image_write_fits(const struct image *self, const char *filename)
         print_error_and_exit(status);
     }
 
+    free(name);
 }
 
 struct image *image_read_fits(const char *fname, int ext)
 {
     fitsfile* fits=NULL;
     struct image *image=NULL;
-
-    fprintf(stderr,"reading ext %d from %s\n",ext,fname);
 
     int status=0;
     if (fits_open_file(&fits, fname, READONLY, &status)) {
@@ -77,7 +104,7 @@ struct image *image_read_fits(const char *fname, int ext)
         goto _test_read_bail;
     }
     // dims reversed
-    fprintf(stderr,"dims: [%lld,%lld]\n", dims[0], dims[1]);
+    //fprintf(stderr,"dims: [%lld,%lld]\n", dims[0], dims[1]);
 
     // note dims are reversed
     image=image_new(dims[1], dims[0]);

@@ -117,6 +117,10 @@ struct image *image_free(struct image *self);
 
 double image_get_counts(const struct image *self);
 
+// fix the bounds in one dimension so that the range lies
+// within [0,dim)
+void image_fix_mask(size_t dim, ssize_t *minval, ssize_t *maxval);
+
 // note the masks will be trimmed to within the image
 void image_add_mask(struct image *self, const struct image_mask* mask);
 
