@@ -30,6 +30,7 @@ sources=['gsim','config','gconfig','object','catalog',
          'gmix_image','image_rand','randn',
          'image_fits','shape']
 programs=[{'name':'gsim','sources':sources}]
+install_targets = [(prog['name'],'bin') for prog in programs]
 
 def build():
     compile()

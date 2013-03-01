@@ -1,0 +1,13 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"gsim code"
+conflict gsim
+
+eval set  [ array get env HOME ]
+
+set GSIM_DIR $HOME/exports/gsim-local
+
+prepend-path PATH $GSIM_DIR/bin
+
+setenv GSIM_DIR $GSIM_DIR 

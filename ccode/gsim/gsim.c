@@ -129,7 +129,7 @@ struct image *make_image(const struct gconfig *conf)
 void add_noise(const struct gconfig *conf, struct image *image)
 {
     if (conf->sky <= 0) {
-        fprintf(stderr,"sky is zero, not adding noise\n");
+        fprintf(stderr,"sky is zero, not adding sky or noise\n");
         return;
     }
 
@@ -137,10 +137,16 @@ void add_noise(const struct gconfig *conf, struct image *image)
     fprintf(stderr,"    adding sky background\n");
     image_add_scalar(image,conf->sky);
 
-    if (0==strcmp(conf->noise_type,"poisson")) {
+    // strcasecmp is gnu extension
+    if (0==strcasecmp(conf->noise_type,"none")) {
+        fprintf(stderr,"    not adding noise\n");
+        return;
+    }
+
+    if (0==strcasecmp(conf->noise_type,"poisson")) {
         fprintf(stderr,"    adding poisson noise\n");
         image_add_poisson(image);
-    } else if (0==strcmp(conf->noise_type,"gauss")) {
+    } else if (0==strcasecmp(conf->noise_type,"gauss")) {
         fprintf(stderr,"    adding gaussian noise\n");
         double skysig=sqrt(conf->sky);
         image_add_randn(image, skysig);
@@ -159,7 +165,7 @@ void write_image(const struct image *self,
     image_write_fits(self, filename, clobber);
 }
 
-struct gmix *make_object_gmix(struct object *object)
+struct gmix *make_gmix0(struct object *object)
 {
     double pars[6] = {0};
     pars[0] = object->row;
@@ -170,11 +176,11 @@ struct gmix *make_object_gmix(struct object *object)
     pars[5] = object->counts;
 
     struct gmix *gmix=NULL;
-    if ( 0==strcmp(object->model, "exp") ) {
+    if ( 0==strcasecmp(object->model, "exp") ) {
         gmix=gmix_make_exp6(pars, 6);
-    } else if ( 0==strcmp(object->model, "dev") ) {
+    } else if ( 0==strcasecmp(object->model, "dev") ) {
         gmix=gmix_make_dev10(pars, 6);
-    } else if ( 0==strcmp(object->model, "gauss") ) {
+    } else if ( 0==strcasecmp(object->model, "gauss") ) {
         gmix=gmix_make_coellip(pars, 6);
     } else {
         fprintf(stderr,"bad object model: '%s'\n", object->model);
@@ -198,9 +204,9 @@ struct gmix *make_psf_gmix(struct object *object,
     pars[5] = flux;
 
     struct gmix *gmix=NULL;
-    if ( 0==strcmp(object->psf_model, "turb") ) {
+    if ( 0==strcasecmp(object->psf_model, "turb") ) {
         gmix=gmix_make_turb3(pars, 6);
-    } else if ( 0==strcmp(object->psf_model, "gauss") ) {
+    } else if ( 0==strcasecmp(object->psf_model, "gauss") ) {
         gmix=gmix_make_coellip(pars, 6);
     } else {
         fprintf(stderr,"bad psf model: '%s'\n", object->psf_model);
@@ -223,7 +229,7 @@ struct gmix *make_star_gmix(struct object *object)
 
 struct gmix *make_galaxy_gmix(struct object *object)
 {
-    struct gmix *gmix0    = make_object_gmix(object);
+    struct gmix *gmix0    = make_gmix0(object);
     struct gmix *gmix_psf = make_psf_gmix(object,1,1,1);
     struct gmix *gmix     = gmix_convolve(gmix0, gmix_psf);
 
@@ -238,10 +244,14 @@ struct gmix *make_gmix(struct object *object)
 {
     struct gmix *gmix = NULL;
 
-    if (0==strcmp(object->model, "star")) {
+    if (0==strcasecmp(object->model, "star")) {
         gmix = make_star_gmix(object);
     } else {
-        gmix = make_galaxy_gmix(object);
+        if (0==strcasecmp(object->psf_model,"none")) {
+            gmix = make_gmix0(object);
+        } else {
+            gmix = make_galaxy_gmix(object);
+        }
     }
 
     return gmix;

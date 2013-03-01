@@ -100,9 +100,11 @@ int gconfig_check(struct gconfig *self)
         return 0;
     }
 
-    if ( (0 != strcmp(self->noise_type,"poisson")) 
+    if ( (0 != strcasecmp(self->noise_type,"poisson")) 
             &
-         (0 != strcmp(self->noise_type,"gauss"))) { 
+         (0 != strcasecmp(self->noise_type,"gauss"))
+            &
+         (0 != strcasecmp(self->noise_type,"none"))) { 
 
         fprintf(stderr,"bad noise_type: '%s'\n", self->noise_type);
         return 0;
