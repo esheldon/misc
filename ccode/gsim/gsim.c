@@ -162,6 +162,7 @@ void write_image(const struct image *self,
                  const char *filename)
 {
     int clobber=1;
+    fprintf(stderr,"writing %s\n", filename);
     image_write_fits(self, filename, clobber);
 }
 
@@ -326,6 +327,7 @@ int main(int argc, char **argv)
     add_noise(conf, image);
 
     write_image(image, image_file);
+    gconfg_write2fits(conf, image_file);
 
     free(conf);
     image=image_free(image);
