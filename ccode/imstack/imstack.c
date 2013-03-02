@@ -5,6 +5,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <fitsio.h>
 #include "image.h"
 #include "image_fits.h"
 
@@ -152,6 +153,38 @@ void add_to_stack(struct image *imstack,
 
 }
 
+double get_sky(const char *filename, int ext)
+{
+    fitsfile* fits=NULL;
+    char comment[FLEN_COMMENT];
+
+    int status=0;
+    if (fits_open_file(&fits, filename, READONLY, &status)) {
+        fits_report_error(stderr, status);
+        exit(EXIT_FAILURE);
+    }
+
+    int hdutype=0;
+    if (fits_movabs_hdu(fits, ext+1, &hdutype, &status)) {
+        fits_report_error(stderr, status);
+        exit(EXIT_FAILURE);
+    }
+
+    double sky=0;
+    if (fits_read_key_dbl(fits,"sky",&sky,comment,&status)) {
+        fits_report_error(stderr, status);
+        exit(EXIT_FAILURE);
+    }
+
+    if (fits_close_file(fits, &status)) {
+        fits_report_error(stderr, status);
+        exit(EXIT_FAILURE);
+    }
+
+    return sky;
+
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 4) {
@@ -166,6 +199,9 @@ int main(int argc, char **argv)
 
     printf("reading %s\n", image_file_in);
     struct image *image=image_read_fits(image_file_in,0);
+    double sky=get_sky(image_file_in,0);
+    image_add_scalar(image, (-sky));
+
     struct image *imstack=image_new(box_size, box_size);
 
     struct image_mask mask={0};
