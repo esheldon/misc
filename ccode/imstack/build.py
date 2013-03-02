@@ -27,6 +27,7 @@ if not options.dbg:
 
 sources=['imstack', 'image', 'image_fits']
 programs=[{'name':'imstack','sources':sources}]
+install_targets = [(prog['name'],'bin') for prog in programs]
 
 def build():
     compile()
