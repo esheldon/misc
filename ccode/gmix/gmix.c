@@ -131,6 +131,53 @@ double gmix_get_T(const struct gmix *self)
     return T;
 }
 
+double gmix_get_counts(const struct gmix *self)
+{
+    double psum=0;
+    struct gauss *gauss=self->data;
+    for (size_t i=0; i<self->size; i++) {
+        psum += gauss->p;
+        gauss++;
+    }
+
+    return psum;
+}
+
+
+void gmix_get_totals(const struct gmix *self,
+                     double *row, double *col,
+                     double *irr, double *irc, double *icc,
+                     double *counts)
+{
+    double psum=0;
+    struct gauss *gauss=self->data;
+
+    *row=0; *col=0; *irr=0; *irc=0; *icc=0; *counts=0;
+    for (size_t i=0; i<self->size; i++) {
+        (*row) += gauss->p*gauss->row;
+        (*col) += gauss->p*gauss->col;
+
+        (*irr) += gauss->p*gauss->irr;
+        (*irc) += gauss->p*gauss->irc;
+        (*icc) += gauss->p*gauss->icc;
+
+        psum += gauss->p;
+
+        gauss++;
+    }
+
+    (*row) /= psum;
+    (*col) /= psum;
+
+    (*irr) /= psum;
+    (*irc) /= psum;
+    (*icc) /= psum;
+
+    (*counts) = psum;
+
+}
+
+
 void gmix_get_cen(const struct gmix *self, double *row, double *col)
 {
     double psum=0;
