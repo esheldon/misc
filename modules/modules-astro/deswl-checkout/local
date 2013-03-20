@@ -2,7 +2,7 @@
 # vim: set filetype=tcl :
 
 module-whatis	"deswl local install"
-conflict deswl
+conflict deswl-checkout
 
 eval set [ array get env HOME ]
 

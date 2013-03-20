@@ -35,7 +35,8 @@ if [[ $check == "" ]]; then
     # also loads pcre      # *
     module load swig       # *
 
-    module load ccfits     # *
+    module load cfitsio/3330   # *
+    module load ccfits/2.4     # *
 
     module load emcee
     module load acor
@@ -66,6 +67,8 @@ if [[ $check == "" ]]; then
     module load numpydb    # *
     module load pgnumpy    # *
 
+    module unload deswl-checkout && module load deswl-checkout/local
+
     #module load scikits_learn # *
     module load scikits_learn/new # *
 
@@ -78,8 +81,7 @@ if [[ $check == "" ]]; then
     module unload tmv && module load tmv/0.71     # *
 
     # prereq: ccfits, tmv, desfiles, esutil
-    # also numpy if not using system
-    module unload wl-ess && module load wl-ess/local   # *
+    module unload shapelets-ess && module load shapelets-ess/local   # *
 
     module load galsim/local
 
