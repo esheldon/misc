@@ -1,29 +1,19 @@
 Quick look Queue
 
-    - mangle code for eli
-    - training
-    - pack. keep it simple!
+    MEDS
+        Should take a catalog that has sizes in it.  Simple ascii
+            ra dec x y xsize ysize
 
-    - fitsio
-        - header
-            - keywords can be lower case when heierarch, ??
+        Put coadd image and cat filenames somewhere in the meds file
 
-    - voids
-        run new binning with everything and peter's z limits
-    - gmix
-        - nlsolver branch
-        - calibration errors for dt?
-        - can we choose an aperture automatically?
-        - need to check for centroid coincidence and drift
+        use xmin,xmax etc for size of box, with min size?
+            boundary around it of 25%?
+            max 256x256?
 
-    - make combined mask starting with "good", excluding star, good excluding
-      badfield or whatever is appropriate.
-    - optionally mask around bright galaxies?
+    gsim
+        - pad against largest dimension instead of average
+        - generate psf on a grid but at different sub-pixel locations
 
-    pymangle
-    - don't allow not snapped masks; problem is IDL code doesn't write it.
-    - good mask is snapped, but doesn't say it because write_mangle_polygons
-      didn't write it
 
     recfile
     - strings passed in might disappear!  Just do delim as char.
