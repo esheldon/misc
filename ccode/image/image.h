@@ -68,16 +68,16 @@ struct image {
     ((im)->rows[(im)->row0 + (row)] + (im)->col0 + (im)->ncols)
 
 #define IM_GET(im, row, col)                  \
-    ( *((im)->rows[(im)->row0 + (row)] + (im)->col0 + col) )
+    ( *((im)->rows[(im)->row0 + (row)] + (im)->col0 + (col)) )
 
 #define IM_SETFAST(im, row, col, val)                  \
-    ( *((im)->rows[(im)->row0 + (row)] + (im)->col0 + col) = (val) )
+    ( *((im)->rows[(im)->row0 + (row)] + (im)->col0 + (col)) = (val) )
 
 // in the future this could become bounds checking
 #define IM_SET IM_SETFAST
 
 #define IM_GETP(im, row, col)                 \
-    (  ((im)->rows[(im)->row0 + (row)] + (im)->col0 + col) )
+    (  ((im)->rows[(im)->row0 + (row)] + (im)->col0 + (col)) )
 
 
 // note masks can have negative indices; the image code should deal with it

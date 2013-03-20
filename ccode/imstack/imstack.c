@@ -1,7 +1,6 @@
 /*
-
    TODO
-       - should we restrict edge hits?
+     - output a weight map or something?
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -153,6 +152,9 @@ void add_to_stack(struct image *imstack,
 
 }
 
+/*
+   Wow this is a lot of code to get a header key
+*/
 double get_sky(const char *filename, int ext)
 {
     fitsfile* fits=NULL;

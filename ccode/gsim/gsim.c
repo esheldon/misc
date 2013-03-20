@@ -258,16 +258,26 @@ struct gmix *make_gmix(struct object *object)
     return gmix;
 }
 
+void get_radius_and_cen(const struct gmix *gmix, 
+                        double *rad, double *row, double *col)
+{
+    double irr=0,irc=0,icc=0,counts=0;
+
+    gmix_get_totals(gmix, row, col, &irr, &irc, &icc, &counts);
+    if (irr > icc) {
+        (*rad) = sqrt(irr);
+    } else {
+        (*rad) = sqrt(icc);
+    }
+
+    (*rad) *= GMIX_PADDING;
+}
 void set_mask(struct image_mask *self, const struct gmix *gmix)
 {
-    double row=0, col=0;
+    double row=0, col=0, rad=0;
+    get_radius_and_cen(gmix, &row, &col, &rad);
 
-    double T = gmix_get_T(gmix);
-    double sigma = sqrt(T/2);
-
-    double rad = GMIX_PADDING*sigma;
-
-    gmix_get_cen(gmix, &row, &col);
+    get_radius_and_cen(gmix, &rad, &row, &col);
     self->rowmin = row-rad;
     self->rowmax = row+rad;
     self->colmin = col-rad;
