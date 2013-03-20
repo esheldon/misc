@@ -8,7 +8,7 @@ endif
 set nocompatible
 
 " turn on line numbering
-set number
+" set number
 
 " we have to put this here because some of these will not override
 " previous settings
