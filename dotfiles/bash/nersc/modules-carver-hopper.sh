@@ -74,7 +74,7 @@ module load ccfits-ess/2.4
 
 module unload esutil && module load esutil/local
 
-module unload shapelets && module load shapelets/local   # *
+module unload shapelets-ess && module load shapelets-ess/local   # *
 
 #module load recfile    # *
 
