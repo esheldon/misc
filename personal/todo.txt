@@ -1,8 +1,10 @@
 Quick look Queue
 
+    ref gama paper
+
     MEDS
         Should take a catalog that has sizes in it.  Simple ascii
-            ra dec x y xsize ysize
+            ra dec row col rowsize colsize
 
         Put coadd image and cat filenames somewhere in the meds file
 
