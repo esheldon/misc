@@ -2,7 +2,7 @@
 
 if [[ $# -lt 1 ]]; then
     echo "usage: colstats col1 col2 ..."
-    echo "  data in stdin"
+    echo "  send data on stdin"
     exit 1
 fi
 
@@ -13,7 +13,7 @@ prnt="print "
 i=1
 for col; do 
     begin="$begin
-    mins[$col]=9.999e50;
+    mins[$col]=9999e50;
     maxes[$col]=-9999e50;
     "
     front="$front
