@@ -1,0 +1,15 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"desdb work install"
+conflict desdb
+
+eval set [ array get env HOME ]
+
+set DESDB_DIR $HOME/exports/desdb-work
+
+prepend-path PATH $DESDB_DIR/bin
+prepend-path PYTHONPATH $DESDB_DIR/lib/python2.7/site-packages/
+
+setenv DESDB_DIR $DESDB_DIR
+setenv DESDB_VERS work

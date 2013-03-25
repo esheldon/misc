@@ -46,8 +46,8 @@ module load libaio                          # * for oracle
 module unload tmv && module load tmv/0.71   # *
 
 module load desoracle
-module unload desdb && module load desdb/local
-module unload deswl && module load deswl/local
+module unload desdb-ess && module load desdb-ess/local
+module unload deswl-ess && module load deswl-ess/local
 
 # local git checkout
 module load deswl-checkout/local
@@ -71,6 +71,8 @@ module load fitsio-ess/local
 # -ess required because of missing include paths in hpcp stuff
 module load cfitsio-ess/3310
 module load ccfits-ess/2.4
+
+module load fitstools-hpcp
 
 module unload esutil && module load esutil/local
 
