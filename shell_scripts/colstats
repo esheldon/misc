@@ -13,14 +13,14 @@ prnt="print "
 i=1
 for col; do 
     begin="$begin
-    mins[$col]=9999e50;
-    maxes[$col]=-9999e50;
+    minvals[$col]=9999e50;
+    maxvals[$col]=-9999e50;
     "
     front="$front
     sum[$col] += \$$col;
     sum2[$col] += \$$col*\$$col;
-    if (\$$col > maxes[$col]) maxes[$col]=\$$col;
-    if (\$$col < mins[$col]) mins[$col]=\$$col;
+    if (\$$col > maxvals[$col]) maxvals[$col]=\$$col;
+    if (\$$col < minvals[$col]) minvals[$col]=\$$col;
     "
 
     cmd="$cmd
@@ -32,7 +32,7 @@ for col; do
     if [[ $i -gt 1 ]]; then
         prnt="$prnt ,"
     fi
-    prnt="$prnt \"min: \" mins[$col] \" max: \" maxes[$col] \" mean: \" mn[$col] \" +/- \" err[$col] \" std: \" std[$col]"
+    prnt="$prnt \"min: \" minvals[$col] \" max: \" maxvals[$col] \" mean: \" mn[$col] \" +/- \" err[$col] \" std: \" std[$col]"
 
     i=$((i = i+1))
 done
