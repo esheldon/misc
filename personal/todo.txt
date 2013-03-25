@@ -3,15 +3,11 @@ Quick look Queue
     ref gama paper
 
     MEDS
-        Should take a catalog that has sizes in it.  Simple ascii
-            ra dec row col rowsize colsize
+        pbs jobs for meds
+            - need to generate scripts and pbs for a set of coadd runs
 
-        Put coadd image and cat filenames somewhere in the meds file
-
-        use xmin,xmax etc for size of box, with min size?
-            boundary around it of 25%?
-            max 256x256?
-
+        rsync permissions
+        doc MakeCutouts for var box size
     gsim
         - pad against largest dimension instead of average
         - generate psf on a grid but at different sub-pixel locations
