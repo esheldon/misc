@@ -42,12 +42,13 @@ module load ipython-hpcp
 #
 
 module load pyyaml
+module load parallel
 module load libaio                          # * for oracle
 module unload tmv && module load tmv/0.71   # *
 
 module load desoracle
-module unload desdb-ess && module load desdb-ess/local
-module unload deswl-ess && module load deswl-ess/local
+module unload desdb && module load desdb/local
+module unload deswl && module load deswl/local
 
 # local git checkout
 module load deswl-checkout/local
@@ -65,18 +66,16 @@ module load perllib
 module load shell_scripts
 module unload espy && module load espy/local
 
-# need to move away from fitsio-ess
-module load fitsio-ess/local
+module load fitsio/local
 
-# -ess required because of missing include paths in hpcp stuff
-module load cfitsio-ess/3310
-module load ccfits-ess/2.4
+module load cfitsio/3310
+module load ccfits/2.4
 
 module load fitstools-hpcp
 
 module unload esutil && module load esutil/local
 
-module unload shapelets-ess && module load shapelets-ess/local   # *
+module unload shapelets && module load shapelets/local   # *
 
 #module load recfile    # *
 
