@@ -1,17 +1,25 @@
 Quick look Queue
 
-    ref gama paper
 
+    wlpipe
+        forgot about verifying versions...
+
+        simplify?
+            - GenericProcessor
+                - implement timeouts This can be done with the timeout
+                  command, but unfortunately it is not installed at
+                  nersc, a different version is
+
+                * stage in/out hdfs: not needed at nersc
+                * pre-make the output directories:could be done
+                when generating the scripts
+                * can interpolate stuff into file names: we
+                should just do that expantion all beforehand
+                * writes status file:  We could just have the
+                minion shell script do this and just write a 
+                exit_status: value
     MEDS
-        Should take a catalog that has sizes in it.  Simple ascii
-            ra dec row col rowsize colsize
-
-        Put coadd image and cat filenames somewhere in the meds file
-
-        use xmin,xmax etc for size of box, with min size?
-            boundary around it of 25%?
-            max 256x256?
-
+        C getter for metadata?
     gsim
         - pad against largest dimension instead of average
         - generate psf on a grid but at different sub-pixel locations
