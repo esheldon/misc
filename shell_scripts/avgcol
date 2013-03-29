@@ -2,7 +2,7 @@
 
 if [[ $# -lt 1 ]]; then
     echo "usage: avgcol col1 col2 ..."
-    echo "  data in stdin"
+    echo "  send data on stdin"
     exit 1
 fi
 
