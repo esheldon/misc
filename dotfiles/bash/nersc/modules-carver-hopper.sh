@@ -33,8 +33,6 @@ module load scipy-hpcp
 module load ipython-hpcp
 #module load pyyaml-hpcp
 
-#module load cfitsio-hpcp
-#module load ccfits-hpcp
 
 
 #
@@ -70,8 +68,6 @@ module load fitsio/local
 
 module load cfitsio/3310
 module load ccfits/2.4
-
-module load fitstools-hpcp
 
 module unload esutil && module load esutil/local
 
