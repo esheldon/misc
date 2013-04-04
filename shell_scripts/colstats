@@ -1,4 +1,18 @@
 #!/bin/bash
+# Calculate some statistics for the indicated columns.  The data come
+# in on stdin
+#
+# usage:
+#     colstats c1 c2 ...  < file
+#     cat file | colstats c1 c2 ...
+#
+# example:
+#
+#> colstats 1 2 < test.dat 
+#      nrow      total        min        max        std       mean        err
+#      2379     436788         77        400   59.01414   183.6015   1.209926
+#      2379     836788         98        276   44.32997   162.8348   1.743632
+
 
 if [[ $# -lt 1 ]]; then
     echo "usage: colstats col1 col2 ..."
