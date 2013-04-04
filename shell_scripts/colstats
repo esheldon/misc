@@ -6,48 +6,48 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-front=""
+script=""
 begin=""
-cmd=""
-prnt="print "
+dostats=""
+prnt=""
 i=1
 for col; do 
     begin="$begin
     minvals[$col]=9999e50;
     maxvals[$col]=-9999e50;
     "
-    front="$front
+
+    script="$script
     sum[$col] += \$$col;
     sum2[$col] += \$$col*\$$col;
     if (\$$col > maxvals[$col]) maxvals[$col]=\$$col;
     if (\$$col < minvals[$col]) minvals[$col]=\$$col;
     "
 
-    cmd="$cmd
+    dostats="$dostats
     mn[$col]=sum[$col]/NR;
     mn2[$col]=sum2[$col]/NR;
     std[$col]=sqrt( (mn2[$col] - mn[$col]*mn[$col]));
-    err[$col]=sqrt( (mn2[$col] - mn[$col]*mn[$col])/NR);"
+    err[$col]=sqrt( (mn2[$col] - mn[$col]*mn[$col])/NR);
+    "
 
-    if [[ $i -gt 1 ]]; then
-        prnt="$prnt ,"
-    fi
-    prnt="$prnt \"min: \" minvals[$col] \" max: \" maxvals[$col] \" mean: \" mn[$col] \" +/- \" err[$col] \" std: \" std[$col]"
+    prnt="${prnt}
+    printf \"%10d %10.7g %10.7g %10.7g %10.7g %10.7g %10.7g\\n\", NR, sum[$col], minvals[$col], maxvals[$col], std[$col], mn[$col], err[$col]"
 
     i=$((i = i+1))
 done
 
-front="$front"
 
-script="BEGIN {
+awkscript="BEGIN {
     $begin
 } {
-    $front
+    $script
 } END {
-    $cmd
+    $dostats
+    printf \"%10s %10s %10s %10s %10s %10s %10s\\n\", \"nrow\", \"total\", \"min\", \"max\", \"std\", \"mean\", \"err\"
     $prnt
 }"
 
-#echo "$script"
-
-awk "$script" < /dev/stdin
+#echo "$awkscript"
+#exit
+awk "$awkscript" < /dev/stdin
