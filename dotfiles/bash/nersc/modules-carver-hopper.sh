@@ -1,4 +1,13 @@
 module load use.own
+
+#
+# global
+#
+
+module load gcc
+module load git
+module load openmpi-gnu
+
 if [[ $hname == "carver" ]]; then
     . /project/projectdirs/cmb/modules/carver/hpcports.sh
     hpcports gnu
@@ -10,15 +19,6 @@ elif [[ $hname == "hopper" ]]; then
 fi
 
 #
-# global
-#
-
-module load gcc
-#module load mkl                             # needed for numpy/lapack
-module load git
-module load openmpi-gnu
-
-#
 # the special hpcp line
 #
 module load scons-hpcp
@@ -27,11 +27,10 @@ module load atlas-hpcp
 
 module load readline-hpcp                   # needed by python
 module load python-hpcp
-module load lapack-hpcp                     # needs mkl above
+module load lapack-hpcp                     # needs mkl
 module load numpy-hpcp
 module load scipy-hpcp
 module load ipython-hpcp
-#module load pyyaml-hpcp
 
 
 
@@ -45,10 +44,14 @@ module load libaio                          # * for oracle
 module unload tmv && module load tmv/0.71   # *
 
 module load desoracle
+
+
+
+# local
 module unload desdb && module load desdb/local
 module unload deswl && module load deswl/local
+module unload meds && module load meds/local
 
-# local git checkout
 module load deswl-checkout/local
 
 module load plotutils
@@ -73,12 +76,8 @@ module unload esutil && module load esutil/local
 
 module unload shapelets && module load shapelets/local   # *
 
-#module load recfile    # *
 
-#module load cosmology  # *
 module load admom      # *
-#module load fimage/local     # *
-#module load columns
 
 module load gmix_image/local # *
 module load emcee
