@@ -1,0 +1,6 @@
+#!/bin/bash
+# run the input commands, sending stderr to stdout
+# useful for commands whose useful output goes to stderr,
+# such as module
+
+"$@" 2>&1
