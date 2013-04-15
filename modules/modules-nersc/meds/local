@@ -1,0 +1,15 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"meds local install"
+conflict meds
+
+eval set [ array get env HOME ]
+
+set MEDS_DIR $HOME/exports/meds-local
+
+prepend-path PATH $MEDS_DIR/bin
+prepend-path PYTHONPATH $MEDS_DIR/lib/python2.7/site-packages/
+
+setenv MEDS_DIR $MEDS_DIR
+setenv MEDS_VERS local
