@@ -1,5 +1,41 @@
 Quick look Queue
 
+    nersc
+
+        - should be able to speed up downloads by large factor: unencryptic,
+          gridftp if possible
+        - can get web access for files: access for apache but not other
+          groups.
+        - hopper much faster to global scratch
+        - back up our data (meds) figure out tape archival needs.  Ask for
+          more through salman.
+
+        usage
+        - prjquota des
+
+    - eli prioritizes doing masses for sdss red mapper over new colors
+    - get seg for spt east
+    - calibrate the SE images
+        - sent email to bob
+    - get outlier pixel rejection, features etc. from Daniel
+        - sent email to daniel
+    - psf size vs mag
+        - Gary argues don't want poisson weighting
+    - convert coadd to wget as well
+
+    - people look at SE images for coadds and help determine what SE images we
+      should use for multi-epoch analysis
+        - Eric will start
+        - pre-generate and let people look through them
+    - Daniel says weight map might have wrong normalization
+
+    ideas
+        - my stack images but going to Fourier space (Gary)
+        - shear response by deconvolving PSF, shear,
+          then reconv. with slightly larger PSF (Eric)
+
+    peter
+        - sky sub is bad
 
     wlpipe
         forgot about verifying versions...
@@ -19,6 +55,7 @@ Quick look Queue
                 minion shell script do this and just write a 
                 exit_status: value
     MEDS
+        Write integer metadata.
         C getter for metadata?
     gsim
         - pad against largest dimension instead of average
