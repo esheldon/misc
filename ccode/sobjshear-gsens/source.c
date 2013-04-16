@@ -40,7 +40,7 @@ int source_read(FILE* stream, struct source* src) {
 
     nread += fscanf(stream, "%lf %lf %lf %lf %lf %lf %lf", 
             &src->ra, &src->dec, &src->g1, &src->g2, 
-            &src->err, &src->gsens1, &src->gsens2);
+            &src->err, &src->g1sens, &src->g2sens);
 
     if (src->scstyle == SCSTYLE_INTERP) {
         nexpect = 7+src->scinv->size;
@@ -75,8 +75,8 @@ void source_print(struct source* src) {
     wlog("    g1:     %lf\n", src->g1);
     wlog("    g2:     %lf\n", src->g2);
     wlog("    err:    %lf\n", src->err);
-    wlog("    gsens1: %lf\n", src->gsens1);
-    wlog("    gsens2: %lf\n", src->gsens2);
+    wlog("    g1sens: %lf\n", src->g1sens);
+    wlog("    g2sens: %lf\n", src->g2sens);
     wlog("    hpixid: %ld\n", src->hpixid);
 
     if (src->mask_style == MASK_STYLE_SDSS) {

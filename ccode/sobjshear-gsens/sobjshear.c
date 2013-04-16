@@ -12,7 +12,7 @@ void usage_and_exit(void) {
 
 
 int main(int argc, char** argv) {
-    int64 nsource=0, nkeep=0;
+    int64 nsource=0;
 
     if (argc < 3) {
         usage_and_exit();
