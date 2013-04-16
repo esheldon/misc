@@ -170,16 +170,18 @@ void shear_procpair(struct shear* self,
             rbin = (int)( (logr-config->log_rmin)/config->log_binsize );
 
             if (rbin >= 0 && rbin < config->nbin) {
-                double scinv2, gamma1, gamma2, eweight, weight, err2;
 
-                err2 = src->err*src->err;
-                scinv2 = scinv*scinv;
+                double err2 = src->err*src->err;
+                double scinv2 = scinv*scinv;
 
-                eweight = 1./(GSN2 + err2);
-                weight = scinv2*eweight;
+                double eweight = 1./(GSN2 + err2);
+                double weight = scinv2*eweight;
 
-                gamma1 = -(src->g1*cos2theta + src->g2*sin2theta);
-                gamma2 =  (src->g1*sin2theta - src->g2*cos2theta);
+                double gamma1 = -(src->g1*cos2theta + src->g2*sin2theta);
+                double gamma2 =  (src->g1*sin2theta - src->g2*cos2theta);
+
+                // just take gsens from tangential component
+                double gsens = -(src->g1sens*cos2theta + src->g2sens*sin2theta);
 
                 lensum->weight += weight;
                 lensum->totpairs += 1;
@@ -191,24 +193,8 @@ void shear_procpair(struct shear* self,
 
                 lensum->rsum[rbin] += r;
 
-                // calculating Ssh, shear polarizability
-                // factors of two cancel in both of these
-                double f_e = err2*eweight;
-                double f_sn = GSN2*eweight;
-
-                // coefficients (p 596 Bern02) 
-                // there is a k1*e^2/2 in Bern02 because
-                // its the total ellipticity he is using
-                //
-                // factor of (1/2)^2 does not cancel here, 4 converts to shapenoise
-                double k0 = f_e*GSN2*4;
-                double k1 = f_sn*f_sn;
-
-                // Factors of two don't cancel, need 2*2 for gamma instead of shape
-                double F = 1. - k0 - k1*gamma1*gamma1*4;
-
                 // get correction ssh using l->sshsum/l->weight
-                lensum->sshsum   += weight*F;
+                lensum->sshsum += weight*gsens;
 
             }
         }
