@@ -24,6 +24,9 @@ struct source {
     double g2;
     double err;
 
+    double g1sens;
+    double g2sens;
+
     int64 hpixid;
 
     int mask_style;
@@ -38,9 +41,6 @@ struct source {
     // only used when sigmacrit style == SCSTYLE_TRUE
     double z;
     double dc; // for speed
-
-    double mag;
-    double R; 
 
     // calculate these for speed
     double sinra; 

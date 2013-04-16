@@ -6,7 +6,7 @@
 #include "defs.h"
 
 void usage_and_exit(void) {
-    wlog("usage: sobjshear config_url lens_cat\n");
+    wlog("usage: sobjshear-gsens config_url lens_cat\n");
     exit(EXIT_FAILURE);
 }
 
@@ -31,23 +31,20 @@ int main(int argc, char** argv) {
             wlog("first source:\n");
             source_print(src);
         }
-        if (source_filter(src,shear->config)) {
-            nkeep++;
-            if ((nsource % 10000) == 0) {
-                wlog(".");
-            }
-
-            if (src->scstyle == SCSTYLE_TRUE) {
-                src->dc = Dc(shear->cosmo, 0.0, src->z);
-            }
-
-            shear_process_source(shear, src);
+        if ((nsource % 10000) == 0) {
+            wlog(".");
         }
+
+        if (src->scstyle == SCSTYLE_TRUE) {
+            src->dc = Dc(shear->cosmo, 0.0, src->z);
+        }
+
+        shear_process_source(shear, src);
     }
     wlog("\nlast source:\n");
     source_print(src);
 
-    wlog("Used %ld/%ld sources\n", nkeep, nsource);
+    wlog("processed %ld sources\n", nsource);
 
     // print some summary info
     shear_print_sum(shear);
