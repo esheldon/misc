@@ -2,8 +2,8 @@ Quick look Queue
 
     nersc
 
-        - should be able to speed up downloads by large factor: unencryptic,
-          gridftp if possible
+        - cfitsio globally as cfitsio-des?
+        - CCfits globally as ccfits-des
         - can get web access for files: access for apache but not other
           groups.
         - hopper much faster to global scratch
@@ -14,6 +14,12 @@ Quick look Queue
         - prjquota des
 
     - eli prioritizes doing masses for sdss red mapper over new colors
+        - I've implemented the detrending the additive vs s/n
+        - has harsh clip on psf ellipticity, removing 12%; might want to
+          loosen it?
+        - need to generate catalog and match to photozs; this is under
+          /lensing I think
+
     - get seg for spt east
     - calibrate the SE images
         - sent email to bob
@@ -43,6 +49,7 @@ Quick look Queue
         Write integer metadata.
         C getter for metadata?
         Add $DESDATA to the metadata?
+
     gsim
         - pad against largest dimension instead of average
         - generate psf on a grid but at different sub-pixel locations
