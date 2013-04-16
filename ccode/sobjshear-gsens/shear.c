@@ -195,7 +195,6 @@ void shear_procpair(struct shear* self,
 
                 // get correction ssh using l->sshsum/l->weight
                 lensum->sshsum += weight*gsens;
-
             }
         }
 
