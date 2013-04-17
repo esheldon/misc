@@ -38,17 +38,21 @@ int source_read(FILE* stream, struct source* src) {
     int nread=0;
     int nexpect=0;
 
-    nread += fscanf(stream, "%lf %lf %lf %lf %lf %lf %lf", 
-            &src->ra, &src->dec, &src->g1, &src->g2, 
-            &src->err, &src->g1sens, &src->g2sens);
+    nread += fscanf(stream, "%lf %lf %lf %lf %lf %lf %lf %lf %lf", 
+            &src->ra, &src->dec,
+            &src->g1, &src->g2, 
+            &src->gcov11, &src->gcov12, &src->gcov22,
+            &src->g1sens, &src->g2sens);
+
+    nexpect = 9;
 
     if (src->scstyle == SCSTYLE_INTERP) {
-        nexpect = 7+src->scinv->size;
+        nexpect += src->scinv->size;
         for (i=0; i<src->scinv->size; i++) {
             nread += fscanf(stream,"%lf", &src->scinv->data[i]);
         }
     } else {
-        nexpect = 7+1;
+        nexpect += 1;
         nread += fscanf(stream,"%lf", &src->z);
     }
 
@@ -74,7 +78,9 @@ void source_print(struct source* src) {
     wlog("    dec:    %lf\n", src->dec);
     wlog("    g1:     %lf\n", src->g1);
     wlog("    g2:     %lf\n", src->g2);
-    wlog("    err:    %lf\n", src->err);
+    wlog("    gcov11: %lf\n", src->gcov11);
+    wlog("    gcov12: %lf\n", src->gcov12);
+    wlog("    gcov22: %lf\n", src->gcov22);
     wlog("    g1sens: %lf\n", src->g1sens);
     wlog("    g2sens: %lf\n", src->g2sens);
     wlog("    hpixid: %ld\n", src->hpixid);
