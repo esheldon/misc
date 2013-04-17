@@ -71,7 +71,6 @@ struct shear* shear_init(const char* config_url, const char* lens_url) {
         // interpolation region
         double* zl=config->zl->data;
         int64 nzl=config->nzl;
-        //shear->min_zlens = zl[0];
         shear->max_zlens = zl[nzl-1];
         shear->min_zlens = fmax(zl[0], shear->config->min_zlens_interp);
     } else {
@@ -171,27 +170,37 @@ void shear_procpair(struct shear* self,
 
             if (rbin >= 0 && rbin < config->nbin) {
 
-                double err2 = src->err*src->err;
                 double scinv2 = scinv*scinv;
 
-                double eweight = 1./(GSN2 + err2);
+                double gt = -(src->g1*cos2theta + src->g2*sin2theta);
+                double gx =  (src->g1*sin2theta - src->g2*cos2theta);
+
+
+                // similarly, just for tangential component
+                double gvar=
+                      cos2theta*cos2theta*src->gcov11
+                    + sin2theta*sin2theta*src->gcov22
+                    + 2*cos2theta*sin2theta*src->gcov12;
+
+                double eweight = 1./(GSN2 + gvar);
                 double weight = scinv2*eweight;
-
-                double gamma1 = -(src->g1*cos2theta + src->g2*sin2theta);
-                double gamma2 =  (src->g1*sin2theta - src->g2*cos2theta);
-
-                // just take gsens from tangential component
-                double gsens = -(src->g1sens*cos2theta + src->g2sens*sin2theta);
 
                 lensum->weight += weight;
                 lensum->totpairs += 1;
                 lensum->npair[rbin] += 1;
 
                 lensum->wsum[rbin] += weight;
-                lensum->dsum[rbin] += weight*gamma1/scinv;
-                lensum->osum[rbin] += weight*gamma2/scinv;
+                lensum->dsum[rbin] += weight*gt/scinv;
+                lensum->osum[rbin] += weight*gx/scinv;
 
                 lensum->rsum[rbin] += r;
+
+                // just take gsens from tangential component; use same
+                // weighting
+                double w1 = fabs(cos2theta);
+                double w2 = fabs(sin2theta);
+                double gsens = src->g1sens*w1 + src->g2sens*w2;
+                gsens /= (w1+w2);
 
                 // get correction ssh using l->sshsum/l->weight
                 lensum->sshsum += weight*gsens;
