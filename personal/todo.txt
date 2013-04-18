@@ -14,26 +14,30 @@ Quick look Queue
         - prjquota des
 
     - eli prioritizes doing masses for sdss red mapper over new colors
-        - I've implemented the detrending the additive vs s/n
-        - has harsh clip on psf ellipticity, removing 12%; might want to
-          loosen it?
-        - need to generate catalog and match to photozs; this is under
-          /lensing I think
 
-    - get seg for spt east
-    - calibrate the SE images
-        - sent email to bob
-    - get outlier pixel rejection, features etc. from Daniel
-        - sent email to daniel
-    - psf size vs mag
-        - Gary argues don't want poisson weighting
-    - convert coadd to wget as well
+        - try also with s/n cut at 10 or 15
 
-    - people look at SE images for coadds and help determine what SE images we
-      should use for multi-epoch analysis
-        - Eric will start
-        - pre-generate and let people look through them
-    - Daniel says weight map might have wrong normalization
+        - randoms from eli
+            - eli has his own weights for randoms that I need to apply before
+              doing the weighted histogram matching thing.  Not sure how that
+              will work out.
+
+    DES
+
+        - get seg for spt east
+        - calibrate the SE images
+            - sent email to bob
+        - get outlier pixel rejection, features etc. from Daniel
+            - sent email to daniel
+        - psf size vs mag
+            - Gary argues don't want poisson weighting
+        - convert coadd to wget as well
+
+        - people look at SE images for coadds and help determine what SE
+          images we should use for multi-epoch analysis
+            - Eric will start
+            - pre-generate and let people look through them
+        - Daniel says weight map might have wrong normalization
 
     ideas
         - my stack images but going to Fourier space (Gary)
@@ -46,6 +50,8 @@ Quick look Queue
     wlpipe
         Finish Convert shapelets to new script stuff
     MEDS
+        In api, generate some useful filenames automatically,
+            e.g. psfex file, fitpsf.
         Write integer metadata.
         C getter for metadata?
         Add $DESDATA to the metadata?
