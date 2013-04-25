@@ -2,8 +2,6 @@ Quick look Queue
 
     nersc
 
-        - should be able to speed up downloads by large factor: unencryptic,
-          gridftp if possible
         - can get web access for files: access for apache but not other
           groups.
         - hopper much faster to global scratch
