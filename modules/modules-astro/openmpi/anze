@@ -1,0 +1,15 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"anze's openmpi install"
+conflict openmpi
+
+eval set  [ array get env HOME ]
+
+set OPENMPI_DIR /astro/u/anze/local
+
+append-path PATH $OPENMPI_DIR/bin
+append-path LD_LIBRARY_PATH $OPENMPI_DIR/lib
+append-path LIBRARY_PATH $OPENMPI_DIR/lib
+
+setenv OPENMPI_DIR $OPENMPI_DIR
