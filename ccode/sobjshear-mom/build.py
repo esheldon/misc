@@ -67,8 +67,8 @@ if options.hdfs:
     LINKFLAGS += ['-L${HADOOP_HOME}/libhdfs','-lhdfs']
     CFLAGS += ['-DHDFS','-I${HADOOP_HOME}/src/c++/libhdfs']
 
-programs = [{'name':'sobjshear', 'sources':sobjshear_sources},
-            {'name':'redshear', 'sources':redshear_sources}]
+programs = [{'name':'sobjshear-mom', 'sources':sobjshear_sources},
+            {'name':'redshear-mom', 'sources':redshear_sources}]
 
 if options.test:
     programs += test_programs

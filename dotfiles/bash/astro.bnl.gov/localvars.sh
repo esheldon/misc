@@ -43,7 +43,7 @@ append_path CPATH /usr/java/jdk1.6.0_14/include/linux
 
 
 export MAXBCG_CATDIR=/astro/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
-export CLUSTERS_INPUT=/astro/tutti1/esheldon/clusters-input
+export CLUSTERS_INPUT=~/oh/clusters-input
 
 export PHOTOZ_DIR=~esheldon/photoz
 export SWEEP_REDUCE=~esheldon/sweep-reduce
