@@ -16,9 +16,11 @@ if [ -e "/sbin/ifconfig" ] ; then
     if [ "$check_corus" == "$ip" ]; then
         # corus
         export http_proxy=http://192.168.1.140:3128
+        export https_proxy=http://192.168.1.140:3128
         export ftp_proxy=ftp://ftpgateway.sec.bnl.local
     elif [ "$check_inside" == "$ip" ]; then
         export http_proxy=http://192.168.1.130:3128
+        export https_proxy=http://192.168.1.130:3128
         export ftp_proxy=ftp://ftpgateway.sec.bnl.local
     else
         unset http_proxy
