@@ -1,4 +1,15 @@
 Quick look Queue
+    legend
+        - todo
+        * running
+
+    voids
+        - seeing b modes in the lensing at very large radius
+            - source catalogs tried:
+                - s/n [20,300] sratio > 1
+                - s/n [20,300] sratio > sqrt(2)
+        - going to try the maxlike version
+            - photoz match is finished, need to make scat
 
     nersc
 
@@ -13,48 +24,107 @@ Quick look Queue
         usage
         - prjquota des
 
-    - eli prioritizes doing masses for sdss red mapper over new colors
-
-        - try also with s/n cut at 10 or 15
-
-        - randoms from eli
-            - eli has his own weights for randoms that I need to apply before
-              doing the weighted histogram matching thing.  Not sure how that
-              will work out.
+    redmapper
+        - add/modify entries to eduardo's null test etc. document
 
     DES
 
+        - redo colors in MEDS
+            - For matched fit, need to be able to specify the run of a
+              detband, since runs and bands are tied together.  det_run= could
+              in principle imply the filename for the det_cat.
+
+            - need to trim objects I process I think.  Too many taking forever
+              and failing.
+            - module in deswl
+                - need a code in gmix_meds to concatenate these together
+                  and sort by id
+            - /bin/gmix-meds --range start,end config_file meds_file out_file
+            - use lm_max_try=2 for everything but the coelliptical psf fit
+                about 2% of failures find a fit on the 2nd try.  Fewer
+                beyond that.
+
+            - better way to get seg map id when seg maps are proper?  should
+              use coadd seg map in sky space some how?
+            - cmodel error ignores  frac_dev error
+
+            - need to decide what to do if psf fitting fails
+                - currently just moving on
+
+            - explore using EM and non-coelliptical fits to PSF
+                - remove all the cocenter,coellip crap from
+                the EM code
+                - get working on sky coords
+
+            - need to possibly store the psf fits in a separate
+            file or extension.
+
+            - ~aperture corrections on psfflux: put back difference
+                from model and psf image
+
+                    flux = flux*(1+(model-psfimage)/psfimage)
+
+                how to do on stack?  average that frac diff?
+
+            - I think Flux fitter should just inherit from Base
+            - should we use the lowest_psum?
+            - bulge+disk?
+                - coelliptical would add two parameters
+
+                    [cen1,cen2,e1,e2,T1,T2,p1,p2]
+
+                and we are back to similar situation as coelliptical
+                gaussians, which just don't work that well.  bdco
+
+            - very long term
+                - sersic?
+                - run Hoggs code on a closely spaced grid of n?
+
+            - when gauss is psf, 2 won't fit well; might want fallback to 1
+              gauss.
+            - need seg maps!  Also need to make sure we download all the
+              g,r,i,z images for the spte runs.
+
+        - gmix
+            - psfex image generation code
+            - shapelets psf image generation code
+            - gary's alternative bayesian formulation
         - get seg for spt east
-        - calibrate the SE images
-            - sent email to bob
+            * sent email to Robert, he says after some coadd fixes
         - get outlier pixel rejection, features etc. from Daniel
-            - sent email to daniel
+            * sent email to daniel
         - psf size vs mag
             - Gary argues don't want poisson weighting
+            * sent mail to mike about new measure
         - convert coadd to wget as well
 
-        - people look at SE images for coadds and help determine what SE
-          images we should use for multi-epoch analysis
-            - Eric will start
-            - pre-generate and let people look through them
         - Daniel says weight map might have wrong normalization
+
+        - eyeballing
+            - framework from Tim
+                * sent mail to Tim
+            - triggers, e.g. users table with counters on how many images
+              examined.
 
     ideas
         - my stack images but going to Fourier space (Gary)
         - shear response by deconvolving PSF, shear,
           then reconv. with slightly larger PSF (Eric)
 
-    peter
-        - sky sub is bad
-
     wlpipe
-        Finish Convert shapelets to new script stuff
+
+        - Finish Convert shapelets to new script stuff. Need module use from
+          mike
+
     MEDS
+        
+        - add id back into meds
+        - Add $DESDATA to the metadata
+        - make some metadata not string, if they exist
+
         In api, generate some useful filenames automatically,
             e.g. psfex file, fitpsf.
         Write integer metadata.
-        C getter for metadata?
-        Add $DESDATA to the metadata?
 
     gsim
         - pad against largest dimension instead of average
@@ -111,6 +181,8 @@ Quick look Queue
     - implement SessionPool on my wrapped oracle connection.
 
 fitsio
+
+    - refactor images/tables
 
     - practice with object arrays.
 
