@@ -5,14 +5,15 @@ function usage {
     usage: wqtail [-h -n nfiles -c columns -E limit -l] dir
 
         Tail recently changed .wqlog files.  If multiple are
-        found, "nfiles" are displayed simulaneously
+        found, 'nfiles' are displayed simulaneously
 
     options:
         -n Number of files to watch, default 1
         -c Number of columns to use in display if n > 1
         -E Limit to lines matching the input regular expression
+            only works if -m is sent
         -l Use less if nfiles is one
-        -m Use mtail instead of multitail.  -E will no longer work
+        -m Use multitail instead of mtail.  -E will then work
         -h for this help message
 "
 }
@@ -22,14 +23,14 @@ nfiles=1
 ncols=1
 limit="None"
 use_less="No"
-use_mtail="No"
+use_mtail="Yes"
 while getopts "hn:c:E:lm" Option; do
     case $Option in
         n) nfiles=$OPTARG ;;
         c) ncols=$OPTARG ;;
         E) limit=$OPTARG ;;
         l) use_less="Yes";;
-        m) use_mtail="Yes";;
+        m) use_mtail="No";;
         h) usage
            exit 1 ;;
         [?]) usage

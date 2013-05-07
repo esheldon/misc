@@ -44,31 +44,27 @@ struct gmix *gmix_free(struct gmix *self)
 
 void gmix_set_dets(struct gmix *self)
 {
-    struct gauss *gptr = self->data;
     size_t i=0;
     for (i=0; i<self->size; i++) {
+        struct gauss *gptr = &self->data[i];
         gptr->det = gptr->irr*gptr->icc - gptr->irc*gptr->irc;
-        gptr++;
     }
 }
 
 int gmix_verify(const struct gmix *self)
 {
     size_t i=0;
-    struct gauss *gauss=NULL;
 
     if (!self) {
         fprintf(stderr,"gmix_verify error: gmix is not initialized\n");
         return 0;
     }
 
-    gauss=self->data;
     for (i=0; i<self->size; i++) {
+        const struct gauss* gauss=&self->data[i];
         if (gauss->det <= 0) {
-            //fprintf(stderr,"found det: %.16g\n", gauss->det);
             return 0;
         }
-        gauss++;
     }
     return 1;
 }
@@ -93,26 +89,24 @@ int gmix_copy(const struct gmix *self, struct gmix* dest)
 
 void gmix_print(const struct gmix *self, FILE* fptr)
 {
-    struct gauss *gptr = self->data;
     size_t i=0;
     for (i=0; i<self->size; i++) {
+        const struct gauss *gptr = &self->data[i];
         fprintf(fptr,
              "%lu p: %9.6lf row: %9.6lf col: %9.6lf " 
              "irr: %9.6lf irc: %9.6lf icc: %9.6lf\n",
              i, gptr->p, gptr->row, gptr->col,
              gptr->irr,gptr->irc, gptr->icc);
-        gptr++;
     }
 }
 
 double gmix_wmomsum(struct gmix* gmix)
 {
     double wmom=0;
-    struct gauss* gauss=gmix->data;
     size_t i=0;
     for (i=0; i<gmix->size; i++) {
+        const struct gauss* gauss=&gmix->data[i];
         wmom += gauss->p*(gauss->irr + gauss->icc);
-        gauss++;
     }
     return wmom;
 }
@@ -120,11 +114,10 @@ double gmix_wmomsum(struct gmix* gmix)
 double gmix_get_T(const struct gmix *self)
 {
     double T=0, psum=0;
-    struct gauss *gauss=self->data;
     for (size_t i=0; i<self->size; i++) {
+        const struct gauss *gauss = &self->data[i];
         T += gauss->p*(gauss->irr+gauss->icc);
         psum += gauss->p;
-        gauss++;
     }
 
     T = T/psum;
@@ -134,10 +127,9 @@ double gmix_get_T(const struct gmix *self)
 double gmix_get_counts(const struct gmix *self)
 {
     double psum=0;
-    struct gauss *gauss=self->data;
     for (size_t i=0; i<self->size; i++) {
+        const struct gauss *gauss = &self->data[i];
         psum += gauss->p;
-        gauss++;
     }
 
     return psum;
@@ -150,10 +142,10 @@ void gmix_get_totals(const struct gmix *self,
                      double *counts)
 {
     double psum=0;
-    struct gauss *gauss=self->data;
 
     *row=0; *col=0; *irr=0; *irc=0; *icc=0; *counts=0;
     for (size_t i=0; i<self->size; i++) {
+        const struct gauss *gauss = &self->data[i];
         (*row) += gauss->p*gauss->row;
         (*col) += gauss->p*gauss->col;
 
@@ -162,8 +154,6 @@ void gmix_get_totals(const struct gmix *self,
         (*icc) += gauss->p*gauss->icc;
 
         psum += gauss->p;
-
-        gauss++;
     }
 
     (*row) /= psum;
@@ -181,16 +171,15 @@ void gmix_get_totals(const struct gmix *self,
 void gmix_get_cen(const struct gmix *self, double *row, double *col)
 {
     double psum=0;
-    struct gauss *gauss=self->data;
 
     (*row)=0;
     (*col)=0;
 
     for (size_t i=0; i<self->size; i++) {
+        const struct gauss *gauss=&self->data[i];
         (*row) += gauss->p*gauss->row;
         (*col) += gauss->p*gauss->col;
         psum += gauss->p;
-        gauss++;
     }
 
     (*row) /= psum;
@@ -244,10 +233,11 @@ int gmix_fill_convolve(struct gmix *self,
                        const struct gmix *obj_gmix, 
                        const struct gmix *psf_gmix)
 {
-    struct gauss *psf=NULL, *obj=NULL, *comb=NULL;
+    struct gauss *comb=NULL;
 
     int ntot=0, iobj=0, ipsf=0;
     double irr=0, irc=0, icc=0, psum=0;
+    double row=0, col=0, psf_rowcen=0, psf_colcen=0;
 
     ntot = obj_gmix->size*psf_gmix->size;
     if (self->size != ntot) {
@@ -257,32 +247,36 @@ int gmix_fill_convolve(struct gmix *self,
         return 0;
     }
 
+    gmix_get_cen(psf_gmix, &psf_rowcen, &psf_colcen);
+
     for (ipsf=0; ipsf<psf_gmix->size; ipsf++) {
-        psf = &psf_gmix->data[ipsf];
+        const struct gauss *psf = &psf_gmix->data[ipsf];
         psum += psf->p;
     }
 
-    obj = obj_gmix->data;
     comb = self->data;
     for (iobj=0; iobj<obj_gmix->size; iobj++) {
+        const struct gauss *obj = &obj_gmix->data[iobj];
 
-        psf = psf_gmix->data;
         for (ipsf=0; ipsf<psf_gmix->size; ipsf++) {
+            const struct gauss *psf = &psf_gmix->data[ipsf];
 
             irr = obj->irr + psf->irr;
             irc = obj->irc + psf->irc;
             icc = obj->icc + psf->icc;
 
+            // off-center psf components shift the
+            // convolved center
+            row = obj->row + (psf->row-psf_rowcen);
+            col = obj->col + (psf->col-psf_colcen);
+
             gauss_set(comb,
                       obj->p*psf->p/psum,
-                      obj->row, obj->col, 
+                      row, col, 
                       irr, irc, icc);
 
-            psf++;
             comb++;
         }
-
-        obj++;
     }
 
     return 1;
@@ -352,8 +346,8 @@ int gmix_fill_coellip(struct gmix *gmix,
     double e1 = pars[2];
     double e2 = pars[3];
 
-    struct gauss *gauss=gmix->data;
     for (int i=0; i<ngauss; i++) {
+        struct gauss *gauss=&gmix->data[i];
 
         double Ti = pars[4+i];
         double pi = pars[4+ngauss+i];
@@ -365,7 +359,6 @@ int gmix_fill_coellip(struct gmix *gmix,
                   (Ti/2.)*(1-e1),
                   (Ti/2.)*e2,
                   (Ti/2.)*(1+e1));
-        gauss++;
     }
 
     return 1;
@@ -376,7 +369,6 @@ struct gmix *gmix_make_coellip_Tfrac(double *pars, int size)
 {
     int ngauss=0;
     double row=0, col=0, e1=0, e2=0, Tmax=0, Ti=0, pi=0, Tfrac=0;
-    struct gauss *gauss=NULL;
 
     int i=0;
 
@@ -394,7 +386,7 @@ struct gmix *gmix_make_coellip_Tfrac(double *pars, int size)
     Tmax = pars[4];
 
     for (i=0; i<ngauss; i++) {
-        gauss = &gmix->data[i];
+        struct gauss *gauss = &gmix->data[i];
 
         if (i==0) {
             Ti = Tmax;
@@ -429,7 +421,6 @@ int _gapprox_fill_old(struct gmix *self,
     double T=0, Tvals[3]={0};
     double p=0, counts[3]={0};
 
-    struct gauss *gauss=NULL;
 
     int i=0;
 
@@ -456,15 +447,14 @@ int _gapprox_fill_old(struct gmix *self,
     counts[1] = pvals[1]*p;
     counts[2] = pvals[2]*p;
 
-    gauss=self->data;
     for (i=0; i<self->size; i++) {
+        struct gauss *gauss=&self->data[i];
         gauss_set(gauss,
                   counts[i], 
                   row, col, 
                   (Tvals[i]/2.)*(1-e1), 
                   (Tvals[i]/2.)*e2,
                   (Tvals[i]/2.)*(1+e1));
-        gauss++;
     }
     return 1;
 }
@@ -479,7 +469,6 @@ static int _gapprox_fill(struct gmix *self,
     double row=0, col=0, e1=0, e2=0;
     double T=0, T_i=0;
     double counts=0, counts_i=0;
-    struct gauss *gauss=NULL;
 
     if (size != 6) {
         fprintf(stderr,"error: approx gmix pars must have size 6\n");
@@ -493,8 +482,8 @@ static int _gapprox_fill(struct gmix *self,
     T=pars[4];
     counts=pars[5];
 
-    gauss=self->data;
     for (size_t i=0; i<self->size; i++) {
+        struct gauss *gauss = &self->data[i];
         T_i      = Fvals[i]*T;
         counts_i = pvals[i]*counts;
 
@@ -504,7 +493,6 @@ static int _gapprox_fill(struct gmix *self,
                   (T_i/2.)*(1-e1), 
                   (T_i/2.)*e2,
                   (T_i/2.)*(1+e1));
-        gauss++;
     }
 
     return 1;
