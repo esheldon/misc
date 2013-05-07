@@ -186,6 +186,24 @@ void gmix_get_cen(const struct gmix *self, double *row, double *col)
     (*col) /= psum;
 
 }
+void gmix_set_cen(struct gmix *self, double row, double col)
+{
+    double row_cur=0, col_cur=0;
+    double row_shift=0, col_shift=0;
+
+    gmix_get_cen(self, &row_cur, &col_cur);
+
+    row_shift = row - row_cur;
+    col_shift = col - col_cur;
+
+    for (int i=0; i<self->size; i++) {
+        struct gauss *gauss = &self->data[i];
+
+        gauss->row += row_shift;
+        gauss->col += col_shift;
+    }
+}
+
 
 /*
 void gmix_set_total_moms(struct gmix *self)
