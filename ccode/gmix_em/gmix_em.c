@@ -69,11 +69,8 @@ void gmix_em_run(struct gmix_em* self,
 
         gmix_em_gmix_set_fromiter(gmix, iter_struct);
 
-        // fixing sky doesn't work, need correct starting value
-        if (!self->fixsky) {
-            iter_struct->psky = iter_struct->skysum;
-            iter_struct->nsky = iter_struct->psky/npoints;
-        }
+        iter_struct->psky = iter_struct->skysum;
+        iter_struct->nsky = iter_struct->psky/npoints;
 
         wmom = gmix_wmomsum(gmix);
         wmom /= iter_struct->psum;
@@ -244,11 +241,8 @@ void gmix_em_cocenter_run(struct gmix_em* self,
         // Should do with extra par in above function or something
         set_means(gmix, &cen_new);
 
-        // fixing sky doesn't work, need correct starting value
-        if (!self->fixsky) {
-            iter_struct->psky = iter_struct->skysum;
-            iter_struct->nsky = iter_struct->psky/npoints;
-        }
+        iter_struct->psky = iter_struct->skysum;
+        iter_struct->nsky = iter_struct->psky/npoints;
 
         wmom = gmix_wmomsum(gmix);
         wmom /= iter_struct->psum;

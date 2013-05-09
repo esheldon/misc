@@ -21,7 +21,6 @@ struct gmix_em {
     size_t maxiter;
     double tol;
     int cocenter;
-    int fixsky;
     int verbose;
 
     // will hold these at the end
