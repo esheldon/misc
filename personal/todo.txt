@@ -3,6 +3,7 @@ Quick look Queue
         - todo
         * running
 
+
     voids
         - seeing b modes in the lensing at very large radius
             - source catalogs tried:
@@ -10,6 +11,19 @@ Quick look Queue
                 - s/n [20,300] sratio > sqrt(2)
         - going to try the maxlike version
             - photoz match is finished, need to make scat
+
+        - could be psf: we know the sdss psf is anisotropic.  running
+          EM without cocenter.
+            - deal with finished gmix run (if it finished)
+                - possibly implement em only psf
+                - possibly replace admom with em 1 gauss?
+
+
+          note: seeing a fair amount of admom failure in psf fitting.  maybe
+          should use em there for single gauss to start?  Or skip altogether
+          and just take psf_fwhm as a pretty good guess for overall size?
+
+          Did make the guesses for admom slightly better....
 
     nersc
 
@@ -30,34 +44,24 @@ Quick look Queue
     DES
 
         - redo colors in MEDS
+            - outlier rejection needed.  Will have to define some kind of
+              pixel grid in uv space to do this.
+            - for psf we can make an initial guess from an unweighted moment.
+            - also maybe try more than once on psfs since they seem to be
+              failing more than I would like (EM might also fix that)
+
+            - EM psf fitting with jacobian.  We only ever work on SE images so
+              this is relatively straightforward.
+            - s2n with in 1.5'' aperture; how to do that?
             - For matched fit, need to be able to specify the run of a
               detband, since runs and bands are tied together.  det_run= could
               in principle imply the filename for the det_cat.
 
-            - need to trim objects I process I think.  Too many taking forever
-              and failing.
-            - module in deswl
-                - need a code in gmix_meds to concatenate these together
-                  and sort by id
-            - /bin/gmix-meds --range start,end config_file meds_file out_file
-            - use lm_max_try=2 for everything but the coelliptical psf fit
-                about 2% of failures find a fit on the 2nd try.  Fewer
-                beyond that.
-
-            - better way to get seg map id when seg maps are proper?  should
-              use coadd seg map in sky space some how?
-            - cmodel error ignores  frac_dev error
-
-            - need to decide what to do if psf fitting fails
-                - currently just moving on
-
             - explore using EM and non-coelliptical fits to PSF
-                - remove all the cocenter,coellip crap from
-                the EM code
                 - get working on sky coords
 
-            - need to possibly store the psf fits in a separate
-            file or extension.
+            - need to possibly store the psf fits in a separate file or
+              extension.
 
             - ~aperture corrections on psfflux: put back difference
                 from model and psf image
@@ -119,6 +123,7 @@ Quick look Queue
     MEDS
         
         - add id back into meds
+        - add ra,dec
         - Add $DESDATA to the metadata
         - make some metadata not string, if they exist
 

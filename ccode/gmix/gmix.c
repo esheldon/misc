@@ -111,30 +111,6 @@ double gmix_wmomsum(struct gmix* gmix)
     return wmom;
 }
 
-double gmix_get_T(const struct gmix *self)
-{
-    double T=0, psum=0;
-    for (size_t i=0; i<self->size; i++) {
-        const struct gauss *gauss = &self->data[i];
-        T += gauss->p*(gauss->irr+gauss->icc);
-        psum += gauss->p;
-    }
-
-    T = T/psum;
-    return T;
-}
-
-double gmix_get_counts(const struct gmix *self)
-{
-    double psum=0;
-    for (size_t i=0; i<self->size; i++) {
-        const struct gauss *gauss = &self->data[i];
-        psum += gauss->p;
-    }
-
-    return psum;
-}
-
 
 void gmix_get_totals(const struct gmix *self,
                      double *row, double *col,
@@ -167,6 +143,52 @@ void gmix_get_totals(const struct gmix *self,
 
 }
 
+
+double gmix_get_T(const struct gmix *self)
+{
+    double T=0, psum=0;
+    for (size_t i=0; i<self->size; i++) {
+        const struct gauss *gauss = &self->data[i];
+        T += gauss->p*(gauss->irr+gauss->icc);
+        psum += gauss->p;
+    }
+
+    T = T/psum;
+    return T;
+}
+
+
+double gmix_get_counts(const struct gmix *self)
+{
+    double psum=0;
+    for (size_t i=0; i<self->size; i++) {
+        const struct gauss *gauss = &self->data[i];
+        psum += gauss->p;
+    }
+    return psum;
+}
+
+
+double gmix_get_psum(const struct gmix *self)
+{
+    double psum=0;
+    for (int i=0; i<self->size; i++) {
+        const struct gauss *gauss=&self->data[i];
+        psum += gauss->p;
+    }
+    return psum;
+}
+void gmix_set_psum(struct gmix *self, double psum)
+{
+    double psum_cur = gmix_get_psum(self);
+    double rat = psum/psum_cur;
+
+    for (int i=0; i<self->size; i++) {
+        struct gauss *gauss = &self->data[i];
+
+        gauss->p *= rat;
+    }
+}
 
 void gmix_get_cen(const struct gmix *self, double *row, double *col)
 {

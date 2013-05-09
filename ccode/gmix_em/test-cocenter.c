@@ -83,7 +83,6 @@ int main(int argc, char** argv)
     struct gmix_em gmix_em;
     gmix_em.maxiter=4000;
     gmix_em.tol = 1.e-6;
-    gmix_em.fixsky = 0;
     gmix_em.verbose=0;
 
 
