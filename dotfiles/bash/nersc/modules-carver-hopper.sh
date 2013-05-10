@@ -32,7 +32,7 @@ module load numpy-hpcp
 module load scipy-hpcp
 module load ipython-hpcp
 
-
+module load cfitsio-hpcp/3.31-1.0
 
 #
 # des module installs
@@ -51,6 +51,8 @@ module load desoracle
 module unload desdb && module load desdb/local
 module unload deswl && module load deswl/local
 module unload meds && module load meds/local
+module unload psfex && module load psfex/local
+module unload gmix_meds && module load gmix_meds/local
 
 module load deswl-checkout/local
 
@@ -58,6 +60,11 @@ module load plotutils
 module load biggles
 
 module load mkl-des
+
+module load PIL/local
+module load eyeballer/local
+
+module load fimage/local
 
 #
 # installs in my home
@@ -69,7 +76,7 @@ module unload espy && module load espy/local
 
 module load fitsio/local
 
-module load cfitsio/3310
+#module load cfitsio/3310
 module load ccfits/2.4
 
 module unload esutil && module load esutil/local
