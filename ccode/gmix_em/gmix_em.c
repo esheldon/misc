@@ -38,6 +38,7 @@
 #include <math.h>
 #include <string.h>
 #include "gmix_em.h"
+#include "fmath.h"
 #include "image.h"
 #include "gmix.h"
 #include "mtx2.h"
@@ -273,11 +274,10 @@ int gmix_get_sums(struct gmix_em* self,
                   struct gmix_em_iter* iter)
 {
     int flags=0;
-    double igrat=0, imnorm=0, gtot=0, wtau=0, b=0, chi2=0;
+    double igrat=0, imnorm=0, gtot=0, wtau=0, chi2=0;
     double u=0, v=0, uv=0, u2=0, v2=0;
     size_t i=0, col=0, row=0;
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
-    size_t row0=IM_ROW0(image), col0=IM_COL0(image); // could be a subimage
     struct gauss* gauss=NULL;
     struct gmix_em_sums *sums=NULL;
 
@@ -298,23 +298,26 @@ int gmix_get_sums(struct gmix_em* self,
                     flags+=GMIX_EM_NEGATIVE_DET;
                     goto _gmix_get_sums_bail;
                 }
-                // w.r.t. row0,col0 in case this is a masked image
-                // centers will be w.r.t. the main image
-                u = (row-(gauss->row-row0));
-                v = (col-(gauss->col-col0));
+
+                u = row-gauss->row;
+                v = col-gauss->col;
 
                 u2 = u*u; v2 = v*v; uv = u*v;
 
-                chi2=gauss->icc*u2 + gauss->irr*v2 - 2.0*gauss->irc*uv;
-                chi2 /= gauss->det;
-                b = M_TWO_PI*sqrt(gauss->det);
-                sums->gi = gauss->p*exp( -0.5*chi2 )/b;
+                chi2=gauss->dcc*u2 + gauss->drr*v2 - 2.0*gauss->drc*uv;
+
+                if (chi2 < EXP_MAX_CHI2) {
+                    sums->gi = gauss->norm*gauss->p*expd( -0.5*chi2 );
+                } else {
+                    sums->gi=0;
+                }
+
+
 
                 gtot += sums->gi;
 
-                // keep row units in unmasked frame
-                sums->trowsum = (row0+row)*sums->gi;
-                sums->tcolsum = (col0+col)*sums->gi;
+                sums->trowsum = row*sums->gi;
+                sums->tcolsum = col*sums->gi;
                 sums->tu2sum  = u2*sums->gi;
                 sums->tuvsum  = uv*sums->gi;
                 sums->tv2sum  = v2*sums->gi;
