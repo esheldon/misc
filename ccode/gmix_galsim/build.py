@@ -1,5 +1,5 @@
 """
-build the tests for gmix_em
+build the tests
 """
 
 from fabricate import *
