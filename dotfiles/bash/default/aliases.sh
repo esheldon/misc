@@ -7,6 +7,9 @@ export treebeard=192.168.127.102
 
 alias hdfs="hadoop fs"
 
+alias sattach='grabssh ; screen -DR'
+alias fixssh='source $HOME/fixssh'
+
 # awk simplifies life
 alias mailtail="tail -n 100 -f ~/.getmail/gmail.log  | awk '{print \$1,\$2,\$4,\$10}'"
 alias astro='ssh esheldon@astro.physics.nyu.edu'
