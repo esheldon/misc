@@ -38,8 +38,6 @@ caption splitonly "%?%F%{= kG}%:%{= kw}%? %n %t%=%{= db}"
 
 hardstatus alwayslastline '%{= kG}%{G}%H %{g}%= %{= kw}%?%-Lw%?%{y}%n*%f%t%?(%u)%?%{w}%?%+Lw%?%?%= %{g}%{B} %m-%d %{W}%c %{g}'
 
-
-
 # more intuitive movement through regions
 # normal navigation is only through C-a tab
 # note t is usually "print system time" so I won't miss that
