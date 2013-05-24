@@ -44,12 +44,27 @@ Quick look Queue
     DES
 
         - redo colors in MEDS
-            
-            - have seg maps.  I'm running the i-band and will run z band with
-              detband i.
 
-            - new calibrations:  need to apply them in MEDS before doing a big
-              run!
+            - got jacobian working right, as well as the P*J as it can predict
+              a small sheared population.
+            - next generate some shapes from the prior, shear them, and use
+              the P,Q,J values to recover the shear.  Should be easy!
+
+            - added new jacob/prior BA stuff, merged to refactor1 branch
+              going to work on refactor branch from here on out
+
+            - jacobian is unit at g=0 no matter what, and derivative is zero
+            making Q zero.  What's the deal?
+
+            - failing on variable length column?
+
+                Pence says it is a need to use 64-bit integers.  He will fix.
+
+            - MEDS are going to take a lot longer!  trying 24 hours
+
+            - make sure data type changes in MakeCutouts don't cause a problem
+              in meds.c; also check metadata reading (do I do that?)
+            - new calibrations and coadds.  Running new meds files for i band.
 
             - tests suggest that restricting to seg map can cause aperture
               effects on the size.  For stars I used a fixed aperture and all
