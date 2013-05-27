@@ -44,34 +44,63 @@ Quick look Queue
     DES
 
         - redo colors in MEDS
-            - outlier rejection needed.  Will have to define some kind of
-              pixel grid in uv space to do this.
-            - for psf we can make an initial guess from an unweighted moment.
-            - also maybe try more than once on psfs since they seem to be
-              failing more than I would like (EM might also fix that)
 
-            - EM psf fitting with jacobian.  We only ever work on SE images so
-              this is relatively straightforward.
+            - got jacobian working right, as well as the P*J as it can predict
+              a small sheared population.
+            - next generate some shapes from the prior, shear them, and use
+              the P,Q,J values to recover the shear.  Should be easy!
+
+            - added new jacob/prior BA stuff, merged to refactor1 branch
+              going to work on refactor branch from here on out
+
+            - jacobian is unit at g=0 no matter what, and derivative is zero
+            making Q zero.  What's the deal?
+
+            - failing on variable length column?
+
+                Pence says it is a need to use 64-bit integers.  He will fix.
+
+            - MEDS are going to take a lot longer!  trying 24 hours
+
+            - make sure data type changes in MakeCutouts don't cause a problem
+              in meds.c; also check metadata reading (do I do that?)
+            - new calibrations and coadds.  Running new meds files for i band.
+
+            - tests suggest that restricting to seg map can cause aperture
+              effects on the size.  For stars I used a fixed aperture and all
+              pixels not associated with *another* object. This produced good
+              results.  The get_cweight* we should just zero the pixels
+              from other objects.
+
+            - did a test gfme001zt but it used faked seg maps.  It ran though!
+              
+            - ! need coadd seg maps !  Robert forgot to start them do full
+              meds run 006 for z of eli's chosen tile when we get them
+              (DES0512-6205)
+
+            - new coadds (and calibrations?) should show up next week.
+
+            - consolidate codes.  The ones that don't use a jacobian can call
+              the ones that do with a identity matrix jacob and row0,col0 zero
+
             - s2n with in 1.5'' aperture; how to do that?
-            - For matched fit, need to be able to specify the run of a
-              detband, since runs and bands are tied together.  det_run= could
-              in principle imply the filename for the det_cat.
+                - add a parameter that is maxrad to likelihood code
+                - new function to do weight s/n that takes a max rad can be
+                  slower since it only needs be called once at the end.
 
-            - explore using EM and non-coelliptical fits to PSF
-                - get working on sky coords
+            - fix centroids in fits (other than matched)?
+            - throw out cutouts that hit too much edge?
 
             - need to possibly store the psf fits in a separate file or
               extension.
 
-            - ~aperture corrections on psfflux: put back difference
-                from model and psf image
+            - aperture corrections on psfflux: put back difference from model
+              and psf image
 
                     flux = flux*(1+(model-psfimage)/psfimage)
 
                 how to do on stack?  average that frac diff?
 
-            - I think Flux fitter should just inherit from Base
-            - should we use the lowest_psum?
             - bulge+disk?
                 - coelliptical would add two parameters
 
@@ -80,26 +109,14 @@ Quick look Queue
                 and we are back to similar situation as coelliptical
                 gaussians, which just don't work that well.  bdco
 
-            - very long term
-                - sersic?
-                - run Hoggs code on a closely spaced grid of n?
-
             - when gauss is psf, 2 won't fit well; might want fallback to 1
               gauss.
-            - need seg maps!  Also need to make sure we download all the
-              g,r,i,z images for the spte runs.
 
         - gmix
-            - psfex image generation code
             - shapelets psf image generation code
             - gary's alternative bayesian formulation
-        - get seg for spt east
-            * sent email to Robert, he says after some coadd fixes
         - get outlier pixel rejection, features etc. from Daniel
             * sent email to daniel
-        - psf size vs mag
-            - Gary argues don't want poisson weighting
-            * sent mail to mike about new measure
         - convert coadd to wget as well
 
         - Daniel says weight map might have wrong normalization
@@ -122,9 +139,6 @@ Quick look Queue
 
     MEDS
         
-        - add id back into meds
-        - add ra,dec
-        - Add $DESDATA to the metadata
         - make some metadata not string, if they exist
 
         In api, generate some useful filenames automatically,
