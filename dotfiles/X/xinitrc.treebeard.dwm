@@ -1,0 +1,20 @@
+#!/bin/bash
+
+
+if [ -r ~/.Xdefaults ]; then
+	xrdb -merge ~/.Xdefaults
+fi
+if [ -r ~/.Xmodmap ]; then
+	xmodmap ~/.Xmodmap
+fi
+
+xsetroot -solid black
+
+# speed up the keyboard
+xset r rate 300 30
+
+#conky | while read -r; do xsetroot -name "$REPLY"; done &
+
+~/shell_scripts/dwm-update-status.sh &
+
+exec /home/esheldon/local/bin/dwm
