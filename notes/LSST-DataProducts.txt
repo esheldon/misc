@@ -1,0 +1,113 @@
+Overall
+    
+    - How do you define S/N generally?  I see a few places where it is some
+      kind of PSF flux but it is not everywhere clear.  I see a footnote 54,
+      but I'm not sure if that is the same S/N referred to at other times.
+
+
+    - Much of the level thee, as described in the document, is a software
+      *framework* or *service* rather than a data product.    What users will
+      need at level 3 is primarily a data product.  For many use cases, such
+      as using existing catalogs, processing SE images and Coadds, what you
+      have described seems sufficient to me.
+
+      However, sophisticated end users, and developers of new algorithms, will
+      primarily want to work with multi-epoch data, either in a multi-fit type
+      approach or time-domain.  This argues for a data *product* that makes
+      such analysis simple and efficient.  This is opposed to a software
+      framework, which will impose unnecessary restrictions.
+
+      I can give an anedote from DES:  We have defined a data product that is
+      a single multi-extension FITS file for each coadd tile that contains
+      cutouts at the location of coadd Objects from each single epoch image
+      associated with the coadd (Multi-Epoch Data Structure MEDS).  This makes
+      it very simple for anyone to write a code to process in a multi-fit
+      mode, and it is efficient as well.
+        
+
+    - I think level 3 should be seen as nearly as important as level 2.  From
+      my experience with SDSS and DES, much of the cutting edge will come as
+      what you call level 3.  For example, it is not at all clear that lensing
+      will be a solved problem at the time of LSST first light, and research
+      in this area will greatly benefit from local access to the LSST data.
+
+
+2.2
+
+    p1
+
+
+        Bullet 1
+
+            Spell out DIA as Difference Image Analysis here.
+
+        Bullet 2
+            
+            You say "detected on deep coadds as well as individual visits" I
+            think you mean detected on coadds *or* individual visits.  There
+            will be detections on both coadds and SE visits as well as only
+            coadd or SE visits.
+        
+        There are, I think, missing categories here:  
+        
+            - multi-fit measurements.
+              ** I see you do discuss this in section 5.1/5.2 but not here.
+
+            - Some data product that facilitates straightforward processing of
+              the multi-epoch data (e.g. to produce my bullet above).  
+
+              ** I see you mention multifit in section 5.1/5.2, but without
+              mention of a data product to facilitate that outside the primary
+              processing. 
+
+        Footnote 4  I predict your use of the word Source will result in
+        confusion.
+
+4
+
+    4.1
+
+        How do you define "apparition"?
+
+        Footnote 15
+
+            An anectdote : in DES we find it useful to make cutouts variable
+            in size according to objects size, and then rounding up to 2^N or
+            3*2^N for optimal FFT processing.  I understand for transient
+            alerts one would probably produce a small, fixed size cutout.
+
+    4.2.2
+
+        The tables are being updated daily.  Do you plan to have some way to
+        recover the previous states of these tables?
+
+5.1
+
+    How much of this deblender has been implemented?
+
+5.2
+
+    bulge-disk would be 12 free parameters if unconstrained, not 18.  If you
+    fix the centers and ellipticities to be equal, then the number of
+    parameters drops to 8. (row,col,e1,e2,scale1,scale2,flux1,flux2)
+
+    I see that you list 8 parameters in Table 4, so 18 must have been a typo.
+
+
+    photoZ "...widely accepted algorithm..." ha!
+
+5.5
+
+    Footnote 85
+
+        I'm surprised that coadds are a driver for storage; I would expect the
+        SE images to completely dominate, by a factor of ~ number of
+        snapshots.
+
+5.6 Open Issues
+
+        - What about sky subtraction?  I think you must be optimizing for
+          faint object photometry, but this was not stated.
+          
+          This pertains to the question of large galaxy characterization;
+          level 3 analysis may well need different sky characterization.
