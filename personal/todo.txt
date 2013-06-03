@@ -41,9 +41,20 @@ Quick look Queue
     redmapper
         - add/modify entries to eduardo's null test etc. document
 
+    bafit
+        
+        - use the new EM fitter for psf.
+
     DES
 
         - redo colors in MEDS
+
+            - maybe supress fpack weight zeros noise?  Currently forcing 0 but
+              could also set zero if simply much smaller than the median?
+
+            - cases where match_model=='nil': psf fitting failing altogether?
+
+            - make sure to port over prior fixes to cluster step
 
             - got jacobian working right, as well as the P*J as it can predict
               a small sheared population.
