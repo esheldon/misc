@@ -1,4 +1,5 @@
 #!/bin/bash
 
-remote_dir="$1"
-rsync -av --chmod=a+r,Da+rx "$remote_dir" .
+src="$1"
+dest="$2"
+rsync -avz --chmod=a+r,Da+rx "$src" "$dest"
