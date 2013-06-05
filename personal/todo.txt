@@ -49,50 +49,31 @@ Quick look Queue
 
         - redo colors in MEDS
 
+            - why is "during" slower?  Is it because of calculations after or
+              during?   Array conversion?
+
+            - flux is biased high at low S/N.  Looks to be more biased than
+              the shear!  
+              
+                - Would it be improved by using prior during?
+                    - running now geg01r06
+                - prior on T?  How would we get one?
+                    - need to run
+
+            - porting mcmc to run with multi-epoch or regular
+                - fix up calc_stats (can copy from lmfit stuff)
+
+            - also need to perhaps run em if it is more stable than admom?  or
+              at least catch the error and try again.
+
+
+
             - maybe supress fpack weight zeros noise?  Currently forcing 0 but
               could also set zero if simply much smaller than the median?
 
             - cases where match_model=='nil': psf fitting failing altogether?
 
             - make sure to port over prior fixes to cluster step
-
-            - got jacobian working right, as well as the P*J as it can predict
-              a small sheared population.
-            - next generate some shapes from the prior, shear them, and use
-              the P,Q,J values to recover the shear.  Should be easy!
-
-            - added new jacob/prior BA stuff, merged to refactor1 branch
-              going to work on refactor branch from here on out
-
-            - jacobian is unit at g=0 no matter what, and derivative is zero
-            making Q zero.  What's the deal?
-
-            - failing on variable length column?
-
-                Pence says it is a need to use 64-bit integers.  He will fix.
-
-            - MEDS are going to take a lot longer!  trying 24 hours
-
-            - make sure data type changes in MakeCutouts don't cause a problem
-              in meds.c; also check metadata reading (do I do that?)
-            - new calibrations and coadds.  Running new meds files for i band.
-
-            - tests suggest that restricting to seg map can cause aperture
-              effects on the size.  For stars I used a fixed aperture and all
-              pixels not associated with *another* object. This produced good
-              results.  The get_cweight* we should just zero the pixels
-              from other objects.
-
-            - did a test gfme001zt but it used faked seg maps.  It ran though!
-              
-            - ! need coadd seg maps !  Robert forgot to start them do full
-              meds run 006 for z of eli's chosen tile when we get them
-              (DES0512-6205)
-
-            - new coadds (and calibrations?) should show up next week.
-
-            - consolidate codes.  The ones that don't use a jacobian can call
-              the ones that do with a identity matrix jacob and row0,col0 zero
 
             - s2n with in 1.5'' aperture; how to do that?
                 - add a parameter that is maxrad to likelihood code
@@ -102,26 +83,6 @@ Quick look Queue
             - fix centroids in fits (other than matched)?
             - throw out cutouts that hit too much edge?
 
-            - need to possibly store the psf fits in a separate file or
-              extension.
-
-            - aperture corrections on psfflux: put back difference from model
-              and psf image
-
-                    flux = flux*(1+(model-psfimage)/psfimage)
-
-                how to do on stack?  average that frac diff?
-
-            - bulge+disk?
-                - coelliptical would add two parameters
-
-                    [cen1,cen2,e1,e2,T1,T2,p1,p2]
-
-                and we are back to similar situation as coelliptical
-                gaussians, which just don't work that well.  bdco
-
-            - when gauss is psf, 2 won't fit well; might want fallback to 1
-              gauss.
 
         - gmix
             - shapelets psf image generation code
