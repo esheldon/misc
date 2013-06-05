@@ -111,3 +111,89 @@ Overall
           
           This pertains to the question of large galaxy characterization;
           level 3 analysis may well need different sky characterization.
+
+
+Questions in Charge
+--------------------
+
+    - 1 Does the definition of Level 1 Data Products satisfy the data product
+      requirements laid out in the LSST Science Requirements Document?
+
+      The SRD is vague enough that this document certainly seems to fullfill
+      the requirements.
+
+    - 2 Are LSST time domain event alert contents and distribution plans
+      adequate to enable science cases depending on immediate follow-up?
+
+      The SRD is vague...
+
+    - 3 Does the definition of Level 2 Data Products satisfy the data product
+      requirements laid out in the LSST Science Requirements Document?
+
+        - I don't think lensing is addressed sufficiently in either the SRD or
+          this document.  My intuition is that the lensing will be the most
+          technically challenging part of the image processing, and also
+          possibly the most computationally expensive, depending on the
+          algorithm.  The products outlined appear to be the minimum needed to
+          do decent photometry and support the time domain science.
+
+    - 4 Are the catalog Data Products envisioned for Level 1 and Level 2
+      appropriately comprehensive to enable a significant fraction of science
+      envisioned for the LSST (the LSST Science Drivers, LSST SRD, Section 2),
+      without further access to pixel data?
+
+        - Weak lensing is not addressed.  Is it supposed that the weak lensing
+          measures will be level 3?  If so, significant computational support
+          will be needed at level 3.
+
+          I think it is appropriate that *research* into weak lensing measures
+          should supported at level 3, but there should also be a plan for at
+          least one algorithm to run at level 2.  This will have associated
+          data products, both input and output, that are not accounted for
+          here.
+     
+    - 5 Do planned Level 3 capabilities, in conjunction with Level 1 and Level
+      2 data products, reasonably enable science cases that greatly benefit
+      from co-location with LSST data and computing, within the guidelines and
+      boundaries defined in the LSST SRD?
+
+        - If weak lensing is intended for level 3, then significant cpu time
+          should be budgeted.
+
+    - 6 Is the definition of all levels of LSST data products appropriately
+      understood and mature to enable the start of construction of LSST Data
+      Management systems (subject to formal flow-down to specification
+      documents)?
+
+        - see above
+
+    - 7 Do designs for LSST Data Products include adequate provisions for
+      adjustments during construction, commissioning, and operations as needed
+      to ensure the continued scientific adequacy of LSST Data Products?
+
+        - I'm not sure what is meant by provisions here.  It seems to me what
+          must be planned for is increase in complexity or number of
+          algorithms used in the processing.  Since some of the required data
+          products depend on unsolved scientific problems (lensing and
+          photozs), it is not yet possible to scope these.
+
+          The language adopted for photozs is along the lines of "we will use
+          the best algorithms as determined by the community".  For both
+          lensing and photozs, it is possibly this consensus will not  have
+          been reached by the start of LSST.  Should LSST support this
+          research then, since primary LSST science goals depend upon it?
+
+
+The panel is asked to produce a written report that includes Requests for Action (RFA), if any, and Observations, if any. These are defined as follows:
+
+    - Tier 1 – Immediate RFA:  these items are recommended for immediate
+      action and closure prior to updating the technical baseline for the
+      Final Design Review.
+    - Tier 2 - RFA:  these items are recommended for action and inclusion in a
+      revision of the technical baseline after the Final Design Review (in
+      Construction).
+    - Tier 3 - Concerns:  these are comments or “soft” recommendations that
+      require action by the design/engineering team, but have no specific
+      recommended timeline.
+    - Observations – these are general comments and require no response.
+
