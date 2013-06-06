@@ -288,3 +288,6 @@ Strauss
 
         - what engine in MySQL?  InnoDB and MyISAM have known issues with
           potential data corruption.
+
+            - they use append only tables
+            - they use small partitions to fix the copy-on-index problem
