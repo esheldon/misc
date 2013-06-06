@@ -3,9 +3,10 @@ function FindProxyForURL(url, host)
     return "PROXY localhost:3128";
 
     // this part is for looking at hadoop 
-    if (shExpMatch(host, "astro*.rcf.bnl.gov") 
+    if (shExpMatch(host, "*.rcf.bnl.gov") 
             || shExpMatch(host,"130.199.184.*"))
-        return "PROXY localhost:3128";
+        return "PROXY lsstproxy.rcf.bnl.gov:3128";
+//        return "PROXY localhost:3128";
 
 
     // This pac file is for inside the Lab
