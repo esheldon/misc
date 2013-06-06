@@ -79,20 +79,14 @@ Overall
     4.2.2
 
         The tables are being updated daily.  Do you plan to have some way to
-        recover the previous states of these tables?
+        recover the previous states of these tables? (Mario answered "yes" to
+        this during his talk)
 
 5.1
 
     How much of this deblender has been implemented?
 
 5.2
-
-    bulge-disk would be 12 free parameters if unconstrained, not 18.  If you
-    fix the centers and ellipticities to be equal, then the number of
-    parameters drops to 8. (row,col,e1,e2,scale1,scale2,flux1,flux2)
-
-    I see that you list 8 parameters in Table 4, so 18 must have been a typo.
-
 
     photoZ "...widely accepted algorithm..." ha!
 
@@ -184,7 +178,8 @@ Questions in Charge
           research then, since primary LSST science goals depend upon it?
 
 
-The panel is asked to produce a written report that includes Requests for Action (RFA), if any, and Observations, if any. These are defined as follows:
+The panel is asked to produce a written report that includes Requests for
+Action (RFA), if any, and Observations, if any. These are defined as follows:
 
     - Tier 1 – Immediate RFA:  these items are recommended for immediate
       action and closure prior to updating the technical baseline for the
@@ -197,3 +192,99 @@ The panel is asked to produce a written report that includes Requests for Action
       recommended timeline.
     - Observations – these are general comments and require no response.
 
+
+Talks
+-------
+
+Mario intro
+
+    - should think of level 2 as be all end all: if don't expect to meet
+      expectations, say so!
+
+Strauss
+
+    - S/N is always a value in the PSF convolved map
+
+
+
+    - level 1 Mario
+
+        - every transaction is recorded, so you can can query the database for
+          the state at any previous state of the db
+
+          ask jacek more about this
+
+        - maybe recommend change Source name
+
+        - sized for 4 brokers, 1 special for user filters
+
+    - level 2 Robert
+        
+        - allocated ?3? Seconds per object for lensing?
+        - merge detections from coadds of multiple bands and external.
+            - pushed through deblender even if no detected pixels
+
+        - make recommendation about "cutout service" (parent or children) that
+          should, when processed in parallel, has no serious bottleneck
+
+          Note, no such service exists.
+
+          They should make it very clear that this service will be avalable
+          and something about the expected performance.
+
+          Reasonable that the user says in advance what regions of sky they
+          will process (or objects) so that the system can determine how to
+          get the required *total* throughput to all processes.
+
+        - recommend clarification that level 2 products can facilitate later
+          analysis
+
+        - recommend storage limit rather than number of samples (about
+          facilitating)
+
+        - think about how much information you *really* need for the
+          likelihood (bits).
+
+        - "compression" ideas: do "nearest" neighbor (and differnces for
+          derivative) in parameter space for p(z) and model likelihoods to
+          facilitate later computations without comprimizing details of
+          likelihood.
+
+        - a little about metadata?  Others will as well.
+
+        - choosing elliptical apertures: Robert has some ideas based on an
+          initial measurement from adaptive moments.
+          - I see adaptive moments fail sometimes for s/n=5
+
+        - psf model? Not determined
+
+        - why would you become PSF dependent in color if the model isn't
+        good?
+
+        - recommend something about sky determination.
+
+        - currently fixing center except for bulge+disk
+
+        - are fixing structureal parameters for non-canonical bands, but
+          letting fluxes float, doing simultaneous fit!
+
+
+    - level 3 Gregory
+
+        - 10% capability and storage
+
+            - enough?  Assumption is all core science should be possible from
+              level 2 (not including spectroscopy)
+
+        - It has become clear this is considered small time.  It is not meant
+          to be a major computing platform for working on LSST data.
+
+        - clearly minor: it would be good to see a plan for making it easy for
+        people with sufficient resources to efficiently get all the images,
+        maybe in yearly deliveries.
+
+
+    - database
+
+        - what engine in MySQL?  InnoDB and MyISAM have known issues with
+          potential data corruption.
