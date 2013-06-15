@@ -1,0 +1,20 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"psfex work install"
+conflict psfex
+
+eval set [ array get env HOME ]
+
+set PSFEX_DIR $HOME/exports/psfex-work
+
+prepend-path PATH $PSFEX_DIR/bin
+prepend-path LD_LIBRARY_PATH $PSFEX_DIR/lib
+prepend-path LIBRARY_PATH $PSFEX_DIR/lib
+prepend-path C_INCLUDE_PATH $PSFEX_DIR/include
+prepend-path CPATH $PSFEX_DIR/include
+
+prepend-path PYTHONPATH $PSFEX_DIR/lib/python2.7/site-packages/
+
+setenv PSFEX_DIR $PSFEX_DIR
+setenv PSFEX_VERS work
