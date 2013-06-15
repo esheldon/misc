@@ -5,32 +5,6 @@ Overall
       but I'm not sure if that is the same S/N referred to at other times.
 
 
-    - Much of the level thee, as described in the document, is a software
-      *framework* or *service* rather than a data product.    What users will
-      need at level 3 is primarily a data product.  For many use cases, such
-      as using existing catalogs, processing SE images and Coadds, what you
-      have described seems sufficient to me.
-
-      However, sophisticated end users, and developers of new algorithms, will
-      primarily want to work with multi-epoch data, either in a multi-fit type
-      approach or time-domain.  This argues for a data *product* that makes
-      such analysis simple and efficient.  This is opposed to a software
-      framework, which will impose unnecessary restrictions.
-
-      I can give an anedote from DES:  We have defined a data product that is
-      a single multi-extension FITS file for each coadd tile that contains
-      cutouts at the location of coadd Objects from each single epoch image
-      associated with the coadd (Multi-Epoch Data Structure MEDS).  This makes
-      it very simple for anyone to write a code to process in a multi-fit
-      mode, and it is efficient as well.
-        
-
-    - I think level 3 should be seen as nearly as important as level 2.  From
-      my experience with SDSS and DES, much of the cutting edge will come as
-      what you call level 3.  For example, it is not at all clear that lensing
-      will be a solved problem at the time of LSST first light, and research
-      in this area will greatly benefit from local access to the LSST data.
-
 
 2.2
 
@@ -39,7 +13,8 @@ Overall
 
         Bullet 1
 
-            Spell out DIA as Difference Image Analysis here.
+            Spell out DIA as Difference Image Analysis at this point in the
+            document.
 
         Bullet 2
             
@@ -54,13 +29,13 @@ Overall
               ** I see you do discuss this in section 5.1/5.2 but not here.
 
             - Some data product that facilitates straightforward processing of
-              the multi-epoch data (e.g. to produce my bullet above).  
+              the multi-epoch data (e.g. cutout or a cutout service)
 
               ** I see you mention multifit in section 5.1/5.2, but without
               mention of a data product to facilitate that outside the primary
               processing. 
 
-        Footnote 4  I predict your use of the word Source will result in
+        Footnote 4  I suspect your use of the word Source will result in
         confusion.
 
 4
@@ -76,23 +51,8 @@ Overall
             3*2^N for optimal FFT processing.  I understand for transient
             alerts one would probably produce a small, fixed size cutout.
 
-    4.2.2
-
-        The tables are being updated daily.  Do you plan to have some way to
-        recover the previous states of these tables?
-
-5.1
-
-    How much of this deblender has been implemented?
 
 5.2
-
-    bulge-disk would be 12 free parameters if unconstrained, not 18.  If you
-    fix the centers and ellipticities to be equal, then the number of
-    parameters drops to 8. (row,col,e1,e2,scale1,scale2,flux1,flux2)
-
-    I see that you list 8 parameters in Table 4, so 18 must have been a typo.
-
 
     photoZ "...widely accepted algorithm..." ha!
 
@@ -100,17 +60,7 @@ Overall
 
     Footnote 85
 
-        I'm surprised that coadds are a driver for storage; I would expect the
-        SE images to completely dominate, by a factor of ~ number of
-        snapshots.
-
-5.6 Open Issues
-
-        - What about sky subtraction?  I think you must be optimizing for
-          faint object photometry, but this was not stated.
-          
-          This pertains to the question of large galaxy characterization;
-          level 3 analysis may well need different sky characterization.
+        Explain why coadds are a storage driver.  
 
 
 Questions in Charge
@@ -157,6 +107,9 @@ Questions in Charge
       from co-location with LSST data and computing, within the guidelines and
       boundaries defined in the LSST SRD?
 
+        - mention that it seems more like a skyserver level thing in terms of
+          resources, even though ti has much more extensive capabilities.
+        
         - If weak lensing is intended for level 3, then significant cpu time
           should be budgeted.
 
@@ -184,16 +137,120 @@ Questions in Charge
           research then, since primary LSST science goals depend upon it?
 
 
-The panel is asked to produce a written report that includes Requests for Action (RFA), if any, and Observations, if any. These are defined as follows:
+The panel is asked to produce a written report that includes Requests for
+Action (RFA), if any, and Observations, if any. These are defined as follows:
 
     - Tier 1 – Immediate RFA:  these items are recommended for immediate
       action and closure prior to updating the technical baseline for the
       Final Design Review.
+
     - Tier 2 - RFA:  these items are recommended for action and inclusion in a
       revision of the technical baseline after the Final Design Review (in
       Construction).
+
     - Tier 3 - Concerns:  these are comments or “soft” recommendations that
       require action by the design/engineering team, but have no specific
       recommended timeline.
+
     - Observations – these are general comments and require no response.
 
+
+Talks
+-------
+
+Mario intro
+
+    - should think of level 2 as be all end all: if don't expect to meet
+      expectations, say so!
+
+Strauss
+
+    - S/N is always a value in the PSF convolved map
+
+
+
+    - level 1 Mario
+
+        - every transaction is recorded, so you can can query the database for
+          the state at any previous state of the db
+
+          Ask jacek more about this
+
+        - maybe recommend change Source name
+
+        - sized for 4 brokers, 1 special for user filters
+
+    - level 2 Robert
+        
+        * allocated ?3? Seconds per object for lensing?
+
+        x merge detections from coadds of multiple bands and external.
+            x pushed through deblender even if no detected pixels
+
+        - make recommendation about "cutout service" (parent or children) that
+          should, when processed in parallel, has no serious bottleneck
+
+          Note, no such service exists.
+
+          They should make it very clear that this service will be avalable
+          and something about the expected performance.
+
+          Reasonable that the user says in advance what regions of sky they
+          will process (or objects) so that the system can determine how to
+          get the required *total* throughput to all processes.
+
+        - recommend clarification that level 2 products can facilitate later
+          analysis
+
+        * recommend storage limit rather than number of samples (about
+          facilitating)
+
+        x think about how much information you *really* need for the
+          likelihood (bits).
+
+        * "compression" ideas: do "nearest" neighbor (and differnces for
+          derivative) in parameter space for p(z) and model likelihoods to
+          facilitate later computations without comprimizing details of
+          likelihood.
+
+        * a little about metadata?  Others will as well.
+
+        x choosing elliptical apertures: Robert has some ideas based on an
+          initial measurement from adaptive moments.
+          - I see adaptive moments fail sometimes for s/n=5
+
+        * psf model? Not determined
+
+        x why would you become PSF dependent in color if the model isn't
+        good?
+
+        * recommend something about sky determination.
+
+        x currently fixing center except for bulge+disk
+
+        x are fixing structureal parameters for non-canonical bands, but
+          letting fluxes float, doing simultaneous fit!
+
+
+    - level 3 Gregory
+
+        - 10% capability and storage
+
+            - enough?  Assumption is all core science should be possible from
+              level 2 (not including spectroscopy)
+
+        - It has become clear this is considered small time.  It is not meant
+          to be a major computing platform for working on LSST data.
+
+        - clearly minor: it would be good to see a plan for making it easy for
+        people with sufficient resources to efficiently get all the images,
+        maybe in yearly deliveries.
+
+
+    - database
+
+        - what engine in MySQL?  InnoDB and MyISAM have known issues with
+          potential data corruption.
+
+            - they use append only tables
+            - they use small partitions to fix the copy-on-index problem
