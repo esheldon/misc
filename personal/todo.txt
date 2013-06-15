@@ -49,8 +49,20 @@ Quick look Queue
 
         - redo colors in MEDS
 
-            - why is "during" slower?  Is it because of calculations after or
-              during?   Array conversion?
+            - do proper full multi-band fit
+                - put in time limit per object, of say
+                    3*nband seconds
+                - break if hit max tries or time limie
+
+                - explore apertures.  maybe just do a gauss fit and then
+                  5-sigma.
+
+            - explore pileup at e1=0, e2=-1 in mcmc
+
+            - mcmc
+                - look into trimming, but based on what size measure?
+                - start guess for flux from psf flux?
+                - don't use lmfit as name :)
 
             - flux is biased high at low S/N.  Looks to be more biased than
               the shear!  
@@ -65,8 +77,6 @@ Quick look Queue
 
             - also need to perhaps run em if it is more stable than admom?  or
               at least catch the error and try again.
-
-
 
             - maybe supress fpack weight zeros noise?  Currently forcing 0 but
               could also set zero if simply much smaller than the median?
