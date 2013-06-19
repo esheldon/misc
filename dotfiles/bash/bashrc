@@ -71,7 +71,7 @@ elif [[ "$hname" == "lsst" ]]; then
 	dotfileDir=$ddir/lsst.phy.bnl.gov
 elif [[ "$lsst_bnl_test" != "" ]]; then
 	dotfileDir=$ddir/lst.bnl.gov
-elif [[ "$hname" == "web203" ]]; then
+elif [[ "$hname" == "web203" || "$hname" == "web246" ]]; then
 	dotfileDir=$ddir/webfaction
 else
     dotfileDir=$ddir/${hname}
