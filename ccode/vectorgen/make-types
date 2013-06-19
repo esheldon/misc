@@ -1,0 +1,349 @@
+#!/usr/bin/env python
+'''
+    ./make-types type1 type2 ...
+
+Description
+
+    Generate Vector.h and Vector.c for the input type list, e.g.
+
+        ./make-types float32 int64
+
+    Available types:
+        typename   shortname
+        float32    f32
+        float64    f64
+        int8       i8
+        uint8      u8
+        int16      i16
+        uint16     u16
+        int32      i32
+        uint32     u32
+        int64      i64
+        uint64     u64
+        char       char
+        uchar      uchar
+        size       sz
+
+
+
+    Use the long typename when calling this script. The shortnames are used in
+    function names and structure defs.  See the README for more details.
+
+    A test program is also generated for each type with the name test-{type}vector.c
+    To build the test programs, run
+
+        ./build-tests
+
+    And to run use
+
+        ./test-{type}vector
+
+'''
+
+import os
+import sys
+
+# ctype is the actual C variable type name
+# shortname is for the struct name and functions, e.g. 
+#   struct i64vector, i64vector_new
+typemap={}
+typemap['float32'] = {'ctype':'float32',  'shortname':'f32',  'sortype':'float', 'format':'%f'}
+typemap['float64'] = {'ctype':'float64',  'shortname':'f64',  'sortype':'double', 'format':'%lf'}
+typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',   'sortype':'int32_t', 'format':'%d'}
+typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',   'sortype':'int32_t', 'format':'%u'}
+typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16',  'sortype':'int32_t', 'format':'%d'}
+typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16',  'sortype':'int32_t', 'format':'%u'}
+typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32',  'sortype':'int64_t', 'format':'%d'}
+typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32',  'sortype':'int64_t', 'format':'%u'}
+typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64',  'sortype':'int64_t', 'format':'%ld'}
+typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64',  'sortype':'int64_t', 'format':'%lu'}
+typemap['char']    = {'ctype':'char',     'shortname':'char', 'sortype':'int32_t', 'format':'%c'}
+typemap['uchar']   = {'ctype':'unsigned char', 'shortname':'uchar', 'sortype':'int32_t',  'format':'%c'}
+typemap['size']    = {'ctype':'size_t',  'shortname':'sz',  'sortype':'int64_t', 'format':'%ld'}
+
+
+hformat='''
+struct %(shortname)svector {
+    size_t size;
+    %(type)s* data;
+};
+
+struct %(shortname)svector* %(shortname)svector_new(size_t num);
+struct %(shortname)svector* %(shortname)svector_fromarray(%(type)s* arr, size_t size);
+struct %(shortname)svector* %(shortname)svector_copy(struct %(shortname)svector* vec);
+struct %(shortname)svector* %(shortname)svector_range(size_t num);
+void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsize);
+int __%(shortname)svector_compare_el(const void *a, const void *b);
+void %(shortname)svector_sort(struct %(shortname)svector* vector);
+
+// clears all memory in ->data and sets pointer to NULL
+struct %(shortname)svector* %(shortname)svector_delete(struct %(shortname)svector* vector);
+
+'''
+
+cformat='''
+struct %(shortname)svector* %(shortname)svector_new(size_t num) {
+
+    struct %(shortname)svector* vector = malloc(sizeof(struct %(shortname)svector));
+    if (vector == NULL) {
+        printf("Could not allocate struct %(shortname)svector\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    vector->size = num;
+
+    if (num > 0) {
+        vector->data = calloc(num, sizeof(%(type)s));
+        if (vector->data == NULL) {
+            printf("Could not allocate %%ld %(type)s in vector\\n", num);
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        vector->data=NULL;
+    }
+    return vector;
+}
+
+struct %(shortname)svector* %(shortname)svector_fromarray(%(type)s* arr, size_t size) {
+
+    struct %(shortname)svector* vector = %(shortname)svector_new(size);
+
+    if (size > 0) {
+        memcpy(vector->data, arr, size*sizeof(%(type)s));
+    }
+    return vector;
+}
+struct %(shortname)svector* %(shortname)svector_copy(struct %(shortname)svector* vec) {
+
+    struct %(shortname)svector* newvec = %(shortname)svector_new(vec->size);
+
+    if (vec->size > 0) {
+        memcpy(newvec->data, vec->data, vec->size*sizeof(%(type)s));
+    }
+    return newvec;
+}
+
+
+
+struct %(shortname)svector* %(shortname)svector_range(size_t size) {
+    struct %(shortname)svector* vector = %(shortname)svector_new(size);
+    for (size_t i=0; i<vector->size; i++) {
+        vector->data[i] = i;
+    }
+
+    return vector;
+}
+
+void %(shortname)svector_resize(struct %(shortname)svector* vector, size_t newsize) {
+    if (vector==NULL) {
+        printf("Attempt to resize unallocated %(type)s vector\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    size_t oldsize=vector->size;
+    size_t elsize = sizeof(%(type)s);
+
+    %(type)s* newdata = realloc(vector->data, newsize*elsize);
+
+    if (newdata == NULL) {
+        printf("failed to reallocate\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (newsize > oldsize) {
+        // realloc does not zero the new memory
+        memset(newdata+oldsize, 0, (newsize-oldsize)*elsize);
+    }
+
+    vector->data = newdata;
+    vector->size = newsize;
+}
+
+int __%(shortname)svector_compare_el(const void *a, const void *b) {
+    %(sortype)s temp = 
+        (  (%(sortype)s) *( (%(type)s*)a ) ) 
+         -
+        (  (%(sortype)s) *( (%(type)s*)b ) );
+    if (temp > 0)
+        return 1;
+    else if (temp < 0)
+        return -1;
+    else
+        return 0;
+}
+
+void %(shortname)svector_sort(struct %(shortname)svector* vector) {
+    qsort(vector->data, vector->size, sizeof(%(type)s), __%(shortname)svector_compare_el);
+}
+
+struct %(shortname)svector* %(shortname)svector_delete(struct %(shortname)svector* vector) {
+    if (vector != NULL) {
+        free(vector->data);
+        free(vector);
+    }
+    return NULL;
+}
+
+
+
+'''
+
+tformat='''// This file was auto-generated
+#include <stdio.h>
+#include <stdlib.h>
+#include "Vector.h"
+
+int main(int argc, char** argv) {
+    struct %(shortname)svector* vector = %(shortname)svector_new(10);
+
+    printf("size: %%ld\\n", vector->size);
+    printf("setting data\\n");
+    for (size_t i=0;i<vector->size; i++) {
+        vector->data[i] = (%(type)s)i;
+    }
+
+    for (size_t i=0; i<vector->size; i++) {
+        printf("    vector[%%ld]: %(format)s\\n", i, vector->data[i]);
+    }
+
+    printf("resizing to 15\\n");
+    %(shortname)svector_resize(vector, 15);
+
+    for (size_t i=0; i<vector->size; i++) {
+        printf("    vector[%%ld]: %(format)s\\n", i, vector->data[i]);
+    }
+
+    %(shortname)svector_resize(vector, 10);
+    printf("putting unordered elements\\n");
+    vector->data[3] = 88;
+    vector->data[5] = 25;
+    vector->data[9] = 1.3;
+
+    for (size_t i=0; i<vector->size; i++) {
+        printf("    vector[%%ld]: %(format)s\\n", i, vector->data[i]);
+    }
+    printf("sorting\\n");
+    %(shortname)svector_sort(vector);
+    for (size_t i=0; i<vector->size; i++) {
+        printf("    vector[%%ld]: %(format)s\\n", i, vector->data[i]);
+    }
+
+    %(shortname)svector_delete(vector);
+
+    printf("Creating from array\\n");
+    %(type)s arr[]={1,2,3};
+    size_t size=sizeof(arr)/sizeof(%(type)s);
+    struct %(shortname)svector* vfromarr=%(shortname)svector_fromarray(arr,size);
+    for (size_t i=0; i<vector->size; i++) {
+        printf("    fromarray vector[%%ld]: %(format)s\\n", i, vfromarr->data[i]);
+    }
+
+    %(shortname)svector_delete(vector);
+    %(shortname)svector_delete(vfromarr);
+}
+'''
+
+def generate_h(types):
+    fobj=open('Vector.h','w')
+    
+
+    head="""// This header was auto-generated
+#ifndef _VECTOR_H
+#define _VECTOR_H
+#include <stdint.h>
+"""
+    # make sure size_t is defined
+    if 'size' in types:
+        head+="""
+#include <stdlib.h>
+"""
+
+
+    if 'float32' in types:
+        head+="""
+#ifndef float32
+#define float32 float
+#endif
+"""
+    if 'float64' in types:
+        head+="""
+#ifndef float64
+#define float64 double
+#endif
+"""
+
+    fobj.write(head)
+
+    for type in types:
+        if type not in typemap:
+            raise ValueError("type not supported: %s" % type)
+        text = hformat % {'type':typemap[type]['ctype'],
+                          'shortname':typemap[type]['shortname']}
+        fobj.write(text)
+
+    fobj.write('\n#endif  // header guard\n')
+    fobj.close()
+
+def generate_c(types):
+    fobj=open('Vector.c','w')
+    head="""// This file was auto-generated
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <float.h>
+#include "Vector.h"
+
+"""
+    fobj.write(head)
+
+    for type in types:
+        if type not in typemap:
+            raise ValueError("type not supported: %s" % type)
+        text = cformat % {'type':typemap[type]['ctype'],
+                          'shortname':typemap[type]['shortname'],
+                          'sortype':typemap[type]['sortype']}
+        fobj.write(text)
+
+    fobj.close()
+
+def generate_tests(types):
+    '''
+    Files associated with tests not in the type list are removed.
+    '''
+
+    for type in typemap:
+        sname=typemap[type]['shortname']
+
+        front = 'test-%svector' % sname
+        
+        if type not in types:
+            for ext in ['.c','.o','']:
+                tname = front+ext
+                if os.path.exists(tname):
+                    os.remove(tname)
+        else:
+            cname = front+'.c'
+            fobj=open(cname,'w')
+            text = tformat % {'shortname':sname,
+                              'format':typemap[type]['format'],
+                              'type':typemap[type]['ctype']}
+            fobj.write(text)
+            fobj.close()
+
+
+
+def main():
+    if len(sys.argv) < 2:
+        sys.stdout.write(__doc__)
+        sys.exit(45)
+
+    types = sys.argv[1:]
+
+    generate_h(types)
+    generate_c(types)
+    generate_tests(types)
+
+if __name__=="__main__":
+    main()

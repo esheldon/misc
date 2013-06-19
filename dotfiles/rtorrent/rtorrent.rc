@@ -1,0 +1,37 @@
+# this is where the downloads go
+directory = /home/esheldon/torrents/data
+
+# check hash on startup and after torrent finishes downloading
+check_hash = yes
+max_uploads = 8
+
+download_rate = 1000
+upload_rate = 30
+schedule = watch_directory,10,10,"load_start=/home/esheldon/torrents/watch/*.torrent"
+
+# Enable the default ratio group.
+ratio.enable=
+
+# Change the limits, the defaults should be sufficient.
+# stop at ratio 100% with at least 20M uploaded, but in the latter
+# case not more than 300%
+ratio.min.set=100
+ratio.max.set=300
+ratio.upload.set=20M
+
+# Changing the command triggered when the ratio is reached.
+# why do we need this?
+system.method.set = group.seeding.ratio.command, d.close=, d.erase=
+
+
+session = /home/esheldon/.rtorrent_session/
+
+encryption = allow_incoming,try_outgoing,enable_retry
+
+# This final dht option enables DHT support. DHT is common among public
+# trackers and will allow the client to acquire more peers.
+
+dht = auto
+dht_port = 6881
+peer_exchange = yes
+

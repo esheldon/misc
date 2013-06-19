@@ -1,0 +1,143 @@
+#!/bin/bash
+
+function usage {
+    echo "
+    usage: incsub [options] file_list
+
+        -n to specify the max number of allowed jobs in any queue. 
+              default is 50.
+        -p time between polls of wq status when we are at max allowed
+           jobs, default 30
+        -s time to sleep between individual submissions when trying to
+           catch up to the max number of jobs, default 0.1 second
+        -f force starting of all jobs, even if a log file is present.
+        -r Only count jobs that match the input pattern.
+            incsub -r stuff *.yaml
+           The pattern can be a regular expression
+        -d dry run.  Just print number of jobs and exit.
+        -P port
+        -h for this help message
+
+    Incrementally submit wq jobs from the input file list, maintaining at most
+    the specified number of jobs in the queues.  Jobs are submitted using
+    nohup.  Wait 30 seconds between job checks
+
+    If filename.wqlog exists  the job will not be submitted.  Over-ride this
+    with the -f switch.
+"
+}
+
+function count_jobs_regex {
+    name=$1
+    port=$2
+    regex=$3
+
+    awk_name="{if (\$2 == \"$name\") print \$0}"
+    njob=$(wq -p "$port" ls | awk "$awk_name" | grep "$regex" | wc -l)
+    if [[ $? != 0 ]]; then
+        echo "Error found calling wq: $?"
+        exit 1
+    fi
+    echo "$njob"
+}
+
+
+function count_jobs {
+    name=$1
+    port=$2
+    regex=$3
+
+    if [[ "$regex" != "" ]]; then
+        count_jobs_regex $name $regex $port
+    else
+        awk_name="{if (\$2 == \"$name\") print \$0}"
+        njob=$(wq -p "$port" ls | awk "$awk_name" | wc -l)
+        if [[ $? != 0 ]]; then
+            echo "Error found calling wq and grepping: $?"
+            exit 1
+        fi
+        echo "$njob"
+    fi
+}
+
+name=`whoami`
+
+# number of jobs running at once
+maxjobs=50
+sleep_time=0.2
+#sleep_time=0.1
+poll_time=30
+force="N"
+regex=""
+dryrun="N"
+port="51093"
+while getopts "hfdn:s:p:r:P:" Option; do
+    case $Option in
+        f) force="Y" ;;
+        n) maxjobs=$OPTARG ;;
+        s) sleep_time=$OPTARG ;;
+        p) poll_time=$OPTARG ;;
+        r) regex=$OPTARG ;;
+        d) dryrun="Y" ;;
+        P) port=$OPTARG ;;
+        h) usage
+           exit 45 ;;
+        [?]) usage
+             exit 45 ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 45
+fi
+
+nfiles=$#
+echo "submitting jobs for user: $name"
+echo "number in list: $nfiles"
+echo "will limit to maxjobs:    $maxjobs"
+if [[ $regex != "" ]]; then
+    echo "job regex: '${regex}'"
+fi
+
+if [[ $dryrun == "Y" ]]; then
+    exit 0
+fi
+i=1
+
+diffjobs=0
+for file; do
+    perc=$(echo "scale=0; 100*$i/$nfiles" | bc)
+
+    logf="${file}.wqlog"
+
+    if [[ ! -e $logf || $force == "Y" ]]; then
+
+        if [[ $diffjobs -le 0 ]]; then
+            njob=$(count_jobs $name $port $regex)
+            ((diffjobs = maxjobs - njob))
+            while [[ $diffjobs -le 0 ]]; do
+                sleep $poll_time
+                njob=$(count_jobs $name $port $regex)
+                ((diffjobs = maxjobs - njob))
+            done
+            echo "Found $njob jobs  diffjobs: $diffjobs"
+        fi
+
+        dt=`date +"%T"`
+        echo "    submitting $file $dt $i/$nfiles (${perc}%)"
+        nohup wq -p "$port" sub "$file" &> "$logf" &
+
+        if [[ $? != 0 ]]; then
+            echo "Error submitting job through wq: $?"
+            exit 1
+        fi
+        wq &> /dev/null
+
+        ((diffjobs -= 1))
+        sleep $sleep_time
+
+    fi
+    let "i += 1"
+done

@@ -3,9 +3,29 @@
 ! xterm configuration
 !
 
-! No bold fonts
-xterm*boldFont: 8x13
-xterm*boldMode: false
+customization: -color
+
+! This means never use overstriking for bold
+!xterm*boldMode: false
+xterm*allowBoldFonts: false
+
+!xterm*faceName: Terminus:pixelsize=12
+
+! This means just display a different color, dont use the bold font
+!xterm*colorBDMode: true
+
+! will use these if freetype monaco not available
+!xterm*font: fixed
+!xterm*boldFont: fixed
+!xterm*font: -*-proggytiny-*-*-*-*-*-*-*-*-*-*-iso8859-*
+!xterm*font: -windows-proggytiny-medium-r-normal--10-80-96-96-c-60-iso8859-1
+!xterm*Xft*antialias:  false
+
+!XTerm*renderFont: true
+!XTerm*faceName: ProggyTiny
+!XTerm*faceSize: 10 
+
+!xterm*faceName: Monaco:pixelsize=10
 
 ! dont include the newline when triple clicking
 xterm*cutNewLine: true
@@ -26,6 +46,9 @@ xterm*scrollTtyOutput: false
 xterm*charClass: 45-47:48,58:48,126:48
 xterm*cursorColor: yellow
 xterm*rightScrollBar: true
+! just show selected parts of line
+xterm*highlightSelection: true
+xterm*utf8:    2
 
 ! color1: the usual red
 ! color2: the usual green
@@ -48,7 +71,8 @@ xterm*rightScrollBar: true
 !! An orangish red, same used for bold below
 
 xterm*background: #1f1f1f
-xterm*foreground: white
+!xterm*foreground: white
+xterm*foreground:  #dcdccc
 
 xterm*color1: #ff6600
 !! A lighter green
@@ -57,10 +81,10 @@ xterm*color2: #99ff99
 xterm*color3: #ffff66
 !! brighter blue
 xterm*color4: #99ccff
-!! a bright pinkish red
-xterm*color5: #ff6699
+!! an orange red
+xterm*color5: #ff6600
 !! a brighter cyan
-xterm*color6: #66ffff
+!!xterm*color6: #66ffff
 
 !! a bright orange (bold)
 xterm*color9: #ff6600
@@ -74,10 +98,133 @@ xterm*color12: #99ccff
 !! a less harsh color than bright magenta
 xterm*color13: #ff6699
 !! a less harsh cyan
-xterm*color14: #66ffff
+!!xterm*color14: #66ffff
+
+
+! I use this one for mail in sup.  The colors work better
+mailterm*faceName: Terminus
+!mailterm*faceName: Deja\ Vu\ Sans\ Mono
+!mailterm*faceSize: 12
+!mailterm*faceSize: 12
+mailterm*faceSize: 14
+
+! This means just display a different color, dont use the bold font
+mailterm*colorBDMode: false
+
+
 
 xclock*reverseVideo: true
 xclock*minorColor: grey80
 xclock*majorColor: cyan
 xclock*secondColor: cyan4
 xclock*hourColor: green4
+
+! zenburn colors
+! urxvt.geometry: 80x25
+urxvt.font: xft:peep
+
+! needed for monaco.  Also -letsp
+!urxvt.letterSpace: -1
+
+!urxvt.font: xft:Terminus:size=9
+!urxvt*inheritPixmap: true
+urxvt*tintColor: gray30
+urxvt.internalBorder: 0
+! urxvt.loginShell: true
+urxvt.perl-ext-common: default,matcher,searchable-scrollback
+urxvt.pointerBlank: true
+urxvt.saveLines: 4000
+urxvt.secondaryScroll: true
+urxvt.scrollBar: false
+urxvt.scrollTtyKeypress: true
+urxvt.scrollWithBuffer: true
+urxvt*urlLauncher: /usr/bin/firefox
+!urxvt*background: #000010
+urxvt*background: #1f1f1f
+!urxvt*foreground: white
+urxvt*foreground:  #dcdccc
+urxvt*cursorColor: yellow
+urxvt*colorUL: #c5f779
+urxvt*underlineColor: #c5f779
+
+!URxvt*color1: #9e1828
+!URxvt*color2: #aece92
+!! A brighter yellow
+!URxvt*color3: #ffff66
+!! brighter blue
+!URxvt*color4: #99ccff
+!orange-red 
+!URxvt*color5: #ff6600
+!URxvt*color6: #418179
+!URxvt*color7: #bebebe
+!URxvt*color8: #666666
+!URxvt*color9: #cf6171
+!URxvt*color10: #c5f779
+!URxvt*color11: #fff796
+!URxvt*color12: #4186be
+!URxvt*color13: #cf9ebe
+!URxvt*color14: #71bebe
+!URxvt*color15: #ffffff
+
+
+!urxvt*color0:      #1E2320
+!urxvt*color0:      black
+!urxvt*color1:      #705050
+! green + yellow
+!urxvt*color2:      #60b48a
+!urxvt*color3:      #dfaf8f
+! blue + purple
+!urxvt*color4: #4682B4
+! orange-red
+!urxvt*color5: #ff6600
+! cyan + white
+!urxvt*color6:      #8cd0d3
+!urxvt*color7:      #dcdccc
+! bright-black + bright-red
+!urxvt*color8:      #709080
+!urxvt*color9:      #dca3a3
+! bright-green + bright-yellow
+!urxvt*color10:     #c3bf9f
+!urxvt*color11:     #f0dfaf
+! bright-blue + bright-purple
+!urxvt*color12:     #94bff3
+!urxvt*color13:     #ec93d3
+! bright-cyan + bright-white
+!urxvt*color14:     #93e0e3
+!urxvt*color15:     #ffffff
+
+
+!urxvt*color1: #cc9393
+urxvt*color1: #705050
+urxvt*color2: #87af87
+urxvt*color3: #d0bf8f
+urxvt*color4: #6ca0a3
+!urxvt*color5: #dc8cc3
+urxvt*color5: salmon1
+urxvt*color6: #93e0e3
+urxvt*color7: #dcdccc
+urxvt*color8: #000000
+urxvt*color9: #dca3a3
+urxvt*color10: #bfebbf
+urxvt*color11: #f0dfaf
+urxvt*color12: #8cd0d3
+urxvt*color13: #dc8cc3
+urxvt*color14: #93e0e3
+urxvt*color15: #ffffff
+
+!urxvt*cutchars: 
+urxvt.cutchars: "`\"'&()*,;:<=>?[]^{|}"
+
+! old one used for sup mail reading
+!urxvt.font: xft:ubuntu mono:size=14
+!urxvt*background: #f05ddd70bfa1
+
+! sienna for yellow
+!urxvt*color3: sienna
+
+!! A darker green
+!urxvt*color2: green4
+!! a darker cyan
+!urxvt*color6: darkcyan
+!urxvt*scrollBar: false
+!urxvt*cursorColor: green4

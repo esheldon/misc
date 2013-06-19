@@ -1,0 +1,29 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+##
+## shell_scripts modulefile
+##
+proc ModulesHelp { } {
+    global version
+
+    puts stderr "	My collection of shell scripts."
+    puts stderr "
+	Version $version
+"
+}
+
+# for Tcl script use only
+set     version      local
+
+conflict shell_scripts
+
+module-whatis	"collection of shell scripts"
+
+eval set  [ array get env HOME ]
+
+set SHELL_SCRIPTS_DIR $HOME/shell_scripts
+
+prepend-path PATH $SHELL_SCRIPTS_DIR
+
+setenv SHELL_SCRIPTS_DIR $SHELL_SCRIPTS_DIR 
+

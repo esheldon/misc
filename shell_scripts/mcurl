@@ -17,7 +17,7 @@ verbosity="2"
 
 dryrun="n"
 userpass=""
-options=""
+options="-k"
 while getopts "du:sv:" Option; do
     case $Option in
         d) dryrun="y" 
@@ -41,14 +41,15 @@ if [[ $# -lt 1 ]]; then
 fi
 
 if [[ $userpass != "" ]]; then
-    options="$options -u $userpass"
+    flist_options="$options -u $userpass -s"
+    main_options="$options -u $userpass"
 fi
 if [[ $verbosity != "2" ]]; then
-    options="$options -s"
+    main_options="$options -s"
 fi
 
 url="$1"
-flist=$(curl -s "$url"  | grep -v "Parent Directory" | grep -v "\?" | grep -i href | awk -F 'href="' '{print $2}' | awk -F '"' '{print $1}')
+flist=$(curl $flist_options "$url"  | grep -v "Parent Directory" | grep -v "\?" | grep -i href | awk -F 'href="' '{print $2}' | awk -F '"' '{print $1}')
 
 urlprint=$url
 if [[ $(echo $url | awk '{print substr($0,length,1)}') == "/" ]]; then
@@ -66,7 +67,7 @@ for f in $flist; do
             echo "$urlprint/$f"
         fi
         if [[ $dryrun == "n" ]]; then
-            curl $options -O "$url/$f"
+            curl $main_options -O "$url/$f"
         fi
     fi
 

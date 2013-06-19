@@ -1,542 +1,322 @@
+/* 
+   Adaptive moments.  no sub-pixel integration in this version
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include "admom.h"
+#include "gauss.h"
+#include "image.h"
+#include "randn.h"
 
-/*
- * This runs adaptive moments on a list of centers 
- */
-
-
-void
-admom(float *data, 
-	  int nx, 
-	  int ny, 
-	  int nobj,
-	  float *bkgd, 
-	  float *sigsky, 
-	  float *shiftmax, 
-	  float *wguess, 
-	  float *xcen, 
-	  float *ycen, 
-	  float *Ixx, 
-	  float *Iyy, 
-	  float *Ixy, 
-	  float *momerr, 
-	  float *rho4, 
-	  int *whyflag)
+/* 
+   calculate the mask covering a certain number
+   of sigma around the center.  Be careful of
+   the edges
+*/
+static void get_mask(const struct image *image,
+                     struct gauss *gauss, 
+                     double nsigma,
+                     struct image_mask *mask)
 {
-	int i;
+    double rowmin=0,rowmax=0,colmin=0,colmax=0;
+    double grad=0;
 
-	for (i=0; i<nobj; i++) {
-		admom1(data,
-			   nx,
-			   ny,
-			   bkgd[i], 
-			   sigsky[i], 
-			   shiftmax[i], 
-			   wguess[i], 
-			   xcen[i], 
-			   ycen[i], 
-			   &Ixx[i], 
-			   &Iyy[i], 
-			   &Ixy[i], 
-			   &momerr[i], 
-			   &rho4[i], 
-			   &whyflag[i]);
-	}
+    grad = nsigma*sqrt(fmax(gauss->irr,gauss->icc));
+    rowmin = lround(fmax( gauss->row-grad-0.5,0.) );
+    rowmax = lround(fmin( gauss->row+grad+0.5, (double)IM_PARENT_NROWS(image)-1 ) );
+
+    colmin = lround(fmax( gauss->col-grad-0.5,0.) );
+    colmax = lround(fmin( gauss->col+grad+0.5, (double)IM_PARENT_NCOLS(image)-1 ) );
+
+    image_mask_set(mask, rowmin, rowmax, colmin, colmax);
+
 }
 
+/* 
+   Two passes: update the weighted center then measure the
+   adaptive moments.
+*/
+static void calc_moments(struct am *am, const struct image *image)
+{
+    size_t row=0,col=0, nrows=0, ncols=0;
+    double sum=0,rowsum=0,colsum=0,w2sum=0,row2sum=0,col2sum=0,rowcolsum=0;
+    double rowm=0,rowm2=0,colm=0,colm2=0,ymod=0,weight=0,expon=0;
+    double sums4=0,det25=0;
+    double wtrow=0, wtcol=0;
+    const double *rowdata=NULL;
+    struct gauss *wt=NULL;
+    const struct gauss *guess=NULL;
+    int pass=0;
+
+    nrows=IM_NROWS(image);
+    ncols=IM_NCOLS(image);
+
+    wt=&am->wt;
+
+    for (pass=1; pass<=2; pass++ ) {
+        // weight row/col are still in main image coordinates
+        wtrow=wt->row - IM_ROW0(image);
+        wtcol=wt->col - IM_COL0(image);
+
+        sum=0; w2sum=0; rowsum=0; colsum=0; row2sum=0; 
+        col2sum=0; rowcolsum=0; sums4=0;
+        for (row=0; row<nrows; row++) {
+            // use IM_ROW because the image can be masked
+            rowdata=IM_ROW(image,row);
+            rowm = row - wtrow;
+            rowm2=rowm*rowm;
+
+            for (col=0; col<ncols; col++) {
+                colm = col - wtcol;
+                colm2 = colm*colm;
+
+                expon=wt->dcc*rowm2 + wt->drr*colm2 - 2.*wt->drc*rowm*colm;
+                weight=exp(-0.5*expon);
+
+                // must use IM_GET because image could be masked
+                ymod = (*rowdata);
+                ymod -= am->sky;
+                ymod *= weight;
+
+                sum += ymod;
+                w2sum += weight*weight;
+
+                if (pass==1) {
+                    rowsum += row*ymod;
+                    colsum += col*ymod;
+                } else {
+                    row2sum   += rowm2*ymod;
+                    col2sum   += colm2*ymod;
+                    rowcolsum += rowm*colm*ymod;
+                    sums4     += expon*expon*ymod;
+                }
+
+                rowdata++;
+            }
+        }
+        if (sum <= 0 || w2sum <= 0) { 
+            DBG fprintf(stderr,"error: sum <= 0 || w2sum <= 0\n");
+            am->flags |= AM_FLAG_FAINT;
+            break;
+        }
+
+        if (pass==1) {
+            wt->row=IM_ROW0(image) + rowsum/sum;
+            wt->col=IM_COL0(image) + colsum/sum;
+            guess=&am->guess;
+            if ((fabs(wt->row-guess->row) > am->shiftmax)
+                    || (fabs(wt->col-guess->col) > am->shiftmax) ) {
+                DBG fprintf(stderr,"error: centroid shift\n");
+                DBG fprintf(stderr,"  row: %.16g -> %.16g\n",
+                        guess->row,wt->row);
+                DBG fprintf(stderr,"  col: %.16g -> %.16g\n",
+                        guess->col,wt->col);
+                am->flags |= AM_FLAG_SHIFT;
+                break;
+            }
+        } else {
+            am->s2n=sum/sqrt(w2sum)/am->skysig;
+            am->irr_tmp = row2sum/sum;
+            am->irc_tmp = rowcolsum/sum;
+            am->icc_tmp = col2sum/sum;
+            am->det_tmp = am->irr_tmp*am->icc_tmp - am->irc_tmp*am->irc_tmp;
+            if (am->irr_tmp <= 0 || am->icc_tmp <= 0 || am->det_tmp <= AM_DETTOL) {
+                DBG fprintf(stderr,"error: measured mom <= 0 or det <= %.16g\n",AM_DETTOL);
+                DBG fprintf(stderr,"  irr: %.16g\n  icc: %.16g\n  det: %.16g\n",
+                            am->irr_tmp, am->icc_tmp, am->det_tmp);
+                am->flags |= AM_FLAG_FAINT;
+                break;
+            }
+
+            am->rho4 = sums4/sum;
+
+            det25 = pow(wt->det, 0.25);
+            am->uncer=4.*sqrt(M_PI)*am->skysig*det25/(4.*sum - sums4);
+        }
+
+    } // passes
+
+}
+
+
+// take the adaptive step.  Update the weight parameters.
+static void admom_step(struct am *am) {
+    struct gauss *wt=&am->wt;
+
+    double detm_inv = 1./am->det_tmp;
+    double detw_inv = 1./wt->det;
+
+    double nicc = am->irr_tmp*detm_inv - wt->irr*detw_inv;
+            //n(1,1)=m(2,2)*detm-w(2,2)*detw
+    double nirr = am->icc_tmp*detm_inv - wt->icc*detw_inv;
+            //n(2,2)=m(1,1)*detm-w(1,1)*detw
+    double nirc = -am->irc_tmp*detm_inv + wt->irc*detw_inv;
+            //n(1,2)=-m(1,2)*detm+w(1,2)*detw
+    double detn=nirr*nicc - nirc*nirc;
+
+    if (detn <= 0.) {
+        DBG fprintf(stderr,"error: detn %.16g <= 0\n", detn);
+        am->flags |= AM_FLAG_FAINT;
+        return;
+    }
+
+    double detn_inv = 1./detn;
+    double icc =  nirr*detn_inv;
+    double irc = -nirc*detn_inv;
+    double irr =  nicc*detn_inv;
+    gauss_set(wt,
+              wt->p, wt->row, wt->col,
+              irr, irc, icc);
+}
+
+void admom_print(const struct am *am, FILE *stream)
+{
+    fprintf(stderr,"  - guess gauss:\n");
+    gauss_print(&am->guess, stream);
+    fprintf(stderr,"  - weight gauss:\n");
+    gauss_print(&am->wt, stream);
+
+    fprintf(stderr,"  rho4:    %.16g\n", am->rho4);
+    fprintf(stderr,"  s2n:     %.16g\n", am->s2n);
+    fprintf(stderr,"  uncer:   %.16g\n", am->uncer);
+    fprintf(stderr,"  numiter: %d\n", am->numiter);
+    fprintf(stderr,"  flags:   %d\n", am->flags);
+}
 /*
- * Calculate the adaptive moments for a single center on the input image.  This
- * does the loop of iterations, with each iteration calling calcmom
+   The guess gaussian should be set
+     row,col,irr,irc,icc should be the starting guess
+   Also in the am struct these should be set
+     maxiter,shiftmax,sky,skysig
+
+   On output the parameters of the gaussian are updated and flags are set.
+*/
+
+void admom(struct am *am, const struct image *image)
+{
+
+    struct gauss *wt=NULL;
+    const struct gauss *guess=NULL;
+
+    //double mrr=0, mrc=0, mcc=0;
+    //double nrr=0, nrc=0, ncc=0;
+    double e1old=0, e2old=0, irrold=0;
+
+    int iter=0;
+    struct image *maskim = NULL;
+    struct image_mask mask = {0};
+
+    // For masking.  won't own data
+    maskim = image_get_ref(image);
+
+    wt=&am->wt;
+    guess=&am->guess;
+
+    // start with weight gauss equal to guess
+    *wt = *guess;
+    wt->irr = fmax(1.0, wt->irr);
+    wt->icc = fmax(1.0, wt->icc);
+
+    e1old=10.;
+    e2old=10.;
+    irrold=1.e6;
  
- *
- * Note: this routine assumes that the _centre_ of a pixel is (0.0, 0.0)
- * which is not the SDSS convention. Caveat Lector.
- */
+    am->numiter=0;
+    am->flags=0;
+    for (iter=0; iter<am->maxiter; iter++) {
+        am->numiter++;
+
+        get_mask(image, wt, am->nsigma, &mask);
+        image_add_mask(maskim, &mask);
+
+        //update_cen(am, maskim);
+        calc_moments(am, maskim);
+        if (am->flags != 0) {
+            goto _admom_bail;
+        }
+        if (fabs(wt->e1-e1old) < AM_TOL1
+                && fabs(wt->e2-e2old) < AM_TOL1
+                && fabs(wt->irr/irrold-1.) < AM_TOL2) {
+            break;
+        }
+
+        e1old = am->wt.e1;
+        e2old = am->wt.e2;
+        irrold = am->wt.irr;
+        admom_step(am);
+        if (am->flags != 0) {
+            goto _admom_bail;
+        }
+    }
+
+    if (am->numiter >= am->maxiter) {
+        DBG fprintf(stderr,"error: maxit reached\n");
+        am->flags |= AM_FLAG_MAXIT;
+        goto _admom_bail;
+    }
 
 
-void
-admom1(float *data, 
-       int nx, 
-	   int ny, 
-	   float bkgd, 
-	   float sigsky, 
-	   float shiftmax, 
-	   float wguess, 
-	   float xcenin, 
-	   float ycenin, 
-	   float *Ixx, 
-	   float *Iyy, 
-	   float *Ixy, 
-	   float *momerr, 
-	   float *rho4, 
-	   int *whyflag)
+_admom_bail:
+    // does not clear memory for original referenced image
+    maskim=image_free(maskim);
+}
 
+
+
+
+// this is bogus because it doesn't limit to the 4 sigma region!
+// need to do it right where we run the adaptive moment code on it,
+// like we do in the python code.  Duh.
+void admom_add_noise(struct image *image, double s2n, const struct gauss *wt,
+                     double *skysig, double *s2n_meas)
 {
+    size_t nrows=0, ncols=0, row=0, col=0, pass=0;
+    double u=0,u2=0,v=0,v2=0,uv=0,chi2=0;
+    double weight=0;
+    double *rowdata=NULL;
+    double sum=0, w2sum=0;
 
-	float d;				/* weighted size of object */
-	float detw;				/* determinant of matrix containing
-							   moments of weighting function */
-	float detm;				/* determinant of m[12][12] matrix */
-	float detn;				/* determinant of n[12][12] matrix */
-	float e1, e2;			/* current and old values of */
-	float e1old = 1.e6, e2old =1.e6;	/* shape parameters e1 and e2 */
+    nrows=IM_NROWS(image);
+    ncols=IM_NCOLS(image);
 
-	int imom;                            /* iteration number */
-	int interpflag;			/* interpolate finer than a pixel? */
-	int ix1,ix2,iy1,iy2;                 /* corners of the box being analyzed */
-	float m11,m22,m12;			/* weighted Quad. moments of object */
-	float m11old = 1.e6;			/* previous version of m11 (Qxx) */
-	float n11, n22, n12;			/* matrix elements used to determine
-									   next guess at weighting fcn */
-	double sum2t;			       
-	double sum;				/* sum of intensity*weight */
-	double sums4,sums4p;			 /* higher order moment used for
-										PSF correction */
-	double sumx, sumy;			/* sum ((int)[xy])*intensity*weight */
-	double sumxx, sumxy, sumyy;		/* sum {x^2,xy,y^2}*intensity*weight */
-	float w1,w2,ww12;                    /* w11 etc. divided by determinant */ 
-	float w11,w22,w12;                   /* moments of the weighting fcn */
-	float xcen,ycen;
+    // first pass with noise=1
+    (*skysig)=1.;
+    (*s2n_meas)=-9999;
+    for (pass=1;pass<=2;pass++) {
 
-	double summ;
-	double sum1,sum2;
-	double s1,s2,s1p,s2p,sum1p,sum2p;
-	float IxxErr, IyyErr, IxyErr;
+        sum=0;
+        w2sum=0;
+        for (row=0; row<nrows; row++) {
+            rowdata=IM_ROW(image, row);
+            u = row-wt->row;
+            u2=u*u;
 
-	/* 
-	 * default values 
-	 */
-	xcen = xcenin;
-	ycen = ycenin;
+            for (col=0; col<ncols; col++) {
 
-	sums4 = -9999.;
+                v = col-wt->col;
+                v2 = v*v;
+                uv = u*v;
 
-	if(shiftmax < 2) {
-		shiftmax = 2;
-	} else if(shiftmax > 10) {
-		shiftmax = 10;
-	}
+                chi2=wt->dcc*u2 + wt->drr*v2 - 2.0*wt->drc*uv;
+                weight = exp( -0.5*chi2 );
 
-	/* beginning guesses for moments */
-	/* w11 = w22 = 1.5; */
-	w11 = w22 = wguess;
-	w12 = 0;
+                sum += (*rowdata)*weight;
+                w2sum += weight*weight;
 
-	/********************************
-	 * iteration loop 
-	 ********************************/
+                if (pass==2) {
+                    (*rowdata) += (*skysig) * randn();
+                }
+                rowdata++;
+            } // cols
+        } // rows
 
-	for(imom = 0; imom < AM_MAXIT; imom++) {
-		detw = w11*w22 - w12*w12;
-
-		/* should we interpolate? */
-		if(w11 < AM_XINTERP || w22 < AM_XINTERP || detw < AM_XINTERP2) {
-			interpflag = 1;
-		} else {
-			interpflag = 0;
-		}
-		/* Temporarily turn interpolation ON */
-		/* interpflag = 1; */
-
-		/* faint check */
-		if (detw <= AM_DETTOL) {
-			*whyflag |= AMFLAG_FAINT;
-			*Ixx=0.; *Iyy=0.;*Ixy=0.;*momerr=0.;*rho4=0.;
-			return;
-		}
-
-		/* calculate moments */
-		if(calcmom(xcen, ycen,
-					&ix1,&ix2,&iy1,&iy2,
-					bkgd,interpflag,
-					w11,w22,w12,detw,
-					&w1,&w2,&ww12,
-					&sumx,&sumy,&sumxx,&sumyy,&sumxy,
-					&sum,&sum1,&sum2,
-					data, nx, ny) < 0) {
-			*whyflag |= AMFLAG_FAINT;
-			return;
-		}
-
-		if(sum <= 0) {			/* too faint to process */
-			*whyflag |= AMFLAG_FAINT;
-			return;
-		}
-
-		/*
-		 *  Find new centre
-		 */
-
-		/* Robert does not want us to recalculate center */
-		/* Added back. E.S.S. 13-Jan-2005 */
-		xcen = sumx/sum;
-		ycen = sumy/sum;
-
-		if(fabs(sumx/sum - (xcenin)) > shiftmax || 
-				fabs(sumy/sum - (ycenin)) > shiftmax) {
-			*whyflag |= AMFLAG_SHIFT;
-			return;
-		}
-		/*
-		 * OK, we have the centre. Proceed to find the second moments.
-		 * This is only needed if we update the centre; if we use the
-		 * obj1->{row,col}c we've already done the work
-		 */
-
-		/* convert sums to moments */
-		sum1/=sum;
-		sum2/=sum;
-		m11 = sumxx/sum;
-		m22 = sumyy/sum;
-		m12 = sumxy/sum;
-
-		if(m11 <= 0 || m22 <= 0) {
-			*whyflag |= AMFLAG_FAINT;
-			return;
-		}
-
-		/* calculate shape */
-		d = m11 + m22;
-		e1 = (m11 - m22)/d;
-		e2 = 2.*m12/d;
-
-		/*
-		 * convergence criteria met?
-		 */
-		if(fabs(e1 - e1old) < AM_TOL1 && fabs(e2 - e2old) < AM_TOL1 &&
-				fabs(m11/m11old - 1.) < AM_TOL2 ) {
-			summ=sum;
-			break;				
-		}
-
-		/*
-		 * Didn't converge, calculate new values for weighting function
-		 */
-		e1old = e1;
-		e2old = e2;
-		m11old = m11;
-		detm = m11*m22 - m12*m12;
-		if(detm <= 0) {
-			*whyflag |= AMFLAG_FAINT;
-			return;
-		}
-
-		detm = 1./detm;
-		detw = 1./detw;
-		n11 = m22*detm - w22*detw;
-		n22 = m11*detm - w11*detw;
-		n12 = -m12*detm + w12*detw;
-		detn = n11*n22 - n12*n12;
-		if(detn <= 0) {
-			*whyflag |= AMFLAG_FAINT;
-			return;
-		}
-
-		/* 
-		 * The covariance elements for weighting function
-		 */
-		detn = 1./detn;
-		w11 = n22*detn;
-		w22 = n11*detn;
-		w12 = -n12*detn;
-
-		if(w11 <= 0 || w22 <= 0) {
-			*whyflag |= AMFLAG_FAINT;
-			return;
-		}
-	}  /****** end iteration loop ******/
-
-	/* do some checks */
-	if(imom == AM_MAXIT) {
-		*whyflag |= AMFLAG_MAXIT;
-		return;
-	}       
-	if(sumxx + sumyy == 0.0) {
-		*whyflag |= AMFLAG_FAINT;
-		return;
-	}
-
-	/***************************
-	 * calculate uncertainties
-	 ***************************/
-
-	sum1 = (sumxx - sumyy)/(sumxx + sumyy);
-	sum2 = sumxy/(sumxx + sumyy);
-
-	calcerr(xcen, ycen, 
-			ix1, ix2, iy1, iy2, 
-			bkgd, interpflag,
-			w1, w2, ww12, 
-			m11, m22, m12,
-			sum1,sum2,
-			&IxxErr, &IyyErr, &IxyErr, 
-			&sums4, &s1, &s2, 
-			data, nx, ny);
-
-	/* faint check */
-	if(sums4 == 0.0) {
-		*whyflag |= AMFLAG_FAINT;
-		return;
-	}
-
-	sum2t = sigsky/sum;
-	if(interpflag) {
-		sum2t *= 4;
-	}
-	s1=sqrt(s1)*sigsky/(sumxx+sumyy);
-	s2=2.*sqrt(s2)*sigsky/(sumxx+sumyy);
-
-	*Ixx = w11; 
-	*Iyy = w22;
-	*Ixy = w12;
-	*momerr=4*sqrt(M_PI)*sigsky*pow(((*Ixx)*(*Iyy) - (*Ixy)*(*Ixy)),0.25)/(4*summ-sums4);
-	*rho4=sums4/sum;
-	if (interpflag) *momerr *= 16;
-
-}
-
-
-/* calculate adaptive moments for a single iteration */
-
-int
-calcmom(float xcen, float ycen,		/* centre of object */
-		int *ix1, int *ix2, int *iy1, int *iy2, /* bounding box to consider */
-		float bkgd,			/* data's background level */
-		int interpflag,			/* interpolate within pixels? */
-		float w11, float w22, float w12,	/* weights */
-		float detw,
-		float *w1,float *w2, float *ww12,
-		double *sumx, double *sumy,	/* desired */
-		double *sumxx, double *sumyy,	/* desired */
-		double *sumxy, double *sum,	/*       sums */
-		double *sum1, double *sum2,
-		float *data, int nx, int ny)		/* the data */
-{   
-	int i,j;
-	float xx=0.,xx2=0.,yy=0.,yy2=0.;
-	float xl=0.,xh=0.,yl=0.,yh=0.;
-	float expon=0.;
-	float tmod=0.,ymod=0.;
-	float xxx=0.,yyy=0.;
-	float weight=0.;
-	float t1=0.;
-	float grad=0.;
-	double sumt=0.,sumxt=0.,sumyt=0.,sumxxt=0.,sumyyt=0.,sumxyt=0.;
-
-	/* Calculate the region over which we should measure the moments */
-
-	/* 4-sigma */
-	grad = 4.*sqrt( ((w11 > w22) ? w11 : w22));
-
-	/* Don't go outside the image. */
-	*ix1 = xcen - grad - 0.5;
-	if (*ix1 < 0) *ix1 = 0;
-	*iy1 = ycen - grad - 0.5;
-	if (*iy1 < 0) *iy1 = 0;
-
-	*ix2 = xcen + grad + 0.5;
-	if (*ix2 >= nx) *ix2 = nx - 1;
-	*iy2 = ycen + grad + 0.5;
-	if (*iy2 >= ny) *iy2 = ny - 1;
-
-
-	/* The input moments for this iteration */
-	*w1 = w11/detw;
-	*w2 = w22/detw;
-	*ww12 = w12/detw;
-
-	/* Loop over rows */
-	for(i = *iy1;i <= *iy2;i++) {
-		/* row = data->rows[i]; */
-		yy = i-ycen;
-		yy2 = yy*yy;
-		yl = yy - 0.375;
-		yh = yy + 0.375;
-
-		/* Loop over columns */
-		for(j = *ix1;j <= *ix2;j++) {
-			xx = j-xcen;
-
-			/* Should we interpolate across pixels? */
-			if(interpflag) {
-
-				xl = xx - 0.375;
-				xh = xx + 0.375;
-				expon = xl*xl*(*w2) + yl*yl*(*w1) - 2.*xl*yl*(*ww12);
-				t1 = xh*xh*(*w2) + yh*yh*(*w1) - 2.*xh*yh*(*ww12);
-				expon = (expon > t1) ? expon : t1;
-				t1 = xl*xl*(*w2) + yh*yh*(*w1) - 2.*xl*yh*(*ww12);
-				expon = (expon > t1) ? expon : t1;
-				t1 = xh*xh*(*w2) + yl*yl*(*w1) - 2.*xh*yl*(*ww12);
-				expon = (expon > t1) ? expon : t1;
-				if(expon <= 9.0) {
-					/* tmod = row[j] - bkgd; */
-					tmod = *(&data[0] + i*nx + j) - bkgd;
-					for(yyy = yl;yyy <= yh;yyy+=0.25) {
-						yy2 = yyy*yyy;
-						for(xxx = xl;xxx <= xh;xxx+=0.25) {
-							xx2 = xxx*xxx;
-							expon = xx2**w2 + yy2**w1 - 2.*xxx*yyy**ww12;
-							weight = exp(-0.5*expon);
-							ymod = tmod*weight;
-							/* *sum1+=(xx2+yy2)*ymod;*/
-							/* *sum2+=(xx2-yy2)*ymod;*/
-							sumxt+=ymod*(xxx+xcen);
-							sumyt+=ymod*(yyy+ycen);
-							sumxxt+=xx2*ymod;
-							sumyyt+=yy2*ymod;
-							sumxyt+=xxx*yyy*ymod;
-							sumt+=ymod;
-						}
-					}
-				}
-
-				/* Not interpolating */
-			} else { 
-				xx2 = xx*xx;
-				expon = xx2*(*w2) + yy2*(*w1) - 2.*xx*yy*(*ww12);
-
-				if(expon <= 9.0) {
-					weight = exp(-0.5*expon);
-					/* ymod = (row[j] - bkgd)*weight;*/
-					ymod = *(&data[0] + i*nx + j) - bkgd;
-					ymod = ymod*weight;
-
-					/*	       *sum1+=(xx2+yy2)*ymod;*/
-					/*	       *sum2+=(xx2-yy2)*ymod;*/
-					sumxt+=ymod*j;
-					sumyt+=ymod*i;
-					sumxxt += xx2*ymod;
-					sumyyt += yy2*ymod;
-					sumxyt += xx*yy*ymod;
-					sumt += ymod;
-
-				}
-			}
-		} /* Columns */
-	} /* Rows */
-
-	*sum=sumt;*sumx=sumxt;*sumy=sumyt;*sumxx=sumxxt;*sumyy=sumyyt;*sumxy=sumxyt;
-
-	/*   *sum1=sum1t; *sum2=sum2t; */
-	*sum1 = *sum2 = 0;
-
-
-	if(*sum <= 0) {
-		return(-1);
-	} else {
-		return(0);
-	}
-}
-
-/* calcerr */
-
-void
-calcerr(float xcen, float ycen,		/* centre of object */
-		int ix1, int ix2, int iy1, int iy2, /* bounding box to consider */
-		float bkgd,			/* data's background level */
-		int interpflag,			/* interpolate within pixels? */
-		float w1, float w2, float ww12,	/* weights */
-		float sumxx, float sumyy, float sumxy, /* quadratic sums */
-		double sum1, double sum2,
-		float *errxx, float *erryy, float *errxy, /* errors in sums */
-		double *sums4,			/* ?? */
-		double *s1, double *s2,
-		float *data, int nx, int ny)		/* the data */
-{   
-	int i,j;
-	double sxx = 0, sxy = 0, syy = 0, s4 = 0; /* unalias err{xx,xy,yy}, sums4 */
-	float xx,xx2,yy,yy2;
-	float xl,xh,yl,yh;
-	float tmp;
-	float tmod,ymod;
-	float xxx,yyy;
-	float weight;
-	float expon;
-	double sum3,sum4;
-
-	sum3=sum4=0;
-	for(i = iy1;i <= iy2;i++) {
-		yy = i-ycen;
-		yy2 = yy*yy;
-		if(interpflag) {
-			yl = yy - 0.375;
-			yh = yy + 0.375;
-		}
-		for(j = ix1;j <= ix2;j++) {
-			xx = j-xcen;
-
-			/* Should we interpolate? */
-			if(interpflag) {
-				xl = xx - 0.375;
-				xh = xx + 0.375;
-
-				expon = xl*xl*w2 + yl*yl*w1 - 2.*xl*yl*ww12;
-				tmp = xh*xh*w2 + yh*yh*w1 - 2.*xh*yh*ww12;
-				if(tmp > expon) {
-					expon = tmp;
-				}
-
-				tmp = xl*xl*w2 + yh*yh*w1 - 2.*xl*yh*ww12;
-				if(tmp > expon) {
-					expon = tmp;
-				}
-
-				tmp = xh*xh*w2 + yl*yl*w1 - 2.*xh*yl*ww12;
-				if(tmp > expon) {
-					expon = tmp;
-				}
-
-				if(expon <= 9.0) {
-					tmod = *(&data[0] + i*nx + j) - bkgd;
-					for(yyy = yl;yyy <= yh;yyy+=0.25) {
-						yy2 = yyy*yyy;
-						for(xxx = xl; xxx <= xh; xxx += 0.25) {
-							xx2 = xxx*xxx;
-							expon = xx2*w2 + yy2*w1 - 2*xxx*yyy*ww12;
-							weight = exp(-0.5*expon);
-							ymod = tmod*weight;
-							/*		     sum3+=pow(weight*(xx2+yy2 - sum1),2);*/
-							/*		     sum4+=pow(weight*(xx2-yy2 - sum2),2);*/
-							sum3+=pow(weight*(xx2-yy2 - sum1*(xx2+yy2)),2);
-							sum4+=pow(weight*(xxx*yyy - sum2*(xx2+yy2)),2);
-							sxx += pow(weight*(xx2 - sumxx),2);
-							syy += pow(weight*(yy2 - sumyy),2);
-							sxy += pow(weight*(xxx*yyy - sumxy),2);
-							s4 += expon*expon*ymod;
-						}
-					}
-				}
-
-				/* Not interpolating */
-			} else {
-				xx2 = xx*xx;
-				expon = xx2*w2 + yy2*w1 - 2.*xx*yy*ww12;
-				if(expon <= 9.0) {
-					weight = exp(-0.5*expon);
-					ymod = *(&data[0] + i*nx + j) - bkgd;
-					ymod = ymod*weight;
-
-					/*	       sum3+=pow(weight*(xx2+yy2 - sum1),2);*/
-					/*	       sum4+=pow(weight*(xx2-yy2 - sum2),2);*/
-					sum3+=pow(weight*(xx2-yy2 - sum1*(xx2+yy2)),2);
-					sum4+=pow(weight*(xx*yy - sum2*(xx2+yy2)),2);
-					sxx += pow(weight*(xx2 - sumxx),2);
-					syy += pow(weight*(yy2 - sumyy),2);
-					sxy += pow(weight*(xx*yy - sumxy),2);
-					s4 += expon*expon*ymod;
-				}
-			}	       
-		}
-	}
-	/*
-	 * Pack up desired results
-	 */
-	*errxx = sxx; *erryy = syy; *errxy = sxy; *sums4 = s4; *s1=sum3; *s2=sum4;
+        (*s2n_meas) = sum/sqrt(w2sum)/(*skysig);
+        if (pass==1) {
+            // this new skysig should give us the requested S/N
+            (*skysig) = (*s2n_meas)/s2n * (*skysig);
+        }
+    }
 }
 
 

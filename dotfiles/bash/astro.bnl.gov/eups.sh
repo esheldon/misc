@@ -24,6 +24,8 @@ if [[ -e $f ]]; then
         setup espy -r ~/python
 
         setup esutil -r ~/exports-tutti/esutil-local
+        setup fitsio -r ~/exports-tutti/fitsio-local
+
         setup recfile -r ~/exports-tutti/recfile-local
         setup numpydb -r ~esheldon/exports-tutti/numpydb-local
 
@@ -39,14 +41,14 @@ if [[ -e $f ]]; then
 
         # columns, sdsspy are under mercurial
         #setup mercurial
-        # this is pure python, use astro exports
-        setup columns -r ~/exports/columns-local
+        setup columns -r ~/exports-tutti/columns-local
 
         #setup pv
 
-        #setup scons
+        setup scons
         setup pyyaml
 
+        setup stomp -r ~/exports-tutti/stomp-work
 
     else
         # this will get numpy and python

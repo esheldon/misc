@@ -1,0 +1,19 @@
+#!/bin/bash
+
+valac \
+    -X -lm -X -O2 \
+    --pkg gee-1.0 \
+    -o smatch \
+    smatch.vala \
+    cat.vala \
+    ../healpix/healpix.vala \
+    ../point/point.vala
+
+valac \
+    -X -lm --pkg gee-1.0 \
+    -o test \
+    test.vala \
+    cat.vala \
+    ../healpix/healpix.vala \
+    ../point/point.vala
+

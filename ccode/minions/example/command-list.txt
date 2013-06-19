@@ -1,0 +1,19 @@
+./example/script01.sh
+./example/script02.sh
+./example/script03.sh
+./example/script04.sh
+./example/script05.sh
+./example/script06.sh
+./example/script07.sh
+echo "example command with spaces"
+./example/script08.sh
+./example/script09.sh
+
+./example/script10.sh
+./example/script11.sh
+./example/script12.sh
+# comment
+./example/script13.sh
+./example/script14.sh
+./example/script15.sh
+./example/script16.sh

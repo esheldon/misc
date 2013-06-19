@@ -11,7 +11,7 @@
 
 struct KDTree* KDTreeCreate(const struct Points* pts) {
 
-    pflush("  KDTreeCreate, NDIM=%d\n", NDIM);
+    wlog("  KDTreeCreate, NDIM=%d\n", NDIM);
     assert(pts != NULL);
     assert(pts->size > 0);
 
@@ -189,7 +189,7 @@ void KDTreeNNeighOfPoint(
         int* indices) {
 
     if (nnear > (kdtree->npts-1)) {
-        fprintf(stderr,"Not enough points, need at least %d\n", nnear);
+        wlog("Not enough points, need at least %d\n", nnear);
         exit(1);
     }
 
@@ -277,7 +277,7 @@ void KDTreeNNeighOfIndex(
         int* indices) {
 
     if (nnear > (kdtree->npts-1)) {
-        fprintf(stderr,"Not enough points, need at least %d\n", nnear);
+        wlog("Not enough points, need at least %d\n", nnear);
         exit(1);
     }
 
@@ -400,8 +400,8 @@ int KDTreePointRadMatch(
             for(int j= nodes[box].lowind; j <= nodes[box].highind; j++) {
                 if ( KDTreePointsDist(kdtree,ptind[j],point) <= radius) {
                     if (nmatch >= indices->size) {
-                        pflush("\nNumber of matches too large: %d\n", nmatch);
-                        pflush("Re-allocating to %d\n", indices->size*2);
+                        wlog("\nNumber of matches too large: %d\n", nmatch);
+                        wlog("Re-allocating to %d\n", indices->size*2);
                         indices = I4VectorRealloc(indices, indices->size*2);
                     }
                     indices->data[nmatch] = ptind[j];

@@ -1,28 +1,28 @@
 --- 
+:confirm_no_attachments: true
+:wrap_width: 80
 :confirm_top_posting: true
-:ask_for_to: true
-:jump_to_open_message: true
-:ask_for_cc: true
 :editor: vim + -f -c 'setlocal spell spelllang=en_us' -c 'set filetype=mail'
-:discard_snippets_from_encrypted_messages: false
+:ask_for_to: true
 :accounts: 
   :default: 
-    :signature: ~/.signature
-    :email: erin.sheldon@gmail.com
+    :signature: /home/esheldon/.signature
     :sendmail: msmtp --account=gmail -t
-    :name: Erin Sheldon
     :alternates: 
     - esheldon@bnl.gov
     - esheldon@kicp.uchicago.edu
     - esheldon@cfcp.uchicago.edu
     - esheldon@umich.edu
     - esheldon@sdss4.physics.lsa.umich.edu
+    :name: Erin Sheldon
+    :email: erin.sheldon@gmail.com
+:jump_to_open_message: true
 :sent_source: sup://sent
+:ask_for_cc: true
+:discard_snippets_from_encrypted_messages: false
 :ask_for_bcc: false
+:thread_by_subject: false
 :default_attachment_save_dir: ~/downloads
 :ask_for_subject: true
-:thread_by_subject: false
-:poll_interval: 300
-:confirm_no_attachments: true
 :edit_signature: false
-:wrap_width: 80
+:poll_interval: 300

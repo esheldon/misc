@@ -1,0 +1,70 @@
+###############################################################################
+#
+#  MIME types and programs that process those types
+#
+#  Much of this file is generated automatically by the program "update-mime".
+#  Please see the "update-mime" man page for more information.
+#
+#  Users can add their own rules if they wish by creating a ".mailcap"
+#  file in their home directory.  Entries included there will take
+#  precedence over those listed here.
+#
+###############################################################################
+
+
+###############################################################################
+#
+#  User section follows:  Any entries included in this section will take
+#  precedence over those created by "update-mime".  DO NOT CHANGE the
+#  "User Section Begins" and "User Section Ends" lines, or anything outside
+#  of this section!
+#
+
+# ----- User Section Begins ----- #
+# -----  User Section Ends  ----- #
+
+###############################################################################
+
+# needed to override the system mailcap on a few things
+application/x-dvi; /usr/bin/xdvi '%s'; description=TeX DVI; test=test -n "$DISPLAY"; nametemplate=%s.dvi
+application/pdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
+application/octet-stream; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
+application/x-pdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
+application/x-bzpdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf.bz2
+application/x-gzpdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf.gz
+application/postscript; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.ps
+application/x-bzpostscript; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.ps.bz2
+application/x-gzpostscript; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.ps.gz
+image/eps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
+image/ps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
+image/x-eps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.eps
+image/x-bzeps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.eps.bz2
+image/x-gzeps; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.eps.gz
+image/pdf; evince '%s'; test=test -n "$DISPLAY"; nametemplate=%s.pdf
+application/postscript; /usr/bin/gv '%s'; test=test -n "$DISPLAY"; description=postscript
+application/ghostview; /usr/bin/gv '%s'; test=test -n "$DISPLAY"
+application/pdf; /usr/bin/gv '%s'; test=test -n "$DISPLAY"
+
+image/gif; qiv -tfi '%s'; description="GIF Image"; test=test "$DISPLAY"; nametemplate=%s.gif
+image/jpeg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
+image/jpg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
+image/pjpeg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
+image/tiff; qiv -tfi '%s'; description="TIFF Image"; test=test "$DISPLAY"; nametemplate=%s.tiff
+image/x-portable-bitmap; qiv -tfi '%s'; description="PBM Image"; test=test "$DISPLAY"; nametemplate=%s.pbm
+image/x-portable-graymap; qiv -tfi '%s'; description="PGM Image"; test=test "$DISPLAY";nametemplate=%s.pgm
+image/x-portable-pixmap; qiv -tfi '%s'; description="PPM Image"; test=test "$DISPLAY"; nametemplate=%s.ppm
+image/x-xbitmap; qiv -tfi '%s'; description="XBM Image"; test=test "$DISPLAY"; nametemplate=%s.xbm
+image/x-xpixmap; qiv -tfi '%s'; description="XPM Image"; test=test "$DISPLAY"; nametemplate=%s.xpm
+image/bmp; qiv -tfi '%s'; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp
+image/x-bmp; qiv -tfi '%s'; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp
+image/x-ms-bmp; qiv -tfi '%s'; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp
+image/x-rgb; qiv -tfi '%s'; description="RGB Image"; test=test "$DISPLAY"; nametemplate=%s.rgb
+image/targa; qiv -tfi '%s'; description="TARGA Image"; test=test "$DISPLAY"; nametemplate=%s.tga
+image/fits; qiv -tfi '%s'; description="FITS Image"; test=test "$DISPLAY"; nametemplate=%s.fits
+image/png; qiv -tfi '%s'; description="PNG Image"; test=test "$DISPLAY"; nametemplate=%s.png
+image/pm; qiv -tfi '%s'; description="PM Image"; test=test "$DISPLAY"; nametemplate=%s.pm
+
+text/plain; gview -f '%s'; edit=gvim -f '%s'; compose=gvim -f '%s'; test=test "$DISPLAY" != ""
+
+application/x-debian-package; /usr/lib/mime/debian-view '%s'; needsterminal; description=Debian GNU/Linux Package; nametemplate=%s.deb
+text/html; firefox -a firefox -remote 'openURL(file://%s, new-tab)'

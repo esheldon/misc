@@ -1,0 +1,32 @@
+#%Module
+# vim: set filetype=tcl :
+
+# I'm setting all the vars here for convenience, but mandeep could change how
+# he does things so you should still source $IMHOME/path_to_imcat_files.sh in
+# any scripts that run this code
+
+module-whatis	"impyp imcat pipeline"
+conflict impyp
+
+eval set  [ array get env HOME ]
+
+set IMHOME $HOME/local/src/impyp-versions/impyp_v0.01.08
+set IMCAT_DIR $IMHOME/imcat
+set SCRIPTUTILS_DIR $IMCAT_DIR/perlscripts
+set OSTYPE Linux
+
+setenv IMHOME $IMHOME
+setenv IMCAT_DIR $IMCAT_DIR
+setenv SCRIPTUTILS_DIR $SCRIPTUTILS_DIR 
+setenv IMCATDIR $IMCAT_DIR 
+
+append-path PATH $IMCAT_DIR/bin/
+append-path PATH $IMCAT_DIR/bin/scripts
+append-path PATH $IMCAT_DIR/bin/$OSTYPE
+append-path PATH $SCRIPTUTILS_DIR
+append-path PATH $SCRIPTUTILS_DIR/perl
+append-path PATH $SCRIPTUTILS_DIR/bin
+append-path PATH $SCRIPTUTILS_DIR/csh
+
+setenv ARCH Linux
+setenv OSTYPE $OSTYPE

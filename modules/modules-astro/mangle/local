@@ -1,0 +1,20 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"mangle in python"
+conflict mangle
+
+eval set  [ array get env HOME ]
+
+set MANGLE_DIR $HOME/local/src/mangle2.2/
+set MANGLEBINDIR $MANGLE_DIR/bin
+set MANGLESCRIPTSDIR $MANGLE_DIR/scripts
+set MANGLEDATADIR $MANGLE_DIR/masks
+
+append-path PATH $MANGLEBINDIR
+append-path PATH $MANGLESCRIPTSDIR
+
+setenv MANGLE_DIR $MANGLE_DIR
+setenv MANGLEBINDIR $MANGLEBINDIR
+setenv MANGLESCRIPTSDIR $MANGLESCRIPTSDIR
+setenv MANGLEDATADIR $MANGLEDATADIR

@@ -8,6 +8,11 @@
 # note if the outdir is a subdirectory you will get 
 # odd results!
 
+if [[ $# -lt 2 ]]; then
+    echo "tarcp indir outdir"
+    exit 1
+fi
+
 indir=$1
 outdir=$2
 if [[ ! -e $outdir ]]; then

@@ -1,0 +1,15 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"SHAPELETS, local install"
+conflict shapelets
+
+eval set [ array get env HOME ]
+
+set SHAPELETS_DIR $HOME/exports/shapelets-local
+
+# this will force us to give full path to executables
+setenv SHAPELETS_DIR $SHAPELETS_DIR
+setenv SHAPELETS_VERS local
+
+prepend-path PATH $SHAPELETS_DIR/bin

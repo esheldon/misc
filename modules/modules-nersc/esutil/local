@@ -1,0 +1,15 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"esutil local install"
+conflict esutil
+
+eval set [ array get env HOME ]
+
+set ESUTIL_DIR $HOME/exports/esutil-local
+
+prepend-path PATH $ESUTIL_DIR/bin
+prepend-path PYTHONPATH $ESUTIL_DIR/lib/python2.7/site-packages/
+
+setenv ESUTIL_DIR $ESUTIL_DIR
+setenv ESUTIL_VERS local
