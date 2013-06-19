@@ -1,0 +1,3 @@
+See this page for 256 color if it doesn't work
+
+http://stupefydeveloper.blogspot.com/2010/06/urxvt-256-colors-in-ubuntu.html

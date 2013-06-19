@@ -1,6 +1,5 @@
-if [[ "${#PERL5LIB}" != 0 ]]; then
-    export PERL5LIB=${HOME}/perllib:${HOME}/perllib/sdss_inventory:${HOME}/CPAN:${PERL5LIB}
-else
-    export PERL5LIB=${HOME}/perllib:${HOME}/perllib/sdss_inventory:${HOME}/CPAN
-fi
+append_path PERL5LIB ${HOME}/perllib
+append_path PERL5LIB ${HOME}/sdss_inventory
+append_path PERL5LIB ${HOME}/CPAN
 
+export PERL5LIB 

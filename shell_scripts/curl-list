@@ -1,0 +1,59 @@
+#!/bin/bash
+
+function usage() {
+    echo "Usage: curl-list [-l] url"
+    echo "List the files in the url"
+    echo ""
+    echo "options"
+    echo "  -l full listing"
+    echo "  If you need a username/password, put them in ~/.netrc"
+}
+
+full="n"
+while getopts "l" Option; do
+    case $Option in
+        l) full="y" 
+            ;;
+        [?]) usage
+             exit
+            ;;  
+    esac
+done
+shift $(($OPTIND - 1))
+
+
+if [[ $# -lt 1 ]]; then
+    usage
+    exit 45
+fi
+
+url="$1"
+url_list=$(curl -s -k --netrc-optional "$url/"  | grep -v "Parent Directory" | grep -v "\?" | grep -i href | awk -F 'href="' '{print $2}' | awk -F '"' '{print $1}')
+
+
+for turl in $url_list; do
+    furl=$url/$turl
+    if [[ $full == "y" ]]; then
+
+        #res=$(curl -s -k --netrc-optional -I "$url/$turl")
+        #size=$(echo $res | awk '/Content-Length/ {print $2}')
+        #size=$(echo $res | awk '/Content-Length/' | cut -d : -f 2)
+        #dt=$(echo $res | awk '/Date/' | cut -d : -f 2)
+
+
+        size="-1"
+        curl -s -k --netrc-optional -I "$url/$turl" | while read line; do
+            echo "line:" 
+            echo "( $line )"
+            tsize=$(echo $line | awk '/Content-Length/ {print $2}')
+
+            if [[ $tsize != "" ]]; then
+                size="$tsize"
+            fi
+
+        done
+        echo "$size $dt $furl"
+    else
+        echo $furl
+    fi
+done

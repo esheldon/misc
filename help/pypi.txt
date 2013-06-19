@@ -1,0 +1,11 @@
+I currently just make sure the setup.py has the right metadata and then do
+    python setup.py register.
+
+Then go to pypi and upload the file.  You can automate it with
+
+    python setup.py sdist upload
+
+But sdist won't put everything in there.  Apparently I can write a MANIFEST.in
+that will specify everything that needs to go in.
+
+For a new release, just update the metadata and repeat above.

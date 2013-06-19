@@ -1,0 +1,17 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"cfitsio"
+conflict cfitsio
+
+eval set [ array get env HOME ]
+
+set CFITSIO_DIR $HOME/exports/cfitsio-3310
+
+prepend-path LD_LIBRARY_PATH $CFITSIO_DIR/lib
+prepend-path LIBRARY_PATH    $CFITSIO_DIR/lib
+prepend-path C_INCLUDE_PATH  $CFITSIO_DIR/include
+prepend-path CPATH           $CFITSIO_DIR/include
+
+setenv CFITSIO_DIR $CFITSIO_DIR
+

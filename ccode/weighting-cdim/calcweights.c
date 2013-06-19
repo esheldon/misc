@@ -12,13 +12,13 @@ void calcweights(struct TrainCatalog* tcat, struct PhotoCatalog* pcat, int nnear
 int main(int argc, char **argv) {
 
     if (argc < 6) {
-        printf("Usage: \n");
-        printf("   calcweights%d trainfile photfile n_near weightfile numfile\n\n", NDIM);
+        wlog("Usage: \n");
+        wlog("   calcweights%d trainfile photfile n_near weightfile numfile\n\n", NDIM);
 
-        printf("     NDIM: %d\n", NDIM);
-        printf("     weightsfile and numfile are outputs\n");
-        printf("     n_near=5 is typical first run, 100 second run\n");
-        printf("     don't forget to remove weight=0 objects for second run\n");
+        wlog("     NDIM: %d\n", NDIM);
+        wlog("     weightsfile and numfile are outputs\n");
+        wlog("     n_near=5 is typical first run, 100 second run\n");
+        wlog("     don't forget to remove weight=0 objects for second run\n");
         return(1);
     }
 
@@ -29,37 +29,37 @@ int main(int argc, char **argv) {
     const char* weightsfile = argv[4];
     const char* numfile = argv[5];
 
-    pflush("NDIM: %d\n", NDIM);
-    pflush("number of nearest neighbors: %d\n",n_near);
+    wlog("NDIM: %d\n", NDIM);
+    wlog("number of nearest neighbors: %d\n",n_near);
 
     struct TrainCatalog* tcat=TrainCatalogRead(trainfile);
     struct PhotoCatalog* pcat=PhotoCatalogRead(photofile);
 
     calcweights(tcat, pcat, n_near);
 
-    pflush("Writing weights file: %s\n", weightsfile);
+    wlog("Writing weights file: %s\n", weightsfile);
     TrainCatalogWrite(weightsfile, tcat);
-    pflush("Writing num file: %s\n", numfile);
+    wlog("Writing num file: %s\n", numfile);
     PhotoCatalogWriteNum(numfile, pcat);
-    pflush("Done\n");
+    wlog("Done\n");
 }
 
 
 void calcweights(struct TrainCatalog* tcat, struct PhotoCatalog* pcat, int nnear) {
 
     size_t ntrain = tcat->size;
-    pflush("Creating KDTree for training catalog\n");
+    wlog("Creating KDTree for training catalog\n");
     struct KDTree* kd_train = KDTreeCreate(tcat->pts);
 
-    pflush("Creating KDTree for photometric catalog\n");
+    wlog("Creating KDTree for photometric catalog\n");
     struct KDTree* kd_photo = KDTreeCreate(pcat->pts);
 
-    pflush("Allocating photometric num field\n");
+    wlog("Allocating photometric num field\n");
     PhotoCatalogMakeNum(pcat);
 
 
     // fixed size arrays to hold results
-    pflush("Allocating dist,indices\n");
+    wlog("Allocating dist,indices\n");
     double* dist  = malloc(nnear*sizeof(double));
     int* indices = malloc(nnear*sizeof(int));
 
@@ -68,16 +68,16 @@ void calcweights(struct TrainCatalog* tcat, struct PhotoCatalog* pcat, int nnear
 
     double point[NDIM];
     double total_weights = 0.0;
-    pflush("Getting weights/num\n");
+    wlog("Getting weights/num\n");
 
     int step=10000;
     if (ntrain > step) {
-        pflush("Each dot is %d\n", step);
+        wlog("Each dot is %d\n", step);
     }
     for (size_t i=0; i<ntrain; i++) {
 
         if ( ((i+1) % 200000) == 0) {
-            printf("\n%ld/%ld  (%0.1f%%)\n", i+1, ntrain, 100.*(float)(i+1)/ntrain);
+            wlog("\n%ld/%ld  (%0.1f%%)\n", i+1, ntrain, 100.*(float)(i+1)/ntrain);
             fflush(stdout);
         }
 
@@ -104,11 +104,11 @@ void calcweights(struct TrainCatalog* tcat, struct PhotoCatalog* pcat, int nnear
         }
 
         if ( (ntrain > step) && (i % step) == 0 ) {
-            pflush("."); 
+            wlog("."); 
         }
     }
     if (ntrain > step) {
-        pflush("\n");
+        wlog("\n");
     }
 
     // normalize weights

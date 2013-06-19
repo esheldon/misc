@@ -1,0 +1,13 @@
+#!/bin/bash
+
+tmpfile=~/www/cluster/loadall-tmp.txt
+file=~/www/cluster/loadall.txt
+while [ 1 ]; do
+
+    loadall -d > $tmpfile
+
+    mv -f $tmpfile $file 
+
+    # wait 10 minutes, 600 seconds
+    sleep 600
+done

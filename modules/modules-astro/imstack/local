@@ -1,0 +1,13 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"imstack code"
+conflict imstack
+
+eval set  [ array get env HOME ]
+
+set IMSTACK_DIR $HOME/exports/imstack-local
+
+prepend-path PATH $IMSTACK_DIR/bin
+
+setenv IMSTACK_DIR $IMSTACK_DIR 

@@ -1,0 +1,150 @@
+    - 3 Does the definition of Level 2 Data Products satisfy the data product
+      requirements laid out in the LSST Science Requirements Document?
+
+        - The SRD is very general, and we think the spirit is satisfied.  In
+          detail we would like a number of things to be fleshed out and
+          clarified.
+
+            - Tier 1
+
+                - We don't think lensing and photoz requirements are addressed
+                  in a sufficiently explicit manner in either the SRD or this
+                  document.  There are placeholders for model fits and minimal
+                  likelihood sampling.  These products as *explicitly*
+                  outlined appear to be sufficient to do photometry and
+                  support the time domain science but not necessarily the
+                  lensing or photozs.
+
+                  We will address this more in response to question 4.
+
+            - Tier 2
+
+                - It became clear during discussions that there is much that
+                  is planned that is simply not written in the document.  A
+                  lot of these ideas will be important for the success of
+                  LSST. Also the system seems to be more capable and flexible
+                  than is indicated.  We think generally the authors should
+                  write more of this into the document.  The authors may
+                  decide if this should be done before the FDR.
+
+
+    - 4 
+    
+        Yes, from discussions, it seems that the Data Products and the system
+        are comprehensive enough to facilitate a significant fraction of the
+        LSST science, but the explicit content in the document gives a more
+        limited picture.
+
+            - Tier 1
+
+                - The explicit examples in the text do not appear to be
+                  sufficient for photoz and lensing.  
+
+                  For example, most modern algorithms for lensing require a
+                  full sampling of the likelihood with thousands of points,
+                  but in the examples given suggest of order 100 likelihood
+                  samples would be saved for model fits, which would not be
+                  sufficient.  But in discussions it was mentioned that the
+                  system could support significant compression of information
+                  that would allow storage of more samples or whatever other
+                  data is needed for interpretation of the stored results.
+                  This compression could be bit compression of the data or the
+                  ability for the database to calculate and store sufficient
+                  information for a subset of objects which can be
+                  interpolated to other objects.
+
+                  In other words, the real constraint is on *storage* space
+                  rather than number of items stored per object, or what is
+                  stored.  This should be made clear.
+
+                - The document should be explicit about how the PSF
+                  information will be stored and made available to the users.
+
+                - The document should address how the sky map for each image
+                  will be stored and made available to users.
+            
+                - We think the "cutouts" for measured objects are an important
+                  data product; in particular the set of cutouts from all
+                  single epoch images at the location of a coadd object or
+                  some region of sky.  In discussions it was indicated that
+                  this "product" will most likely manifest as a "service",
+                  whereby the users can request the cutout images.
+
+                  As a service then, the user should be expect the throughput
+                  at near line speed averaged over a large set of parallel
+                  jobs.
+
+                  We think all this should be spelled out in the document.
+
+                - Make sure it is clear in the document how S/N is defined
+                  when that term is used anywhere in the document.
+
+            - Tier 2
+
+                - In discussions it became clear that significant computation
+                  time will be available *per object* (of order a few seconds
+                  per single epoch image if we recall correctly).  This leaves
+                  open the possibility of running very interesting and
+                  computationally intensive algorithms, and thus the
+                  possibility for rich data products. Please make this
+                  explicit.
+
+                - The cutouts should be full resolution, and sized variably as
+                  appropriate for each object (or at least optionally so).
+                  The exception would be in the alerts where other constraints
+                  may be more important.
+
+            - Tier 3
+
+                - It would be good to have the storage requirements on disk
+                  detailed for each major data product (e.g. coadds vs visits
+                  vs catalogs etc)
+
+          - Observations
+
+                - It may be useful to size the cutouts 2^N or 3*2^N to
+                  facilitate fast FFTs.  Perhaps allowing the user to specify
+                  the cutout size would be possible.
+
+    - 5
+        
+        - Tier 1
+
+            - It became clear in discussions that level 3, while a very
+              *capable* service, is actually quite small in terms of dedicated
+              resources.  The resources, thought of in terms of expected 2020
+              computing capabilities, are perhaps comparable to an SDSS
+              skyserver type of service. Significant science will be done at
+              the catalog level and on small numbers of images, but major
+              computation will not be possible.
+
+              This can probably be gleaned from the document itself. But some
+              kind of statement along these lines will, we think, help
+              readers.
+
+    - 6
+
+        - Observations
+
+            - The use of MySQL is a bit of a concern due to well-known
+              technical limitations.  The authors in discussions indicated
+              that they had "workarounds" for some of the limitations of this
+              technology. But there are more mature and feature-full
+              open-source alternatives that are standards compliant and do not
+              suffer the same technical limitations (for example postgres).
+              We understood that the alternatives will have their own
+              trade-offs, strengths and weaknesses.  The authors indicated
+              they can "drop in" other databases as needed.  We think it would
+              be worth while to seriously evaluate alternatives.
+
+    - 7
+        
+        - Observations
+
+            - The author's have attempted to scope for a range of
+              possibilities, but for unsolved problems such as lensing and
+              photozs it is impossible to predict the future needs, or what
+              the data products will look like.  For example, it may be that
+              the computational or storage requirements will be larger than
+              all of the resources to be allocated for LSST as an entirety.
+              

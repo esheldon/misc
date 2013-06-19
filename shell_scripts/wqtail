@@ -1,0 +1,74 @@
+#!/bin/bash
+
+function usage {
+    echo "
+    usage: wqtail [-h -n nfiles -c columns -E limit -l] dir
+
+        Tail recently changed .wqlog files.  If multiple are
+        found, 'nfiles' are displayed simulaneously
+
+    options:
+        -n Number of files to watch, default 1
+        -c Number of columns to use in display if n > 1
+        -E Limit to lines matching the input regular expression
+            only works if -m is sent
+        -l Use less if nfiles is one
+        -m Use multitail instead of mtail.  -E will then work
+        -h for this help message
+"
+}
+
+
+nfiles=1
+ncols=1
+limit="None"
+use_less="No"
+use_mtail="Yes"
+while getopts "hn:c:E:lm" Option; do
+    case $Option in
+        n) nfiles=$OPTARG ;;
+        c) ncols=$OPTARG ;;
+        E) limit=$OPTARG ;;
+        l) use_less="Yes";;
+        m) use_mtail="No";;
+        h) usage
+           exit 1 ;;
+        [?]) usage
+             exit 1 ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
+fi
+
+dir="$1"
+
+if [[ $nfiles == "1" && $use_less == "Yes" ]]; then
+    cmd="less +F"
+elif [[ $use_mtail == "Yes" ]]; then
+    cmd="mtail"
+    if [[ $ncols != 1 ]]; then
+        cmd="$cmd -c $ncols"
+    fi
+else
+    cmd="multitail --basename"
+    if [[ $ncols != 1 ]]; then
+        cmd="$cmd -s $ncols"
+    fi
+    if [[ $limit != "None" ]]; then
+        #cmd="$cmd -E \"$limit\""
+        cmd="$cmd -E $limit"
+    fi
+fi
+
+# find wqlog files, print their modification date and name
+# then sort numerically with a key from the first column
+# take the top $nfiles
+# finally grab just the filename
+$cmd $(find $dir -name "*.wqlog" -printf '%T@ %p\n' | sort -r -k 1 -n | head -$nfiles | cut -d " " -f 2)
+
+#awk '{print $2}')

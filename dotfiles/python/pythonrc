@@ -1,0 +1,51 @@
+# vim: set filetype=python :
+import os,sys
+try:
+    import readline
+except ImportError:
+    pass
+else:
+    import os
+    import atexit
+    import rlcompleter
+
+class irlcompleter(rlcompleter.Completer):
+    def complete(self, text, state):
+        if text == "":
+            readline.insert_text('\t')
+            return None
+        else:
+            return rlcompleter.Completer.complete(self,text,state)
+
+# You could change this line to bind another key instead tab.
+readline.parse_and_bind("tab: complete")
+readline.set_completer(irlcompleter().complete)
+
+# Restore our command-line history, and save it when Python exits.
+historyPath = os.path.expanduser("~/.pyhistory")
+
+# Create a blank history file if it doesn't exist already
+if not os.path.exists(historyPath) and not os.path.isdir(historyPath):
+    try:
+        open(historyPath, 'w').close()
+    # Gracefully ignore things if historyPath is not writable
+    except IOError:
+        pass
+
+# Read the history file in for autocompletion and save it on exit
+if os.access(historyPath, os.W_OK):
+    atexit.register(lambda x=historyPath: readline.write_history_file(x))
+
+if os.access(historyPath, os.R_OK):
+    readline.read_history_file(historyPath)
+
+term=os.getenv('TERM')
+if 'xterm' in term or 'rxvt' in term:
+    sys.ps1 = '\001\033[32m\002>>> \001\033[0m\002'
+    sys.ps2 = '\001\033[32m\002... \001\033[0m\002'
+
+#try:
+#    import esutil as eu
+#    from esutil.numpy_util import ahelp
+#except:
+#    pass

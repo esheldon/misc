@@ -1,13 +1,15 @@
 # vim: set filetype=sh :
 # My "universal" bashrc
 
-if [[ -z "$PS1" ]]; then
-    return
-fi
+#if [[ -z "$PS1" ]]; then
+#    return
+#fi
 
 # use vi commands on the prompt
 set -o vi
 # shells append to history, don't overwrite
+export HISTSIZE=1000000
+export HISTFILESIZE=1000000
 shopt -s histappend
 
 export PAGER='less -R'
@@ -15,6 +17,14 @@ export PAGER='less -R'
 sysname=`uname`
 host=`uname -n`
 hname=`echo $host | sed "s/\..*//g"` #only first part of name
+
+if [[ -e /usr/common/usg/bin/nersc_host ]]; then
+    hname=$(/usr/common/usg/bin/nersc_host)
+    isnersc="Y"
+else
+    isnersc="N"
+fi
+
 htype=`uname -s`
 
 # This is a kludge, but...
@@ -26,7 +36,7 @@ if [[ $hname == "desdb" || $hname == "desar" || $hname == "deslogin" ]]; then
 	hname="desdb"
 fi
 
-export EDITOR=vi
+export EDITOR=vim
 export LESS="-XP[%f] %lb/%L"
 export RSYNC_RSH="ssh"
 
@@ -42,12 +52,15 @@ astrobnltest=`echo $host | grep -i astro | grep -i bnl.gov`
 rplaytest=`echo $host | grep -i rplay`
 lsst_bnl_test=$(uname -n | grep -i lst.bnl)
 
+
 riemann_test=$(uname -n | grep n00)
 
 if [[ $hname == "fangorn" || $sysname == "Darwin" ]]; then
     dotfileDir=$ddir/fangorn
 elif [[ "$hname" == "theshire" ]]; then
     dotfileDir=$ddir/theshire
+elif [[ $isnersc == "Y" ]]; then
+    dotfileDir=$ddir/nersc
 elif [[ $astrobnltest != "" ]]; then
     dotfileDir=$ddir/astro.bnl.gov
 elif [[ $rplaytest != "" ]]; then
@@ -88,7 +101,7 @@ fi
 export dotfileDir
 
 # add desdb check since they modify the path
-if [[ -f /etc/bashrc && "$hname" != "desdb" ]]; then
+if [[ -f /etc/bashrc && "$hname" != "desdb" && $isnersc != "Y" ]]; then
     source /etc/bashrc
 fi
 
@@ -114,7 +127,10 @@ fi
 export FLAVOR
 
 # path stuff first, so others can use the code?
-for f in ssh-agent perl python java cvs aliases ls_colors idl_setup gdl_setup pg_setup misc des_setup boss_setup proxy term go d gems fortran fink git path localvars oracle eups modules; do
+for f in pathmod ssh-agent java cvs aliases ls_colors \
+    pg_setup des_setup boss_setup proxy term go d \
+    fortran fink git path perl python gems localvars \
+    oracle eups modules idl_setup gdl_setup; do
 
     if [[ $f == "ssh-agent" && $riemann_test != "" ]]; then
         echo skipping keychain on riemann

@@ -3,6 +3,13 @@
     /* GMail messages and textarea should use fixed-width font */
     .gs .ii, textarea.Ak {
         font-family: MonoSpace !important;
-        font-size: 9pt !important;
+        font-size: 10pt !important;
     }
 }
+
+textarea {
+    font-family: monospace !important;
+    font-size: 1em;
+}
+
+

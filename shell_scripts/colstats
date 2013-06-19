@@ -1,0 +1,67 @@
+#!/bin/bash
+# Calculate some statistics for the indicated columns.  The data come
+# in on stdin
+#
+# usage:
+#     colstats c1 c2 ...  < file
+#     cat file | colstats c1 c2 ...
+#
+# example:
+#
+#> colstats 1 2 < test.dat 
+#      nrow      total        min        max        std       mean        err
+#      2379     436788         77        400   59.01414   183.6015   1.209926
+#      2379     513872         98        276   44.32997   162.8348   1.743632
+
+
+if [[ $# -lt 1 ]]; then
+    echo "usage: colstats col1 col2 ..."
+    echo "  send data on stdin"
+    exit 1
+fi
+
+script=""
+begin=""
+dostats=""
+prnt=""
+i=1
+for col; do 
+    begin="$begin
+    minvals[$col]=9999e50;
+    maxvals[$col]=-9999e50;
+    "
+
+    script="$script
+    sum[$col] += \$$col;
+    sum2[$col] += \$$col*\$$col;
+    if (\$$col > maxvals[$col]) maxvals[$col]=\$$col;
+    if (\$$col < minvals[$col]) minvals[$col]=\$$col;
+    "
+
+    dostats="$dostats
+    mn[$col]=sum[$col]/NR;
+    mn2[$col]=sum2[$col]/NR;
+    std[$col]=sqrt( (mn2[$col] - mn[$col]*mn[$col]));
+    err[$col]=sqrt( (mn2[$col] - mn[$col]*mn[$col])/NR);
+    "
+
+    prnt="${prnt}
+    printf \"%10d %10.7g %10.7g %10.7g %10.7g %10.7g %10.7g\\n\", NR, sum[$col], minvals[$col], maxvals[$col], std[$col], mn[$col], err[$col]"
+
+    i=$((i = i+1))
+done
+
+
+awkscript="BEGIN {
+    $begin
+} {
+    $script
+} END {
+    $dostats
+    printf \"%10s %10s %10s %10s %10s %10s %10s\\n\", \"nrow\", \"total\", \"min\", \"max\", \"std\", \"mean\", \"err\"
+    $prnt
+}"
+
+#echo "$awkscript"
+#exit
+awk "$awkscript" < /dev/stdin

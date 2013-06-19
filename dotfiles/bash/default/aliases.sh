@@ -5,12 +5,19 @@ alias myfirefox='GTK2_RC_FILES="/usr/share/themes/Clearlooks/gtk-2.0/gtkrc" fire
 
 export treebeard=192.168.127.102
 
+alias hdfs="hadoop fs"
+
+alias sattach='grabssh ; screen -DR'
+alias fixssh='source $HOME/fixssh'
+
 # awk simplifies life
 alias mailtail="tail -n 100 -f ~/.getmail/gmail.log  | awk '{print \$1,\$2,\$4,\$10}'"
 alias astro='ssh esheldon@astro.physics.nyu.edu'
 alias astrox='ssh -x esheldon@astro.physics.nyu.edu'
 alias bias='ssh esheldon@bias.cosmo.fas.nyu.edu'
 alias biasx='ssh -x esheldon@bias.cosmo.fas.nyu.edu'
+
+alias webfaction='ssh esheldon.webfactional.com'
 
 alias treebeard='ssh esheldon@192.168.127.108'
 
@@ -39,13 +46,14 @@ alias la='ls --color=auto -a'
 alias lla='ls --color=auto -lah'
 alias lb='ls --color=auto -B -I "*.pyc"'
 alias llb='ls -lh --color=auto -B -I "*.pyc"'
+alias lc='ls --color=auto -B -I "*.pyc" -I "*.o"'
 alias llc='ls -lh --color=auto -B -I "*.pyc" -I "*.o"'
 
 alias mv='mv -i' 
 alias cp='cp -i' 
 alias less='less -R'
 
-alias gvim='gvim -geometry 90x55'
+#alias gvim='gvim -geometry 90x55'
 
 
 alias lib='cd ~/idl.lib/pro'
@@ -71,6 +79,7 @@ alias fmplayer='mplayer -fstype none'
 alias setcorus="export http_proxy=http://192.168.1.140:3128"
 alias unsetcorus="unset http_proxy"
 
+alias urxvtb='urxvt -fn "xft:peep"'
 alias mrxvt10='mrxvt -xft -xftfn Monaco -xftsz 10'
 alias lmrxvt10='mrxvt -cf ~/.dotfiles/mrxvt/mrxvtrc-lightbg -xft -xftfn Monaco -xftsz 10'
 

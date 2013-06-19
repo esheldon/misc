@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"pylint"
+conflict pylint
+
+eval set  [ array get env HOME ]
+
+set PYLINT_DIR $HOME/exports/pylint
+
+prepend-path PYTHONPATH $PYLINT_DIR/lib/python2.7/site-packages/
+prepend-path PATH $PYLINT_DIR/bin
+
+setenv PYLINT_DIR $PYLINT_DIR

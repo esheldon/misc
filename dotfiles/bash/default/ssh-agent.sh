@@ -1,4 +1,3 @@
-# need to install keychain and ssh-askpass
 # source this file
 # need to install keychain and ssh-askpass
 res=`which keychain 2>&1> /dev/null`

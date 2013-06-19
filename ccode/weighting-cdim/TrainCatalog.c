@@ -44,14 +44,14 @@ void TrainCatalogFree(struct TrainCatalog* cat) {
 
 
 struct TrainCatalog* TrainCatalogRead(const char* filename) {
-    pflush("Reading TrainCatalog, NDIM=%d, from file: '%s'\n", NDIM, filename);
+    wlog("Reading TrainCatalog, NDIM=%d, from file: '%s'\n", NDIM, filename);
 
-    pflush("    Counting lines\n");
+    wlog("    Counting lines\n");
     size_t nlines = count_lines(filename);
 
     struct TrainCatalog* cat = TrainCatalogAlloc(nlines);
 
-    pflush("    Reading %ld lines\n", nlines);
+    wlog("    Reading %ld lines\n", nlines);
     FILE* fptr=fopen(filename,"r");
 
     double* pdata = cat->pts->data;

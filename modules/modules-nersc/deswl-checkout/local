@@ -1,0 +1,9 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"deswl git checkout"
+conflict deswl-checkout
+
+eval set [ array get env HOME ]
+
+setenv DESWL_CHECKOUT $HOME/git/deswl

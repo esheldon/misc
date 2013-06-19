@@ -1,13 +1,189 @@
 Quick look Queue
-    Update my letter for mzm to say I am architect of DES and BOSS.
-    apj refereeing
-    put arXiv link in p(z) data model page.
-    shape testing, lots of correlations
-    ukidss TS
+    legend
+        - todo
+        * running
 
-    variable length arrays
+
+    voids
+        - seeing b modes in the lensing at very large radius
+            - source catalogs tried:
+                - s/n [20,300] sratio > 1
+                - s/n [20,300] sratio > sqrt(2)
+        - going to try the maxlike version
+            - photoz match is finished, need to make scat
+
+        - could be psf: we know the sdss psf is anisotropic.  running
+          EM without cocenter.
+            - deal with finished gmix run (if it finished)
+                - possibly implement em only psf
+                - possibly replace admom with em 1 gauss?
+
+
+          note: seeing a fair amount of admom failure in psf fitting.  maybe
+          should use em there for single gauss to start?  Or skip altogether
+          and just take psf_fwhm as a pretty good guess for overall size?
+
+          Did make the guesses for admom slightly better....
+
+    nersc
+
+        - cfitsio globally as cfitsio-des?
+        - CCfits globally as ccfits-des
+        - can get web access for files: access for apache but not other
+          groups.
+        - hopper much faster to global scratch
+        - back up our data (meds) figure out tape archival needs.  Ask for
+          more through salman.
+
+        usage
+        - prjquota des
+
+    redmapper
+        - add/modify entries to eduardo's null test etc. document
+
+    bafit
+        
+        - use the new EM fitter for psf.
+
+    DES
+
+        - redo colors in MEDS
+
+            - do proper full multi-band fit
+                - put in time limit per object, of say
+                    3*nband seconds
+                - break if hit max tries or time limie
+
+                - explore apertures.  maybe just do a gauss fit and then
+                  5-sigma.
+
+            - explore pileup at e1=0, e2=-1 in mcmc
+
+            - mcmc
+                - look into trimming, but based on what size measure?
+                - start guess for flux from psf flux?
+                - don't use lmfit as name :)
+
+            - flux is biased high at low S/N.  Looks to be more biased than
+              the shear!  
+              
+                - Would it be improved by using prior during?
+                    - running now geg01r06
+                - prior on T?  How would we get one?
+                    - need to run
+
+            - porting mcmc to run with multi-epoch or regular
+                - fix up calc_stats (can copy from lmfit stuff)
+
+            - also need to perhaps run em if it is more stable than admom?  or
+              at least catch the error and try again.
+
+            - maybe supress fpack weight zeros noise?  Currently forcing 0 but
+              could also set zero if simply much smaller than the median?
+
+            - cases where match_model=='nil': psf fitting failing altogether?
+
+            - make sure to port over prior fixes to cluster step
+
+            - s2n with in 1.5'' aperture; how to do that?
+                - add a parameter that is maxrad to likelihood code
+                - new function to do weight s/n that takes a max rad can be
+                  slower since it only needs be called once at the end.
+
+            - fix centroids in fits (other than matched)?
+            - throw out cutouts that hit too much edge?
+
+
+        - gmix
+            - shapelets psf image generation code
+            - gary's alternative bayesian formulation
+        - get outlier pixel rejection, features etc. from Daniel
+            * sent email to daniel
+        - convert coadd to wget as well
+
+        - Daniel says weight map might have wrong normalization
+
+        - eyeballing
+            - framework from Tim
+                * sent mail to Tim
+            - triggers, e.g. users table with counters on how many images
+              examined.
+
+    ideas
+        - my stack images but going to Fourier space (Gary)
+        - shear response by deconvolving PSF, shear,
+          then reconv. with slightly larger PSF (Eric)
+
+    wlpipe
+
+        - Finish Convert shapelets to new script stuff. Need module use from
+          mike
+
+    MEDS
+        
+        - make some metadata not string, if they exist
+
+        In api, generate some useful filenames automatically,
+            e.g. psfex file, fitpsf.
+        Write integer metadata.
+
+    gsim
+        - pad against largest dimension instead of average
+        - generate psf on a grid but at different sub-pixel locations
+
+
+    recfile
+    - strings passed in might disappear!  Just do delim as char.
+      and copy delim[0] from input
+    - unit test structured subarray for binary
+    - document the _method stuff too, where necessary
+    - can just use memmap for binary (problem on OSX)?  Extracting multiple
+      columns using memmap and looping over rows or reading in chunks (latter
+      don't even need memmap)?
+    - can optimize reading specified binary rows when they are *consecutive*.
+      Same with cols.
+    - fread style change?
+
+
+    - tmv+wl using intel, with openmp
+        - Mike says you can compile tmv with openmp and it won't
+        - mess up our method of using openmp in the outer loop
+
+    - shears
+
+        - propagate corrections into the covariance matrix
+            - could just get new diagonal errors and scale correlation matrix
+            - could correct each delta sigma individually and derive new
+              covariance matrices
+
+        - s/g sep in BOSS catalog.  See Rachel's stuff.
+
+        - re-run source catalog without masking, and just have masks in the
+          collated columns
+            - not crucial since currently aren't referencing that cut anywhere
+              else, e.g. randoms are "good" mask only
+
+
+    - sobjshear hadoop
+        - need concatenation of lens outputs when we did lens splits.  to be
+          done during reduce or before?
+        - do we need the index-tab at beginning? Can we just use zindex-tab?
+
+    - get details on pre-matching in mangle
+    - add match structures and sorting to smatch
+    - do a r < 21.8 run
+
+    - faster masking edge stuff
+
+    - Think about masking bias
+    - Are our bright star masks aggressive enough?
+
+    - Try to make ctrl-c work for cxOracle
+    - implement SessionPool on my wrapped oracle connection.
 
 fitsio
+
+    - refactor images/tables
 
     - practice with object arrays.
 
@@ -26,37 +202,19 @@ fitsio
        and copy that result into the rec array, but probably should have a
        separate code for reading these since that involves inefficiecies.
 
-BigBOSS
-    - fill out SDSS footprint info for response to review
-        deadline is before august?  Ask Nick Mostek
 
 DES:
 
 objshear
     kathy romer, chris miller catalogs
 
-    RedMapper
-        - get first redmapper catalog
-        - apply 1Mpc cuts; need to do this for randoms too... ugly. 
-        - Look into new binning scheme on lambda.
-
     shears:
+        - s/g sep
+        - stellar contamination
         - Match Frank's file
         - look at various local tests 
             - PSF tests need to be devised
             - <e> vs R
             - <e> vs psf e
             - <e> vs position, run, etc.
-
-
-BOSS 
-    ukidss TS
-
-    Target Selection Overview Paper
-
-        Describe chunks
-
-        References to tiling stuff and brief description
-
-
 

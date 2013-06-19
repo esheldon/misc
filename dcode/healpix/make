@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# by default just run the test suite
+todo=test
+if [[ $# -eq 1 ]]; then
+    todo=$1
+fi
+
+if [[ $todo == "test" || $todo == "all" ]]; then
+    rdmd --main -unittest -w -I../point -I../stack healpix.d
+fi
+if [[ $todo == "pixelof" || $todo == "all" ]]; then 
+    rdmd --build-only -w -I../point -I../stack pixelof.d healpix.d
+fi
+if [[ $todo == "intersect" || $todo == "all" ]]; then 
+    rdmd --build-only -w -I../point -I../stack intersect.d
+fi

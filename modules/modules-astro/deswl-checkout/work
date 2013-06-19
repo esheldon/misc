@@ -1,0 +1,15 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"deswl work install"
+conflict deswl-checkout
+
+eval set [ array get env HOME ]
+
+set DESWL_DIR $HOME/exports/deswl-work
+
+prepend-path PATH $DESWL_DIR/bin
+prepend-path PYTHONPATH $DESWL_DIR/lib/python2.7/site-packages/
+
+setenv DESWL_DIR $DESWL_DIR
+setenv DESWL_VERS work

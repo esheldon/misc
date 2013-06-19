@@ -1,0 +1,111 @@
+See this page for how to get your screen to reattach to the agent, including
+X11 forwarding.
+
+http://www.deadman.org/sshscreen.php
+
+Here is a copy
+
+The Problem
+-----------
+
+SSH-Agent forwarding breaks when screen is re-attached on a different host.
+Details
+
+The problem involves three hosts*, A, B, and S. All of these hosts have
+Agent-Forwarding enabled in their SSH configuration.
+
+I log into host A and run ssh-agent, authenticating to my key. I connect from
+machine A to machine S using my agent/key to authenticate. On machine S, I
+start screen. I open several screen windows, all running shells. These shells
+inherit the ssh-agent variables from the parent shell that spawned the screen.
+(This is where the problem starts.)
+
+I notice that it's time for work, so I drive to work and log into machine B,
+starting ssh-agent and authenticate to my key. I connect from machine B to
+machine S using my agent/key to authenticate. I resume the running screen that
+I started when logged in from machine A. Naturally, all of the ssh environment
+variables are still set the way they were prior to the screen de/re-attach. So
+now, despite having ssh-agent forwarding turned on and having an active agent,
+I can't connect to remote hosts via host S without some kind of magic.
+
+*This problem could also involve two connections from the same host (which will
+be on different client ports,) to a second host. I think the above example is
+clearer.  SSH Environment Variables
+
+When you connect, using ssh-agent for authentication, to a host that has
+ssh-agent forwarding enabled, the following shell variables will be set:
+
+SSH_CLIENT=192.168.25.198 4671 22
+SSH_TTY=/dev/pts/11
+SSH_AUTH_SOCK=/tmp/ssh-zIn16635/agent.16635
+SSH_CONNECTION=192.168.25.198 4671 192.168.25.3 22
+
+The SSH_CLIENT variable contains three space-separated pieces of information.
+The IP address of the client making the connection, the client's port number,
+and the server's port number.
+
+The SSH_TTY variable is set to the path to the tty device used for the shell
+opened when the SSH connection was created.
+
+The SSH_AUTH_SOCK variable identifies the path of a unix-domain socket used to
+communicate with the agent. In other words, this variable sets up a "path" back
+to the host that is actually running the agent, so that future ssh connections
+can talk to/use that agent.
+
+The SSH_CONNECTION variable contains four space-separated pieces of
+information. The IP address of the client, the port number of the client, the
+IP address of the server and the port number of the server. This variable is
+necessary to prevent agent hijacking.
+
+So, now that I've reiterated the ssh(1) man page, we can see why, when we
+connect from A to S, and then from B to S, ssh-agent forwarding fails. In the
+initial connection, S defines the SSH environment variables to point to host A.
+When screen starts its shells, they inherit those variables. When host B
+connects and grabs that instance of screen, the sub-shells have no idea that
+anything has changed, so the variables now point to the "wrong" machine.
+
+The Solution
+-------------
+
+The environment variables listed above are set correctly when host B connects
+to host S, so we need a way to get them propagated to the shells running inside
+screen. I wrote a small script to cull them out and stick them in a file. The
+script also re-formats them so that they will be easily integrated into the
+shell's environment. I called this script "grabssh."
+
+#!/bin/sh
+SSHVARS="SSH_CLIENT SSH_TTY SSH_AUTH_SOCK SSH_CONNECTION DISPLAY"
+
+for x in ${SSHVARS} ; do
+    (eval echo $x=\$$x) | sed  's/=/="/
+                                s/$/"/
+                                s/^/export /'
+done 1>$HOME/bin/fixssh
+
+The output of this script looks something like this:
+
+export SSH_CLIENT="192.168.25.198 4685 22"
+export SSH_TTY="/dev/pts/22"
+export SSH_AUTH_SOCK="/tmp/ssh-jtF17289/agent.17289"
+export SSH_CONNECTION="192.168.25.198 4685 192.168.25.3 22"
+
+Rather than having to type in "grabssh" before resuming any screen, I created
+an alias:
+
+alias Attach='grabssh ; screen -d -R'
+
+So now every time I resume my screen, the correct ssh-agent variables will be
+written to ${HOME}/bin/fixssh. I wrote another alias to source that file:
+
+alias fixssh='source $HOME/bin/fixssh'
+
+Now, when I'm in a screen-spawned shell and I want to take advantage of
+ssh-agent forwarding, I run "fixssh" and everything just works. You might even
+go so far as to create an alias for ssh like this:
+
+alias ssh='fixssh; ssh' 
+
+However, that alias might someday drive you insane if you're troubleshooting
+some ssh problem and you forget that it is there.
+
+Send comments to Sam Rowe, deadman at deadman dot org. 

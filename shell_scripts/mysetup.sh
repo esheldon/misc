@@ -68,8 +68,12 @@ for type; do
         ln -vfs ~/git/misc/shell_scripts
         ln -vfs ~/git/misc/dotfiles .dotfiles
 
+        ln -vfs ~/.dotfiles/python/pythonrc .pythonrc
+
         ln -vfs ~/.dotfiles/vim .vim
         ln -vfs ~/.dotfiles/vim/vimrc .vimrc
+
+        ln -vfs ~/.dotfiles/mailcap .mailcap
 
         if [ -e .bashrc ]; then
             rm -f .bashrc

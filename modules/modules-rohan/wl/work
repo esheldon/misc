@@ -1,0 +1,25 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"WL, untagged work runs"
+conflict wl
+
+prereq tmv
+prereq ccfits
+prereq esutil
+prereq desfiles
+
+eval set [ array get env HOME ]
+
+set WL_DIR $HOME/exports/wl-work
+
+prepend-path PATH            $WL_DIR/bin
+prepend-path LD_LIBRARY_PATH $WL_DIR/lib
+prepend-path LIBRARY_PATH    $WL_DIR/lib
+prepend-path C_INCLUDE_PATH  $WL_DIR/include
+prepend-path CPATH           $WL_DIR/include
+
+# note python on ubuntu is using dist-packages
+prepend-path PYTHONPATH      $WL_DIR/lib/python2.7/dist-packages
+
+setenv WL_DIR $WL_DIR
