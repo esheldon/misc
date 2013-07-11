@@ -45,9 +45,9 @@ int shape_set_eta(struct shape *self, double eta1, double eta2);
 
 // create a new shape and place in it self+shear
 // returns NULL if failure (e.g. e >= 1)
-struct shape *shape_add(struct shape *self, struct shape *shear);
+struct shape *shape_add(struct shape *self, const struct shape *shear);
 
 // return 0 if failure (e.g. e>=1)
-int shape_add_inplace(struct shape *self, struct shape *shear);
+int shape_add_inplace(struct shape *self, const struct shape *shear);
 
 #endif

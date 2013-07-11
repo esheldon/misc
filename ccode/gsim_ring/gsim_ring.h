@@ -1,7 +1,9 @@
 #ifndef _GSIM_RING_HEADER_GUARD
 #define _GSIM_RING_HEADER_GUARD
 
+#include <stdio.h>
 #include "gmix.h"
+#include "shape.h"
 
 // for now models are always bulge+disk, so pars are
 // 
@@ -31,9 +33,11 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
                                 double s2n,
                                 const double *pars, long npars,
                                 const struct gmix *psf, 
-                                double shear1, double shear2,
+                                const struct shape *shear,
                                 long *flags);
 
 struct ring_pair *ring_pair_free(struct ring_pair *self);
+
+void ring_pair_print(const struct ring_pair *self, FILE* stream);
 
 #endif
