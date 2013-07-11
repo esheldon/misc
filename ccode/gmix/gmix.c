@@ -5,6 +5,26 @@
 #include "gmix.h"
 #include "shape.h"
 
+enum gmix_model gmix_string2model(const char *model_name, long *flags)
+{
+    enum gmix_model model=0;
+    if (0==strcmp(model_name,"GMIX_FULL")) {
+        model=GMIX_FULL;
+    } else if (0==strcmp(model_name,"GMIX_COELLIP")) {
+        model=GMIX_COELLIP;
+    } else if (0==strcmp(model_name,"GMIX_TURB")) {
+        model=GMIX_TURB;
+    } else if (0==strcmp(model_name,"GMIX_EXP")) {
+        model=GMIX_EXP;
+    } else if (0==strcmp(model_name,"GMIX_DEV")) {
+        model=GMIX_DEV;
+    } else if (0==strcmp(model_name,"GMIX_BD")) {
+        model=GMIX_BD;
+    } else {
+        *flags |= GMIX_BAD_MODEL;
+    }
+    return model;
+}
 
 long gmix_get_simple_ngauss(enum gmix_model model, long *flags)
 {
@@ -242,7 +262,7 @@ void gmix_copy(const struct gmix *self, struct gmix* dest, long *flags)
     memcpy(dest->data, self->data, self->size*sizeof(struct gauss2));
     return;
 }
-struct gmix *gmix_newcopy(const struct gmix *self, long *flags)
+struct gmix *gmix_new_copy(const struct gmix *self, long *flags)
 {
     struct gmix *dest=NULL;
 
@@ -634,38 +654,39 @@ void gmix_fill_bd(struct gmix *self, double *pars, long npars, long *flags)
         return;
     }
 
-    pars_exp[0] = pars[0];
-    pars_exp[1] = pars[1];
-    pars_exp[2] = pars[2];
-    pars_exp[3] = pars[3];
-    pars_exp[4] = pars[4];
-    pars_exp[5] = pars[6];
-
     pars_dev[0] = pars[0];
     pars_dev[1] = pars[1];
     pars_dev[2] = pars[2];
     pars_dev[3] = pars[3];
-    pars_dev[4] = pars[5];
-    pars_dev[5] = pars[7];
+    pars_dev[4] = pars[4];
+    pars_dev[5] = pars[6];
 
-    gmix_exp = gmix_new_model(GMIX_EXP,pars_exp,npars_exp, flags);
+    pars_exp[0] = pars[0];
+    pars_exp[1] = pars[1];
+    pars_exp[2] = pars[2];
+    pars_exp[3] = pars[3];
+    pars_exp[4] = pars[5];
+    pars_exp[5] = pars[7];
+
+
+    gmix_dev = gmix_new_model(GMIX_DEV,pars_dev,npars_dev, flags);
     if (*flags) {
         return;
     }
-    gmix_dev = gmix_new_model(GMIX_DEV,pars_dev,npars_dev, flags);
+    gmix_exp = gmix_new_model(GMIX_EXP,pars_exp,npars_exp, flags);
     if (*flags) {
         return;
     }
 
     memcpy(self->data,
-           gmix_exp->data,
-           ngauss_exp*sizeof(struct gauss2));
-    memcpy(self->data+ngauss_exp,
            gmix_dev->data,
            ngauss_dev*sizeof(struct gauss2));
+    memcpy(self->data+ngauss_dev,
+           gmix_exp->data,
+           ngauss_exp*sizeof(struct gauss2));
 
-    gmix_exp=gmix_free(gmix_exp);
     gmix_dev=gmix_free(gmix_dev);
+    gmix_exp=gmix_free(gmix_exp);
 
     return;
 }

@@ -213,7 +213,7 @@ int image_copy(const struct image *image, struct image *imout)
     }
     return 1;
 }
-struct image *image_newcopy(const struct image *image)
+struct image *image_new_copy(const struct image *image)
 {
     struct image *imout=NULL;
     size_t nrows=0, ncols=0, row=0;

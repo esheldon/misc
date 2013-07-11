@@ -101,7 +101,7 @@ struct image *_image_new(size_t nrows, size_t ncols, int alloc_data);
 int image_copy(const struct image *image, struct image *imout);
 
 // make a new copy, conforming to the region in the mask
-struct image *image_newcopy(const struct image *image);
+struct image *image_new_copy(const struct image *image);
 
 // in this case we own the rows only, not the data to which they point
 struct image* image_from_array(double* data, size_t nrows, size_t ncols);

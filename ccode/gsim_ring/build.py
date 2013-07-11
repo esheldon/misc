@@ -13,7 +13,16 @@ LINKFLAGS=['-lm']
 
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
-test_sources = ['test','shape','gauss2','gmix','gsim_ring']
+test_sources = ['test',
+                'shape',
+                'image',
+                'image_rand',
+                'gauss2',
+                'gmix',
+                'gmix_image',
+                'gmix_image_rand',
+                'randn',
+                'gsim_ring']
 programs = [{'name':'test', 'sources':test_sources}]
 
 def build():
