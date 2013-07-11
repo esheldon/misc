@@ -16,6 +16,8 @@ enum prob_type {
     PROB_SIMPLE01=3
 };
 
+#define PROB_BAD_TYPE 0x1
+
 // BA13 g prior
 // log normal priors on T and flux
 // gaussian prior on center
@@ -37,6 +39,8 @@ struct prob_data_simple_ba {
     struct dist_lognorm T_prior;
     struct dist_lognorm counts_prior;
 };
+
+enum prob_type prob_string2type(const char *type_name, long *flags);
 
 struct prob_data_simple_ba *prob_data_simple_ba_new(enum gmix_model model,
                                                     const struct obs_list *obs_list,

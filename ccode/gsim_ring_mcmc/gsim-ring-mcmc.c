@@ -9,6 +9,8 @@
 
 #include "mca.h"
 
+#include "config.h"
+#include "gmix_mcmc_config.h"
 #include "object.h"
 
 static FILE *open_file(const char *name)
@@ -23,17 +25,26 @@ static FILE *open_file(const char *name)
 int main(int argc, char **argv)
 {
 
-    long flags=0;
+    //long flags=0;
+    enum cfg_status cfg_stat=0;
+
     if (argc < 3) {
         printf("usage: test config objlist\n");
         exit(1);
     }
 
-    FILE *stream = open_file(argv[1]);
+    struct gmix_mcmc_config *conf=gmix_mcmc_config_read(argv[1], &cfg_stat);
+    if (cfg_stat!=0) {
+        exit(1);
+    }
+    gmix_mcmc_config_print(conf, stdout);
+
+    FILE *stream = open_file(argv[2]);
     if (!stream) {
         exit(1);
     }
 
+    /*
     long nlines = fileio_count_lines(stream);
     rewind(stream);
 
@@ -85,6 +96,8 @@ _loop_cleanup:
     }
 _bail:
 
+    */
+    conf = gmix_mcmc_config_free(conf);
     fclose(stream);
     return 0;
 }

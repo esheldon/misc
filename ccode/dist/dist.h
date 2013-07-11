@@ -4,10 +4,16 @@
 #ifndef _PRIORS_HEADER_GUARD
 #define _PRIORS_HEADER_GUARD
 
+#define DIST_LOG_LOWVAL -9.999e9
+#define DIST_LOG_MINARG 1.0e-10
+
+#define DIST_BAD_DIST 0x1
+
 enum dist {
     DIST_GAUSS,
     DIST_LOGNORMAL,
-    DIST_G_BA
+    DIST_G_BA,
+    DIST_GMIX3_ETA 
 };
 
 struct dist_gauss {
@@ -58,6 +64,7 @@ struct dist_gmix3_eta {
 })
 */
 
+enum dist dist_string2dist(const char *dist_name, long *flags);
 
 
 struct dist_gauss *dist_gauss_new(double mean, double sigma);

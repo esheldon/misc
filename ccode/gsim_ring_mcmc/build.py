@@ -13,19 +13,28 @@ LINKFLAGS=['-lm']
 
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
-test_sources = ['test',
-                'shape',
-                'image',
-                'image_rand',
-                'gauss2',
-                'gmix',
-                'gmix_image',
-                'gmix_image_rand',
-                'randn',
-                'gsim_ring',
-                'object',
-                'fileio']
-programs = [{'name':'test', 'sources':test_sources}]
+
+sources = ['gsim-ring-mcmc',
+           'config',
+           'gmix_mcmc_config',
+           'shape',
+           'prob',
+           'dist',
+           'image',
+           'image_rand',
+           'gauss2',
+           'gmix',
+           'gmix_image',
+           'gmix_image_rand',
+           'mca',
+           'randn',
+           'jacobian',
+           'gsim_ring',
+           'object',
+           'fileio']
+
+
+programs = [{'name':'gsim-ring-mcmc', 'sources':sources}]
 
 def build():
     compile()
