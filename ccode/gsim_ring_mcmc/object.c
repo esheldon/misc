@@ -6,7 +6,7 @@
 #include "gsim_ring.h"
 #include "object.h"
 
-static long read_pars(FILE* stream, double *pars, long npars, long *flags)
+static long read_pars(FILE* stream, double *pars, long npars)
 {
     for (long i=0; i<npars; i++) {
         long nread=fscanf(stream, "%lf", &pars[i]);
@@ -39,7 +39,7 @@ long object_read(struct object* self, FILE* stream)
     if (flags != 0) {
         goto _load_object_bail;
     }
-    self->npars=ring_get_npars_short(self->model, &flags)
+    self->npars=ring_get_npars_short(self->model, &flags);
     if (flags != 0) {
         goto _load_object_bail;
     }
@@ -62,7 +62,7 @@ long object_read(struct object* self, FILE* stream)
     if (flags != 0) {
         goto _load_object_bail;
     }
-    self->psf_npars=ring_get_npars_short(self->psf_model, &flags)
+    self->psf_npars=ring_get_npars_short(self->psf_model, &flags);
     if (flags != 0) {
         goto _load_object_bail;
     }
@@ -78,7 +78,7 @@ long object_read(struct object* self, FILE* stream)
         goto _load_object_bail;
     }
 
-    if (!shape_set_g(&self->shape, shear1, shear2)) {
+    if (!shape_set_g(&self->shear, shear1, shear2)) {
         goto _load_object_bail;
     }
 

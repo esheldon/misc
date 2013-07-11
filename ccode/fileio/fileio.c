@@ -1,0 +1,48 @@
+#include <stdlib.h>
+#include <stdio.h>
+
+FILE *fileio_open_stream(const char *name)
+{
+    FILE *fobj=fopen(name,"r");
+    if (!fobj) {
+        fprintf(stderr,"error opening file: %s\n", name);
+    }
+    return fobj;
+}
+
+long fileio_count_lines(FILE *stream)
+{
+    long nlines=0;
+    int c=0;
+
+    do {
+        c = fgetc(stream);
+        if (c == '\n') {
+            nlines++;
+        }
+    } while (c != EOF);
+
+    return nlines;
+}
+
+int fileio_skip_line(FILE *stream) {
+    int c=0;
+    do {
+        c=fgetc(stream);
+        if (c=='\n') {
+            break;
+        }
+    } while (c != EOF);
+    return c;
+}
+int fileio_skip_lines(FILE *stream, long nlines) {
+    int c=0;
+    long nfound=0;
+    do {
+        c=fgetc(stream);
+        if (c=='\n') {
+            nfound++;
+        }
+    } while (c != EOF && nfound < nlines);
+    return c;
+}
