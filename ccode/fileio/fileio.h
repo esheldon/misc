@@ -1,0 +1,11 @@
+#ifndef _FILEIO_HEADER_GUARD
+#define _FILEIO_HEADER_GUARD
+
+FILE *fileio_open_stream(const char *name);
+long fileio_count_lines(FILE *stream);
+// last char is returned
+int fileio_skip_line(FILE *stream);
+// last char is returned
+int fileio_skip_lines(FILE *stream, long nlines);
+
+#endif

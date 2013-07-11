@@ -5,6 +5,9 @@
 #include "shape.h"
 #include "image.h"
 #include "time.h"
+#include "fileio.h"
+
+#include "object.h"
 
 /*
 void show_image(const struct image *self, const char *name)
@@ -36,14 +39,7 @@ static FILE *open_file(const char *name)
     }
     return fobj;
 }
-/*
-void skip_line(FILE *stream) {
-    int c=0;
-    while (c != '\n') {
-        c=fgetc(stream);
-    }
-}
-*/
+
 int main(int argc, char **argv)
 {
 
@@ -55,6 +51,23 @@ int main(int argc, char **argv)
     FILE *stream = open_file(argv[1]);
     if (!stream) {
         exit(1);
+    }
+
+    long nlines = fileio_count_lines(stream);
+    rewind(stream);
+
+    fprintf(stderr,"reading %ld objects\n", nlines);
+
+    struct object obj={{0}};
+    for (long i=0; i<nlines; i++) {
+        if (!object_read(&obj, stream)) {
+            fprintf(stderr, "error reading object, aborting: %s: %d",
+                    __FILE__,__LINE__);
+            exit(1);
+
+        }
+
+        object_print(&obj, stdout);
     }
     return 0;
 }

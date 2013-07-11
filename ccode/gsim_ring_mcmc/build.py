@@ -22,7 +22,9 @@ test_sources = ['test',
                 'gmix_image',
                 'gmix_image_rand',
                 'randn',
-                'gsim_ring']
+                'gsim_ring',
+                'object',
+                'fileio']
 programs = [{'name':'test', 'sources':test_sources}]
 
 def build():
