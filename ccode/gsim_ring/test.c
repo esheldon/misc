@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     struct gmix *gmix_psf=NULL;
     struct ring_pair *rpair=NULL;
     struct ring_image_pair *impair=NULL;
-    double s2n=1000;
+    double s2n=100;
     struct shape shear={0};
     double cen1_offset=0.1, cen2_offset=-0.2;
 

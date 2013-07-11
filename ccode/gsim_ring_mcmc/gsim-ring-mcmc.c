@@ -35,6 +35,7 @@ int main(int argc, char **argv)
 
     struct gmix_mcmc_config *conf=gmix_mcmc_config_read(argv[1], &cfg_stat);
     if (cfg_stat!=0) {
+        fprintf(stderr,"fatal error reading conf, exiting\n");
         exit(1);
     }
     gmix_mcmc_config_print(conf, stdout);

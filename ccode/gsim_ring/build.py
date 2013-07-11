@@ -21,6 +21,7 @@ test_sources = ['test',
                 'gmix',
                 'gmix_image',
                 'gmix_image_rand',
+                'jacobian',
                 'randn',
                 'gsim_ring']
 programs = [{'name':'test', 'sources':test_sources}]

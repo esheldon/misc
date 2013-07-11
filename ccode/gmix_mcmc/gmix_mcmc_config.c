@@ -96,6 +96,7 @@ _gmix_mcmc_config_read_bail:
 
     cfg=cfg_free(cfg);
     if (*status != 0 || flags != 0) {
+        fprintf(stderr,"Config Error for key '%s': %s\n", key,cfg_status_string(*status));
         free(tstr);tstr=NULL;
         self=gmix_mcmc_config_free(self);
     }
