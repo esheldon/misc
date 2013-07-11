@@ -11,10 +11,9 @@ CC='gcc'
 # -lrt is only needed for the timing stuff
 LINKFLAGS=['-lm']
 
-#CFLAGS=['-std=gnu99','-Wall','-Werror','-O2','-mfpmath=sse']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
-test_sources = ['test','shape','gauss2','gmix','gmix_ring']
+test_sources = ['test','shape','gauss2','gmix','gsim_ring']
 programs = [{'name':'test', 'sources':test_sources}]
 
 def build():

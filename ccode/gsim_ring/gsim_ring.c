@@ -12,14 +12,15 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
                                 double s2n,
                                 const double *pars, long npars,
                                 const struct gmix *psf, 
-                                double shear1, double shear2,
+                                const struct shape *shear,
                                 long *flags)
 {
     long npars_full=8, expected_npars=5;
     double pars1[8] = {0};
     double pars2[8] = {0};
-    struct shape1={0}, shape2={0};
+    struct shape shape1={0}, shape2={0};
     struct ring_pair *self=NULL;
+    struct gmix *gmix1_0=NULL, *gmix2_0=NULL;
 
     self=calloc(1, sizeof(struct ring_pair));
     if (self==NULL) {
@@ -53,6 +54,8 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
 
     shape_set_eta(&shape1, eta1_1, eta2_1);
     shape_set_eta(&shape2, eta1_2, eta2_2);
+    shape_add_inplace(&shape1, shear);
+    shape_add_inplace(&shape2, shear);
 
     pars1[0] = -1; // arbitrary at this point
     pars1[1] = -1; // arbitrary at this point
@@ -72,11 +75,20 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
     pars2[6] = pars[3];
     pars2[7] = pars[4];
 
-    self->gmix1=gmix_new_model(model, pars1, npars_full, flags);
+    gmix1_0=gmix_new_model(model, pars1, npars_full, flags);
     if (*flags != 0) {
         goto _ring_pair_new_bail;
     }
-    self->gmix2=gmix_new_model(model, pars2, npars_full, flags);
+    gmix2_0=gmix_new_model(model, pars2, npars_full, flags);
+    if (*flags != 0) {
+        goto _ring_pair_new_bail;
+    }
+
+    self->gmix1 = gmix_convolve(gmix1_0, psf, flags);
+    if (*flags != 0) {
+        goto _ring_pair_new_bail;
+    }
+    self->gmix2 = gmix_convolve(gmix2_0, psf, flags);
     if (*flags != 0) {
         goto _ring_pair_new_bail;
     }
@@ -86,6 +98,8 @@ _ring_pair_new_bail:
     if (*flags != 0) {
         self=ring_pair_free(self);
     }
+    gmix1_0 = gmix_free(gmix1_0);
+    gmix2_0 = gmix_free(gmix2_0);
     return self;
 
 }
@@ -100,4 +114,15 @@ struct ring_pair *ring_pair_free(struct ring_pair *self)
         self=NULL;
     }
     return self;
+}
+
+void ring_pair_print(const struct ring_pair *self, FILE* stream)
+{
+    fprintf(stream,"s2n:   %g\n", self->s2n);
+    fprintf(stream,"npars: %ld\n", self->npars);
+
+    fprintf(stream,"gmix1:\n");
+    gmix_print(self->gmix1, stream);
+    fprintf(stream,"gmix2:\n");
+    gmix_print(self->gmix2, stream);
 }

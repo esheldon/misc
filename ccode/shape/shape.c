@@ -226,7 +226,7 @@ int shape_set_eta(struct shape *self, double eta1, double eta2)
 }
 
 
-struct shape *shape_add(struct shape *self, struct shape *shear)
+struct shape *shape_add(struct shape *self, const struct shape *shear)
 {
     struct shape *new=shape_new_e(self->e1,self->e2);
     if (!shape_add_inplace(new, shear)) {
@@ -235,7 +235,7 @@ struct shape *shape_add(struct shape *self, struct shape *shear)
     }
     return new;
 }
-int shape_add_inplace(struct shape *self, struct shape *shear)
+int shape_add_inplace(struct shape *self, const struct shape *shear)
 {
 
     if (shear->e1 == 0 && shear->e2 == 0) {
