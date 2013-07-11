@@ -19,9 +19,9 @@ struct gmix *get_gmix(size_t ngauss, size_t nrow, size_t ncol)
     double col=nrow/2.;
     double row=ncol/2.;
 
-    gauss_set(&gptr[0],
+    gauss2_set(&gptr[0],
             0.6, row, col, 7., 0.0, 12.);
-    gauss_set(&gptr[1],
+    gauss2_set(&gptr[1],
             0.4, row, col, 16., 5., 27.);
     return gmix;
 }
@@ -38,14 +38,14 @@ struct gmix *get_guess_gmix(size_t ngauss, size_t nrow, size_t ncol)
     double row=nrow/2. + 2*(drand48()-0.5);
     double col=ncol/2. + 2*(drand48()-0.5);
 
-    gauss_set(&gptr[0],
+    gauss2_set(&gptr[0],
             0.2 + .05*(drand48()-0.5), 
             row,
             col,
             10.0*(1 + .1*(drand48()-0.5)), 
             0.0 + 2*(drand48()-0.5), 
             10.0*(1 + .1*(drand48()-0.5)) );
-    gauss_set(&gptr[1],
+    gauss2_set(&gptr[1],
             0.3 + .05*(drand48()-0.5), 
             row,
             col,

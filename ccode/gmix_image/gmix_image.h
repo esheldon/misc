@@ -8,6 +8,7 @@
 #include "gmix.h"
 
 #define GMIX_IMAGE_LOW_VAL (-9999.e49)
+#define GMIX_IMAGE_BIGNUM 9.999e9
 
 /*
 
@@ -50,12 +51,6 @@ double gmix_image_loglike(const struct image *image,
                           double ivar,
                           int *flags);
 
-/* analytically marginalize over amplitude */
-double gmix_image_loglike_margamp(
-        const struct image *image, 
-        const struct gmix *gmix, 
-        double ivar,
-        int *flags);
 
 double gmix_image_s2n(const struct image *image, 
                       double skysig, 

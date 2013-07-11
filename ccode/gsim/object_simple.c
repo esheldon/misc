@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "object.h"
+#include "object_simple.h"
 
-int object_read_one(struct object *self, FILE *fobj)
+int object_simple_read_one(struct object_simple *self, FILE *fobj)
 {
     int nread=0;
     double sigma=0; // T = sigma1**2 + sigma2**2
@@ -15,7 +15,7 @@ int object_read_one(struct object *self, FILE *fobj)
 
     if (nread != 3) goto _object_read_one_bail;
 
-    shape_read_e1e2(&self->shape, fobj);
+    shape_read_e(&self->shape, fobj);
     nread+=2;
 
     nread += fscanf(fobj,
@@ -26,7 +26,7 @@ int object_read_one(struct object *self, FILE *fobj)
     if (nread!=8) goto _object_read_one_bail;
     self->T = 2*sigma*sigma;
 
-    shape_read_e1e2(&self->psf_shape, fobj);
+    shape_read_e(&self->psf_shape, fobj);
 
     nread += 2;
 
@@ -48,7 +48,7 @@ _object_read_one_bail:
 }
 
 
-void object_write_one(struct object *self, FILE* fobj)
+void object_simple_write_one(struct object_simple *self, FILE* fobj)
 {
     int nwrite=fprintf(fobj,
                        "%s %lf %lf %lf %lf %lf %lf %s %lf %lf %lf\n",

@@ -29,9 +29,9 @@ struct config {
     double a;
 
     char *obj_model;
-    enum gmix_par_type obj_type;
+    enum gmix_model obj_type;
     char *psf_model;
-    enum gmix_par_type psf_type;
+    enum gmix_model psf_type;
 
     int ngauss;
     int ngauss_psf;
@@ -76,7 +76,7 @@ struct fitter {
 
     double a;
 
-    enum gmix_par_type par_type;
+    enum gmix_model par_type;
 
     // we can keep these around
     struct mca_chain *burnin_chain;
@@ -191,7 +191,7 @@ void coellip_g2e(const double *parsin, double *parsout, int npars)
     struct shape sh = {0};
 
     memcpy(parsout, parsin, npars*sizeof(double));
-    shape_set_g1g2(&sh, parsout[2], parsout[3]);
+    shape_set_g(&sh, parsout[2], parsout[3]);
 
     parsout[2] = sh.e1;
     parsout[3] = sh.e2;
@@ -255,11 +255,11 @@ double gen_lnprob(const double *pars,
         if (!gmix_fill_coellip(data->obj, pars, npars) ) {
             exit(EXIT_FAILURE);
         }
-    } else if (data->par_type == GMIX_APPROX_DEV) {
+    } else if (data->par_type == GMIX_DEV) {
         if (!gmix_fill_dev(data->obj, pars, npars) ) {
             exit(EXIT_FAILURE);
         }
-    } else if (data->par_type == GMIX_APPROX_EXP) {
+    } else if (data->par_type == GMIX_EXP) {
         if (!gmix_fill_dev(data->obj, pars, npars) ) {
             exit(EXIT_FAILURE);
         }
@@ -305,7 +305,7 @@ struct am do_admom(struct image *image,
     am.skysig = skysig;
 
     fprintf(stderr,"row0: %lu col0: %lu\n",image->row0,image->col0);
-    gauss_set(&am.guess,
+    gauss2_set(&am.guess,
             1., rowguess, colguess, 
             Tguess/2., 0.0, Tguess/2.);
 

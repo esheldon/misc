@@ -5,7 +5,7 @@
 
 #include "shape.h"
 
-struct object {
+struct object_simple {
     char model[20];
     double row;
     double col;
@@ -18,7 +18,7 @@ struct object {
     double psf_T;
 };
 
-int object_read_one(struct object *self, FILE *fobj);
-void object_write_one(struct object *self, FILE* fobj);
+int object_simple_read_one(struct object_simple *self, FILE *fobj);
+void object_simple_write_one(struct object_simple *self, FILE* fobj);
 
 #endif

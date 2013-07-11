@@ -7,11 +7,14 @@ struct shape {
 
     double e1;
     double e2;
+
+    double eta1;
+    double eta2;
 };
 
 struct shape *shape_new(void);
-struct shape *shape_new_e1e2(double e1, double e2);
-struct shape *shape_new_g1g2(double g1, double g2);
+struct shape *shape_new_e(double e1, double e2);
+struct shape *shape_new_g(double g1, double g2);
 
 // return NULL, use as sh=shape_free(sh);
 struct shape *shape_free(struct shape *self);
@@ -23,19 +26,22 @@ void shape_show(const struct shape *self, FILE *fptr);
 
 // just write e1,e2 to the file
 // %.16g %.16g
-void shape_write_e1e2(const struct shape *self, FILE *fptr);
-void shape_write_g1g2(const struct shape *self, FILE *fptr);
-void shape_read_e1e2(struct shape *self, FILE *fptr);
-void shape_read_g1g2(struct shape *self, FILE *fptr);
+void shape_write_e(const struct shape *self, FILE *fptr);
+void shape_write_g(const struct shape *self, FILE *fptr);
+void shape_read_e(struct shape *self, FILE *fptr);
+void shape_read_g(struct shape *self, FILE *fptr);
 
 
-// set e1,e2, also keeping g1,g2 consistent
-// returns 0 if g or e >= 1, else 1
-int shape_set_e1e2(struct shape *self, double e1, double e2);
+// set e1,e2 as well as g and eta
+// returns 0 if out of domain
+int shape_set_e(struct shape *self, double e1, double e2);
 
-// set g1,g2, also keeping e1,e2 consistent
-// returns 0 if g or e >= 1, else 1
-int shape_set_g1g2(struct shape *self, double g1, double g2);
+// set g1,g2 as well as e and eta
+// returns 0 if out of domain
+int shape_set_g(struct shape *self, double g1, double g2);
+
+// set eta1,eta2 as well as g and e
+int shape_set_eta(struct shape *self, double eta1, double eta2);
 
 // create a new shape and place in it self+shear
 // returns NULL if failure (e.g. e >= 1)
