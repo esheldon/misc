@@ -107,7 +107,7 @@ int main(int argc, char** argv)
     wlog("storing image in '%s'\n", image_fname);
     image_write_file(image, image_fname);
 
-    struct image *noisy_im = image_newcopy(image);
+    struct image *noisy_im = image_new_copy(image);
     // need to fix this program
     admom_add_noise(noisy_im, s2n, &gmix_true->data[0], &skysig, &s2n_meas);
     double ivar = 1./(skysig*skysig);

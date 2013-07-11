@@ -5,6 +5,8 @@
 #include "gmix.h"
 #include "shape.h"
 
+#define GAUSS_PADDING 5
+
 // for now models are always bulge+disk, so pars are
 // 
 //    [eta,eta2,Tbulge,Tdisk,Fbulge,Fdisk]
@@ -24,20 +26,28 @@ struct ring_pair {
     struct gmix *gmix2;
 };
 
+// the shortened pars
+long ring_get_npars_short(enum gmix_model model, long *flags);
+
 // creates a new ring pair, convolved wih the PSF and sheared
-//
-// For BD, the pars should be length 5
-//     [eta,Tbulge,Tdisk,Fbulge,Fdisk]
 
 struct ring_pair *ring_pair_new(enum gmix_model model,
-                                double s2n,
                                 const double *pars, long npars,
                                 const struct gmix *psf, 
                                 const struct shape *shear,
+                                double s2n,
                                 long *flags);
 
 struct ring_pair *ring_pair_free(struct ring_pair *self);
 
 void ring_pair_print(const struct ring_pair *self, FILE* stream);
+
+struct image *ring_make_image(const struct gmix *gmix,
+                              double cen1_offset,
+                              double cen2_offset,
+                              int nsub,
+                              double s2n,
+                              double *skysig, // output
+                              long *flags);
 
 #endif

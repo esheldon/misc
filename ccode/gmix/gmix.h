@@ -36,9 +36,10 @@ enum gmix_model {
     GMIX_TURB=2,
     GMIX_EXP=3,
     GMIX_DEV=4,
-    GMIX_COELLIP_TFRAC=5,
-    GMIX_BD=6
+    GMIX_BD=5
 };
+
+enum gmix_model gmix_string2model(const char *model_name, long *flags);
 
 long gmix_get_simple_ngauss(enum gmix_model model, long *flags);
 long gmix_get_coellip_ngauss(long npars, long *flags);
@@ -76,7 +77,7 @@ long gmix_verify(const struct gmix *self);
 
 
 void gmix_copy(const struct gmix *self, struct gmix* dest, long *flags);
-struct gmix *gmix_newcopy(const struct gmix *self, long *flags);
+struct gmix *gmix_new_copy(const struct gmix *self, long *flags);
 void gmix_print(const struct gmix *self, FILE* fptr);
 
 // calculate the weighted sum of the moments

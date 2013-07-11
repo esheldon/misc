@@ -543,7 +543,7 @@ void process_object(struct fitters_ce *fitters,
     image_add_mask(psf_fitter->image, &obj->mask);
 
     // see if it is a mask problem
-    //psf_fitter->image=image_newcopy(psf_fitter->image);
+    //psf_fitter->image=image_new_copy(psf_fitter->image);
 
     //exit(1);
 
