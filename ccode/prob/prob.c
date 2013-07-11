@@ -2,18 +2,17 @@
 #include <stdio.h>
 #include <string.h>
 #include "prob.h"
-#include "render.h"
+#include "gmix_image.h"
 #include "gmix.h"
-#include "convert.h"
-//#include "defs.h"
+#include "shape.h"
 
 enum prob_type prob_string2type(const char *type_name, long *flags)
 {
     enum prob_type type=0;
     if (0==strcmp(type_name,"PROB_NOSPLIT_ETA")) {
         type=PROB_NOSPLIT_ETA;
-    } else if (0==strcmp(type_name,"PROB_SIMPLE")) {
-        type=PROB_SIMPLE;
+    } else if (0==strcmp(type_name,"PROB_SIMPLE01")) {
+        type=PROB_SIMPLE01;
     } else if (0==strcmp(type_name,"PROB_BA13")) {
         type=PROB_BA13;
     } else {
@@ -60,13 +59,13 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
             goto _prob_calc_simple_likelihood_generic_bail;
         }
         // the only failure is actually redundant with above
-        *flags |= calculate_loglike_wt_jacob(obs->image, 
-                                             obs->weight,
-                                             &obs->jacob,
-                                             obj,
-                                             &t_s2n_numer,
-                                             &t_s2n_denom,
-                                             &t_loglike);
+        *flags |= gmix_image_loglike_wt_jacob(obs->image, 
+                                              obs->weight,
+                                              &obs->jacob,
+                                              obj,
+                                              &t_s2n_numer,
+                                              &t_s2n_denom,
+                                              &t_loglike);
         if (*flags) {
             goto _prob_calc_simple_likelihood_generic_bail;
         }
@@ -78,7 +77,7 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
 
 _prob_calc_simple_likelihood_generic_bail:
     if (*flags) {
-        *loglike = LOG_LOWVAL;
+        *loglike = PROB_LOG_LOWVAL;
         *s2n_numer=0;
         *s2n_denom=0;
     }
@@ -208,7 +207,7 @@ void prob_simple_ba_calc(struct prob_data_simple_ba *self,
 
 _prob_simple_ba_calc_bail:
     if (*flags != 0) {
-        (*lnprob) = LOG_LOWVAL;
+        (*lnprob) = PROB_LOG_LOWVAL;
         *s2n_numer=0;
         *s2n_denom=0;
     }
@@ -306,15 +305,17 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
                          double *lnprob, long *flags)
 {
 
-    double loglike=0, priors_lnprob=0, g1=0, g2=0;
+    double loglike=0, priors_lnprob=0;
     double gpars[6];
+    struct shape shape={0};
 
     memcpy(gpars, pars, 6);
 
-    eta1eta2_to_g1g2(pars[2], pars[3], &g1, &g2);
+    shape_set_eta(&shape, pars[2], pars[3]);
+    //eta1eta2_to_g1g2(pars[2], pars[3], &g1, &g2);
 
-    gpars[2] = g1;
-    gpars[3] = g2;
+    gpars[2] = shape.g1;
+    gpars[3] = shape.g2;
 
     *lnprob=0;
 
@@ -345,7 +346,7 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
 
 _prob_simple_gmix3_eta_calc_bail:
     if (*flags != 0) {
-        (*lnprob) = LOG_LOWVAL;
+        (*lnprob) = PROB_LOG_LOWVAL;
         *s2n_numer=0;
         *s2n_denom=0;
     }
@@ -472,7 +473,7 @@ void prob_simple01_calc(struct prob_data_simple01 *self,
 
 _prob_simple01_calc_bail:
     if (*flags != 0) {
-        (*lnprob) = LOG_LOWVAL;
+        (*lnprob) = PROB_LOG_LOWVAL;
         *s2n_numer=0;
         *s2n_denom=0;
     }

@@ -18,6 +18,8 @@ enum prob_type {
 
 #define PROB_BAD_TYPE 0x1
 
+#define PROB_LOG_LOWVAL -9.999e9
+
 // BA13 g prior
 // log normal priors on T and flux
 // gaussian prior on center
