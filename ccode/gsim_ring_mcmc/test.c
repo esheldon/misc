@@ -1,3 +1,6 @@
+/*
+   Only for testing loading of objects and creating image pairs.
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "gmix.h"
@@ -9,27 +12,6 @@
 
 #include "object.h"
 
-/*
-void show_image(const struct image *self, const char *name)
-{
-    char cmd[256];
-    printf("writing temporary image to: %s\n", name);
-    FILE *fobj=fopen(name,"w");
-    int ret=0;
-    image_write(self, fobj);
-
-    fclose(fobj);
-
-    sprintf(cmd,"image-view -m %s", name);
-    printf("%s\n",cmd);
-    ret=system(cmd);
-
-    sprintf(cmd,"rm %s", name);
-    printf("%s\n",cmd);
-    ret=system(cmd);
-    printf("ret: %d\n", ret);
-}
-*/
 
 static FILE *open_file(const char *name)
 {
@@ -43,6 +25,7 @@ static FILE *open_file(const char *name)
 int main(int argc, char **argv)
 {
 
+    long flags=0;
     if (argc < 2) {
         printf("usage: test objlist\n");
         exit(1);
@@ -56,18 +39,54 @@ int main(int argc, char **argv)
     long nlines = fileio_count_lines(stream);
     rewind(stream);
 
-    fprintf(stderr,"reading %ld objects\n", nlines);
+    fprintf(stderr,"reading %ld objects\n\n", nlines);
 
     struct object obj={{0}};
+    struct ring_image_pair *impair=NULL;
+    struct ring_pair *rpair=NULL;
     for (long i=0; i<nlines; i++) {
         if (!object_read(&obj, stream)) {
             fprintf(stderr, "error reading object, aborting: %s: %d",
                     __FILE__,__LINE__);
             exit(1);
-
         }
 
         object_print(&obj, stdout);
+
+        rpair = ring_pair_new(obj.model,
+                              obj.pars,
+                              obj.npars,
+                              obj.psf_model,
+                              obj.psf_pars,
+                              obj.psf_npars,
+                              &obj.shear,
+                              obj.s2n,
+                              obj.cen1_offset,
+                              obj.cen2_offset,
+                              &flags);
+        if (flags != 0) {
+            goto _loop_cleanup;
+        }
+
+        ring_pair_print(rpair,stdout);
+
+        impair = ring_image_pair_new(rpair, &flags);
+
+        if (flags != 0) {
+            goto _loop_cleanup;
+        }
+
+        printf("skysig1: %g  skysig2: %g\n", impair->skysig1, impair->skysig2);
+
+_loop_cleanup:
+        rpair = ring_pair_free(rpair);
+        impair = ring_image_pair_free(impair);
+        if (flags != 0) {
+            goto _bail;
+        }
     }
+_bail:
+
+    fclose(stream);
     return 0;
 }

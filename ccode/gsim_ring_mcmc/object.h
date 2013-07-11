@@ -23,6 +23,8 @@ struct object {
     double cen2_offset;
 
     struct shape shear;
+
+    double s2n;
 };
 
 // return is 1 for success, 0 for failure
