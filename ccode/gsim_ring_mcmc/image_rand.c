@@ -1,0 +1,1 @@
+../image/image_rand.c
