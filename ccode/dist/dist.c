@@ -4,6 +4,24 @@
 #include "dist.h"
 //#include "defs.h"
 
+enum dist dist_string2dist(const char *dist_name, long *flags)
+{
+    enum dist type=0;
+    if (0==strcmp(dist_name,"DIST_GAUSS")) {
+        type=DIST_GAUSS;
+    } else if (0==strcmp(dist_name,"DIST_GMIX3_ETA")) {
+        type=DIST_GMIX3_ETA;
+    } else if (0==strcmp(dist_name,"DIST_LOGNORMAL")) {
+        type=DIST_LOGNORMAL;
+    } else if (0==strcmp(dist_name,"DIST_G_BA")) {
+        type=DIST_G_BA;
+    } else {
+        *flags |= DIST_BAD_DIST;
+    }
+    return type;
+}
+
+
 void dist_gauss_fill(struct dist_gauss *self, double mean, double sigma)
 {
     self->mean=mean;

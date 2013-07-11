@@ -2,6 +2,7 @@
 #define _CATALOG_HEADER_GUARD
 
 #include "gmix.h"
+#include "shape.h"
 
 // par size is fixed but loaded values vary
 struct object {

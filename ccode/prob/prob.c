@@ -7,6 +7,22 @@
 #include "convert.h"
 //#include "defs.h"
 
+enum prob_type prob_string2type(const char *type_name, long *flags)
+{
+    enum prob_type type=0;
+    if (0==strcmp(type_name,"PROB_NOSPLIT_ETA")) {
+        type=PROB_NOSPLIT_ETA;
+    } else if (0==strcmp(type_name,"PROB_SIMPLE")) {
+        type=PROB_SIMPLE;
+    } else if (0==strcmp(type_name,"PROB_BA13")) {
+        type=PROB_BA13;
+    } else {
+        *flags |= PROB_BAD_TYPE;
+    }
+    return type;
+}
+
+
 // generic likelihood calculator
 void prob_calc_simple_likelihood(struct gmix *obj0,
                                  struct gmix *obj,
