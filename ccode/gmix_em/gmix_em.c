@@ -118,7 +118,7 @@ int gmix_wmean_center(const struct gmix* gmix, struct vec2* mu_new)
     memset(&Cinvpsum,0,sizeof(struct mtx2));
     memset(&mu_Cinvpsum,0,sizeof(struct vec2));
 
-    const struct gauss* gauss = gmix->data;
+    const struct gauss2* gauss = gmix->data;
     for (i=0; i<gmix->size; i++) {
         // p*C^-1
         mtx2_set(&C, gauss->irr, gauss->irc, gauss->icc);
@@ -162,8 +162,8 @@ _gmix_wmean_center_bail:
 void gmix_wmean_covar(const struct gmix* gmix, struct mtx2 *cov)
 {
     double psum=0.0;
-    struct gauss *gauss=gmix->data;
-    struct gauss *end=gmix->data+gmix->size;
+    struct gauss2 *gauss=gmix->data;
+    struct gauss2 *end=gmix->data+gmix->size;
 
     mtx2_sprodi(cov, 0.0);
     
@@ -278,7 +278,7 @@ int gmix_get_sums(struct gmix_em* self,
     double u=0, v=0, uv=0, u2=0, v2=0;
     size_t i=0, col=0, row=0;
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
-    struct gauss* gauss=NULL;
+    struct gauss2 *gauss=NULL;
     struct gmix_em_sums *sums=NULL;
 
     double counts=image_get_counts(image);
@@ -306,7 +306,7 @@ int gmix_get_sums(struct gmix_em* self,
 
                 chi2=gauss->dcc*u2 + gauss->drr*v2 - 2.0*gauss->drc*uv;
 
-                if (chi2 < EXP_MAX_CHI2) {
+                if (chi2 < GAUSS2_EXP_MAX_CHI2) {
                     sums->gi = gauss->norm*gauss->p*expd( -0.5*chi2 );
                 } else {
                     sums->gi=0;
@@ -360,7 +360,7 @@ void gmix_em_gmix_set_fromiter(struct gmix *gmix,
                                struct gmix_em_iter* iter)
 {
     struct gmix_em_sums *sums=iter->sums;
-    struct gauss *gauss = gmix->data;
+    struct gauss2 *gauss = gmix->data;
     size_t i=0;
     for (i=0; i<gmix->size; i++) {
         double p   = sums->pnew;
@@ -370,7 +370,7 @@ void gmix_em_gmix_set_fromiter(struct gmix *gmix,
         double irc = sums->uvsum/sums->pnew;
         double icc = sums->v2sum/sums->pnew;
 
-        gauss_set(gauss,p, row, col, irr, irc, icc);
+        gauss2_set(gauss,p, row, col, irr, irc, icc);
 
         sums++;
         gauss++;

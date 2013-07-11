@@ -16,7 +16,7 @@ LINKFLAGS=['-lm']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
 sources=['gmix_mcmc',
-         'gauss',
+         'gauss2',
          'gmix',
          'image','image_rand',
          'gmix_image','gmix_image_rand',

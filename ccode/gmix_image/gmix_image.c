@@ -3,7 +3,7 @@
 #include <float.h> // for DBL_MAX
 #include "gmix_image.h"
 #include "image.h"
-#include "gauss.h"
+#include "gauss2.h"
 #include "gmix.h"
 #include "fmath.h"
 
@@ -88,7 +88,7 @@ int gmix_image_put_masked(struct image *image,
 
     image_add_mask(masked_image, mask);
 
-    struct gauss *gauss=gmix->data;
+    struct gauss2 *gauss=gmix->data;
 
     for (int i=0; i<gmix->size; i++) {
         gauss->row -= mask->rowmin;
@@ -114,7 +114,7 @@ double gmix_image_loglike(const struct image *image,
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
 
-    //struct gauss *gauss=NULL;
+    //struct gauss2 *gauss=NULL;
     double diff=0;
     size_t col=0, row=0;
 
@@ -151,67 +151,6 @@ _gmix_image_loglike_bail:
 
     return loglike;
 }
-
-double gmix_image_loglike_margamp(
-        const struct image *image, 
-        const struct gmix *gmix, 
-        double ivar,
-        int *flags)
-{
-    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
-
-    size_t col=0, row=0;
-
-    double loglike = 0;
-    double model_val=0;
-    double *rowdata=NULL;
-
-    double ierr=sqrt(ivar);
-    double A=1;
-    double ymodsum=0; // sum of (image/err)
-    double ymod2sum=0; // sum of (image/err)^2
-    double B=0.; // sum(model*image/err^2)/A
-
-    (*flags)=0;
-
-    if (!gmix_verify(gmix)) {
-        (*flags) |= GMIX_IMAGE_NEGATIVE_DET;
-        loglike = GMIX_IMAGE_LOW_VAL;
-        goto _gmix_image_loglike_margamp_bail;
-    }
-
-
-    for (row=0; row<nrows; row++) {
-        rowdata=IM_ROW(image, row);
-        for (col=0; col<ncols; col++) {
-
-            model_val = GMIX_EVAL(gmix, row, col);
-
-            ymodsum += model_val;
-            ymod2sum += model_val*model_val;
-            B += (*rowdata)*model_val;
-
-            rowdata++;
-        } // cols
-    } // rows
-
-
-    ymodsum *= ierr;
-    ymod2sum *= ierr*ierr;
-    double norm = sqrt(ymodsum*ymodsum*A/ymod2sum);
-
-    // renorm so A is fixed; also extra factor of 1/err^2 and 1/A
-    B *= (norm/ymodsum*ierr*ierr/A);
-
-    loglike = 0.5*A*B*B;
-
-
-_gmix_image_loglike_margamp_bail:
-
-    return loglike;
-}
-
-
 
 
 double gmix_image_s2n(const struct image *image, 

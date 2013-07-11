@@ -7,9 +7,12 @@
 #define M_TWO_PI   6.28318530717958647693
 #endif
 
-#define EXP_MAX_CHI2 200
+#define GAUSS2_ERROR_NEGATIVE_DET 0x1
+#define GAUSS2_ERROR_G_RANGE 0x1
 
-struct gauss {
+#define GAUSS2_EXP_MAX_CHI2 25
+
+struct gauss2 {
     double p;
     double row;
     double col;
@@ -28,9 +31,27 @@ struct gauss {
     double dcc;
 
     double norm; // 1/( 2*pi*sqrt(det) )
+
+    double pnorm; // p*norm
 };
 
-#define GAUSS_EVAL(gauss, rowval, colval) ({                   \
+// use this to keep the structure internally consistent
+void gauss2_set(struct gauss2 *self,
+                double p,
+                double row,
+                double col,
+                double irr,
+                double irc,
+                double icc,
+                long *flags);
+
+
+void gauss2_print(const struct gauss2 *self, FILE *stream);
+
+// 0 means without normalization, so the peak is 1
+double gauss2_lnprob0(const struct gauss2 *self, double row, double col);
+
+#define GAUSS2_EVAL(gauss, rowval, colval) ({                   \
     double _u = (rowval)-(gauss)->row;                         \
     double _v = (colval)-(gauss)->col;                         \
                                                                \
@@ -40,26 +61,12 @@ struct gauss {
         - 2.0*(gauss)->drc*_u*_v;                              \
                                                                \
     double _val=0.0;                                           \
-    if (_chi2 < EXP_MAX_CHI2) {                                \
+    if (_chi2 < GAUSS2_EXP_MAX_CHI2) {                                \
         _val = (gauss)->norm*(gauss)->p*expd( -0.5*_chi2 );    \
     }                                                          \
                                                                \
     _val;                                                      \
 })
 
-// use this to keep the structure internally consistent
-int gauss_set(struct gauss *self,
-              double p,
-              double row,
-              double col,
-              double irr,
-              double irc,
-              double icc);
-
-
-void gauss_print(const struct gauss *self, FILE *stream);
-
-// 0 means without normalization, so the peak is 1
-double gauss_lnprob0(const struct gauss *self, double row, double col);
 
 #endif

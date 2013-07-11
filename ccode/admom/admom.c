@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "admom.h"
-#include "gauss.h"
+#include "gauss2.h"
 #include "image.h"
 #include "randn.h"
 
@@ -16,7 +16,7 @@
    the edges
 */
 static void get_mask(const struct image *image,
-                     struct gauss *gauss, 
+                     struct gauss2 *gauss, 
                      double nsigma,
                      struct image_mask *mask)
 {
@@ -46,8 +46,8 @@ static void calc_moments(struct am *am, const struct image *image)
     double sums4=0,det25=0;
     double wtrow=0, wtcol=0;
     const double *rowdata=NULL;
-    struct gauss *wt=NULL;
-    const struct gauss *guess=NULL;
+    struct gauss2 *wt=NULL;
+    const struct gauss2 *guess=NULL;
     int pass=0;
 
     nrows=IM_NROWS(image);
@@ -143,7 +143,7 @@ static void calc_moments(struct am *am, const struct image *image)
 
 // take the adaptive step.  Update the weight parameters.
 static void admom_step(struct am *am) {
-    struct gauss *wt=&am->wt;
+    struct gauss2 *wt=&am->wt;
 
     double detm_inv = 1./am->det_tmp;
     double detw_inv = 1./wt->det;
@@ -166,7 +166,7 @@ static void admom_step(struct am *am) {
     double icc =  nirr*detn_inv;
     double irc = -nirc*detn_inv;
     double irr =  nicc*detn_inv;
-    gauss_set(wt,
+    gauss2_set(wt,
               wt->p, wt->row, wt->col,
               irr, irc, icc);
 }
@@ -174,9 +174,9 @@ static void admom_step(struct am *am) {
 void admom_print(const struct am *am, FILE *stream)
 {
     fprintf(stderr,"  - guess gauss:\n");
-    gauss_print(&am->guess, stream);
+    gauss2_print(&am->guess, stream);
     fprintf(stderr,"  - weight gauss:\n");
-    gauss_print(&am->wt, stream);
+    gauss2_print(&am->wt, stream);
 
     fprintf(stderr,"  rho4:    %.16g\n", am->rho4);
     fprintf(stderr,"  s2n:     %.16g\n", am->s2n);
@@ -196,8 +196,8 @@ void admom_print(const struct am *am, FILE *stream)
 void admom(struct am *am, const struct image *image)
 {
 
-    struct gauss *wt=NULL;
-    const struct gauss *guess=NULL;
+    struct gauss2 *wt=NULL;
+    const struct gauss2 *guess=NULL;
 
     //double mrr=0, mrc=0, mcc=0;
     //double nrr=0, nrc=0, ncc=0;
@@ -268,7 +268,7 @@ _admom_bail:
 // this is bogus because it doesn't limit to the 4 sigma region!
 // need to do it right where we run the adaptive moment code on it,
 // like we do in the python code.  Duh.
-void admom_add_noise(struct image *image, double s2n, const struct gauss *wt,
+void admom_add_noise(struct image *image, double s2n, const struct gauss2 *wt,
                      double *skysig, double *s2n_meas)
 {
     size_t nrows=0, ncols=0, row=0, col=0, pass=0;

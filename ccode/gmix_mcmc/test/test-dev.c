@@ -15,7 +15,7 @@ struct fit_data {
     const struct image *image; // the input image
     double ivar;               // ivar for the image
 
-    enum gmix_par_type par_type; // parameter array type
+    enum gmix_model par_type; // parameter array type
 
     struct gmix *obj;            // to be filled from pars array
 
@@ -28,7 +28,7 @@ struct fit_data {
 struct fit_data 
 *fit_data_new(const struct image *image,
               double ivar,
-              enum gmix_par_type par_type,
+              enum gmix_model par_type,
               int ngauss, // ignored if par type is an approximate model
               const struct gmix *psf) // can be NULL
 {
@@ -44,7 +44,7 @@ struct fit_data
     self->par_type=par_type;
     self->psf=psf;
 
-    if (par_type==GMIX_APPROX_DEV10) {
+    if (par_type==GMIX_DEV) {
         self->obj=gmix_new(10);
     } else {
         self->obj=gmix_new(ngauss);
@@ -94,11 +94,11 @@ double lnprob(const double *pars,
         }
         gmix=data->obj;
     } else {
-        if (data->par_type == GMIX_APPROX_DEV10) {
+        if (data->par_type == GMIX_DEV) {
             if (!gmix_fill_dev10(data->obj, pars, npars) ) {
                 exit(EXIT_FAILURE);
             }
-        } else if (data->par_type == GMIX_APPROX_EXP6) {
+        } else if (data->par_type == GMIX_EXP) {
             if (!gmix_fill_exp6(data->obj, pars, npars) ) {
                 exit(EXIT_FAILURE);
             }
@@ -280,7 +280,7 @@ int main(int argc, char** argv)
     double ivar=1./(obj_sim->skysig*obj_sim->skysig);
     obj_data=fit_data_new(obj_sim->image,
                           ivar,
-                          GMIX_APPROX_DEV10,
+                          GMIX_DEV,
                           ngauss_obj,
                           psf_data->obj);
 

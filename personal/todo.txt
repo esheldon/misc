@@ -27,6 +27,16 @@ Quick look Queue
 
     nersc
 
+        - meds
+            - use 30 as zero point
+            - bug in fitsio
+                - beta "d" has fix but can't install
+            - there is a bug writing string fields to meds, or at least
+            how python fitsio shows them (that's it probably).
+
+            - new low-thresh coadd catalogs take too long, cutting some fields
+            - move blacklist code into deswl
+
         - cfitsio globally as cfitsio-des?
         - CCfits globally as ccfits-des
         - can get web access for files: access for apache but not other
@@ -43,13 +53,86 @@ Quick look Queue
 
     bafit
         
-        - use the new EM fitter for psf.
+        - see constant bias at low s/n.  Bug?
+            - try g prior after?
+            - try in eta space?
+
+        - Importance sampling: to a maxlike fit and then importance
+        sample at twice width or something.  What about size? lognormal?
+        flux?
+
+        - Gary thinks we have to use *correct* priors.  Try gaussian center,
+          lognormal T, normal g, lognormal flux.
+            - center will have to go into the convolved image code.
+
+
+    LM fitting simple
+        - Center currently always set to zero with no randomness!
+        - required inputs are image, weight (or ivar), and psf (or list)
+        - *optional* jacob
+        - optional guesses
+            - cen
+            - T
+            - counts
+            - g1,g2
+        - optional priors
+            - cen
+            - T
+            - counts
+            - g1,g2
+           
+        - starting guesses
+            - one of the two above must be present
+                - if the guess is present, always use it
+                - otherwise draw from the prior
+
+        - OR...
+            - always require priors to be sent.  The trick there is if we want
+              a flat prior we need to have a bound on it, and also drawing
+              from it could result in crazy starting values
+        - OR...
+            - always require guesses, but these could be the expectation value
+              of the prior.
+
+    isampler fitting
+        - deal when all prior zero
+
+        - check covar but fixing it didn't work.  I was just returning error
+          (defres).  What to do, restart fit?
+
+        - same as above used for the initial ML fit.
+        - then draw from the fits
+            - cen draw from normal*prior
+            - draw g1,g2 from normal*prior.
+            - T
+                - if T > 0, draw from lognormal*prior.
+                - if T <= 0, draw from normal*prior
+                - If prior sent, would expect it to be positive only.
+
+            - counts from normal*prior?
 
     DES
 
         - redo colors in MEDS
 
+            - test max radius for various models?  This is in additioi to the
+              5-sigma cutout for evaluating the gaussians.  I suspect we can
+              shave off even more time.  Would have to define elliptial
+              contour.
+
             - do proper full multi-band fit
+
+                - run eli's cluster tiles
+
+                - copy conf data into metadata
+
+                - only fit objects with max (s/n)_{psf} >= 4 in at least one
+                  band.  A bit circular, because need to make sure aperture is
+                  appropriate *based* on the gaussian fit!  If have 5 sigma
+                  limit evaluating the gaussian itself this would effectively
+                  do this
+
+
                 - put in time limit per object, of say
                     3*nband seconds
                 - break if hit max tries or time limie
