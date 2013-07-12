@@ -23,6 +23,7 @@ struct obs *obs_new(const struct image *image,
                     const struct gmix *psf,
                     long *flags);
 
+// everything is copied
 void obs_fill(struct obs *self,
               const struct image *image,
               const struct image *weight,

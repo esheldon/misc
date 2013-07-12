@@ -3,6 +3,8 @@
 #include <math.h>
 #include <string.h>
 #include "dist.h"
+#include "VEC.h"
+
 //#include "defs.h"
 
 enum dist dist_string2dist(const char *dist_name, long *flags)
@@ -21,6 +23,125 @@ enum dist dist_string2dist(const char *dist_name, long *flags)
     }
     return type;
 }
+
+struct dist1d *dist1d_new(enum dist dist_type, VEC(double) pars, long *flags)
+{
+    size_t nbytes=0;
+
+    struct dist1d *self=calloc(1, sizeof(struct dist1d));
+    if (!self) {
+        fprintf(stderr,"Could not allocate struct dist_gmix3_eta: %s: %d\n",
+                       __FILE__,__LINE__);
+        exit(1);
+    }
+
+    self->dist_type=dist_type;
+
+    switch (dist_type) {
+        case DIST_GAUSS:
+            if (VEC_SIZE(pars) != 2) {
+                *flags |= DIST_WRONG_NPARS;
+            }
+            self->data = dist_gauss_new(VEC_GET(pars,0), VEC_GET(pars,1));
+            break;
+        case DIST_LOGNORMAL:
+            if (VEC_SIZE(pars) != 2) {
+                *flags |= DIST_WRONG_NPARS;
+            }
+            self->data = dist_lognorm_new(VEC_GET(pars,0), VEC_GET(pars,1));
+            break;
+        default: 
+            fprintf(stderr,"Bad 1d dist type %u: %s: %d\n",
+                    dist_type, __FILE__,__LINE__);
+            *flags |= DIST_BAD_DIST;
+            break;
+    }
+
+_dist1d_new_bail:
+    if (*flags != 0) {
+        fprintf(stderr,"Bad number of pars %lu for dist type %u: %s: %d\n",
+                VEC_SIZE(pars), dist_type, __FILE__,__LINE__);
+        self=dist1d_free(self);
+    }
+    return self;
+}
+
+struct dist2d *dist2d_new(enum dist dist_type, VEC(double) pars, long *flags)
+{
+    size_t nbytes=0;
+
+    struct dist2d *self=calloc(1, sizeof(struct dist2d));
+    if (!self) {
+        fprintf(stderr,"Could not allocate struct dist_gmix3_eta: %s: %d\n",
+                       __FILE__,__LINE__);
+        exit(1);
+    }
+
+    self->dist_type=dist_type;
+
+    switch (dist_type) {
+        case DIST_G_BA:
+            if (VEC_SIZE(pars) != 1) {
+                *flags |= DIST_WRONG_NPARS;
+            }
+            self->data = dist_g_ba_new(VEC_GET(pars,0));
+            break;
+        case DIST_GMIX3_ETA:
+            if (VEC_SIZE(pars) != 6) {
+                *flags |= DIST_WRONG_NPARS;
+            }
+            self->data = dist_gmix3_eta_new(VEC_GET(pars,0), // ivar1
+                                            VEC_GET(pars,1), // p1
+                                            VEC_GET(pars,2), // ivar2
+                                            VEC_GET(pars,3), // p2
+                                            VEC_GET(pars,4), // ivar3
+                                            VEC_GET(pars,5)); // p3
+            break;
+        default: 
+            fprintf(stderr,"Bad 2d dist type %u: %s: %d\n",
+                    dist_type, __FILE__,__LINE__);
+            *flags |= DIST_BAD_DIST;
+            break;
+    }
+
+_dist2d_new_bail:
+    if (*flags != 0) {
+        fprintf(stderr,"Bad number of pars %lu for dist type %u: %s: %d\n",
+                VEC_SIZE(pars), dist_type, __FILE__,__LINE__);
+        self=dist2d_free(self);
+    }
+    return self;
+}
+
+
+
+struct dist1d *dist1d_free(struct dist1d *self)
+{
+    if (self) {
+        free(self->data);
+        free(self);
+        self=NULL;
+    }
+    return self;
+}
+struct dist2d *dist2d_free(struct dist2d *self)
+{
+    if (self) {
+        free(self->data);
+        free(self);
+        self=NULL;
+    }
+    return self;
+}
+
+
+double dist1d_lnprob(struct dist1d *self, double x)
+{
+
+}
+
+
+
 
 
 void dist_gauss_fill(struct dist_gauss *self, double mean, double sigma)

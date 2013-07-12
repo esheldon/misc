@@ -14,10 +14,14 @@ int main(int argc, char *argv[])
     char **mixed=NULL;
     char *str1=NULL, *str2=NULL, *name=NULL;
 
-    cfg=cfg_read("test.cfg", &status);
+    if (argc > 1) {
+        cfg=cfg_read(argv[1], &status); 
+    } else {
+        cfg=cfg_read("test.cfg", &status); 
+    }
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
 
     fprintf(stderr,"Printing entire config:\n\n");
@@ -28,14 +32,14 @@ int main(int argc, char *argv[])
     dblval=cfg_get_double(cfg, "dblval", &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     printf("    dblval: %lf\n", dblval);
 
     lonval=cfg_get_long(cfg, "lonval", &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     printf("    lonval: %ld\n", lonval);
 
@@ -43,14 +47,14 @@ int main(int argc, char *argv[])
     str1=cfg_get_string(cfg, "multiline_string", &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     printf("    multiline_string: '%s'\n", str1);
 
     str2=cfg_get_string(cfg, "embed", &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     printf("    embed: '%s'\n", str2);
 
@@ -60,7 +64,7 @@ int main(int argc, char *argv[])
     darr=cfg_get_dblarr(cfg, "darr", &dsize, &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     printf("darr size: %lu\n", dsize);
     for (i=0; i<dsize; i++) {
@@ -70,7 +74,7 @@ int main(int argc, char *argv[])
     dempty=cfg_get_dblarr(cfg, "empty", &dempty_size, &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     printf("dempty size: %lu\n", dempty_size);
     for (i=0; i<dempty_size; i++) {
@@ -80,7 +84,7 @@ int main(int argc, char *argv[])
     larr=cfg_get_lonarr(cfg, "larr", &dsize, &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     printf("larr size: %lu\n", dsize);
     for (i=0; i<dsize; i++) {
@@ -91,7 +95,7 @@ int main(int argc, char *argv[])
     mixed=cfg_get_strarr(cfg, "mixed", &mixed_size, &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     printf("mixed size: %lu\n", mixed_size);
     for (i=0; i<mixed_size; i++) {
@@ -103,14 +107,14 @@ int main(int argc, char *argv[])
     sub = cfg_get_sub(cfg, "state", &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     cfg_print(sub,stdout);
 
     name=cfg_get_string(sub, "name", &status);
     if (status) {
         fprintf(stderr,"Error: %s\n", cfg_status_string(status));
-        exit(1);
+        goto _bail;
     }
     printf("name from sub: '%s'\n", name);
 
@@ -122,6 +126,7 @@ int main(int argc, char *argv[])
         fprintf(stderr,"As expected\n");
     }
 
+_bail:
 
     free(darr); darr=NULL;
     free(dempty); dempty=NULL;

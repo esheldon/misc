@@ -17,13 +17,13 @@ void obs_fill(struct obs *self,
     self->psf=gmix_free(self->psf);
 
     // need error checking
-    self->image=image_newcopy(image);
-    self->weight=image_newcopy(weight);
+    self->image=image_new_copy(image);
+    self->weight=image_new_copy(weight);
 
     // jacob is easy straight copy since it is
     // a value type
     self->jacob=(*jacob);
-    self->psf=gmix_newcopy(psf,flags);
+    self->psf=gmix_new_copy(psf,flags);
     if (*flags) {
         goto _obs_fill_bail;
     }
