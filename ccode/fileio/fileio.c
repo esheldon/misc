@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-FILE *fileio_open_stream(const char *name)
+FILE *fileio_open_stream(const char *name, const char *mode)
 {
-    FILE *fobj=fopen(name,"r");
+    FILE *fobj=fopen(name,mode);
     if (!fobj) {
-        fprintf(stderr,"error opening file: %s\n", name);
+        fprintf(stderr,"error opening file with mode '%s': %s\n", mode, name);
     }
     return fobj;
 }

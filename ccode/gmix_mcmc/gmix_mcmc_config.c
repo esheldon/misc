@@ -8,6 +8,7 @@
 
 #include "gmix_mcmc_config.h"
 
+// a giant mess of error checking
 struct gmix_mcmc_config *gmix_mcmc_config_read(const char *name, enum cfg_status *status)
 {
     long flags=0;
@@ -15,18 +16,19 @@ struct gmix_mcmc_config *gmix_mcmc_config_read(const char *name, enum cfg_status
     char *tstr=NULL;
 
     struct gmix_mcmc_config *self=NULL;
-
-    struct cfg *cfg=cfg_read(name, status);
-    if (*status) {
-        fprintf(stderr,"Config Error: %s\n", cfg_status_string(*status));
-        goto _gmix_mcmc_config_read_bail;
-    }
+    struct cfg *cfg=NULL;
 
     self=calloc(1, sizeof(struct gmix_mcmc_config));
     if (!self)  {
         fprintf(stderr, "failed to allocate struct gmix_mcmc_config: %s: %d",
                     __FILE__,__LINE__);
         exit(1);
+    }
+
+    cfg=cfg_read(name, status);
+    if (*status) {
+        fprintf(stderr,"Config Error: %s\n", cfg_status_string(*status));
+        goto _gmix_mcmc_config_read_bail;
     }
 
     self->nwalkers = cfg_get_long(cfg,strcpy(key,"nwalkers"),status);
@@ -75,7 +77,6 @@ struct gmix_mcmc_config *gmix_mcmc_config_read(const char *name, enum cfg_status
     free(tstr);tstr=NULL;
 
     // T_prior conversion
-    tstr = cfg_get_string(cfg,strcpy(key,"shape_prior"),status);
     tstr = cfg_get_string(cfg,strcpy(key,"T_prior"),status);
     if (*status) goto _gmix_mcmc_config_read_bail;
     self->T_prior = dist_string2dist(tstr,&flags);

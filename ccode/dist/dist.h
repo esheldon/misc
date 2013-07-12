@@ -8,21 +8,51 @@
 #define DIST_LOG_MINARG 1.0e-10
 
 #define DIST_BAD_DIST 0x1
+#define DIST_WRONG_NPARS 0x2
+
+#include "VEC.h"
 
 enum dist {
+    // 1d
     DIST_GAUSS,
     DIST_LOGNORMAL,
+    // 2d
     DIST_G_BA,
     DIST_GMIX3_ETA 
 };
 
+// generic distributions
+struct dist1d {
+    enum dist dist_type;
+    void *data;
+};
+struct dist2d {
+    enum dist dist_type;
+    void *data;
+};
+
+struct dist1d *dist1d_new(enum dist dist_type, VEC(double) pars, long *flags);
+struct dist2d *dist2d_new(enum dist dist_type, VEC(double) pars, long *flags);
+
+struct dist1d *dist1d_free(struct dist1d *self);
+struct dist2d *dist2d_free(struct dist2d *self);
+
+double dist1d_lnprob(struct dist1d *self, double x);
+double dist1d_prob(struct dist1d *self, double x);
+double dist2d_lnprob(struct dist2d *self, double x, double y);
+double dist2d_prob(struct dist2d *self, double x, double y);
+
+// these should always be value types, so they can be copied
+// that means static sized fields
 struct dist_gauss {
+    enum dist dist_type;
     double mean;
     double sigma;
     double ivar;
 };
 
 struct dist_lognorm {
+    enum dist dist_type;
     double mean;
     double sigma;
 
@@ -31,6 +61,7 @@ struct dist_lognorm {
 };
 
 struct dist_g_ba {
+    enum dist dist_type;
     double sigma;
     double ivar;
 };
@@ -41,6 +72,7 @@ struct dist_g_ba {
 // where N_i is amp_i/(2*PI)*ivar
 
 struct dist_gmix3_eta {
+    enum dist dist_type;
     double gauss1_ivar;
     double gauss1_pnorm; // amp*norm = amp*ivar/(2*PI)
 
