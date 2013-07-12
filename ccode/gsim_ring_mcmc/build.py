@@ -29,6 +29,8 @@ sources = ['gsim-ring-mcmc',
            'mca',
            'randn',
            'jacobian',
+           'result',
+           'obs',
            'gsim_ring',
            'object',
            'fileio']

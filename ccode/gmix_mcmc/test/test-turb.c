@@ -19,18 +19,20 @@ double _global_ivar_tmp;
 double lnprob(const double *pars, size_t npars, const void *void_data)
 {
     double lnprob=0;
-    int flags=0;
+    long flags=0;
+    double s2n_numer=0, s2n_denom=0;
 
-    if (!gmix_fill_coellip(_global_gmix_tmp, pars, npars) ) {
-        exit(EXIT_FAILURE);
-    }
+    gmix_fill_coellip(_global_gmix_tmp, pars, npars, &flags);
 
     // flags are only set for conditions we want to
     // propagate back through the likelihood
-    lnprob=gmix_image_loglike(_global_image_tmp,
-                              _global_gmix_tmp, 
-                              _global_ivar_tmp,
-                              &flags);
+    flags=gmix_image_loglike_ivar(_global_image_tmp,
+                                  _global_gmix_tmp, 
+                                  _global_ivar_tmp,
+                                  &s2n_numer,
+                                  &s2n_denom,
+                                  &lnprob);
+
 
     return lnprob;
 }
@@ -89,7 +91,9 @@ int main(int argc, char** argv)
         fprintf(stderr,"could not make ./tmp");
         exit(1);
     }
-    struct gmix *gmix_true=gmix_make_coellip(pars_true, npars);
+    long flags=0;
+
+    struct gmix *gmix_true=gmix_new_coellip(pars_true, npars, &flags);
     gmix_print(gmix_true,stderr);
 
     wlog("making turb sim\n");
@@ -107,7 +111,7 @@ int main(int argc, char** argv)
 
     // global variables hold pointers to data
     _global_image_tmp = (const struct image*) sim->image;
-    _global_gmix_tmp = gmix_new(ngauss);
+    _global_gmix_tmp = gmix_new(ngauss,&flags);
     _global_ivar_tmp = ivar;
 
     wlog("building guesses for %lu walkers\n", nwalkers);

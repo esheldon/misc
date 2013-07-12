@@ -19,6 +19,7 @@ struct gmix_mcmc_config {
     // for now only fit a single model, but can expand this
     char fitmodel_name[20];
     enum gmix_model fitmodel;
+    long npars;
 
     // the type of probability calculation
     char prob_type_name[20];

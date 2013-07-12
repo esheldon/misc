@@ -266,6 +266,28 @@ int gmix_image_loglike_ivar(const struct image *image,
 
 }
 
+double gmix_image_s2n_ivar(const struct image *image, 
+                           const struct gmix *weight,
+                           double ivar, 
+                           long *flags)
+{
+    double s2n=-9999;
+    double s2n_numer=0, s2n_denom=0, loglike=0;
+    *flags=gmix_image_loglike_ivar(image, 
+                                   weight, 
+                                   ivar,
+                                   &s2n_numer,
+                                   &s2n_denom,
+                                   &loglike);
+
+    if (*flags == 0) {
+        if (s2n_denom >= 0) {
+            s2n = s2n_numer/sqrt(s2n_denom);
+        }
+    }
+
+    return s2n;
+}
 
 
 

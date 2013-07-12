@@ -8,9 +8,9 @@
 #define DIST_LOG_MINARG 1.0e-10
 
 #define DIST_BAD_DIST 0x1
-#define DIST_WRONG_NPARS 0x2
+//#define DIST_WRONG_NPARS 0x2
 
-#include "VEC.h"
+//#include "VEC.h"
 
 enum dist {
     // 1d
@@ -22,6 +22,7 @@ enum dist {
 };
 
 // generic distributions
+/*
 struct dist1d {
     enum dist dist_type;
     void *data;
@@ -41,6 +42,7 @@ double dist1d_lnprob(struct dist1d *self, double x);
 double dist1d_prob(struct dist1d *self, double x);
 double dist2d_lnprob(struct dist2d *self, double x, double y);
 double dist2d_prob(struct dist2d *self, double x, double y);
+*/
 
 // these should always be value types, so they can be copied
 // that means static sized fields

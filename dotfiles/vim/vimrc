@@ -276,9 +276,12 @@ set expandtab
 
 
 " C-indent mode "
-" set cindent "
+set cindent "
 " This only indents by 2 space "
 " set cinoptions=>2
+
+" align function args
+set cino=(0
 
 " Tab-indenting "
 set cinkeys=0{,0},:,0#,!<Tab>,!^F

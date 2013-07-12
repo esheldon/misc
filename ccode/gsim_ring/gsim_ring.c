@@ -181,6 +181,8 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
 
     self->gmix1 = gmix_convolve(gmix1_0, psf_gmix, flags);
     self->gmix2 = gmix_convolve(gmix2_0, psf_gmix, flags);
+    self->psf_gmix = psf_gmix;
+
     if (*flags != 0) {
         goto _ring_pair_new_bail;
     }
@@ -190,7 +192,6 @@ _ring_pair_new_bail:
     if (*flags != 0) {
         self=ring_pair_free(self);
     }
-    psf_gmix = gmix_free(psf_gmix);
     gmix1_0 = gmix_free(gmix1_0);
     gmix2_0 = gmix_free(gmix2_0);
     return self;
@@ -203,6 +204,7 @@ struct ring_pair *ring_pair_free(struct ring_pair *self)
     if (self) {
         self->gmix1=gmix_free(self->gmix1);
         self->gmix2=gmix_free(self->gmix2);
+        self->psf_gmix=gmix_free(self->psf_gmix);
         free(self);
         self=NULL;
     }
@@ -302,6 +304,25 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *
         goto _ring_make_image_pair_bail;
     }
 
+    impair->psf_image = make_image(self->psf_gmix,
+                                   RING_IMAGE_NSUB,
+                                   RING_PSF_S2N,
+                                   self->cen1_offset,
+                                   self->cen2_offset,
+                                   &impair->psf_skysig,
+                                   flags);
+    if (*flags != 0) {
+        goto _ring_make_image_pair_bail;
+    }
+
+    double ivar1=1/(impair->skysig1*impair->skysig1);
+    double ivar2=1/(impair->skysig2*impair->skysig2);
+
+    impair->wt1 = image_new(IM_NROWS(impair->im1),IM_NCOLS(impair->im1));
+    impair->wt2 = image_new(IM_NROWS(impair->im2),IM_NCOLS(impair->im2));
+    image_add_scalar(impair->wt1, ivar1);
+    image_add_scalar(impair->wt2, ivar2);
+
 _ring_make_image_pair_bail:
     if (*flags != 0) {
         impair=ring_image_pair_free(impair);
@@ -315,6 +336,9 @@ struct ring_image_pair *ring_image_pair_free(struct ring_image_pair *self)
     if (self) {
         self->im1=image_free(self->im1);
         self->im2=image_free(self->im2);
+        self->wt1=image_free(self->wt1);
+        self->wt2=image_free(self->wt2);
+        self->psf_image=image_free(self->psf_image);
         free(self);
         self=NULL;
     }

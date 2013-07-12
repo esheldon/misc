@@ -58,6 +58,7 @@ struct mca_chain *mca_chain_free(struct mca_chain *self)
     if (self) {
         free(self->pars);
         free(self->lnprob);
+        free(self->accept);
         free(self);
     }
     return NULL;
