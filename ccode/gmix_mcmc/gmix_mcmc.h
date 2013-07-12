@@ -9,15 +9,18 @@
 
 */
 
-#ifndef _GMIX_MCMC_HEADER_GUARS
-#define _GMIX_MCMC_HEADER_GUARS
+#ifndef _GMIX_MCMC_HEADER_GUARD
+#define _GMIX_MCMC_HEADER_GUARD
 
+#include "gmix.h"
 #include "mca.h"
 
 #ifndef wlog
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 #endif
 
+
+/* older stuff */
 
 /*
    just do some error checking and call mca_make_guess

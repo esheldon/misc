@@ -105,12 +105,10 @@ int gmix_image_loglike_ivar(const struct image *image,
                             double *loglike);
 
 
-/*
-double gmix_image_s2n(const struct image *image, 
-                      double skysig, 
-                      const struct gmix *weight,
-                      int *flags);
-*/
+double gmix_image_s2n_ivar(const struct image *image, 
+                           const struct gmix *weight,
+                           double ivar, 
+                           long *flags);
 //int gmix_image_add_noise(struct image *image, 
 //                         double s2n,
 //                         const struct gmix *gmix,

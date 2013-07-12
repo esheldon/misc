@@ -32,6 +32,7 @@ struct fit_data
               int ngauss, // ignored if par type is an approximate model
               const struct gmix *psf) // can be NULL
 {
+    long flags=0;
     struct fit_data *self=NULL;
     self=calloc(1,sizeof(struct fit_data));
     if (!self) {
@@ -39,22 +40,23 @@ struct fit_data
              "fit_data.  %s: %d\n",__FILE__,__LINE__);
         exit(EXIT_FAILURE);
     }
+
     self->image=image;
     self->ivar=ivar;
     self->par_type=par_type;
     self->psf=psf;
 
     if (par_type==GMIX_DEV) {
-        self->obj=gmix_new(10);
+        self->obj=gmix_new(10,&flags);
     } else {
-        self->obj=gmix_new(ngauss);
+        self->obj=gmix_new(ngauss,&flags);
     }
 
     if (self->psf) {
 
         int ngauss_psf=self->psf->size;
         int ntot=self->obj->size*ngauss_psf;
-        self->conv=gmix_new(ntot);
+        self->conv=gmix_new(ntot,&flags);
 
         if (!self->conv) {
             wlog("error: could not allocate %d gmix "
@@ -82,24 +84,27 @@ double lnprob(const double *pars,
               const void *void_data)
 {
     double lnp=0;
-    int flags=0;
+    long flags=0;
 
     struct fit_data *data=(struct fit_data*) void_data;
 
     const struct gmix *gmix=NULL;
 
     if (data->par_type == GMIX_COELLIP) {
-        if (!gmix_fill_coellip(data->obj, pars, npars) ) {
+        gmix_fill_coellip(data->obj, pars, npars, &flags);
+        if (flags != 0) {
             exit(EXIT_FAILURE);
         }
         gmix=data->obj;
     } else {
         if (data->par_type == GMIX_DEV) {
-            if (!gmix_fill_dev10(data->obj, pars, npars) ) {
+           gmix_fill_dev10(data->obj, pars, npars,&flags);
+           if (flags != 0) {
                 exit(EXIT_FAILURE);
-            }
+           }
         } else if (data->par_type == GMIX_EXP) {
-            if (!gmix_fill_exp6(data->obj, pars, npars) ) {
+            gmix_fill_exp6(data->obj, pars, npars, &flags);
+            if (flags != 0 ) {
                 exit(EXIT_FAILURE);
             }
         } else {
@@ -108,18 +113,21 @@ double lnprob(const double *pars,
                     data->par_type,__FILE__,__LINE__);
             exit(EXIT_FAILURE);
         }
-
-        if (!gmix_fill_convolve(data->conv, data->obj, data->psf)) {
+        gmix_convolve_fill(data->conv, data->obj, data->psf,&flags);
+        if (flags !=0 ) {
             exit(EXIT_FAILURE);
         }
         gmix=data->conv;
     }
     // flags are only set for conditions we want to
     // propagate back through the likelihood
-    lnp=gmix_image_loglike(data->image,
-                           gmix,
-                           data->ivar,
-                           &flags);
+    double s2n_numer=0, s2n_denom=0;
+    flags=gmix_image_loglike_ivar(data->image,
+                                gmix,
+                                data->ivar,
+                                &s2n_numer,
+                                &s2n_denom,
+                                &lnp);
 
     return lnp;
 }
@@ -210,9 +218,10 @@ int main(int argc, char** argv)
         exit(1);
     }
 
-    struct gmix *gmix_true=gmix_make_dev10(pars_true, npars_true);
-    struct gmix *gmix_psf=gmix_make_turb3(pars_psf_true, npars_psf_true);
-    struct gmix *gmix_conv=gmix_convolve(gmix_true,gmix_psf);
+    long flags=0;
+    struct gmix *gmix_true=gmix_new_model(GMIX_DEV,pars_true, npars_true,&flags);
+    struct gmix *gmix_psf=gmix_new_model(GMIX_TURB,pars_psf_true, npars_psf_true,&flags);
+    struct gmix *gmix_conv=gmix_convolve(gmix_true,gmix_psf,&flags);
 
     wlog("making sims\n");
     struct gmix_sim1 *psf_sim=gmix_sim1_cocen_new(gmix_psf,nsub);
@@ -314,11 +323,10 @@ int main(int argc, char** argv)
 
 
 
-    int flags=0;
-    double s2n_meas=gmix_image_s2n(obj_sim->image,
-                                   obj_sim->skysig,
-                                   obj_data->conv,
-                                   &flags);
+    double s2n_meas=gmix_image_s2n_ivar(obj_sim->image,
+                                        obj_data->conv,
+                                        ivar,
+                                        &flags);
     wlog("s2n measured: %.2f\n", s2n_meas);
 
     wlog("    writing psf burn chain to %s\n", psf_burn_fname);

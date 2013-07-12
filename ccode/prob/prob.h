@@ -12,8 +12,7 @@
 
 enum prob_type {
     PROB_BA13=1,
-    PROB_NOSPLIT_ETA=2,
-    PROB_SIMPLE01=3
+    PROB_NOSPLIT_ETA=2
 };
 
 #define PROB_BAD_TYPE 0x1
@@ -25,6 +24,8 @@ enum prob_type {
 // gaussian prior on center
 struct prob_data_simple_ba {
     const struct obs_list *obs_list;
+
+    long psf_ngauss;
 
     enum gmix_model model;
     struct gmix *obj0;
@@ -45,6 +46,7 @@ struct prob_data_simple_ba {
 enum prob_type prob_string2type(const char *type_name, long *flags);
 
 struct prob_data_simple_ba *prob_data_simple_ba_new(enum gmix_model model,
+                                                    long psf_ngauss,
                                                     const struct obs_list *obs_list,
 
                                                     const struct dist_gauss *cen1_prior,
@@ -76,6 +78,8 @@ void prob_simple_ba_calc(struct prob_data_simple_ba *self,
 struct prob_data_simple_gmix3_eta {
     const struct obs_list *obs_list;
 
+    long psf_ngauss;
+
     enum gmix_model model;
     struct gmix *obj0;
     struct gmix *obj;
@@ -95,6 +99,7 @@ struct prob_data_simple_gmix3_eta {
 
 struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_new(
         enum gmix_model model,
+        long psf_ngauss,
         const struct obs_list *obs_list,
 
         const struct dist_gauss *cen1_prior,
@@ -123,52 +128,6 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
 
 
 
-
-// simple version 1
-//    gauss in centoid
-//    lognormal in T and counts
-//    no g prior during mcmc exploration
-struct prob_data_simple01 {
-    const struct obs_list *obs_list;
-
-    enum gmix_model model;
-    struct gmix *obj0;
-    struct gmix *obj;
-
-    // priors
-    struct dist_gauss cen1_prior;
-    struct dist_gauss cen2_prior;
-
-    struct dist_lognorm T_prior;
-    struct dist_lognorm counts_prior;
-};
-
-struct prob_data_simple01 *prob_data_simple01_new(enum gmix_model model,
-                                                  const struct obs_list *obs_list,
-
-                                                  const struct dist_gauss *cen1_prior,
-                                                  const struct dist_gauss *cen2_prior,
-
-                                                  const struct dist_lognorm *T_prior,
-                                                  const struct dist_lognorm *counts_prior,
-                                                  long *flags);
- 
-struct prob_data_simple01 *prob_data_simple01_free(struct prob_data_simple01 *self);
-                                                 
-void prob_simple01_calc_priors(struct prob_data_simple01 *self,
-                               double *pars, long npars,
-                               double *lnprob,
-                               long *flags);
-
-
-
-// calculate the lnprob for the input pars
-// also running s/n values
-void prob_simple01_calc(struct prob_data_simple01 *self,
-                        double *pars, long npars,
-                        double *s2n_numer, double *s2n_denom,
-                        double *lnprob,
-                        long *flags);
 
 
 

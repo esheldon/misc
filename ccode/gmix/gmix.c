@@ -26,6 +26,30 @@ enum gmix_model gmix_string2model(const char *model_name, long *flags)
     return model;
 }
 
+long gmix_get_simple_npars(enum gmix_model model, long *flags)
+{
+    long npars=-1;
+    switch (model) {
+        case GMIX_EXP:
+            npars=6;
+            break;
+        case GMIX_DEV:
+            npars=6;
+            break;
+        case GMIX_BD:
+            npars=8;
+            break;
+        case GMIX_TURB:
+            npars=6;
+            break;
+        default:
+            fprintf(stderr, "bad simple gmix model type: %u", model);
+            *flags |= GMIX_BAD_MODEL;
+            break;
+    }
+    return npars;
+
+}
 long gmix_get_simple_ngauss(enum gmix_model model, long *flags)
 {
     long ngauss=0;
@@ -150,7 +174,7 @@ struct gmix* gmix_new_empty_full(long npars, long *flags)
 }
 
 
-struct gmix* gmix_new_model(enum gmix_model model, double *pars, long npars, long *flags)
+struct gmix* gmix_new_model(enum gmix_model model, const double *pars, long npars, long *flags)
 {
     struct gmix *self=NULL;
 
@@ -178,7 +202,7 @@ struct gmix* gmix_new_model(enum gmix_model model, double *pars, long npars, lon
 */
 void gmix_fill_model(struct gmix *self,
                      enum gmix_model model,
-                     double *pars,
+                     const double *pars,
                      long npars,
                      long *flags)
 {
@@ -470,7 +494,7 @@ struct gmix *gmix_convolve(const struct gmix *obj_gmix,
 
 
 
-void gmix_fill_full(struct gmix *self, double *pars, long npars, long *flags)
+void gmix_fill_full(struct gmix *self, const double *pars, long npars, long *flags)
 {
     long ngauss=0;
     struct gauss2 *gauss=NULL;
@@ -511,7 +535,7 @@ void gmix_fill_full(struct gmix *self, double *pars, long npars, long *flags)
 }
 
 
-void gmix_fill_coellip(struct gmix *self, double *pars, long npars, long *flags)
+void gmix_fill_coellip(struct gmix *self, const double *pars, long npars, long *flags)
 {
     long ngauss=0, Tstart=0, Astart=0;
     double row=0, col=0, g1=0, g2=0, Ti=0, Ai=0;
@@ -569,7 +593,7 @@ void gmix_fill_coellip(struct gmix *self, double *pars, long npars, long *flags)
 
 
 
-struct gmix *gmix_new_coellip(double *pars, long npars, long *flags)
+struct gmix *gmix_new_coellip(const double *pars, long npars, long *flags)
 {
     struct gmix *self=NULL;
 
@@ -586,7 +610,7 @@ struct gmix *gmix_new_coellip(double *pars, long npars, long *flags)
 
 /* no error checking except on shape */
 static void _gmix_fill_simple(struct gmix *self,
-                              double *pars, 
+                              const double *pars, 
                               const double *Fvals, 
                               const double *pvals,
                               long *flags)
@@ -633,7 +657,7 @@ static void _gmix_fill_simple(struct gmix *self,
     return;
 }
 
-void gmix_fill_bd(struct gmix *self, double *pars, long npars, long *flags)
+void gmix_fill_bd(struct gmix *self, const double *pars, long npars, long *flags)
 {
     static const long 
         npars_expected=8,
@@ -693,7 +717,7 @@ void gmix_fill_bd(struct gmix *self, double *pars, long npars, long *flags)
 
 
 
-void gmix_fill_dev10(struct gmix *self, double *pars, long npars, long *flags)
+void gmix_fill_dev10(struct gmix *self, const double *pars, long npars, long *flags)
 {
     static const long npars_expected=6, ngauss_expected=10;
     if (npars != npars_expected) {
@@ -737,7 +761,7 @@ void gmix_fill_dev10(struct gmix *self, double *pars, long npars, long *flags)
 
 
 
-void gmix_fill_exp6(struct gmix *self, double *pars, long npars, long *flags)
+void gmix_fill_exp6(struct gmix *self, const double *pars, long npars, long *flags)
 {
     static const long npars_expected=6, ngauss_expected=6;
     if (npars != npars_expected) {
@@ -772,7 +796,7 @@ void gmix_fill_exp6(struct gmix *self, double *pars, long npars, long *flags)
 
 
 
-void gmix_fill_turb3(struct gmix *self, double *pars, long npars, long *flags)
+void gmix_fill_turb3(struct gmix *self, const double *pars, long npars, long *flags)
 {
     static const long npars_expected=6, ngauss_expected=3;
     if (npars != npars_expected) {
@@ -826,6 +850,55 @@ void gmix_get_totals(const struct gmix *self,
 
 }
 
+
+struct gmix_list *gmix_list_new(size_t size, size_t ngauss, long *flags)
+{
+    struct gmix_list *self=NULL;
+
+    self=calloc(1, sizeof(struct gmix_list));
+    if (self==NULL) {
+        fprintf(stderr,"could not allocate struct gmix_list: %s: %d\n",
+                __FILE__,__LINE__);
+        exit(1);
+    }
+
+    self->data = calloc(size, sizeof(struct gmix *));
+    if (self->data==NULL) {
+        fprintf(stderr,"could not allocate %lu pointers to struct gmix: %s: %d\n",
+                size, __FILE__,__LINE__);
+        exit(1);
+    }
+
+    for (size_t i=0; i<size; i++) {
+        struct gmix *tmp=gmix_new(ngauss,flags);
+        self->data[i] = tmp;
+        if (*flags != 0) {
+            goto _gmix_list_new_bail;
+        }
+    }
+
+_gmix_list_new_bail:
+    if (*flags != 0) {
+        self=gmix_list_free(self);
+    }
+    return self;
+}
+
+struct gmix_list *gmix_list_free(struct gmix_list *self)
+{
+    if (self) {
+        if (self->data) {
+            for (size_t i=0; i<self->size; i++) {
+                self->data[i] = gmix_free(self->data[i]);
+            }
+            free(self->data);
+            self->data=NULL;
+        }
+        free(self);
+        self=NULL;
+    }
+    return self;
+}
 
 /*
 struct gmix* gmix_new(size_t ngauss)

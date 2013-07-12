@@ -7,41 +7,29 @@
 void obs_fill(struct obs *self,
               const struct image *image,
               const struct image *weight,
+              const struct image *psf_image,
               const struct jacobian *jacob,
-              const struct gmix *psf,
+              long psf_ngauss,
               long *flags)
 {
 
-    self->image=image_free(self->image);
-    self->weight=image_free(self->image);
-    self->psf=gmix_free(self->psf);
+    self->image     = image_free(self->image);
+    self->weight    = image_free(self->weight);
+    self->psf_image = image_free(self->psf_image);
+    self->psf_gmix  = gmix_free(self->psf_gmix);
 
-    // need error checking
-    self->image=image_new_copy(image);
-    self->weight=image_new_copy(weight);
-
-    // jacob is easy straight copy since it is
-    // a value type
-    self->jacob=(*jacob);
-    self->psf=gmix_new_copy(psf,flags);
-    if (*flags) {
-        goto _obs_fill_bail;
-    }
-
-_obs_fill_bail:
-    if (*flags) {
-        // we will let owner clean up; they must anyway
-        //self->image=image_free(self->image);
-        //self->weight=image_free(self->image);
-        //self->psf=gmix_free(self->psf);
-        ;
-    }
+    self->image     = image_new_copy(image);
+    self->weight    = image_new_copy(weight);
+    self->psf_image = image_new_copy(psf_image);
+    self->psf_gmix  = gmix_new(psf_ngauss,flags);
+    self->jacob     = (*jacob);
 }
 
 struct obs *obs_new(const struct image *image,
                     const struct image *weight,
+                    const struct image *psf_image,
                     const struct jacobian *jacob,
-                    const struct gmix *psf,
+                    long psf_ngauss,
                     long *flags)
 {
     struct obs *self=calloc(1,sizeof(struct obs));
@@ -50,10 +38,12 @@ struct obs *obs_new(const struct image *image,
         exit(1);
     }
 
-    obs_fill(self, image, weight, jacob, psf, flags);
-    if (*flags) {
+    obs_fill(self, image, weight, psf_image, jacob, psf_ngauss, flags);
+
+    if (*flags != 0) {
         self=obs_free(self);
     }
+
     return self;
 }
 
@@ -61,9 +51,11 @@ struct obs *obs_new(const struct image *image,
 struct obs *obs_free(struct obs *self)
 {
     if (self) {
-        self->image = image_free(self->image);
-        self->weight = image_free(self->weight);
-        self->psf = gmix_free(self->psf);
+        self->image     = image_free(self->image);
+        self->weight    = image_free(self->weight);
+        self->psf_image = image_free(self->psf_image);
+        self->psf_gmix  = gmix_free(self->psf_gmix);
+
         free(self);
         self=NULL;
     }
@@ -91,15 +83,16 @@ struct obs_list *obs_list_new(size_t size)
 struct obs_list *obs_list_free(struct obs_list *self)
 {
     if (self) {
-        struct obs *obs=NULL;
-        size_t i=0;
-        for (i=0; i<self->size; i++) {
-            obs=&self->data[i];
-            obs->image = image_free(obs->image);
-            obs->weight = image_free(obs->weight);
-            obs->psf = gmix_free(obs->psf);
+        for (long i=0; i<self->size; i++) {
+            struct obs *obs=&self->data[i];
+            obs->image     = image_free(obs->image);
+            obs->weight    = image_free(obs->weight);
+            obs->psf_image = image_free(obs->psf_image);
+            obs->psf_gmix  = gmix_free(obs->psf_gmix);
         }
+
         free(self->data);
+        free(self);
         self=NULL;
     }
     return self;

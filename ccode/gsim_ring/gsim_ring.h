@@ -7,6 +7,7 @@
 
 #define GAUSS_PADDING 5
 #define RING_IMAGE_NSUB 16
+#define RING_PSF_S2N 1.0e8
 
 // for now models are always bulge+disk, so pars are
 // 
@@ -26,14 +27,20 @@ struct ring_pair {
     double cen2_offset;
     struct gmix *gmix1;
     struct gmix *gmix2;
+    struct gmix *psf_gmix;
 };
 
 struct ring_image_pair {
     struct image *im1;
+    struct image *wt1;
     struct image *im2;
+    struct image *wt2;
 
     double skysig1;
     double skysig2;
+
+    struct image *psf_image;
+    double psf_skysig;
 };
 
 // the shortened pars

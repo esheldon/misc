@@ -92,6 +92,8 @@ struct gmix_mcmc_config *gmix_mcmc_config_read(const char *name, enum cfg_status
     strcpy(self->counts_prior_name,tstr);
     free(tstr);tstr=NULL;
 
+    self->npars = gmix_get_simple_npars(self->fitmodel, &flags);
+    if (flags != 0) goto _gmix_mcmc_config_read_bail;
 
 _gmix_mcmc_config_read_bail:
 
@@ -123,6 +125,7 @@ void gmix_mcmc_config_print(const struct gmix_mcmc_config *self, FILE *stream)
     fprintf(stream,"em_tol:       %g\n", self->em_tol);
 
     fprintf(stream,"fitmodel:     %s\n", self->fitmodel_name);
+    fprintf(stream,"npars:        %s\n", self->npars);
     fprintf(stream,"prob_type:    %s\n", self->prob_type_name);
     fprintf(stream,"shape_prior:  %s\n", self->shape_prior_name);
     fprintf(stream,"T_prior:      %s\n", self->T_prior_name);

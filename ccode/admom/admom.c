@@ -166,9 +166,11 @@ static void admom_step(struct am *am) {
     double icc =  nirr*detn_inv;
     double irc = -nirc*detn_inv;
     double irr =  nicc*detn_inv;
+    // argh, ignoring flags...
+    long flags=0;
     gauss2_set(wt,
               wt->p, wt->row, wt->col,
-              irr, irc, icc);
+              irr, irc, icc, &flags);
 }
 
 void admom_print(const struct am *am, FILE *stream)

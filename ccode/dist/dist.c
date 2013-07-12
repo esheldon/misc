@@ -2,10 +2,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+//#include "VEC.h"
 #include "dist.h"
-#include "VEC.h"
-
-//#include "defs.h"
 
 enum dist dist_string2dist(const char *dist_name, long *flags)
 {
@@ -24,6 +22,7 @@ enum dist dist_string2dist(const char *dist_name, long *flags)
     return type;
 }
 
+/*
 struct dist1d *dist1d_new(enum dist dist_type, VEC(double) pars, long *flags)
 {
     size_t nbytes=0;
@@ -140,7 +139,7 @@ double dist1d_lnprob(struct dist1d *self, double x)
 
 }
 
-
+*/
 
 
 

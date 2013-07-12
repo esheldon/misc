@@ -17,16 +17,19 @@ double _global_ivar_tmp;
 double lnprob(const double *pars, size_t npars, const void *void_data)
 {
     double lnprob=0;
-    int flags=0;
+    long flags=0;
+    double s2n_numer=0, s2n_denom=0;
 
-    gmix_fill_coellip(_global_gmix_tmp, pars, npars);
+    gmix_fill_coellip(_global_gmix_tmp, pars, npars, &flags);
 
     // flags are only set for conditions we want to
     // propagate back through the likelihood
-    lnprob=gmix_image_loglike(_global_image_tmp,
-                              _global_gmix_tmp, 
-                              _global_ivar_tmp,
-                              &flags);
+    flags=gmix_image_loglike_ivar(_global_image_tmp,
+                                  _global_gmix_tmp, 
+                                  _global_ivar_tmp,
+                                  &s2n_numer,
+                                  &s2n_denom,
+                                  &lnprob);
 
     return lnprob;
 }
@@ -97,7 +100,8 @@ int main(int argc, char** argv)
         fprintf(stderr,"could not make ./tmp");
         exit(1);
     }
-    struct gmix *gmix_true=gmix_make_coellip(pars_true, npars);
+    long flags=0;
+    struct gmix *gmix_true=gmix_new_coellip(pars_true, npars, &flags);
 
 
     // make the image and noisy image
@@ -113,7 +117,7 @@ int main(int argc, char** argv)
     image_write_file(noisy_im, noisy_image_fname);
 
     int ngauss=1;
-    struct gmix *gmix_tmp=gmix_new(ngauss);
+    struct gmix *gmix_tmp=gmix_new(ngauss,&flags);
 
     // global variables hold pointers to data
     _global_image_tmp = (const struct image*) noisy_im;

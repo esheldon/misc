@@ -11,8 +11,6 @@ enum prob_type prob_string2type(const char *type_name, long *flags)
     enum prob_type type=0;
     if (0==strcmp(type_name,"PROB_NOSPLIT_ETA")) {
         type=PROB_NOSPLIT_ETA;
-    } else if (0==strcmp(type_name,"PROB_SIMPLE01")) {
-        type=PROB_SIMPLE01;
     } else if (0==strcmp(type_name,"PROB_BA13")) {
         type=PROB_BA13;
     } else {
@@ -54,7 +52,7 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
     for (i=0; i<obs_list->size; i++) {
         obs=&obs_list->data[i];
 
-        gmix_convolve_fill(obj, obj0, obs->psf, flags);
+        gmix_convolve_fill(obj, obj0, obs->psf_gmix, flags);
         if (*flags) {
             goto _prob_calc_simple_likelihood_generic_bail;
         }
@@ -92,6 +90,7 @@ _prob_calc_simple_likelihood_generic_bail:
 
 
 struct prob_data_simple_ba *prob_data_simple_ba_new(enum gmix_model model,
+                                                    long psf_ngauss,
                                                     const struct obs_list *obs_list,
 
                                                     const struct dist_gauss *cen1_prior,
@@ -122,7 +121,7 @@ struct prob_data_simple_ba *prob_data_simple_ba_new(enum gmix_model model,
         goto _prob_data_simple_ba_new_bail;
     }
 
-    ngauss_tot = obs_list->data[0].psf->size * self->obj0->size;
+    ngauss_tot = obs_list->data[0].psf_gmix->size * self->obj0->size;
 
     self->obj = gmix_new(ngauss_tot, flags);
     if (*flags) {
@@ -220,17 +219,19 @@ _prob_simple_ba_calc_bail:
 */
 
 
-struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_new(enum gmix_model model,
-                                                    const struct obs_list *obs_list,
+struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_new(
+        enum gmix_model model,
+        long psf_ngauss,
+        const struct obs_list *obs_list,
 
-                                                    const struct dist_gauss *cen1_prior,
-                                                    const struct dist_gauss *cen2_prior,
+        const struct dist_gauss *cen1_prior,
+        const struct dist_gauss *cen2_prior,
 
-                                                    const struct dist_gmix3_eta *shape_prior,
+        const struct dist_gmix3_eta *shape_prior,
 
-                                                    const struct dist_lognorm *T_prior,
-                                                    const struct dist_lognorm *counts_prior,
-                                                    long *flags)
+        const struct dist_lognorm *T_prior,
+        const struct dist_lognorm *counts_prior,
+        long *flags)
 
 
 {
@@ -251,7 +252,7 @@ struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_new(enum gmix_mode
         goto _prob_data_simple_gmix3_eta_new_bail;
     }
 
-    ngauss_tot = obs_list->data[0].psf->size * self->obj0->size;
+    ngauss_tot = obs_list->data[0].psf_gmix->size * self->obj0->size;
 
     self->obj = gmix_new(ngauss_tot, flags);
     if (*flags) {
@@ -345,133 +346,6 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
     (*lnprob) += priors_lnprob;
 
 _prob_simple_gmix3_eta_calc_bail:
-    if (*flags != 0) {
-        (*lnprob) = PROB_LOG_LOWVAL;
-        *s2n_numer=0;
-        *s2n_denom=0;
-    }
-}
-
-
-
-
-
-/*
-   simple without shape prior
-*/
-
-
-struct prob_data_simple01 *prob_data_simple01_new(enum gmix_model model,
-                                                    const struct obs_list *obs_list,
-
-                                                    const struct dist_gauss *cen1_prior,
-                                                    const struct dist_gauss *cen2_prior,
-
-                                                    const struct dist_lognorm *T_prior,
-                                                    const struct dist_lognorm *counts_prior,
-                                                    long *flags)
-
-
-{
-
-    long ngauss_tot=0;
-
-    struct prob_data_simple01 *self=calloc(1, sizeof(struct prob_data_simple01));
-    if (!self) {
-        fprintf(stderr,"could not allocate struct prob_data_simple01\n");
-        exit(EXIT_FAILURE);
-    }
-
-    self->model=model;
-    self->obs_list = obs_list;
-
-    self->obj0 = gmix_new_empty_simple(model, flags);
-    if (*flags) {
-        goto _prob_data_simple01_new_bail;
-    }
-
-    ngauss_tot = obs_list->data[0].psf->size * self->obj0->size;
-
-    self->obj = gmix_new(ngauss_tot, flags);
-    if (*flags) {
-        goto _prob_data_simple01_new_bail;
-    }
-
-    self->cen1_prior = (*cen1_prior);
-    self->cen2_prior = (*cen2_prior);
-    self->T_prior = (*T_prior);
-    self->counts_prior = (*counts_prior);
-
-_prob_data_simple01_new_bail:
-    if (*flags) {
-        self=prob_data_simple01_free(self);
-    }
-    return self;
-}
-
-struct prob_data_simple01 *prob_data_simple01_free(struct prob_data_simple01 *self)
-{
-    if (self) {
-        self->obj0=gmix_free(self->obj0);
-        self->obj=gmix_free(self->obj);
-
-        free(self);
-    }
-    return NULL;
-}
-
-
-void prob_simple01_calc_priors(struct prob_data_simple01 *self,
-                                double *pars, long npars,
-                                double *lnprob,
-                                long *flags)
-{
-    (*flags) = 0;
-    (*lnprob) = 0;
-
-    (*lnprob) += dist_gauss_lnprob(&self->cen1_prior,pars[0]);
-    (*lnprob) += dist_gauss_lnprob(&self->cen2_prior,pars[1]);
-
-    (*lnprob) += dist_lognorm_lnprob(&self->T_prior,pars[4]);
-    (*lnprob) += dist_lognorm_lnprob(&self->counts_prior,pars[5]);
-}
-
-void prob_simple01_calc(struct prob_data_simple01 *self,
-                         double *pars, long npars,
-                         double *s2n_numer, double *s2n_denom,
-                         double *lnprob, long *flags)
-{
-
-    double loglike=0, priors_lnprob=0;
-
-    *lnprob=0;
-
-    prob_calc_simple_likelihood(self->obj0,
-                                self->obj,
-                                self->model,
-                                self->obs_list,
-                                pars,
-                                npars,
-                                s2n_numer,
-                                s2n_denom,
-                                &loglike,
-                                flags);
-
-    if (*flags != 0) {
-        goto _prob_simple01_calc_bail;
-    }
-
-    (*lnprob) += loglike;
-
-    // flags are always zero from here
-    prob_simple01_calc_priors(self, pars, npars, &priors_lnprob, flags);
-    if (*flags != 0) {
-        goto _prob_simple01_calc_bail;
-    }
-
-    (*lnprob) += priors_lnprob;
-
-_prob_simple01_calc_bail:
     if (*flags != 0) {
         (*lnprob) = PROB_LOG_LOWVAL;
         *s2n_numer=0;
