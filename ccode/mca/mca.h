@@ -5,8 +5,8 @@
    I took some implementation inspiration from the Emcee python version.
 
    I made a choice to use have mca_run() take in the value a as a parameter
-   rather than put this in some "self" struct.  If I decide to keep more such
-   data around *between* runs, I might start using a self.
+   rather than put this in some "self" struct.  Since guesses are chains, it
+   would be odd for the a to be in the chain.
 
    Example
    -------

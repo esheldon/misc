@@ -1,18 +1,12 @@
 /*
-   styles
-     1) coelliptical
-       [row,col,e1,e2,T1,T2,....,p1,p2,....]
-
-   Note, we use the coelliptical form when fitting exp/dev approximate
-   models, but there is only one scale
-       [row,col,e1,e2,T,p]
-
+   runn mcmc chains on images using gaussian mixtures
 */
 
 #ifndef _GMIX_MCMC_HEADER_GUARD
 #define _GMIX_MCMC_HEADER_GUARD
 
 #include "gmix.h"
+#include "gmix_mcmc_config.h"
 #include "prob.h"
 #include "mca.h"
 
@@ -34,7 +28,7 @@ struct gmix_mcmc {
     struct gmix_mcmc_config conf;
 
     // contains references
-    struct gmix_mcmc_chains chain_data;
+    struct gmix_mcmc_chains *chain_data;
 
     // e.g. PROB_NOSPLIT_ETA
     enum prob prob_type;
@@ -44,6 +38,11 @@ struct gmix_mcmc {
     // cast to (struct prob_data_base* ) to check the ->type field
     void *prob; 
 };
+
+
+// should we have one that copies an input config and one
+// that loads a config file?
+struct gmix_mcmc *gmix_mcmc_new();
 
 /* older stuff */
 

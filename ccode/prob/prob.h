@@ -49,6 +49,7 @@ struct prob_data_simple_ba {
 
 enum prob_type prob_string2type(const char *type_name, long *flags);
 
+// the distributions are value types and get copied
 struct prob_data_simple_ba *
 prob_data_simple_ba_new(enum gmix_model model,
                         long psf_ngauss,
@@ -99,6 +100,7 @@ struct prob_data_simple_gmix3_eta {
     struct dist_lognorm counts_prior;
 };
 
+// the distributions are value types and get copied
 struct prob_data_simple_gmix3_eta *
 prob_data_simple_gmix3_eta_new(enum gmix_model model,
                                long psf_ngauss,
