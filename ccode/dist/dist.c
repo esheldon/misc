@@ -22,6 +22,31 @@ enum dist dist_string2dist(const char *dist_name, long *flags)
     return type;
 }
 
+long dist_get_npars(enum dist dist_type, long *flags)
+{
+    long npars=-1;
+    switch (dist_type) {
+        case DIST_GAUSS:
+            npars=2;
+            break;
+        case DIST_LOGNORMAL:
+            npars=2;
+            break;
+        case DIST_G_BA:
+            npars=1;
+            break;
+        case DIST_GMIX3_ETA:
+            npars=6;
+            break;
+
+        default: 
+            fprintf(stderr,"Bad 1d dist type %u: %s: %d\n",
+                    dist_type, __FILE__,__LINE__);
+            *flags |= DIST_BAD_DIST;
+            break;
+    }
+    return npars;
+}
 /*
 struct dist1d *dist1d_new(enum dist dist_type, VEC(double) pars, long *flags)
 {
@@ -315,10 +340,13 @@ void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream)
 
 
 void dist_gmix3_eta_fill(struct dist_gmix3_eta *self,
-                         double ivar1, double p1,
-                         double ivar2, double p2,
-                         double ivar3, double p3)
+                         double sigma1, double sigma2, double sigma3,
+                         double p1, double p2, double p3)
 {
+    double ivar1=1.0/(sigma1*sigma1);
+    double ivar2=1.0/(sigma2*sigma2);
+    double ivar3=1.0/(sigma3*sigma3);
+
     self->gauss1_ivar=ivar1;
     self->gauss1_pnorm = p1*ivar1/(2*M_PI);
 
@@ -330,9 +358,13 @@ void dist_gmix3_eta_fill(struct dist_gmix3_eta *self,
 }
 
 
-struct dist_gmix3_eta *dist_gmix3_eta_new(double ivar1, double p1,
-                                          double ivar2, double p2,
-                                          double ivar3, double p3)
+struct dist_gmix3_eta *dist_gmix3_eta_new(double sigma1,
+                                          double sigma2,
+                                          double sigma3,
+                                          double p1,
+                                          double p2,
+                                          double p3)
+
 {
     struct dist_gmix3_eta *self=calloc(1, sizeof(struct dist_gmix3_eta));
     if (!self) {
@@ -340,7 +372,7 @@ struct dist_gmix3_eta *dist_gmix3_eta_new(double ivar1, double p1,
         exit(1);
     }
 
-    dist_gmix3_eta_fill(self, ivar1, p1, ivar2, p2, ivar3, p3);
+    dist_gmix3_eta_fill(self, sigma1, p1, sigma2, p2, sigma3, p3);
     return self;
 }
 

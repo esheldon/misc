@@ -13,12 +13,21 @@
 #define _GMIX_MCMC_HEADER_GUARD
 
 #include "gmix.h"
+#include "prob.h"
 #include "mca.h"
 
 #ifndef wlog
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 #endif
 
+struct gmix_mcmc {
+    struct gmix_mcmc_config conf;
+
+    // e.g. PROB_NOSPLIT_ETA
+    enum prob prob_type;
+    // probability calculator struct, e.g. prob_data_simple_gmix3_eta 
+    void *prob; 
+};
 
 /* older stuff */
 

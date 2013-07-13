@@ -8,12 +8,61 @@
 
 #include "gmix_mcmc_config.h"
 
+static void load_prior_data(struct cfg *cfg, 
+                            const char *dist_key, // e.g. "shape_prior"
+                            const char *dist_pars_key, // e.g. "shape_prior_pars"
+                            enum dist *dist_type,
+                            char *dist_name,
+                            double *pars,
+                            size_t *npars,
+                            enum cfg_status *status,
+                            long *flags)
+{
+    double *tstr=NULL;
+    double *tpars=NULL;
+
+    tstr = cfg_get_string(cfg,dist_key,status);
+    if (*status) goto _load_prior_bail;
+
+    *dist_type = dist_string2dist(tstr,flags);
+    if (*flags) goto _load_prior_bail;
+
+    strncpy(dist_name,tstr,GMIX_MCMC_MAXNAME);
+
+    tpars = cfg_get_dblarr(cfg, dist_pars_key, npars, status);
+    if (*status) goto _load_prior_bail;
+
+    long npars_expected = dist_get_npars(*dist_type, flags);
+    if (*npars != npars_expected) {
+        fprintf(stderr,"for prior %s expected %ld pars, got %lu\n",
+                dist_name, npars_expected, *npars);
+        *flags= DIST_WRONG_NPARS;
+        goto _load_prior_bail;
+    }
+
+    if (*npars > GMIX_MCMC_MAXPARS ) {
+        fprintf(stderr,"error, prior %s has %lu pars, but GMIX_MCMC_MAXPARS is %d\n",
+                dist_name, *npars, GMIX_MCMC_MAXPARS );
+        *flags= DIST_WRONG_NPARS;
+        goto _load_prior_bail;
+    }
+
+    memcpy(pars, pars, *npars);
+
+_load_prior_bail:
+    free(tstr);tstr=NULL;
+    free(tpars);tpars=NULL;
+}
+
 // a giant mess of error checking
 struct gmix_mcmc_config *gmix_mcmc_config_read(const char *name, enum cfg_status *status)
 {
     long flags=0;
     char key[100];
     char *tstr=NULL;
+
+    size_t npars=0;
+    double *pars=NULL;
 
     struct gmix_mcmc_config *self=NULL;
     struct cfg *cfg=NULL;
@@ -69,28 +118,36 @@ struct gmix_mcmc_config *gmix_mcmc_config_read(const char *name, enum cfg_status
     free(tstr);tstr=NULL;
 
     // shape_prior conversion
-    tstr = cfg_get_string(cfg,strcpy(key,"shape_prior"),status);
-    if (*status) goto _gmix_mcmc_config_read_bail;
-    self->shape_prior = dist_string2dist(tstr,&flags);
-    if (flags) goto _gmix_mcmc_config_read_bail;
-    strcpy(self->shape_prior_name,tstr);
-    free(tstr);tstr=NULL;
+    load_prior_data(cfg,"shape_prior","shape_prior_pars",
+                    &self->shape_prior, self->shape_prior_name,
+                    self->shape_prior_pars, &self->shape_prior_npars,
+                    status, &flags);
+    if (*status || flags)  goto _gmix_mcmc_config_read_bail;
+
 
     // T_prior conversion
-    tstr = cfg_get_string(cfg,strcpy(key,"T_prior"),status);
-    if (*status) goto _gmix_mcmc_config_read_bail;
-    self->T_prior = dist_string2dist(tstr,&flags);
-    if (flags) goto _gmix_mcmc_config_read_bail;
-    strcpy(self->T_prior_name,tstr);
-    free(tstr);tstr=NULL;
+    load_prior_data(cfg,"T_prior","T_prior_pars",
+                    &self->T_prior, self->T_prior_name,
+                    self->T_prior_pars, &self->T_prior_npars,
+                    status, &flags);
+    if (*status || flags)  goto _gmix_mcmc_config_read_bail;
+
 
     // counts_prior conversion
-    tstr = cfg_get_string(cfg,strcpy(key,"counts_prior"),status);
-    if (*status) goto _gmix_mcmc_config_read_bail;
-    self->counts_prior = dist_string2dist(tstr,&flags);
-    if (flags) goto _gmix_mcmc_config_read_bail;
-    strcpy(self->counts_prior_name,tstr);
-    free(tstr);tstr=NULL;
+    load_prior_data(cfg,"counts_prior","counts_prior_pars",
+                    &self->counts_prior, self->counts_prior_name,
+                    self->counts_prior_pars, &self->counts_prior_npars,
+                    status, &flags);
+    if (*status || flags)  goto _gmix_mcmc_config_read_bail;
+
+
+    // cen_prior conversion
+    load_prior_data(cfg,"cen_prior","cen_prior_pars",
+                    &self->cen_prior, self->cen_prior_name,
+                    self->cen_prior_pars, &self->cen_prior_npars,
+                    status, &flags);
+    if (*status || flags)  goto _gmix_mcmc_config_read_bail;
+
 
     self->npars = gmix_get_simple_npars(self->fitmodel, &flags);
     if (flags != 0) goto _gmix_mcmc_config_read_bail;
@@ -109,6 +166,11 @@ _gmix_mcmc_config_read_bail:
 
 struct gmix_mcmc_config *gmix_mcmc_config_free(struct gmix_mcmc_config *self)
 {
+    VEC_FREE(self->shape_prior_pars);
+    VEC_FREE(self->T_prior_pars);
+    VEC_FREE(self->counts_prior_pars);
+    VEC_FREE(self->cen_prior_pars);
+
     free(self);
     self=NULL;
     return self;
@@ -126,8 +188,11 @@ void gmix_mcmc_config_print(const struct gmix_mcmc_config *self, FILE *stream)
 
     fprintf(stream,"fitmodel:     %s\n", self->fitmodel_name);
     fprintf(stream,"npars:        %ld\n",self->npars);
+
     fprintf(stream,"prob_type:    %s\n", self->prob_type_name);
+
     fprintf(stream,"shape_prior:  %s\n", self->shape_prior_name);
     fprintf(stream,"T_prior:      %s\n", self->T_prior_name);
     fprintf(stream,"counts_prior: %s\n", self->counts_prior_name);
+    fprintf(stream,"cen_prior: %s\n", self->cen_prior_name);
 }
