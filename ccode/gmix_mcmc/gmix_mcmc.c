@@ -4,6 +4,21 @@
 #include "gmix.h"
 #include "gmix_mcmc.h"
 
+
+struct gmix_mcmc *gmix_mcmc_new(const struct gmix_mcmc_config *conf, long *flags)
+{
+    self=calloc(1, sizeof(struct gmix_mcmc));
+    if (self==NULL) {
+        fprintf(stderr,"could not allocate struct gmix_mcmc: %s: %d\n",
+                __FILE__,__LINE__);
+        exit(1);
+    }
+
+    // value type
+    self->conf = (*conf);
+
+}
+
 struct mca_chain *gmix_mcmc_guess_simple(
         double row, double col,
         double T, double counts,
