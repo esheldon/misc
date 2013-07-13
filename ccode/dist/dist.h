@@ -8,7 +8,7 @@
 #define DIST_LOG_MINARG 1.0e-10
 
 #define DIST_BAD_DIST 0x1
-//#define DIST_WRONG_NPARS 0x2
+#define DIST_WRONG_NPARS 0x2
 
 //#include "VEC.h"
 
@@ -85,20 +85,9 @@ struct dist_gmix3_eta {
     double gauss3_pnorm;
 };
 
-// eta_sq = eta1**2 + eta2**2
-/*
-#define DIST_GMIX3_ETA_EVAL(dist, eta_sq) ({                               \
-    double _prob=0;                                                        \
-                                                                           \
-    _prob += (dist)->gauss1_pnorm*exp(-0.5*(dist)->gauss1_ivar*(eta_sq) ); \
-    _prob += (dist)->gauss2_pnorm*exp(-0.5*(dist)->gauss2_ivar*(eta_sq) ); \
-    _prob += (dist)->gauss3_pnorm*exp(-0.5*(dist)->gauss3_ivar*(eta_sq) ); \
-                                                                           \
-    _prob;                                                                 \
-})
-*/
 
 enum dist dist_string2dist(const char *dist_name, long *flags);
+long dist_get_npars(enum dist dist_type, long *flags);
 
 
 struct dist_gauss *dist_gauss_new(double mean, double sigma);
@@ -118,15 +107,18 @@ double dist_g_ba_prob(const struct dist_g_ba *self, double g1, double g2);
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream);
 
 void dist_gmix3_eta_fill(struct dist_gmix3_eta *self,
-                         double ivar1, double p1,
-                         double ivar2, double p2,
-                         double ivar3, double p3);
+                         double sigma1, double sigma2, double sigma3,
+                         double p1, double p2, double p3);
 
 
 
-struct dist_gmix3_eta *dist_gmix3_eta_new(double ivar1, double p1,
-                                          double ivar2, double p2,
-                                          double ivar3, double p3);
+struct dist_gmix3_eta *dist_gmix3_eta_new(double sigma1,
+                                          double sigma2,
+                                          double sigma3,
+                                          double p1,
+                                          double p2,
+                                          double p3);
+                                          
 double dist_gmix3_eta_lnprob(const struct dist_gmix3_eta *self, double eta1, double eta2);
 double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, double eta1, double eta2);
 void dist_gmix3_eta_print(const struct dist_gmix3_eta *self, FILE *stream);
