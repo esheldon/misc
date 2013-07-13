@@ -91,7 +91,6 @@ _prob_calc_simple_likelihood_generic_bail:
 
 struct prob_data_simple_ba *prob_data_simple_ba_new(enum gmix_model model,
                                                     long psf_ngauss,
-                                                    const struct obs_list *obs_list,
 
                                                     const struct dist_gauss *cen1_prior,
                                                     const struct dist_gauss *cen2_prior,
@@ -105,8 +104,6 @@ struct prob_data_simple_ba *prob_data_simple_ba_new(enum gmix_model model,
 
 {
 
-    long ngauss_tot=0;
-
     struct prob_data_simple_ba *self=calloc(1, sizeof(struct prob_data_simple_ba));
     if (!self) {
         fprintf(stderr,"could not allocate struct prob_data_simple_ba\n");
@@ -114,14 +111,14 @@ struct prob_data_simple_ba *prob_data_simple_ba_new(enum gmix_model model,
     }
 
     self->model=model;
-    self->obs_list = obs_list;
 
     self->obj0 = gmix_new_empty_simple(model, flags);
     if (*flags) {
         goto _prob_data_simple_ba_new_bail;
     }
 
-    ngauss_tot = obs_list->data[0].psf_gmix->size * self->obj0->size;
+    long ngauss0 = self->obj0->size;
+    long ngauss_tot = ngauss0*psf_ngauss;
 
     self->obj = gmix_new(ngauss_tot, flags);
     if (*flags) {
@@ -170,6 +167,7 @@ void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
 }
 
 void prob_simple_ba_calc(struct prob_data_simple_ba *self,
+                         const struct obs_list *obs_list,
                          double *pars, long npars,
                          double *s2n_numer, double *s2n_denom,
                          double *lnprob, long *flags)
@@ -182,7 +180,7 @@ void prob_simple_ba_calc(struct prob_data_simple_ba *self,
     prob_calc_simple_likelihood(self->obj0,
                                 self->obj,
                                 self->model,
-                                self->obs_list,
+                                obs_list,
                                 pars,
                                 npars,
                                 s2n_numer,
@@ -219,24 +217,21 @@ _prob_simple_ba_calc_bail:
 */
 
 
-struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_new(
-        enum gmix_model model,
-        long psf_ngauss,
-        const struct obs_list *obs_list,
+struct prob_data_simple_gmix3_eta *
+prob_data_simple_gmix3_eta_new(enum gmix_model model,
+                               long psf_ngauss,
 
-        const struct dist_gauss *cen1_prior,
-        const struct dist_gauss *cen2_prior,
+                               const struct dist_gauss *cen1_prior,
+                               const struct dist_gauss *cen2_prior,
 
-        const struct dist_gmix3_eta *shape_prior,
+                               const struct dist_gmix3_eta *shape_prior,
 
-        const struct dist_lognorm *T_prior,
-        const struct dist_lognorm *counts_prior,
-        long *flags)
+                               const struct dist_lognorm *T_prior,
+                               const struct dist_lognorm *counts_prior,
+                               long *flags)
 
 
 {
-
-    long ngauss_tot=0;
 
     struct prob_data_simple_gmix3_eta *self=calloc(1, sizeof(struct prob_data_simple_gmix3_eta));
     if (!self) {
@@ -245,14 +240,14 @@ struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_new(
     }
 
     self->model=model;
-    self->obs_list = obs_list;
 
     self->obj0 = gmix_new_empty_simple(model, flags);
     if (*flags) {
         goto _prob_data_simple_gmix3_eta_new_bail;
     }
 
-    ngauss_tot = obs_list->data[0].psf_gmix->size * self->obj0->size;
+    long ngauss0 = self->obj0->size;
+    long ngauss_tot = ngauss0*psf_ngauss;
 
     self->obj = gmix_new(ngauss_tot, flags);
     if (*flags) {
@@ -284,9 +279,9 @@ struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_free(struct prob_d
 }
 
 void prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self,
-                                double *pars, long npars,
-                                double *lnprob,
-                                long *flags)
+                                       double *pars, long npars,
+                                       double *lnprob,
+                                       long *flags)
 {
     (*flags) = 0;
     (*lnprob) = 0;
@@ -301,9 +296,10 @@ void prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self,
 }
 
 void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
-                         double *pars, long npars,
-                         double *s2n_numer, double *s2n_denom,
-                         double *lnprob, long *flags)
+                                const struct obs_list *obs_list,
+                                double *pars, long npars,
+                                double *s2n_numer, double *s2n_denom,
+                                double *lnprob, long *flags)
 {
 
     double loglike=0, priors_lnprob=0;
@@ -313,7 +309,6 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
     memcpy(gpars, pars, 6);
 
     shape_set_eta(&shape, pars[2], pars[3]);
-    //eta1eta2_to_g1g2(pars[2], pars[3], &g1, &g2);
 
     gpars[2] = shape.g1;
     gpars[3] = shape.g2;
@@ -323,7 +318,7 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
     prob_calc_simple_likelihood(self->obj0,
                                 self->obj,
                                 self->model,
-                                self->obs_list,
+                                obs_list,
                                 gpars,
                                 npars,
                                 s2n_numer,

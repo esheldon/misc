@@ -146,6 +146,28 @@ FILE *open_file(const char *name, const char *mode)
     return stream;
 }
 
+
+
+static struct prob_data_simple_gmix3_eta *
+get_prob(struct gmix_mcmc_config *conf)
+{
+
+    struct prob_data_simple_gmix3_eta *prob=NULL;
+
+    prob_data_simple_gmix3_eta_new(enum gmix_model model,
+                                   long psf_ngauss,
+
+                                   const struct dist_gauss *cen1_prior,
+                                   const struct dist_gauss *cen2_prior,
+
+                                   const struct dist_gmix3_eta *shape_prior,
+
+                                   const struct dist_lognorm *T_prior,
+                                   const struct dist_lognorm *counts_prior,
+                                   long *flags)
+
+}
+
 void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream, FILE* output_stream)
 {
     struct object obj={{0}};
