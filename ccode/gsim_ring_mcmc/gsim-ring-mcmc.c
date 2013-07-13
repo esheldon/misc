@@ -124,17 +124,14 @@ _process_object_bail:
     return;
 }
 
-static struct gmix_mcmc_config *load_config(const char *name)
+static void load_config(struct gmix_mcmc_config *conf, const char *name)
 {
-    enum cfg_status cfg_stat=0;
-    struct gmix_mcmc_config *conf=gmix_mcmc_config_read(name, &cfg_stat);
-    if (cfg_stat!=0) {
+    long flags=gmix_mcmc_config_load(conf, name);
+    if (flags != 0) {
         fprintf(stderr,"fatal error reading conf, exiting\n");
         exit(1);
     }
     gmix_mcmc_config_print(conf, stdout);
-
-    return conf;
 }
 
 FILE *open_file(const char *name, const char *mode)
@@ -243,16 +240,15 @@ int main(int argc, char **argv)
         printf("usage: %s config objlist output_file\n", argv[0]);
         exit(1);
     }
-
-    struct gmix_mcmc_config *conf=load_config(argv[1]);
+    struct gmix_mcmc_config conf={0};
+    load_config(&conf, argv[1]);
     FILE *input_stream = open_file(argv[2],"r");
     FILE *output_stream = open_file(argv[3],"w");
 
     printf("running sim\n");
-    run_sim(conf, input_stream, output_stream);
+    run_sim(&conf, input_stream, output_stream);
     printf("finished running sim\n");
 
-    conf = gmix_mcmc_config_free(conf);
     fclose(input_stream);
     fclose(output_stream);
     return 0;
