@@ -23,9 +23,7 @@ enum prob_type {
 // log normal priors on T and flux
 // gaussian prior on center
 struct prob_data_simple_ba {
-    const struct obs_list *obs_list;
 
-    long psf_ngauss;
 
     enum gmix_model model;
     struct gmix *obj0;
@@ -45,18 +43,18 @@ struct prob_data_simple_ba {
 
 enum prob_type prob_string2type(const char *type_name, long *flags);
 
-struct prob_data_simple_ba *prob_data_simple_ba_new(enum gmix_model model,
-                                                    long psf_ngauss,
-                                                    const struct obs_list *obs_list,
+struct prob_data_simple_ba *
+prob_data_simple_ba_new(enum gmix_model model,
+                        long psf_ngauss,
 
-                                                    const struct dist_gauss *cen1_prior,
-                                                    const struct dist_gauss *cen2_prior,
+                        const struct dist_gauss *cen1_prior,
+                        const struct dist_gauss *cen2_prior,
 
-                                                    const struct dist_g_ba *shape_prior,
+                        const struct dist_g_ba *shape_prior,
 
-                                                    const struct dist_lognorm *T_prior,
-                                                    const struct dist_lognorm *counts_prior,
-                                                    long *flags);
+                        const struct dist_lognorm *T_prior,
+                        const struct dist_lognorm *counts_prior,
+                        long *flags);
  
 struct prob_data_simple_ba *prob_data_simple_ba_free(struct prob_data_simple_ba *self);
                                                  
@@ -68,6 +66,7 @@ void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
 // calculate the lnprob for the input pars
 // also running s/n values
 void prob_simple_ba_calc(struct prob_data_simple_ba *self,
+                         const struct obs_list *obs_list,
                          double *pars, long npars,
                          double *s2n_numer, double *s2n_denom,
                          double *lnprob,
@@ -76,10 +75,6 @@ void prob_simple_ba_calc(struct prob_data_simple_ba *self,
 
 // using gaussian mixture in eta space
 struct prob_data_simple_gmix3_eta {
-    const struct obs_list *obs_list;
-
-    long psf_ngauss;
-
     enum gmix_model model;
     struct gmix *obj0;
     struct gmix *obj;
@@ -96,20 +91,18 @@ struct prob_data_simple_gmix3_eta {
     struct dist_lognorm counts_prior;
 };
 
+struct prob_data_simple_gmix3_eta *
+prob_data_simple_gmix3_eta_new(enum gmix_model model,
+                               long psf_ngauss,
 
-struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_new(
-        enum gmix_model model,
-        long psf_ngauss,
-        const struct obs_list *obs_list,
+                               const struct dist_gauss *cen1_prior,
+                               const struct dist_gauss *cen2_prior,
 
-        const struct dist_gauss *cen1_prior,
-        const struct dist_gauss *cen2_prior,
+                               const struct dist_gmix3_eta *shape_prior,
 
-        const struct dist_gmix3_eta *shape_prior,
-
-        const struct dist_lognorm *T_prior,
-        const struct dist_lognorm *counts_prior,
-        long *flags);
+                               const struct dist_lognorm *T_prior,
+                               const struct dist_lognorm *counts_prior,
+                               long *flags);
 
 struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_free(struct prob_data_simple_gmix3_eta *self);
                                                  
@@ -121,6 +114,7 @@ void prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self,
 // calculate the lnprob for the input pars
 // also running s/n values
 void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
+                                const struct obs_list *obs_list,
                                 double *pars, long npars,
                                 double *s2n_numer, double *s2n_denom,
                                 double *lnprob,
