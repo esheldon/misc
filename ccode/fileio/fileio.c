@@ -9,6 +9,16 @@ FILE *fileio_open_stream(const char *name, const char *mode)
     }
     return fobj;
 }
+FILE *fileio_open_or_die(const char *name, const char *mode)
+{
+    FILE *stream = fileio_open_stream(name,mode);
+    if (!stream) {
+        fprintf(stderr,"aborting\n");
+        exit(1);
+    }
+    return stream;
+}
+
 
 long fileio_count_lines(FILE *stream)
 {

@@ -134,15 +134,6 @@ static void load_config(struct gmix_mcmc_config *conf, const char *name)
     gmix_mcmc_config_print(conf, stdout);
 }
 
-FILE *open_file(const char *name, const char *mode)
-{
-    FILE *stream = fileio_open_stream(name,mode);
-    if (!stream) {
-        exit(1);
-    }
-    return stream;
-}
-
 
 
 // needs to be put into gmix_mcmc somewhere
@@ -242,8 +233,8 @@ int main(int argc, char **argv)
     }
     struct gmix_mcmc_config conf={0};
     load_config(&conf, argv[1]);
-    FILE *input_stream = open_file(argv[2],"r");
-    FILE *output_stream = open_file(argv[3],"w");
+    FILE *input_stream = fileio_open_or_die(argv[2],"r");
+    FILE *output_stream = fileio_open_or_die(argv[3],"w");
 
     printf("running sim\n");
     run_sim(&conf, input_stream, output_stream);

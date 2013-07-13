@@ -110,6 +110,7 @@ struct prob_data_simple_ba *prob_data_simple_ba_new(enum gmix_model model,
         exit(EXIT_FAILURE);
     }
 
+    self->type = PROB_BA13;
     self->model=model;
 
     self->obj0 = gmix_new_empty_simple(model, flags);
@@ -239,6 +240,7 @@ prob_data_simple_gmix3_eta_new(enum gmix_model model,
         exit(EXIT_FAILURE);
     }
 
+    self->type = PROB_NOSPLIT_ETA;
     self->model=model;
 
     self->obj0 = gmix_new_empty_simple(model, flags);
