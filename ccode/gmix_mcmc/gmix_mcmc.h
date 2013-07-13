@@ -20,12 +20,28 @@
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 #endif
 
+// the chains and stats structures
+struct gmix_mcmc_chains {
+    double mca_a; // ~2
+    struct mca_chain *burnin_chain;
+    struct mca_chain *chain;
+
+    struct mca_stats *stats;
+};
+
 struct gmix_mcmc {
+    // this is a value type
     struct gmix_mcmc_config conf;
+
+    // contains references
+    struct gmix_mcmc_chains chain_data;
 
     // e.g. PROB_NOSPLIT_ETA
     enum prob prob_type;
+
     // probability calculator struct, e.g. prob_data_simple_gmix3_eta 
+    // contains references
+    // cast to (struct prob_data_base* ) to check the ->type field
     void *prob; 
 };
 

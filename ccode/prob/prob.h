@@ -19,11 +19,17 @@ enum prob_type {
 
 #define PROB_LOG_LOWVAL -9.999e9
 
+// we can always cast to this type to extract
+// the model
+struct prob_data_base {
+    enum prob_type type;
+};
+
 // BA13 g prior
 // log normal priors on T and flux
 // gaussian prior on center
 struct prob_data_simple_ba {
-
+    enum prob_type type;
 
     enum gmix_model model;
     struct gmix *obj0;
@@ -75,6 +81,8 @@ void prob_simple_ba_calc(struct prob_data_simple_ba *self,
 
 // using gaussian mixture in eta space
 struct prob_data_simple_gmix3_eta {
+    enum prob_type type;
+
     enum gmix_model model;
     struct gmix *obj0;
     struct gmix *obj;
