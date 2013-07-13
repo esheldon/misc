@@ -42,8 +42,8 @@ struct gmix_mcmc {
 
 // should we have one that copies an input config and one
 // that loads a config file?
-struct gmix_mcmc *gmix_mcmc_new(struct gmix_mcmc_config *conf);
-struct gmix_mcmc *gmix_mcmc_new_from_config(const char *name);
+struct gmix_mcmc *gmix_mcmc_new(const struct gmix_mcmc_config *conf, long *flags);
+struct gmix_mcmc *gmix_mcmc_new_from_config(const char *name, long *flags);
 
 /* older stuff */
 

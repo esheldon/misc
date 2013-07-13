@@ -1,5 +1,5 @@
-#ifndef _GSIM_CONFIG_HEADER_GUARD
-#define _GSIM_CONFIG_HEADER_GUARD
+#ifndef _GMIX_MCMC_CONFIG_HEADER_GUARD
+#define _GMIX_MCMC_CONFIG_HEADER_GUARD
 
 #include "gmix.h"
 #include "prob.h"
@@ -8,6 +8,7 @@
 #define GMIX_MCMC_MAXPARS 6
 #define GMIX_MCMC_MAXNAME 20
 
+// this is a value type
 struct gmix_mcmc_config {
     // MCA for the object measurement
     long nwalkers;
