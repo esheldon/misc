@@ -6,22 +6,25 @@
 #include "dist.h"
 
 #define GMIX_MCMC_MAXPARS 6
-#define GMIX_MCMC_MAXNAME 6
+#define GMIX_MCMC_MAXNAME 20
 
 struct gmix_mcmc_config {
+    // MCA for the object measurement
     long nwalkers;
     long burnin;
     long nstep;
 
     double mca_a;
 
+    // we use EM for the PSF fitting
     long psf_ngauss;
     long em_maxiter;
     double em_tol;
 
-    // for now only fit a single model, but can expand this
+    // for now only fit a single model, but can expand this to an array
     char fitmodel_name[GMIX_MCMC_MAXNAME];
     enum gmix_model fitmodel;
+    long nmodel;
     long npars;
 
     // the type of probability calculation
@@ -45,8 +48,7 @@ struct gmix_mcmc_config {
     double cen_prior_pars[GMIX_MCMC_MAXPARS];
 };
 
-struct gmix_mcmc_config *gmix_mcmc_config_read(const char *name, enum cfg_status *status);
-struct gmix_mcmc_config *gmix_mcmc_config_free(struct gmix_mcmc_config *self);
+long gmix_mcmc_config_load(struct gmix_mcmc_config *self, const char *name);
 void gmix_mcmc_config_print(const struct gmix_mcmc_config *self, FILE *stream);
 
 #endif
