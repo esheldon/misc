@@ -21,4 +21,6 @@ struct result {
 //struct result *result_new(struct gmix_mcmc_chains *chain_data);
 //struct result *result_free(struct result *self);
 
+void result_calc(struct result *self, struct gmix_mcmc_chains *chain_data);
+
 #endif
