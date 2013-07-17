@@ -1,13 +1,101 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "config.h"
+#include "prob.h"
 #include "gmix.h"
+#include "gmix_mcmc_config.h"
 #include "gmix_mcmc.h"
+
+// we can generalize this later
+// you should caste prob_data_base to your actual type
+static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *conf, long *flags)
+{
+
+    struct prob_data_simple_gmix3_eta *prob=NULL;
+
+    struct dist_gauss cen_prior={0};
+
+    struct dist_gmix3_eta shape_prior={0};
+
+    struct dist_lognorm T_prior={0};
+    struct dist_lognorm counts_prior={0};
+
+    fprintf(stderr,"loading prob gmix3_eta\n");
+
+    if (conf->cen_prior_npars != 1
+            || conf->T_prior_npars != 2
+            || conf->counts_prior_npars != 2
+            || conf->shape_prior_npars != 6) {
+
+        *flags |= DIST_WRONG_NPARS;
+        return NULL;
+    }
+    dist_gauss_fill(&cen_prior,
+                    0.0,
+                    conf->cen_prior_pars[0]);
+    dist_lognorm_fill(&T_prior, 
+                      conf->T_prior_pars[0],
+                      conf->T_prior_pars[1]);
+    dist_lognorm_fill(&counts_prior,
+                      conf->counts_prior_pars[0],
+                      conf->counts_prior_pars[1]);
+    dist_gmix3_eta_fill(&shape_prior,
+                        conf->shape_prior_pars[0],  // sigma1
+                        conf->shape_prior_pars[1],  // sigma2
+                        conf->shape_prior_pars[2],  // sigma3
+                        conf->shape_prior_pars[3],  // p1
+                        conf->shape_prior_pars[4],  // p2
+                        conf->shape_prior_pars[5]); // p3
+
+
+    // priors get copied
+    prob=prob_data_simple_gmix3_eta_new(conf->fitmodel,
+                                        conf->psf_ngauss,
+
+                                        &cen_prior,
+                                        &cen_prior,
+
+                                        &shape_prior,
+
+                                        &T_prior,
+                                        &counts_prior,
+                                        flags);
+
+    return (struct prob_data_base *) prob;
+}
+
+// can generalize this
+static struct prob_data_base *prob_free_generic(struct prob_data_base *prob)
+{
+    prob_data_simple_gmix3_eta_free( (struct prob_data_simple_gmix3_eta *) prob);
+    return NULL;
+}
+
+static void create_chain_data(struct gmix_mcmc *self)
+{
+
+    self->chain_data.mca_a = self->conf.mca_a;
+    self->chain_data.burnin_chain = mca_chain_new(self->conf.nwalkers,
+                                                  self->conf.burnin,
+                                                  self->conf.npars);
+    self->chain_data.chain = mca_chain_new(self->conf.nwalkers,
+                                           self->conf.nstep,
+                                           self->conf.npars);
+    self->chain_data.stats = mca_stats_new(self->conf.npars);
+
+}
+static void free_chain_data(struct gmix_mcmc *self)
+{
+    self->chain_data.burnin_chain = mca_chain_free(self->chain_data.burnin_chain);
+    self->chain_data.chain = mca_chain_free(self->chain_data.chain);
+    self->chain_data.stats = mca_stats_free(self->chain_data.stats);
+}
 
 
 struct gmix_mcmc *gmix_mcmc_new(const struct gmix_mcmc_config *conf, long *flags)
 {
-    self=calloc(1, sizeof(struct gmix_mcmc));
+    struct gmix_mcmc *self=calloc(1, sizeof(struct gmix_mcmc));
     if (self==NULL) {
         fprintf(stderr,"could not allocate struct gmix_mcmc: %s: %d\n",
                 __FILE__,__LINE__);
@@ -17,7 +105,55 @@ struct gmix_mcmc *gmix_mcmc_new(const struct gmix_mcmc_config *conf, long *flags
     // value type
     self->conf = (*conf);
 
+    // cast to (prob_data_base *) to check the type
+    // use PROB_GET_TYPE macro
+    self->prob = prob_new_generic(conf, flags);
+    if (*flags != 0) {
+        goto _gmix_mcmc_new_bail;
+    }
+
+    create_chain_data(self);
+
+_gmix_mcmc_new_bail:
+    if (*flags != 0)  {
+       self=gmix_mcmc_free(self);
+    }
+
+    return self;
 }
+struct gmix_mcmc *gmix_mcmc_new_from_config(const char *name, long *flags)
+{
+
+    struct gmix_mcmc *self=NULL;
+    struct gmix_mcmc_config conf={0};
+
+    *flags=gmix_mcmc_config_load(&conf, name);
+    if (*flags != 0) {
+        goto _gmix_mcmc_new_from_config_bail;
+    }
+
+    self = gmix_mcmc_new(&conf, flags);
+
+_gmix_mcmc_new_from_config_bail:
+    if (*flags != 0) {
+        self=gmix_mcmc_free(self);
+    }
+
+    return self;
+}
+struct gmix_mcmc *gmix_mcmc_free(struct gmix_mcmc *self)
+{
+    if (self) {
+        free_chain_data(self);
+        self->prob=prob_free_generic((struct prob_data_base *) self->prob);
+
+        free(self);
+        self=NULL;
+    }
+    return self;
+}
+
+
 
 struct mca_chain *gmix_mcmc_guess_simple(
         double row, double col,

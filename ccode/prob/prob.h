@@ -7,7 +7,6 @@
 #include "image.h"
 #include "jacobian.h"
 #include "gmix.h"
-#include "gmix_mcmc_config.h"
 #include "dist.h"
 #include "obs.h"
 
@@ -26,9 +25,10 @@ struct prob_data_base {
     enum prob_type type;
 };
 
-// you should caste prob_data_base to your actual type
-struct prob_data_base *prob_new(const struct gmix_mcmc_config *conf,
-                                long *flags);
+
+// cast to (prob_data_base *) and get the type field, shared
+// by all prob structures in the first element
+#define PROB_GET_TYPE(self) ( (prob_data_base *) (self) )->type
 
 // BA13 g prior
 // log normal priors on T and flux

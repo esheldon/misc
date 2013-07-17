@@ -13,6 +13,7 @@
 #include "config.h"
 #include "result.h"
 #include "gmix_mcmc_config.h"
+#include "gmix_mcmc.h"
 #include "object.h"
 #include "result.h"
 
@@ -88,13 +89,15 @@ void process_obs_list(struct gmix_mcmc_config *conf,
 {
 }
 
-void process_pair(struct gmix_mcmc_config *conf,
+void process_pair(struct gmix_mcmc *self,
                   struct object *obj,
                   struct result *res1,
                   struct result *res2,
                   long *flags)
 {
+
     struct obs_list *obs_list=NULL;
+
     struct ring_image_pair *impair = get_image_pair(obj, flags);
     if (*flags != 0) {
         goto _process_object_bail;
@@ -103,7 +106,7 @@ void process_pair(struct gmix_mcmc_config *conf,
     obs_list = make_obs_list(impair->im1,
                              impair->wt1,
                              impair->psf_image,
-                             conf->psf_ngauss,
+                             self->conf.psf_ngauss,
                              flags);
     if (*flags != 0) {
         goto _process_object_bail;
@@ -114,7 +117,7 @@ void process_pair(struct gmix_mcmc_config *conf,
     obs_list = make_obs_list(impair->im2,
                              impair->wt2,
                              impair->psf_image,
-                             conf->psf_ngauss,
+                             self->conf.psf_ngauss,
                              flags);
 
 _process_object_bail:
@@ -135,75 +138,23 @@ static void load_config(struct gmix_mcmc_config *conf, const char *name)
 }
 
 
-
-// needs to be put into gmix_mcmc somewhere
-static struct prob_data_simple_gmix3_eta *
-get_prob(struct gmix_mcmc_config *conf)
-{
-
-    long flags=0;
-    struct prob_data_simple_gmix3_eta *prob=NULL;
-
-    struct dist_gauss cen_prior={0};
-
-    struct dist_gmix3_eta shape_prior={0};
-
-    struct dist_lognorm T_prior={0};
-    struct dist_lognorm counts_prior={0};
-
-    dist_gauss_fill(&cen_prior,
-                    0.0,
-                    conf->cen_prior_pars[0]);
-    dist_lognorm_fill(&T_prior, 
-                      conf->T_prior_pars[0],
-                      conf->T_prior_pars[1]);
-    dist_lognorm_fill(&counts_prior,
-                      conf->counts_prior_pars[0],
-                      conf->counts_prior_pars[1]);
-    dist_gmix3_eta_fill(&shape_prior,
-                        conf->shape_prior_pars[0],  // sigma1
-                        conf->shape_prior_pars[1],  // sigma2
-                        conf->shape_prior_pars[2],  // sigma3
-                        conf->shape_prior_pars[3],  // p1
-                        conf->shape_prior_pars[4],  // p2
-                        conf->shape_prior_pars[5]); // p3
-
-
-    // priors get copied
-    prob=prob_data_simple_gmix3_eta_new(conf->fitmodel,
-                                        conf->psf_ngauss,
-
-                                        &cen_prior,
-                                        &cen_prior,
-
-                                        &shape_prior,
-
-                                        &T_prior,
-                                        &counts_prior,
-                                        &flags);
-
-    if (flags != 0) {
-        fprintf(stderr, "error creating prob gmix3 eta, aborting: %s: %d",
-                __FILE__,__LINE__);
-        exit(1);
-    }
-    return prob;
-}
-
 void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream, FILE* output_stream)
 {
     struct object obj={{0}};
-    struct result *res1=NULL, *res2=NULL;
-    struct prob_data_simple_gmix3_eta *prob=NULL;
+    struct result res1 = {{0}}, res2={{0}};
+    struct gmix_mcmc *gmix_mcmc=NULL;
+
     long flags=0;
+
+    gmix_mcmc = gmix_mcmc_new(conf, &flags);
+    if (flags != 0) {
+        goto _run_sim_bail;
+    }
 
     long nlines = fileio_count_lines(input_stream);
     rewind(input_stream);
 
     // always work in pairs
-    res1=result_new(conf->nwalkers, conf->burnin, conf->nstep, conf->npars, conf->mca_a);
-    res2=result_new(conf->nwalkers, conf->burnin, conf->nstep, conf->npars, conf->mca_a);
-    prob = get_prob(conf);
 
     fprintf(stderr,"processing %ld objects\n\n", nlines);
 
@@ -214,15 +165,15 @@ void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream, FILE* output_str
         }
 
         object_print(&obj, stdout);
-        process_pair(conf, &obj, res1, res2, &flags);
+        process_pair(gmix_mcmc, &obj, &res1, &res2, &flags);
         if (flags != 0) {
             fprintf(stderr, "error processing ring pair, aborting: %s: %d", __FILE__,__LINE__);
             exit(1);
         }
     }
+_run_sim_bail:
+    gmix_mcmc = gmix_mcmc_free(gmix_mcmc);
 
-    res1=result_free(res1);
-    res2=result_free(res2);
 }
 
 int main(int argc, char **argv)

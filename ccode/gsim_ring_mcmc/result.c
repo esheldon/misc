@@ -3,6 +3,7 @@
 
 #include "result.h"
 
+/*
 struct result *result_new(long nwalkers, long burnin, long nstep, long npars, double mca_a)
 {
     struct result *self=calloc(1,sizeof(struct result));
@@ -32,3 +33,4 @@ struct result *result_free(struct result *self)
     }
     return self;
 }
+*/

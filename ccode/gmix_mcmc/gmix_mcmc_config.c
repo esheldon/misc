@@ -18,7 +18,7 @@ static void load_prior_data(struct cfg *cfg,
                             enum cfg_status *status,
                             long *flags)
 {
-    double *tstr=NULL;
+    char *tstr=NULL;
     double *tpars=NULL;
 
     tstr = cfg_get_string(cfg,dist_key,status);
@@ -61,9 +61,6 @@ long gmix_mcmc_config_load(struct gmix_mcmc_config *self, const char *name)
     enum cfg_status status=0;
     char key[100];
     char *tstr=NULL;
-
-    size_t npars=0;
-    double *pars=NULL;
 
     struct cfg *cfg=NULL;
 

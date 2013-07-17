@@ -35,18 +35,22 @@ struct gmix_mcmc_config {
     char shape_prior_name[GMIX_MCMC_MAXNAME];
     enum dist shape_prior;
     double shape_prior_pars[GMIX_MCMC_MAXPARS];
+    size_t shape_prior_npars;
 
     char T_prior_name[GMIX_MCMC_MAXNAME];
     enum dist T_prior;
     double T_prior_pars[GMIX_MCMC_MAXPARS];
+    size_t T_prior_npars;
 
     char counts_prior_name[GMIX_MCMC_MAXNAME];
     enum dist counts_prior;
     double counts_prior_pars[GMIX_MCMC_MAXPARS];
+    size_t counts_prior_npars;
 
     char cen_prior_name[GMIX_MCMC_MAXNAME];
     enum dist cen_prior;
     double cen_prior_pars[GMIX_MCMC_MAXPARS];
+    size_t cen_prior_npars;
 };
 
 long gmix_mcmc_config_load(struct gmix_mcmc_config *self, const char *name);
