@@ -28,10 +28,10 @@ struct gmix_mcmc {
     struct gmix_mcmc_config conf;
 
     // contains references
-    struct gmix_mcmc_chains *chain_data;
+    struct gmix_mcmc_chains chain_data;
 
     // e.g. PROB_NOSPLIT_ETA
-    enum prob prob_type;
+    enum prob_type prob_type;
 
     // probability calculator struct, e.g. prob_data_simple_gmix3_eta 
     // contains references
@@ -39,10 +39,14 @@ struct gmix_mcmc {
     void *prob; 
 };
 
+// you should caste prob_data_base to your actual type
+//struct prob_data_base *prob_new(const struct gmix_mcmc_config *conf,
+//                                long *flags);
 
 // should we have one that copies an input config and one
 // that loads a config file?
 struct gmix_mcmc *gmix_mcmc_new(const struct gmix_mcmc_config *conf, long *flags);
+struct gmix_mcmc *gmix_mcmc_free(struct gmix_mcmc *);
 struct gmix_mcmc *gmix_mcmc_new_from_config(const char *name, long *flags);
 
 /* older stuff */

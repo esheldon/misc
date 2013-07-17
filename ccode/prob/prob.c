@@ -82,62 +82,6 @@ _prob_calc_simple_likelihood_generic_bail:
     }
 }
 
-// we can generalize this later
-// you should caste prob_data_base to your actual type
-struct prob_data_base *prob_new(const struct gmix_mcmc_config *conf, long *flags)
-{
-
-    struct prob_data_simple_gmix3_eta *prob=NULL;
-
-    struct dist_gauss cen_prior={0};
-
-    struct dist_gmix3_eta shape_prior={0};
-
-    struct dist_lognorm T_prior={0};
-    struct dist_lognorm counts_prior={0};
-
-    if (conf->cen_prior_npars != 1
-            || conf->T_prior_npars != 2
-            || conf->counts_prior_npars != 2
-            || conf->shape_prior_npars != 6) {
-
-        *flags |= DIST_WRONG_NPARS;
-        return NULL;
-    }
-    dist_gauss_fill(&cen_prior,
-                    0.0,
-                    conf->cen_prior_pars[0]);
-    dist_lognorm_fill(&T_prior, 
-                      conf->T_prior_pars[0],
-                      conf->T_prior_pars[1]);
-    dist_lognorm_fill(&counts_prior,
-                      conf->counts_prior_pars[0],
-                      conf->counts_prior_pars[1]);
-    dist_gmix3_eta_fill(&shape_prior,
-                        conf->shape_prior_pars[0],  // sigma1
-                        conf->shape_prior_pars[1],  // sigma2
-                        conf->shape_prior_pars[2],  // sigma3
-                        conf->shape_prior_pars[3],  // p1
-                        conf->shape_prior_pars[4],  // p2
-                        conf->shape_prior_pars[5]); // p3
-
-
-    // priors get copied
-    prob=prob_data_simple_gmix3_eta_new(conf->fitmodel,
-                                        conf->psf_ngauss,
-
-                                        &cen_prior,
-                                        &cen_prior,
-
-                                        &shape_prior,
-
-                                        &T_prior,
-                                        &counts_prior,
-                                        flags);
-
-    return (struct prob_data_base *) prob;
-}
-
 
 /*
 
