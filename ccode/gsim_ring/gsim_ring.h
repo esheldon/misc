@@ -23,8 +23,12 @@
 
 struct ring_pair {
     double s2n;
+
+    double cen1_start;
+    double cen2_start;
     double cen1_offset;
     double cen2_offset;
+
     struct gmix *gmix1;
     struct gmix *gmix2;
     struct gmix *psf_gmix;
@@ -64,7 +68,11 @@ struct ring_pair *ring_pair_free(struct ring_pair *self);
 void ring_pair_print(const struct ring_pair *self, FILE* stream);
 
 
-struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *flags);
+struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, 
+                                            double *cen1_start,
+                                            double *cen2_start,
+                                            long *flags);
+
 struct ring_image_pair *ring_image_pair_free(struct ring_image_pair *self);
 
 #endif

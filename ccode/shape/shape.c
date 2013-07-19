@@ -171,10 +171,10 @@ int shape_set_g(struct shape *self, double g1, double g2)
     if (e >= 1) {
         setbad(self);
         //e=0.999999;
-        /*
         fprintf(stderr,"error: e must be < 1, found "
                 "%.16g. %s: %d\n",e,__FILE__,__LINE__);
-        */
+        //fprintf(stderr,"original g1,g2: (%g,%g) "
+        //        "%s: %d\n",g1,g2,__FILE__,__LINE__);
         return 0;
     }
 

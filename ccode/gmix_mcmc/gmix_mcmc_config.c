@@ -47,7 +47,7 @@ static void load_prior_data(struct cfg *cfg,
         goto _load_prior_bail;
     }
 
-    memcpy(pars, pars, *npars);
+    memcpy(pars, tpars, (*npars)*sizeof(double));
 
 _load_prior_bail:
     free(tstr);tstr=NULL;
@@ -170,7 +170,34 @@ void gmix_mcmc_config_print(const struct gmix_mcmc_config *self, FILE *stream)
     fprintf(stream,"prob_type:    %s\n", self->prob_type_name);
 
     fprintf(stream,"shape_prior:  %s\n", self->shape_prior_name);
+    fprintf(stream,"    ");
+    for (long i=0; i<self->shape_prior_npars; i++) {
+        fprintf(stream,"%g ",self->shape_prior_pars[i]);
+    }
+    fprintf(stream,"\n");
+
     fprintf(stream,"T_prior:      %s\n", self->T_prior_name);
+    fprintf(stream,"    ");
+    for (long i=0; i<self->T_prior_npars; i++) {
+        fprintf(stream,"%g ",self->T_prior_pars[i]);
+    }
+    fprintf(stream,"\n");
+
+
     fprintf(stream,"counts_prior: %s\n", self->counts_prior_name);
+    fprintf(stream,"    ");
+    for (long i=0; i<self->counts_prior_npars; i++) {
+        fprintf(stream,"%g ",self->counts_prior_pars[i]);
+    }
+    fprintf(stream,"\n");
+
+
     fprintf(stream,"cen_prior: %s\n", self->cen_prior_name);
+    fprintf(stream,"    ");
+    for (long i=0; i<self->cen_prior_npars; i++) {
+        fprintf(stream,"%g ",self->cen_prior_pars[i]);
+    }
+    fprintf(stream,"\n");
+
+
 }

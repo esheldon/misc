@@ -46,6 +46,8 @@ struct obs_list *make_obs_list(const struct image *image,
     return self;
 }
 
+// note row,col returned are the "center start", before offsetting,
+// so we can properly use it in the prior
 static
 struct ring_image_pair *get_image_pair(struct object *obj,
                                        double *row, double *col,// for guesses
@@ -72,7 +74,7 @@ struct ring_image_pair *get_image_pair(struct object *obj,
 
     ring_pair_print(rpair,stderr);
 
-    impair = ring_image_pair_new(rpair, &flags);
+    impair = ring_image_pair_new(rpair, row, col, &flags);
 
     if (flags != 0) {
         goto _get_image_pair_bail;
@@ -81,7 +83,6 @@ struct ring_image_pair *get_image_pair(struct object *obj,
     fprintf(stderr,"skysig1: %g  skysig2: %g psf_skysig: %g\n",
            impair->skysig1, impair->skysig2, impair->psf_skysig);
 
-    gmix_get_cen(rpair->gmix1, row, col);
     *T=gmix_get_T(rpair->gmix1);
     *counts=gmix_get_psum(rpair->gmix1);
 
@@ -177,7 +178,7 @@ void process_pair(struct gmix_mcmc *self,
     if (flags != 0) {
         goto _process_pair_bail;
     }
-    print_one(self, res1);
+    print_one(self, res2);
 
 _process_pair_bail:
     obs_list = obs_list_free(obs_list);

@@ -227,6 +227,8 @@ static struct image *make_image(const struct gmix *gmix,
                                 double s2n,
                                 double cen1_offset,
                                 double cen2_offset,
+                                double *cen1_start,
+                                double *cen2_start,
                                 double *skysig, // output
                                 long *flags) // output
 {
@@ -243,13 +245,16 @@ static struct image *make_image(const struct gmix *gmix,
         box_size+=1;
     }
 
-    double cen=( ((float)box_size) - 1.0)/2.0;
+    *cen1_start =( ((float)box_size) - 1.0)/2.0;
+    *cen2_start=*cen1_start;
 
     tmp_gmix = gmix_new_copy(gmix, flags);
     if (*flags != 0) {
         goto _ring_make_image_bail;
     }
-    gmix_set_cen(tmp_gmix, cen+cen1_offset, cen+cen2_offset);
+    gmix_set_cen(tmp_gmix,
+                 *cen1_start+cen1_offset,
+                 *cen2_start+cen2_offset);
 
     image = gmix_image_new(tmp_gmix, box_size, box_size, nsub);
     if (!image) {
@@ -273,7 +278,10 @@ _ring_make_image_bail:
     return image;
 }
 
-struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *flags)
+struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self,
+                                            double *cen1_start,
+                                            double *cen2_start,
+                                            long *flags)
 {
     struct ring_image_pair *impair=NULL;
 
@@ -288,6 +296,8 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *
                              self->s2n,
                              self->cen1_offset,
                              self->cen2_offset,
+                             cen1_start,
+                             cen2_start,
                              &impair->skysig1,
                              flags);
     if (*flags != 0) {
@@ -298,6 +308,8 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *
                              self->s2n,
                              self->cen1_offset,
                              self->cen2_offset,
+                             cen1_start,
+                             cen2_start,
                              &impair->skysig2,
                              flags);
     if (*flags != 0) {
@@ -309,6 +321,8 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *
                                    RING_PSF_S2N,
                                    self->cen1_offset,
                                    self->cen2_offset,
+                                   cen1_start,
+                                   cen2_start,
                                    &impair->psf_skysig,
                                    flags);
     if (*flags != 0) {
