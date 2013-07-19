@@ -97,6 +97,15 @@ _get_image_pair_bail:
     return impair;
 }
 
+void print_one(const struct gmix_mcmc *self,
+               const struct result *res)
+{
+    mca_stats_write_flat(self->chain_data.stats, stdout);
+    result_print(res, stdout);
+
+    fprintf(stdout,"\n");
+}
+
 void process_one(struct gmix_mcmc *self,
                  const struct obs_list *obs_list,
                  double row,
@@ -122,10 +131,10 @@ _process_one_bail:
 void process_pair(struct gmix_mcmc *self,
                   struct object *obj,
                   struct result *res1,
-                  struct result *res2,
-                  long *flags)
+                  struct result *res2)
 {
 
+    long flags=0;
     struct obs_list *obs_list=NULL;
     double row=0, col=0, T=0, counts=0;
 
@@ -141,8 +150,8 @@ void process_pair(struct gmix_mcmc *self,
                              self->conf.psf_ngauss,
                              row,
                              col,
-                             flags);
-    if (*flags != 0) {
+                             &flags);
+    if (flags != 0) {
         goto _process_pair_bail;
     }
 
@@ -151,26 +160,32 @@ void process_pair(struct gmix_mcmc *self,
                 obs_list,
                 row,col,T,counts,
                 res1,
-                flags);
+                &flags);
 
-    if (*flags != 0) {
+    if (flags != 0) {
         goto _process_pair_bail;
     }
+    print_one(self, res1);
 
     fprintf(stderr,"running image 2 mcmc\n");
     process_one(self,
                 obs_list,
                 row,col,T,counts,
                 res2,
-                flags);
+                &flags);
 
-    if (*flags != 0) {
+    if (flags != 0) {
         goto _process_pair_bail;
     }
+    print_one(self, res1);
 
 _process_pair_bail:
     obs_list = obs_list_free(obs_list);
     impair = ring_image_pair_free(impair);
+    if (flags != 0) {
+        fprintf(stderr, "error processing pair, aborting: %s: %d", __FILE__,__LINE__);
+        exit(1);
+    }
 
     return;
 }
@@ -202,11 +217,7 @@ void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream, FILE* output_str
         }
 
         object_print(&obj, stderr);
-        process_pair(gmix_mcmc, &obj, &res1, &res2, &flags);
-        if (flags != 0) {
-            fprintf(stderr, "error processing ring pair, aborting: %s: %d", __FILE__,__LINE__);
-            exit(1);
-        }
+        process_pair(gmix_mcmc, &obj, &res1, &res2);
     }
 _run_sim_bail:
     gmix_mcmc = gmix_mcmc_free(gmix_mcmc);
