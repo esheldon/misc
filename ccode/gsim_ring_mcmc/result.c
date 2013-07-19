@@ -1,19 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "result.h"
 
 void result_calc(struct result *self, const struct gmix_mcmc_chains *chain_data)
 {
-    self->npars = MCA_CHAIN_NPARS(chain_data->chain);
-    memcpy(self->pars, chain_data->stats.mean, chain_data->stats.npars);
-    memcpy(self->cov, chain_data->stats.cov, chain_data->stats.npars*chain_data->stats.npars);
 
 }
 
-void result_print(struct resut *self, FILE* stream)
+void result_print(const struct result *self, FILE* stream)
 {
+    if (!self)
+        return;
 
+    fprintf(stream,"%.16g %.16g %.16g %.16g %.16g %.16g %.16g",
+            self->P,
+            self->Q[0],
+            self->Q[1],
+            self->R[0][0],
+            self->R[0][1],
+            self->R[1][0],
+            self->R[1][1]);
 }
 /*
 struct result *result_new(long nwalkers, long burnin, long nstep, long npars, double mca_a)

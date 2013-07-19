@@ -28,7 +28,7 @@ static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *co
             || conf->counts_prior_npars != 2
             || conf->shape_prior_npars != 6) {
 
-        fprintf(stderr,"wrong npars: %s: %d\n",
+        fprintf(stderr,"error: wrong npars: %s: %d\n",
                 __FILE__,__LINE__);
         *flags |= DIST_WRONG_NPARS;
         return NULL;
@@ -201,17 +201,28 @@ void gmix_mcmc_run(struct gmix_mcmc *self,
                                                    T, counts,
                                                    nwalkers);
 
+    fprintf(stderr,"guess:\n");
+    mca_chain_write(guess, stderr);
+    fprintf(stderr,"\n\n");
+
     mca_run(self->chain_data.burnin_chain,
             self->chain_data.mca_a,
             guess,
             &get_lnprob,
             self);
+    fprintf(stderr,"burnin:\n");
+    mca_chain_write(self->chain_data.burnin_chain, stderr);
+    fprintf(stderr,"\n\n");
+
 
     mca_run(self->chain_data.chain,
             self->chain_data.mca_a,
             self->chain_data.burnin_chain,
             &get_lnprob,
             self);
+    fprintf(stderr,"main chain:\n");
+    mca_chain_write(self->chain_data.chain, stderr);
+    fprintf(stderr,"\n\n");
     guess=mca_chain_free(guess);
 }
 
