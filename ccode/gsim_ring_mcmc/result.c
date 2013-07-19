@@ -3,7 +3,15 @@
 
 #include "result.h"
 
-void result_calc(struct result *self, struct gmix_mcmc_chains *chain_data)
+void result_calc(struct result *self, const struct gmix_mcmc_chains *chain_data)
+{
+    self->npars = MCA_CHAIN_NPARS(chain_data->chain);
+    memcpy(self->pars, chain_data->stats.mean, chain_data->stats.npars);
+    memcpy(self->cov, chain_data->stats.cov, chain_data->stats.npars*chain_data->stats.npars);
+
+}
+
+void result_print(struct resut *self, FILE* stream)
 {
 
 }

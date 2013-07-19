@@ -169,9 +169,12 @@ int shape_set_g(struct shape *self, double g1, double g2)
     double e = tanh(eta);
 
     if (e >= 1) {
-        fprintf(stderr,"error: g must be < 1, found "
-                "%.16g. %s: %d\n",e,__FILE__,__LINE__);
         setbad(self);
+        //e=0.999999;
+        /*
+        fprintf(stderr,"error: e must be < 1, found "
+                "%.16g. %s: %d\n",e,__FILE__,__LINE__);
+        */
         return 0;
     }
 
