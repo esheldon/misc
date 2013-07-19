@@ -64,6 +64,10 @@ static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *co
                                         &counts_prior,
                                         flags);
 
+    fprintf(stderr,"prob orig:\n");
+    dist_gmix3_eta_print(&shape_prior, stderr);
+    fprintf(stderr,"prob set:\n");
+    dist_gmix3_eta_print(&prob->shape_prior, stderr);
     return (struct prob_data_base *) prob;
 }
 

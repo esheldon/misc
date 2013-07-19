@@ -309,7 +309,7 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
     double gpars[6];
     struct shape shape={0};
 
-    memcpy(gpars, pars, 6);
+    memcpy(gpars, pars, 6*sizeof(double));
 
     shape_set_eta(&shape, pars[2], pars[3]);
 
