@@ -22,6 +22,8 @@ struct obs_list *make_obs_list(const struct image *image,
                                const struct image *weight,
                                const struct image *psf_image,
                                long psf_ngauss,
+                               double row,
+                               double col,
                                long *flags)
 
 {
@@ -29,6 +31,7 @@ struct obs_list *make_obs_list(const struct image *image,
     struct jacobian jacob = {0};
 
     jacobian_set_identity(&jacob);
+    jacobian_set_cen(&jacob, row, col);
 
     obs_fill(&self->data[0],
              image,
@@ -43,10 +46,14 @@ struct obs_list *make_obs_list(const struct image *image,
     return self;
 }
 
-struct ring_image_pair *get_image_pair(struct object *obj, long *flags)
+static
+struct ring_image_pair *get_image_pair(struct object *obj,
+                                       double *row, double *col,// for guesses
+                                       double *T, double *counts)
 {
     struct ring_pair *rpair=NULL;
     struct ring_image_pair *impair=NULL;
+    long flags=0;
 
     rpair = ring_pair_new(obj->model,
                           obj->pars,
@@ -58,35 +65,58 @@ struct ring_image_pair *get_image_pair(struct object *obj, long *flags)
                           obj->s2n,
                           obj->cen1_offset,
                           obj->cen2_offset,
-                          flags);
-    if (*flags != 0) {
+                          &flags);
+    if (flags != 0) {
         goto _get_image_pair_bail;
     }
 
-    ring_pair_print(rpair,stdout);
+    ring_pair_print(rpair,stderr);
 
-    impair = ring_image_pair_new(rpair, flags);
+    impair = ring_image_pair_new(rpair, &flags);
 
-    if (*flags != 0) {
+    if (flags != 0) {
         goto _get_image_pair_bail;
     }
 
-    printf("skysig1: %g  skysig2: %g psf_skysig: %g\n",
+    fprintf(stderr,"skysig1: %g  skysig2: %g psf_skysig: %g\n",
            impair->skysig1, impair->skysig2, impair->psf_skysig);
+
+    gmix_get_cen(rpair->gmix1, row, col);
+    *T=gmix_get_T(rpair->gmix1);
+    *counts=gmix_get_psum(rpair->gmix1);
 
 _get_image_pair_bail:
     rpair = ring_pair_free(rpair);
-    if (*flags != 0) {
+    if (flags != 0) {
         impair = ring_image_pair_free(impair);
+        fprintf(stderr,"failed to make image pair, aborting: %s: %d\n",
+                __FILE__,__LINE__);
+        exit(1);
     }
 
     return impair;
 }
 
-void process_obs_list(struct gmix_mcmc_config *conf,
-                      struct obs_list *obs_list,
-                      struct result *res)
+void process_one(struct gmix_mcmc *self,
+                 const struct obs_list *obs_list,
+                 double row,
+                 double col,
+                 double T,
+                 double counts,
+                 struct result *res,
+                 long *flags)
 {
+    gmix_mcmc_set_obs_list(self, obs_list);
+    gmix_mcmc_run(self, row, col, T, counts, flags);
+    if (*flags != 0) {
+        goto _process_one_bail;
+    }
+
+    mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
+    result_calc(res, &self->chain_data);
+
+_process_one_bail:
+    return;
 }
 
 void process_pair(struct gmix_mcmc *self,
@@ -97,51 +127,58 @@ void process_pair(struct gmix_mcmc *self,
 {
 
     struct obs_list *obs_list=NULL;
+    double row=0, col=0, T=0, counts=0;
 
-    struct ring_image_pair *impair = get_image_pair(obj, flags);
-    if (*flags != 0) {
-        goto _process_object_bail;
-    }
+    struct ring_image_pair *impair = get_image_pair(obj, 
+                                                    &row,
+                                                    &col,
+                                                    &T,
+                                                    &counts);
 
     obs_list = make_obs_list(impair->im1,
                              impair->wt1,
                              impair->psf_image,
                              self->conf.psf_ngauss,
+                             row,
+                             col,
                              flags);
     if (*flags != 0) {
-        goto _process_object_bail;
+        goto _process_pair_bail;
     }
 
-    obs_list = obs_list_free(obs_list);
+    fprintf(stderr,"running image 1 mcmc\n");
+    process_one(self,
+                obs_list,
+                row,col,T,counts,
+                res1,
+                flags);
 
-    obs_list = make_obs_list(impair->im2,
-                             impair->wt2,
-                             impair->psf_image,
-                             self->conf.psf_ngauss,
-                             flags);
+    if (*flags != 0) {
+        goto _process_pair_bail;
+    }
 
-_process_object_bail:
+    fprintf(stderr,"running image 2 mcmc\n");
+    process_one(self,
+                obs_list,
+                row,col,T,counts,
+                res2,
+                flags);
+
+    if (*flags != 0) {
+        goto _process_pair_bail;
+    }
+
+_process_pair_bail:
     obs_list = obs_list_free(obs_list);
     impair = ring_image_pair_free(impair);
 
     return;
 }
 
-static void load_config(struct gmix_mcmc_config *conf, const char *name)
-{
-    long flags=gmix_mcmc_config_load(conf, name);
-    if (flags != 0) {
-        fprintf(stderr,"fatal error reading conf, exiting\n");
-        exit(1);
-    }
-    gmix_mcmc_config_print(conf, stdout);
-}
-
-
 void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream, FILE* output_stream)
 {
     struct object obj={{0}};
-    struct result res1 = {{0}}, res2={{0}};
+    struct result res1 = {0}, res2={0};
     struct gmix_mcmc *gmix_mcmc=NULL;
 
     long flags=0;
@@ -164,7 +201,7 @@ void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream, FILE* output_str
             exit(1);
         }
 
-        object_print(&obj, stdout);
+        object_print(&obj, stderr);
         process_pair(gmix_mcmc, &obj, &res1, &res2, &flags);
         if (flags != 0) {
             fprintf(stderr, "error processing ring pair, aborting: %s: %d", __FILE__,__LINE__);
@@ -174,6 +211,16 @@ void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream, FILE* output_str
 _run_sim_bail:
     gmix_mcmc = gmix_mcmc_free(gmix_mcmc);
 
+}
+
+static void load_config(struct gmix_mcmc_config *conf, const char *name)
+{
+    long flags=gmix_mcmc_config_load(conf, name);
+    if (flags != 0) {
+        fprintf(stderr,"fatal error reading conf, exiting\n");
+        exit(1);
+    }
+    gmix_mcmc_config_print(conf, stderr);
 }
 
 int main(int argc, char **argv)

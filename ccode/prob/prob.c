@@ -26,7 +26,7 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
                                  struct gmix *obj,
                                  enum gmix_model model,
                                  const struct obs_list *obs_list,
-                                 double *pars,
+                                 const double *pars,
                                  long npars,
                                  double *s2n_numer,
                                  double *s2n_denom,
@@ -152,7 +152,7 @@ struct prob_data_simple_ba *prob_data_simple_ba_free(struct prob_data_simple_ba 
 }
 
 void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
-                                double *pars, long npars,
+                                const double *pars, long npars,
                                 double *lnprob,
                                 long *flags)
 {
@@ -170,7 +170,7 @@ void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
 
 void prob_simple_ba_calc(struct prob_data_simple_ba *self,
                          const struct obs_list *obs_list,
-                         double *pars, long npars,
+                         const double *pars, long npars,
                          double *s2n_numer, double *s2n_denom,
                          double *lnprob, long *flags)
 {
@@ -282,7 +282,7 @@ struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_free(struct prob_d
 }
 
 void prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self,
-                                       double *pars, long npars,
+                                       const double *pars, long npars,
                                        double *lnprob,
                                        long *flags)
 {
@@ -300,7 +300,7 @@ void prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self,
 
 void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
                                 const struct obs_list *obs_list,
-                                double *pars, long npars,
+                                const double *pars, long npars,
                                 double *s2n_numer, double *s2n_denom,
                                 double *lnprob, long *flags)
 {

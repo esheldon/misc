@@ -7,7 +7,7 @@
 #include "gmix_mcmc_config.h"
 #include "gmix_mcmc.h"
 
-// we can generalize this later
+// we can generalize these later
 // you should caste prob_data_base to your actual type
 static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *conf, long *flags)
 {
@@ -23,17 +23,19 @@ static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *co
 
     fprintf(stderr,"loading prob gmix3_eta\n");
 
-    if (conf->cen_prior_npars != 1
+    if (conf->cen_prior_npars != 2
             || conf->T_prior_npars != 2
             || conf->counts_prior_npars != 2
             || conf->shape_prior_npars != 6) {
 
+        fprintf(stderr,"wrong npars: %s: %d\n",
+                __FILE__,__LINE__);
         *flags |= DIST_WRONG_NPARS;
         return NULL;
     }
     dist_gauss_fill(&cen_prior,
-                    0.0,
-                    conf->cen_prior_pars[0]);
+                    conf->cen_prior_pars[0],
+                    conf->cen_prior_pars[1]);
     dist_lognorm_fill(&T_prior, 
                       conf->T_prior_pars[0],
                       conf->T_prior_pars[1]);
@@ -71,6 +73,7 @@ static struct prob_data_base *prob_free_generic(struct prob_data_base *prob)
     prob_data_simple_gmix3_eta_free( (struct prob_data_simple_gmix3_eta *) prob);
     return NULL;
 }
+
 
 static void create_chain_data(struct gmix_mcmc *self)
 {
@@ -153,6 +156,64 @@ struct gmix_mcmc *gmix_mcmc_free(struct gmix_mcmc *self)
     return self;
 }
 
+void gmix_mcmc_set_obs_list(struct gmix_mcmc *self, const struct obs_list *obs_list)
+{
+    self->obs_list=obs_list;
+}
+
+
+// can generalize this by adding a callback to the prob struct
+// and allowing different guess sizes/values for different model types
+
+// note flags get "lost" here, you need good error messages
+static double get_lnprob(const double *pars, size_t npars, const void *data)
+{
+    double lnprob=0, s2n_numer=0, s2n_denom=0;
+    long flags=0;
+
+    struct gmix_mcmc *self=(struct gmix_mcmc *)data;
+
+    prob_simple_gmix3_eta_calc((struct prob_data_simple_gmix3_eta *)self->prob,
+                                self->obs_list,
+                                pars, npars,
+                                &s2n_numer, &s2n_denom,
+                                &lnprob, &flags);
+
+    return lnprob;
+}
+
+// we will also need one for multi-band processing
+void gmix_mcmc_run(struct gmix_mcmc *self,
+                   double row, double col,
+                   double T, double counts,
+                   long *flags)
+{
+    if (!self->obs_list) {
+        fprintf(stderr,"gmix_mcmc->obs_list is not set!: %s: %d\n",
+                __FILE__,__LINE__);
+        *flags |= GMIX_MCMC_INIT;
+        return;
+    }
+
+    // need to generalize this
+    long nwalkers=MCA_CHAIN_NWALKERS(self->chain_data.chain);
+    struct mca_chain *guess=gmix_mcmc_guess_simple(row, col,
+                                                   T, counts,
+                                                   nwalkers);
+
+    mca_run(self->chain_data.burnin_chain,
+            self->chain_data.mca_a,
+            guess,
+            &get_lnprob,
+            self);
+
+    mca_run(self->chain_data.chain,
+            self->chain_data.mca_a,
+            self->chain_data.burnin_chain,
+            &get_lnprob,
+            self);
+    guess=mca_chain_free(guess);
+}
 
 
 struct mca_chain *gmix_mcmc_guess_simple(
@@ -161,10 +222,7 @@ struct mca_chain *gmix_mcmc_guess_simple(
         size_t nwalkers)
 {
     size_t npars=6;
-
-    // note alloca, stack allocated
-    double *centers=alloca(npars*sizeof(double));
-    double *widths=alloca(npars*sizeof(double));
+    double centers[6], widths[6];
 
     centers[0]=row;
     centers[1]=col;

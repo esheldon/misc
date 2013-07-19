@@ -54,6 +54,13 @@ void jacobian_set_identity(struct jacobian *self)
     self->dvdcol=1;
 }
 
+void jacobian_set_cen(struct jacobian *self, double row, double col)
+{
+    self->row0=row;
+    self->col0=col;
+}
+
+
 
 void jacobian_print(const struct jacobian *self, FILE *stream)
 {

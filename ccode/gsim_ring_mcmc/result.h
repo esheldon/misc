@@ -9,6 +9,7 @@
 
 struct result {
     // just copies of the parameters to simplify writing output
+    long npars;
     double pars[GMIX_MCMC_MAXPARS];
     double cov[GMIX_MCMC_MAXPARS][GMIX_MCMC_MAXPARS];
 
@@ -21,6 +22,6 @@ struct result {
 //struct result *result_new(struct gmix_mcmc_chains *chain_data);
 //struct result *result_free(struct result *self);
 
-void result_calc(struct result *self, struct gmix_mcmc_chains *chain_data);
+void result_calc(struct result *self, const struct gmix_mcmc_chains *chain_data);
 
 #endif

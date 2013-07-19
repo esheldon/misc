@@ -10,6 +10,9 @@
 #include "prob.h"
 #include "mca.h"
 
+// 2147483648
+#define GMIX_MCMC_INIT 0x80000000
+
 #ifndef wlog
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 #endif
@@ -37,6 +40,12 @@ struct gmix_mcmc {
     // contains references
     // cast to (struct prob_data_base* ) to check the ->type field
     void *prob; 
+
+    // these can be set and reset
+    const struct obs_list *obs_list;
+
+    // for multi-band
+    //const struct obs_list_list *obs_list_list;
 };
 
 // you should caste prob_data_base to your actual type
@@ -48,6 +57,13 @@ struct gmix_mcmc {
 struct gmix_mcmc *gmix_mcmc_new(const struct gmix_mcmc_config *conf, long *flags);
 struct gmix_mcmc *gmix_mcmc_free(struct gmix_mcmc *);
 struct gmix_mcmc *gmix_mcmc_new_from_config(const char *name, long *flags);
+
+void gmix_mcmc_set_obs_list(struct gmix_mcmc *self, const struct obs_list *obs_list);
+
+void gmix_mcmc_run(struct gmix_mcmc *self,
+                   double row, double col,
+                   double T, double counts,
+                   long *flags);
 
 /* older stuff */
 
