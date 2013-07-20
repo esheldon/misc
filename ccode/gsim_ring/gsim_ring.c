@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "gmix.h"
+#include "image_rand.h"
 #include "gmix_image.h"
 #include "gmix_image_rand.h"
 #include "shape.h"
@@ -35,21 +36,27 @@ long ring_get_npars_short(enum gmix_model model, long *flags)
     return npars;
 }
 
+// centers for all models are set to 0, which means the convolutions
+// will not case problems.  If you want to use non-cocentric psfs you
+// will need to be careful!
+
+
+
 static void fill_pars_6par(const double *inpars,
                            const struct shape *shape1,
                            const struct shape *shape2,
                            double *pars1,
                            double *pars2)
 {
-    pars1[0] = -1; // arbitrary at this point
-    pars1[1] = -1; // arbitrary at this point
+    pars1[0] = 0; // arbitrary at this point
+    pars1[1] = 0; // arbitrary at this point
     pars1[2] = shape1->g1;
     pars1[3] = shape1->g2;
     pars1[4] = inpars[1];
     pars1[5] = inpars[2];
 
-    pars2[0] = -1; // arbitrary at this point
-    pars2[1] = -1; // arbitrary at this point
+    pars2[0] = 0; // arbitrary at this point
+    pars2[1] = 0; // arbitrary at this point
     pars2[2] = shape2->g1;
     pars2[3] = shape2->g2;
     pars2[4] = inpars[1];
@@ -59,8 +66,8 @@ static void fill_pars_6par_psf(const double *inpars, double *pars)
 {
     struct shape shape;
     shape_set_eta(&shape, inpars[0], inpars[1]);
-    pars[0] = -1; // arbitrary at this point
-    pars[1] = -1; // arbitrary at this point
+    pars[0] = 0; // arbitrary at this point
+    pars[1] = 0; // arbitrary at this point
     pars[2] = shape.g1;
     pars[3] = shape.g2;
     pars[4] = inpars[2];
@@ -73,8 +80,8 @@ static void fill_pars_bd(const double *inpars,
                          double *pars1,
                          double *pars2)
 {
-    pars1[0] = -1; // arbitrary at this point
-    pars1[1] = -1; // arbitrary at this point
+    pars1[0] = 0; // arbitrary at this point
+    pars1[1] = 0; // arbitrary at this point
     pars1[2] = shape1->g1;
     pars1[3] = shape1->g2;
     pars1[4] = inpars[1];
@@ -82,8 +89,8 @@ static void fill_pars_bd(const double *inpars,
     pars1[6] = inpars[3];
     pars1[7] = inpars[4];
 
-    pars2[0] = -1; // arbitrary at this point
-    pars2[1] = -1; // arbitrary at this point
+    pars2[0] = 0; // arbitrary at this point
+    pars2[1] = 0; // arbitrary at this point
     pars2[2] = shape2->g1;
     pars2[3] = shape2->g2;
     pars2[4] = inpars[1];
@@ -173,6 +180,7 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
     fill_pars_6par_psf(psf_pars, psf_pars_full);
 
     psf_gmix = gmix_new_model(psf_model, psf_pars_full, psf_npars_full, flags);
+
     gmix1_0=gmix_new_model(model, pars1, npars_full, flags);
     gmix2_0=gmix_new_model(model, pars2, npars_full, flags);
     if (*flags != 0) {
@@ -183,6 +191,10 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
     self->gmix2 = gmix_convolve(gmix2_0, psf_gmix, flags);
     self->psf_gmix = psf_gmix;
 
+    //fprintf(stderr,"psf_T: %g obj1_T: %g obj2_T: %g\n",
+    //        gmix_get_T(self->psf_gmix),
+    //        gmix_get_T(self->gmix1),
+    //        gmix_get_T(self->gmix2));
     if (*flags != 0) {
         goto _ring_pair_new_bail;
     }
@@ -261,6 +273,7 @@ static struct image *make_image(const struct gmix *gmix,
         goto _ring_make_image_bail;
     }
 
+    /*
     (*flags) |= gmix_image_add_randn(image,
                                      s2n,
                                      tmp_gmix,
@@ -268,6 +281,8 @@ static struct image *make_image(const struct gmix *gmix,
     if (*flags != 0) {
         goto _ring_make_image_bail;
     }
+    */
+    image_add_randn_matched(image, s2n, skysig);
 
 _ring_make_image_bail:
     tmp_gmix=gmix_free(tmp_gmix);

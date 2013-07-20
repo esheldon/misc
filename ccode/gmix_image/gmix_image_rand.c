@@ -37,6 +37,19 @@ int gmix_image_add_randn(struct image *image,
 
     image_add_randn(image, (*skysig));
 
+#if 0
+    tivar = 1/( (*skysig)*(*skysig) );
+    flags=gmix_image_loglike_ivar(image, 
+                                  gmix, 
+                                  tivar,
+                                  &s2n_numer,
+                                  &s2n_denom,
+                                  &loglike);
+
+    double s2n_second_pass = s2n_numer/sqrt(s2n_denom);
+    fprintf(stderr,"s2n check: %g\n", s2n_second_pass);
+#endif
+
 _gmix_image_add_noise_bail:
     return flags;
 }

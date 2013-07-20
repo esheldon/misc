@@ -1,3 +1,4 @@
+#include <math.h>
 #include "randn.h"
 #include "image.h"
 #include "image_rand.h"
@@ -17,6 +18,28 @@ void image_add_randn(struct image *image, double skysig)
         } // cols
     } // rows
 }
+
+void image_add_randn_matched(struct image *image, double s2n, double *skysig)
+{
+    size_t size=IM_SIZE(image);
+    double *rowdata=NULL, sum2=0;
+
+    for (long pass=1; pass <= 2; pass++) {
+        rowdata=IM_ROW(image, 0);
+        for (size_t i=0; i<size; i++) {
+            if (pass==1) {
+                sum2 += (*rowdata)*(*rowdata);
+            } else {
+                (*rowdata) += (*skysig)*randn();
+            }
+            rowdata++;
+        }
+        if (pass==1) {
+            *skysig = sqrt(sum2)/s2n;
+        }
+    } // passes
+}
+
 
 void image_add_poisson(struct image *image)
 {

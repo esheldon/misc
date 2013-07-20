@@ -121,10 +121,9 @@ prob_data_simple_gmix3_eta_new(enum gmix_model model,
 
 struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_free(struct prob_data_simple_gmix3_eta *self);
                                                  
-void prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self,
-                                       const double *pars, long npars,
-                                       double *lnprob,
-                                       long *flags);
+double prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self,
+                                         const double *pars, long npars,
+                                         long *flags);
 
 // calculate the lnprob for the input pars
 // also running s/n values

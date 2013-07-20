@@ -151,6 +151,32 @@ _mca_chain_read_bail:
 
     return chain;
 }
+
+
+void mca_chain_plot(const struct mca_chain *self, const char *options)
+{
+    char cmd[256];
+    char *name= tempnam(NULL,NULL);
+
+    printf("writing temporary chain to: %s\n", name);
+
+    FILE *fobj=fopen(name,"w");
+    mca_chain_write(self, fobj);
+    fclose(fobj);
+
+    sprintf(cmd,"mca-plot %s %s", options, name);
+    printf("%s\n",cmd);
+    int ret=system(cmd);
+
+    sprintf(cmd,"rm %s", name);
+    printf("%s\n",cmd);
+    ret=system(cmd);
+    printf("ret: %d\n", ret);
+
+    free(name);
+
+}
+
 struct mca_chain *mca_make_guess(double *centers, 
                                  double *widths,
                                  size_t npars, 
@@ -302,7 +328,7 @@ void mca_stats_write_brief(struct mca_stats *self, FILE *stream)
         double mn=MCA_STATS_MEAN(self,ipar);
         double var=MCA_STATS_COV(self,ipar,ipar);
         double err=sqrt(var);
-        fprintf(stream,"%.16g +/- %.16g\n",mn,err);
+        fprintf(stream,"%g +/- %g\n",mn,err);
     }
 }
 
