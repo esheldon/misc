@@ -116,6 +116,7 @@ struct image *image_read(const char* filename);
 struct image *image_free(struct image *self);
 
 double image_get_counts(const struct image *self);
+void image_get_minmax(const struct image *self, double *min, double *max);
 
 // fix the bounds in one dimension so that the range lies
 // within [0,dim)

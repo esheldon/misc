@@ -43,9 +43,11 @@ struct gmix_mcmc {
 
     // these can be set and reset
     const struct obs_list *obs_list;
+    long use_obs_list;
 
     // for multi-band
     //const struct obs_list_list *obs_list_list;
+
 };
 
 // you should caste prob_data_base to your actual type

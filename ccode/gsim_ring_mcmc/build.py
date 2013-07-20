@@ -16,6 +16,8 @@ CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
 sources = ['gsim-ring-mcmc',
            'config',
+           'gmix_em',
+           'mtx2',
            'gmix_mcmc_config',
            'gmix_mcmc',
            'shape',

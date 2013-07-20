@@ -306,6 +306,27 @@ double image_get_counts(const struct image *self)
     }
     return counts;
 }
+void image_get_minmax(const struct image *self, double *min, double *max)
+{
+    *min=0;
+    *max=0;
+
+    double *data=IM_ROW(self, 0);
+    size_t size=IM_SIZE(self);
+
+    *min=*data;
+    *max=*data;
+    for (size_t i=0; i<size; i++) {
+        if (*data > *max) {
+            *max=*data;
+        }
+        if (*data < *min) {
+            *min=*data;
+        }
+        data++;
+    }
+}
+
 
 void image_add_scalar(struct image *self, double val)
 {

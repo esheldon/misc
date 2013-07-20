@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "gmix.h"
+#include "gmix_em.h"
 #include "gsim_ring.h"
 #include "shape.h"
 #include "image.h"
@@ -16,6 +17,8 @@
 #include "gmix_mcmc.h"
 #include "object.h"
 #include "result.h"
+
+#include "randn.h"
 
 // make an object list
 struct obs_list *make_obs_list(const struct image *image,
@@ -110,14 +113,73 @@ void print_one(const struct gmix_mcmc *self,
     fprintf(stdout,"\n");
 }
 
-// process all the PSFs in the set of observations
-static void process_psfs(struct gmix_mcmc *self)
+static void fill_psf_gmix_guess(struct gmix *self, double row, double col, double counts)
 {
-    long n_retry = 100;
+    long flags=0;
+    double frac = counts/self->size;
+    for (long i=0; i<self->size; i++) {
+        struct gauss2 *g=&self->data[i];
+        gauss2_set(g,
+                   frac + 0.1*srandu(),
+                   row + srandu(),
+                   col + srandu(),
+                   2.0 + srandu(), 
+                   0.0 + 0.1*srandu(), 
+                   2.0 + srandu(),
+                   &flags);
+    }
+}
+
+//
+// process all the PSFs in the set of observations
+// need to move this code into gmix_em
+//
+
+static double get_em_sky_to_add(double im_min)
+{
+    return 0.001 - im_min;
+}
+static void process_psfs(struct gmix_mcmc *self, double row, double col)
+{
+    long n_retry = 100, try=0;
+    struct gmix_em gmix_em={0};
+    double min=0, max=0;
+
+    gmix_em.maxiter=self->conf.em_maxiter;
+    gmix_em.tol=self->conf.em_tol;
 
     const struct obs_list *obs_list=self->obs_list;
     for (long i=0; i<obs_list->size; i++) {
         const struct obs *obs=&obs_list->data[i];
+        const struct image *psf_image = obs->psf_image;
+        struct gmix *psf_gmix = obs->psf_gmix;
+
+        // counts should be pre-sky addition
+        double counts = image_get_counts(psf_image);
+
+        struct image *psf_image_sky = image_new_copy(psf_image);
+        image_get_minmax(psf_image, &min, &max);
+
+        double sky_to_add = get_em_sky_to_add(min);
+        image_add_scalar(psf_image_sky, sky_to_add);
+        IM_SET_SKY(psf_image_sky, sky_to_add);
+
+        for (try=0; try<n_retry; try++) {
+            fill_psf_gmix_guess(psf_gmix, row, col, counts);
+            gmix_em_run(&gmix_em, psf_image_sky, psf_gmix);
+            if (gmix_em.flags == 0) {
+                break;
+            }
+        }
+
+        if (try==n_retry) {
+            // can later use or not use psf
+            fprintf(stderr, "error processing psf failed %ld times, aborting: %s: %d", 
+                    n_retry, __FILE__,__LINE__);
+            exit(1);
+        }
+
+        psf_image_sky=image_free(psf_image_sky);
     }
 
 }
@@ -132,7 +194,7 @@ void process_one(struct gmix_mcmc *self,
 {
     gmix_mcmc_set_obs_list(self, obs_list);
 
-    process_psfs(self);
+    process_psfs(self, row, col);
 
     gmix_mcmc_run(self, row, col, T, counts, flags);
     if (*flags != 0) {
@@ -260,6 +322,8 @@ int main(int argc, char **argv)
         printf("usage: %s config objlist output_file\n", argv[0]);
         exit(1);
     }
+    randn_seed();
+
     struct gmix_mcmc_config conf={0};
     load_config(&conf, argv[1]);
     FILE *input_stream = fileio_open_or_die(argv[2],"r");
