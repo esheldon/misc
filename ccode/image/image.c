@@ -403,3 +403,28 @@ void image_mask_print(const struct image_mask *mask, FILE *stream)
     fprintf(stream,"  colmin: %ld\n", mask->colmin);
     fprintf(stream,"  colmin: %ld\n", mask->colmax);
 }
+
+
+void image_view(const struct image *self, const char *options)
+{
+    char cmd[256];
+    char *name= tempnam(NULL,NULL);
+    printf("writing temporary image to: %s\n", name);
+    FILE *fobj=fopen(name,"w");
+    int ret=0;
+    image_write(self, fobj);
+
+    fclose(fobj);
+
+    sprintf(cmd,"image-view %s %s", options, name);
+    printf("%s\n",cmd);
+    ret=system(cmd);
+
+    sprintf(cmd,"rm %s", name);
+    printf("%s\n",cmd);
+    ret=system(cmd);
+    printf("ret: %d\n", ret);
+
+    free(name);
+}
+

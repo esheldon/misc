@@ -173,6 +173,8 @@ int mca_chain_write_file(const struct mca_chain *self, const char *fname);
 void mca_chain_write(const struct mca_chain *chain, FILE *stream);
 struct mca_chain *mca_chain_read(const char *fname);
 
+void mca_chain_plot(const struct mca_chain *self, const char *options);
+
 struct mca_chain *mca_make_guess(double *centers, 
                                  double *widths,
                                  size_t npars, 

@@ -54,12 +54,11 @@ Quick look Queue
     bafit
         
         - c code
-            - obs should hold the psf image not the gmix.  That was artificial
-              for the python+c mixture.
-            - should obs still make copies of images and gmix, or use const
-              references, or take ownership
-              - const ref would be nice; could just declare a struct obs and
-                fill it as needed.
+            - figure out if s/n is coming out correctly; s/n on flux is only
+              about 3 for an s/n=100 object!
+            - make a python code to write out the input file.
+            - instead generate the data totally inside?  Would mean being able
+              to draw from lognormal (easy I think) and from the shape prior.
 
 
         - see constant bias at low s/n.  Bug?

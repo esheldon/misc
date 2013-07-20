@@ -154,6 +154,7 @@ void image_mask_set(struct image_mask* self,
 void image_mask_print(const struct image_mask *mask, FILE *stream);
 
 
+void image_view(const struct image *self, const char *options);
 
 
 #endif

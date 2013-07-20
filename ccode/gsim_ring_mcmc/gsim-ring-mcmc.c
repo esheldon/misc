@@ -75,6 +75,8 @@ struct ring_image_pair *get_image_pair(struct object *obj,
     ring_pair_print(rpair,stderr);
 
     impair = ring_image_pair_new(rpair, row, col, &flags);
+    //image_view(impair->im1, "-m");
+    //image_view(impair->im2, "-m");
 
     if (flags != 0) {
         goto _get_image_pair_bail;
@@ -101,12 +103,24 @@ _get_image_pair_bail:
 void print_one(const struct gmix_mcmc *self,
                const struct result *res)
 {
+    mca_stats_write_brief(self->chain_data.stats, stdout);
     mca_stats_write_flat(self->chain_data.stats, stdout);
     result_print(res, stdout);
 
     fprintf(stdout,"\n");
 }
 
+// process all the PSFs in the set of observations
+static void process_psfs(struct gmix_mcmc *self)
+{
+    long n_retry = 100;
+
+    const struct obs_list *obs_list=self->obs_list;
+    for (long i=0; i<obs_list->size; i++) {
+        const struct obs *obs=&obs_list->data[i];
+    }
+
+}
 void process_one(struct gmix_mcmc *self,
                  const struct obs_list *obs_list,
                  double row,
@@ -117,6 +131,9 @@ void process_one(struct gmix_mcmc *self,
                  long *flags)
 {
     gmix_mcmc_set_obs_list(self, obs_list);
+
+    process_psfs(self);
+
     gmix_mcmc_run(self, row, col, T, counts, flags);
     if (*flags != 0) {
         goto _process_one_bail;
@@ -124,7 +141,9 @@ void process_one(struct gmix_mcmc *self,
 
     mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
     result_calc(res, &self->chain_data);
-
+#if 1
+    mca_chain_plot(self->chain_data.chain,"");
+#endif
 _process_one_bail:
     return;
 }
