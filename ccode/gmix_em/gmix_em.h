@@ -78,8 +78,8 @@ struct gmix_em_iter *iter_new(size_t ngauss);
 struct gmix_em_iter *iter_free(struct gmix_em_iter *self);
 void gmix_em_iter_clear(struct gmix_em_iter *self);
 
-void gmix_em_gmix_set_fromiter(struct gmix *gmix, 
-                              struct gmix_em_iter *iter);
+long gmix_em_gmix_set_fromiter(struct gmix *gmix, 
+                               struct gmix_em_iter* iter);
 
 
 #endif

@@ -17,3 +17,9 @@ double randn();
    This is apparently from Knuth
 */
 long poisson(double lambda);
+
+// random numbers in the range [-1,1]
+double srandu();
+
+void randn_seed(void);
+
