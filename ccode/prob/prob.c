@@ -45,13 +45,8 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
     *flags=0;
 
     gmix_fill_model(obj0,model,pars,npars,flags);
-    //jacobian_print(&obs_list->data[0].jacob, stderr);
 
-    //fprintf(stderr,"psf\n");
-    //gmix_print(obs_list->data[0].psf_gmix,stderr);
 
-    //fprintf(stderr,"gmix0\n");
-    //gmix_print(obj0,stderr);
     // g out of range is not a fatal error in the likelihood
     if (*flags) {
         goto _prob_calc_simple_likelihood_generic_bail;
@@ -61,18 +56,10 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
         obs=&obs_list->data[i];
 
         gmix_convolve_fill(obj, obj0, obs->psf_gmix, flags);
-        fprintf(stderr,"obj0\n");
-        gmix_print(obj0,stderr);
-        fprintf(stderr,"obj\n");
-        gmix_print(obj,stderr);
-        fprintf(stderr,"nrows: %lu ncols: %lu\n",
-                IM_NROWS(obs->image), IM_NCOLS(obs->image));
         if (*flags) {
             goto _prob_calc_simple_likelihood_generic_bail;
         }
 
-        //fprintf(stderr,"gmix convolved\n");
-        //gmix_print(obj,stderr);
         // the only failure is actually redundant with above
         *flags |= gmix_image_loglike_wt_jacob(obs->image, 
                                               obs->weight,

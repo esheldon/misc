@@ -59,6 +59,8 @@ struct dist_lognorm {
     double sigma;
 
     double logmean;
+    double logvar;
+    double logsigma;
     double logivar;
 };
 
@@ -73,16 +75,18 @@ struct dist_g_ba {
 //    prob = sum_i( N_i*exp( -0.5*ivar*( eta_1^2 + eta_2^2 ) )
 // where N_i is amp_i/(2*PI)*ivar
 
+struct dist_gmix3_eta_data {
+    double p;
+    double pnorm;
+    double sigma;
+    double ivar;
+};
+
 struct dist_gmix3_eta {
     enum dist dist_type;
-    double gauss1_ivar;
-    double gauss1_pnorm; // amp*norm = amp*ivar/(2*PI)
-
-    double gauss2_ivar;
-    double gauss2_pnorm;
-
-    double gauss3_ivar;
-    double gauss3_pnorm;
+    size_t size;
+    struct dist_gmix3_eta_data data[3]; 
+    double p_normalized[3];
 };
 
 
@@ -94,11 +98,13 @@ struct dist_gauss *dist_gauss_new(double mean, double sigma);
 void dist_gauss_fill(struct dist_gauss *self, double mean, double sigma);
 double dist_gauss_lnprob(const struct dist_gauss *self, double x);
 void dist_gauss_print(const struct dist_gauss *self, FILE *stream);
+double dist_gauss_sample(const struct dist_gauss *self);
 
 struct dist_lognorm *dist_lognorm_new(double mean, double sigma);
 void dist_lognorm_fill(struct dist_lognorm *self, double mean, double sigma);
 double dist_lognorm_lnprob(const struct dist_lognorm *self, double x);
 void dist_lognorm_print(const struct dist_lognorm *self, FILE *stream);
+double dist_lognorm_sample(const struct dist_lognorm *self);
 
 struct dist_g_ba *dist_g_ba_new(double sigma);
 void dist_g_ba_fill(struct dist_g_ba *self, double sigma);
@@ -123,5 +129,8 @@ double dist_gmix3_eta_lnprob(const struct dist_gmix3_eta *self, double eta1, dou
 double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, double eta1, double eta2);
 void dist_gmix3_eta_print(const struct dist_gmix3_eta *self, FILE *stream);
 
+void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self,
+                           double *eta1,
+                           double *eta2);
 #endif
 
