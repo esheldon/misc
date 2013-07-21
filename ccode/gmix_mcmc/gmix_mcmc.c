@@ -64,10 +64,13 @@ static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *co
                                         &counts_prior,
                                         flags);
 
-    fprintf(stderr,"prob orig:\n");
-    dist_gmix3_eta_print(&shape_prior, stderr);
-    fprintf(stderr,"prob set:\n");
-    dist_gmix3_eta_print(&prob->shape_prior, stderr);
+    //fprintf(stderr,"prob orig:\n");
+    //dist_gmix3_eta_print(&shape_prior, stderr);
+    //fprintf(stderr,"prob set:\n");
+    //dist_gmix3_eta_print(&prob->shape_prior, stderr);
+    fprintf(stderr,"prob:\n");
+    prob_simple_gmix3_eta_print(prob, stderr);
+
     return (struct prob_data_base *) prob;
 }
 
@@ -205,9 +208,9 @@ void gmix_mcmc_run(struct gmix_mcmc *self,
                                                    T, counts,
                                                    nwalkers);
 
-    //fprintf(stderr,"guess:\n");
-    //mca_chain_write(guess, stderr);
-    //fprintf(stderr,"\n\n");
+    fprintf(stderr,"guess:\n");
+    mca_chain_write(guess, stderr);
+    fprintf(stderr,"\n\n");
 
     mca_run(self->chain_data.burnin_chain,
             self->chain_data.mca_a,

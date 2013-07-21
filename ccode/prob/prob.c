@@ -45,13 +45,13 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
     *flags=0;
 
     gmix_fill_model(obj0,model,pars,npars,flags);
-    jacobian_print(&obs_list->data[0].jacob, stderr);
+    //jacobian_print(&obs_list->data[0].jacob, stderr);
 
-    fprintf(stderr,"psf\n");
-    gmix_print(obs_list->data[0].psf_gmix,stderr);
+    //fprintf(stderr,"psf\n");
+    //gmix_print(obs_list->data[0].psf_gmix,stderr);
 
-    fprintf(stderr,"gmix0\n");
-    gmix_print(obj0,stderr);
+    //fprintf(stderr,"gmix0\n");
+    //gmix_print(obj0,stderr);
     // g out of range is not a fatal error in the likelihood
     if (*flags) {
         goto _prob_calc_simple_likelihood_generic_bail;
@@ -61,12 +61,18 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
         obs=&obs_list->data[i];
 
         gmix_convolve_fill(obj, obj0, obs->psf_gmix, flags);
+        fprintf(stderr,"obj0\n");
+        gmix_print(obj0,stderr);
+        fprintf(stderr,"obj\n");
+        gmix_print(obj,stderr);
+        fprintf(stderr,"nrows: %lu ncols: %lu\n",
+                IM_NROWS(obs->image), IM_NCOLS(obs->image));
         if (*flags) {
             goto _prob_calc_simple_likelihood_generic_bail;
         }
 
-        fprintf(stderr,"gmix convolved\n");
-        gmix_print(obj,stderr);
+        //fprintf(stderr,"gmix convolved\n");
+        //gmix_print(obj,stderr);
         // the only failure is actually redundant with above
         *flags |= gmix_image_loglike_wt_jacob(obs->image, 
                                               obs->weight,
@@ -345,6 +351,7 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
         goto _prob_simple_gmix3_eta_calc_bail;
     }
 
+    // not this is pars with eta, not gpars
     // flags are always zero from here
     priors_lnprob = prob_simple_gmix3_eta_calc_priors(self, pars, npars, flags);
     if (*flags != 0) {
@@ -353,8 +360,8 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
 
     (*lnprob) = loglike + priors_lnprob;
 
-    fprintf(stderr,"loglike:       %g\n", loglike);
-    fprintf(stderr,"lnprob priors: %g\n", priors_lnprob);
+    //fprintf(stderr,"loglike:       %g\n", loglike);
+    //fprintf(stderr,"lnprob priors: %g\n", priors_lnprob);
 _prob_simple_gmix3_eta_calc_bail:
     if (*flags != 0) {
         (*lnprob) = PROB_LOG_LOWVAL;
@@ -363,3 +370,11 @@ _prob_simple_gmix3_eta_calc_bail:
     }
 }
 
+void prob_simple_gmix3_eta_print(struct prob_data_simple_gmix3_eta *self, FILE *stream)
+{
+    dist_gauss_print(&self->cen1_prior, stream);
+    dist_gauss_print(&self->cen2_prior, stream);
+    dist_gmix3_eta_print(&self->shape_prior, stream);
+    dist_lognorm_print(&self->T_prior,stream);
+    dist_lognorm_print(&self->counts_prior,stream);
+}

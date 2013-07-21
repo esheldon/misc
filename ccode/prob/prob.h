@@ -153,4 +153,6 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
                                  double *loglike,
                                  long *flags);
 
+void prob_simple_gmix3_eta_print(struct prob_data_simple_gmix3_eta *self, FILE *stream);
+
 #endif

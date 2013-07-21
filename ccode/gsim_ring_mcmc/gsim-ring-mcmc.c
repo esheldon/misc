@@ -43,6 +43,8 @@ struct obs_list *make_obs_list(const struct image *image,
              &jacob,
              psf_ngauss,
              flags);
+    //jacobian_print(&self->data[0].jacob,stderr);
+
     if (*flags != 0) {
         self=obs_list_free(self);
     }
@@ -58,6 +60,7 @@ struct ring_image_pair *get_image_pair(struct object *obj,
 {
     struct ring_pair *rpair=NULL;
     struct ring_image_pair *impair=NULL;
+    double psf_row=0, psf_col=0;
     long flags=0;
 
     rpair = ring_pair_new(obj->model,
@@ -77,7 +80,7 @@ struct ring_image_pair *get_image_pair(struct object *obj,
 
     ring_pair_print(rpair,stderr);
 
-    impair = ring_image_pair_new(rpair, row, col, &flags);
+    impair = ring_image_pair_new(rpair, row, col, &psf_row, &psf_col, &flags);
     //image_view(impair->im1, "-m");
     //image_view(impair->im2, "-m");
 
@@ -139,7 +142,7 @@ static double get_em_sky_to_add(double im_min)
 {
     return 0.001 - im_min;
 }
-static void process_psfs(struct gmix_mcmc *self, double row, double col)
+static void process_psfs(struct gmix_mcmc *self)
 {
     long n_retry = 100, try=0;
     struct gmix_em gmix_em={0};
@@ -163,6 +166,9 @@ static void process_psfs(struct gmix_mcmc *self, double row, double col)
         double sky_to_add = get_em_sky_to_add(min);
         image_add_scalar(psf_image_sky, sky_to_add);
         IM_SET_SKY(psf_image_sky, sky_to_add);
+
+        double row=(IM_NROWS(psf_image)-1.0)/2.0;
+        double col=(IM_NCOLS(psf_image)-1.0)/2.0;
 
         for (try=0; try<n_retry; try++) {
             fill_psf_gmix_guess(psf_gmix, row, col, counts);
@@ -194,7 +200,7 @@ void process_one(struct gmix_mcmc *self,
 {
     gmix_mcmc_set_obs_list(self, obs_list);
 
-    process_psfs(self, row, col);
+    process_psfs(self);
 
     gmix_mcmc_run(self, row, col, T, counts, flags);
     if (*flags != 0) {
@@ -204,6 +210,7 @@ void process_one(struct gmix_mcmc *self,
     mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
     result_calc(res, &self->chain_data);
 #if 1
+    mca_chain_plot(self->chain_data.burnin_chain,"");
     mca_chain_plot(self->chain_data.chain,"");
 #endif
 _process_one_bail:
@@ -219,6 +226,7 @@ void process_pair(struct gmix_mcmc *self,
     long flags=0;
     struct obs_list *obs_list=NULL;
     double row=0, col=0, T=0, counts=0;
+    double row_guess=0, col_guess=0;
 
     struct ring_image_pair *impair = get_image_pair(obj, 
                                                     &row,
@@ -240,7 +248,9 @@ void process_pair(struct gmix_mcmc *self,
     fprintf(stderr,"running image 1 mcmc\n");
     process_one(self,
                 obs_list,
-                row,col,T,counts,
+                row_guess, // in jacob coord system
+                col_guess,
+                T,counts,
                 res1,
                 &flags);
 
@@ -249,10 +259,26 @@ void process_pair(struct gmix_mcmc *self,
     }
     print_one(self, res1);
 
+    obs_list = obs_list_free(obs_list);
+    obs_list = make_obs_list(impair->im2,
+                             impair->wt2,
+                             impair->psf_image,
+                             self->conf.psf_ngauss,
+                             row,
+                             col,
+                             &flags);
+    if (flags != 0) {
+        goto _process_pair_bail;
+    }
+
+
     fprintf(stderr,"running image 2 mcmc\n");
     process_one(self,
                 obs_list,
-                row,col,T,counts,
+                row_guess, // in jacob coord system
+                col_guess,
+                T,
+                counts,
                 res2,
                 &flags);
 

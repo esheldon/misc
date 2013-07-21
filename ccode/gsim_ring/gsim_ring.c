@@ -260,6 +260,7 @@ static struct image *make_image(const struct gmix *gmix,
     *cen1_start =( ((float)box_size) - 1.0)/2.0;
     *cen2_start=*cen1_start;
 
+    fprintf(stderr,"cen1_start: %g\n", *cen1_start);
     tmp_gmix = gmix_new_copy(gmix, flags);
     if (*flags != 0) {
         goto _ring_make_image_bail;
@@ -296,6 +297,8 @@ _ring_make_image_bail:
 struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self,
                                             double *cen1_start,
                                             double *cen2_start,
+                                            double *psf_cen1_start,
+                                            double *psf_cen2_start,
                                             long *flags)
 {
     struct ring_image_pair *impair=NULL;
@@ -336,8 +339,8 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self,
                                    RING_PSF_S2N,
                                    self->cen1_offset,
                                    self->cen2_offset,
-                                   cen1_start,
-                                   cen2_start,
+                                   psf_cen1_start,
+                                   psf_cen2_start,
                                    &impair->psf_skysig,
                                    flags);
     if (*flags != 0) {
