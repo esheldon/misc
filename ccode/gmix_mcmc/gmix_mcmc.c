@@ -208,9 +208,9 @@ void gmix_mcmc_run(struct gmix_mcmc *self,
                                                    T, counts,
                                                    nwalkers);
 
-    fprintf(stderr,"guess:\n");
-    mca_chain_write(guess, stderr);
-    fprintf(stderr,"\n\n");
+    //fprintf(stderr,"guess:\n");
+    //mca_chain_write(guess, stderr);
+    //fprintf(stderr,"\n\n");
 
     mca_run(self->chain_data.burnin_chain,
             self->chain_data.mca_a,

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-//#include "VEC.h"
+#include "randn.h"
 #include "dist.h"
 
 enum dist dist_string2dist(const char *dist_name, long *flags)
@@ -205,6 +205,15 @@ void dist_gauss_print(const struct dist_gauss *self, FILE *stream)
 }
 
 
+double dist_gauss_sample(const struct dist_gauss *self)
+{
+    double z = randn();
+    return self->mean + self->sigma*z;
+}
+
+
+
+
 
 void dist_lognorm_fill(struct dist_lognorm *self, double mean, double sigma)
 {
@@ -212,7 +221,10 @@ void dist_lognorm_fill(struct dist_lognorm *self, double mean, double sigma)
     self->sigma=sigma;
 
     self->logmean = log(mean) - 0.5*log( 1 + sigma*sigma/(mean*mean) );
-    self->logivar = 1./(  log(1 + sigma*sigma/(mean*mean) ) );
+    double logvar = log(1 + sigma*sigma/(mean*mean) );
+    self->logsigma = sqrt(logvar);
+
+    self->logivar = 1./logvar;
 }
 
 struct dist_lognorm *dist_lognorm_new(double mean, double sigma)
@@ -255,6 +267,12 @@ void dist_lognorm_print(const struct dist_lognorm *self, FILE *stream)
     fprintf(stream,"    sigma: %g\n", self->sigma);
 }
 
+
+double dist_lognorm_sample(const struct dist_lognorm *self)
+{
+    double z = randn();
+    return exp(self->logmean + self->logsigma*z);
+}
 
 
 
@@ -336,7 +354,21 @@ void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream)
 }
 
 
+/*
+static int dist_gmix3_eta_compare(const void *d1, const void *d2)
+{
+    const struct dist_gmix3_eta_data *s1=d1;
+    const struct dist_gmix3_eta_data *s2=d2;
 
+    if (s1->p < s2->p) {
+        return -1;
+    } else if (s1->p > s2->p) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+*/
 
 
 void dist_gmix3_eta_fill(struct dist_gmix3_eta *self,
@@ -347,14 +379,34 @@ void dist_gmix3_eta_fill(struct dist_gmix3_eta *self,
     double ivar2=1.0/(sigma2*sigma2);
     double ivar3=1.0/(sigma3*sigma3);
 
-    self->gauss1_ivar=ivar1;
-    self->gauss1_pnorm = p1*ivar1/(2*M_PI);
+    self->size=3;
+    self->data[0].sigma = sigma1;
+    self->data[1].sigma = sigma2;
+    self->data[2].sigma = sigma3;
 
-    self->gauss2_ivar=ivar2;
-    self->gauss2_pnorm = p2*ivar2/(2*M_PI);
+    self->data[0].p = p1;
+    self->data[1].p = p2;
+    self->data[2].p = p3;
 
-    self->gauss3_ivar=ivar3;
-    self->gauss3_pnorm = p3*ivar3/(2*M_PI);
+    self->data[0].ivar = ivar1;
+    self->data[1].ivar = ivar2;
+    self->data[2].ivar = ivar3;
+
+    self->data[0].pnorm = p1*ivar1/(2*M_PI);
+    self->data[1].pnorm = p2*ivar2/(2*M_PI);
+    self->data[2].pnorm = p3*ivar3/(2*M_PI);
+
+    //qsort(self->data, self->size, sizeof(struct dist_gmix3_eta_data), dist_gmix3_eta_compare);
+
+    double psum=0.0;
+    for (long i=0; i<self->size; i++) {
+        psum += self->data[i].p;
+    }
+
+    for (long i=0; i<self->size; i++) {
+        self->p_normalized[i] = self->data[i].p/psum;
+    }
+
 }
 
 
@@ -372,7 +424,7 @@ struct dist_gmix3_eta *dist_gmix3_eta_new(double sigma1,
         exit(1);
     }
 
-    dist_gmix3_eta_fill(self, sigma1, p1, sigma2, p2, sigma3, p3);
+    dist_gmix3_eta_fill(self, sigma1, sigma2, sigma3, p1, p2, p3);
     return self;
 }
 
@@ -394,9 +446,9 @@ double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, double eta1, doubl
     double prob=0, eta_sq=0;
 
     eta_sq = eta1*eta1 + eta2*eta2;
-    prob += self->gauss1_pnorm*exp(-0.5*self->gauss1_ivar*eta_sq );
-    prob += self->gauss2_pnorm*exp(-0.5*self->gauss2_ivar*eta_sq );
-    prob += self->gauss3_pnorm*exp(-0.5*self->gauss3_ivar*eta_sq );
+    prob += self->data[0].pnorm*exp(-0.5*self->data[0].ivar*eta_sq );
+    prob += self->data[1].pnorm*exp(-0.5*self->data[1].ivar*eta_sq );
+    prob += self->data[2].pnorm*exp(-0.5*self->data[2].ivar*eta_sq );
  
     return prob;
 }
@@ -404,13 +456,38 @@ double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, double eta1, doubl
 
 void dist_gmix3_eta_print(const struct dist_gmix3_eta *self, FILE *stream)
 {
-    fprintf(stream,"eta gmix3 dist\n");
-    fprintf(stream,"    ivar1:    %g\n", self->gauss1_ivar);
-    fprintf(stream,"    p1*norm1: %g\n", self->gauss1_pnorm);
-    fprintf(stream,"    ivar2:    %g\n", self->gauss2_ivar);
-    fprintf(stream,"    p2*norm2: %g\n", self->gauss2_pnorm);
-    fprintf(stream,"    ivar3:    %g\n", self->gauss3_ivar);
-    fprintf(stream,"    p3*norm3: %g\n", self->gauss3_pnorm);
+    fprintf(stream,"eta gmix dist\n");
+    for (long i=0; i<self->size; i++) {
+        fprintf(stream,"    sigma%ld:   %g\n", i+1, self->data[i].sigma);
+        fprintf(stream,"    p%ld:       %g\n", i+1, self->data[i].p);
+    }
 }
 
 
+// draw a value between 0 and 1 and use it to choose a gaussian
+// from which to draw shapes
+// data must be sorted by p
+void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self,
+                           double *eta1,
+                           double *eta2)
+{
+    double p = drand48();
+    long found=0, i=0;
+
+    double pcum=0;
+    for (i=0; i<self->size; i++) {
+        pcum += self->p_normalized[i];
+        if (p <= pcum) {
+            found=1;
+            break;
+        }
+    }
+
+    if (!found) {
+        i=self->size-1;
+    }
+
+    // The dimensions are independent
+    *eta1 = self->data[i].sigma*randn();
+    *eta2 = self->data[i].sigma*randn();
+}

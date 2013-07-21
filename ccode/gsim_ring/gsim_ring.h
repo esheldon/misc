@@ -39,19 +39,22 @@ struct ring_image_pair {
     struct image *wt1;
     struct image *im2;
     struct image *wt2;
+    double cen1;
+    double cen2;
 
     double skysig1;
     double skysig2;
 
-    double cen1;
-    double cen2;
-    double cen1_start;
-    double cen2_start;
+
+    struct image *psf_image;
+
     double psf_cen1;
     double psf_cen2;
 
-    struct image *psf_image;
     double psf_skysig;
+
+    double cen1_offset;
+    double cen2_offset;
 };
 
 // the shortened pars
@@ -75,12 +78,7 @@ struct ring_pair *ring_pair_free(struct ring_pair *self);
 void ring_pair_print(const struct ring_pair *self, FILE* stream);
 
 
-struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, 
-                                            double *cen1_start,
-                                            double *cen2_start,
-                                            double *psf_cen1_start,
-                                            double *psf_cen2_start,
-                                            long *flags);
+struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *flags);
 
 struct ring_image_pair *ring_image_pair_free(struct ring_image_pair *self);
 

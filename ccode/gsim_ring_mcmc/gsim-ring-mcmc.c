@@ -55,12 +55,10 @@ struct obs_list *make_obs_list(const struct image *image,
 // so we can properly use it in the prior
 static
 struct ring_image_pair *get_image_pair(struct object *obj,
-                                       double *row, double *col,// for guesses
                                        double *T, double *counts)
 {
     struct ring_pair *rpair=NULL;
     struct ring_image_pair *impair=NULL;
-    double psf_row=0, psf_col=0;
     long flags=0;
 
     rpair = ring_pair_new(obj->model,
@@ -78,9 +76,9 @@ struct ring_image_pair *get_image_pair(struct object *obj,
         goto _get_image_pair_bail;
     }
 
-    ring_pair_print(rpair,stderr);
+    //ring_pair_print(rpair,stderr);
 
-    impair = ring_image_pair_new(rpair, row, col, &psf_row, &psf_col, &flags);
+    impair = ring_image_pair_new(rpair, &flags);
     //image_view(impair->im1, "-m");
     //image_view(impair->im2, "-m");
 
@@ -109,12 +107,17 @@ _get_image_pair_bail:
 void print_one(const struct gmix_mcmc *self,
                const struct result *res)
 {
-    mca_stats_write_brief(self->chain_data.stats, stdout);
+    //mca_stats_write_brief(self->chain_data.stats, stdout);
     mca_stats_write_flat(self->chain_data.stats, stdout);
     result_print(res, stdout);
 
     fprintf(stdout,"\n");
 }
+
+//
+// process all the PSFs in the set of observations
+// need to move this code into gmix_em
+//
 
 static void fill_psf_gmix_guess(struct gmix *self, double row, double col, double counts)
 {
@@ -132,11 +135,6 @@ static void fill_psf_gmix_guess(struct gmix *self, double row, double col, doubl
                    &flags);
     }
 }
-
-//
-// process all the PSFs in the set of observations
-// need to move this code into gmix_em
-//
 
 static double get_em_sky_to_add(double im_min)
 {
@@ -189,33 +187,60 @@ static void process_psfs(struct gmix_mcmc *self)
     }
 
 }
+
 void process_one(struct gmix_mcmc *self,
-                 const struct obs_list *obs_list,
-                 double row,
-                 double col,
-                 double T,
-                 double counts,
-                 struct result *res,
-                 long *flags)
+                     struct ring_image_pair *impair,
+                     long pairnum,
+                     double T,
+                     double counts,
+                     struct result *res,
+                     long *flags)
 {
+    double row_guess=0, col_guess=0;
+    struct obs_list *obs_list=NULL;
+    const struct image *im=NULL;
+    const struct image *wt=NULL;
+
+    if (pairnum==1) {
+        im=impair->im1;
+        wt=impair->wt1;
+    } else {
+        im=impair->im2;
+        wt=impair->wt2;
+    }
+    obs_list = make_obs_list(im,
+                             wt,
+                             impair->psf_image,
+                             self->conf.psf_ngauss,
+                             impair->cen1, // center of coord system
+                             impair->cen2, // center of coord system
+                             flags);
+    if (*flags != 0) {
+        goto _process_one_bail;
+    }
+
     gmix_mcmc_set_obs_list(self, obs_list);
 
     process_psfs(self);
 
-    gmix_mcmc_run(self, row, col, T, counts, flags);
+    gmix_mcmc_run(self, row_guess, col_guess, T, counts, flags);
     if (*flags != 0) {
         goto _process_one_bail;
     }
 
     mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
     result_calc(res, &self->chain_data);
-#if 1
+
+#if 0
     mca_chain_plot(self->chain_data.burnin_chain,"");
     mca_chain_plot(self->chain_data.chain,"");
 #endif
+
 _process_one_bail:
+    obs_list = obs_list_free(obs_list);
     return;
 }
+
 
 void process_pair(struct gmix_mcmc *self,
                   struct object *obj,
@@ -224,33 +249,15 @@ void process_pair(struct gmix_mcmc *self,
 {
 
     long flags=0;
-    struct obs_list *obs_list=NULL;
-    double row=0, col=0, T=0, counts=0;
-    double row_guess=0, col_guess=0;
+    double T=0, counts=0;
 
-    struct ring_image_pair *impair = get_image_pair(obj, 
-                                                    &row,
-                                                    &col,
-                                                    &T,
-                                                    &counts);
+    struct ring_image_pair *impair = get_image_pair(obj, &T, &counts);
 
-    obs_list = make_obs_list(impair->im1,
-                             impair->wt1,
-                             impair->psf_image,
-                             self->conf.psf_ngauss,
-                             row,
-                             col,
-                             &flags);
-    if (flags != 0) {
-        goto _process_pair_bail;
-    }
-
-    fprintf(stderr,"running image 1 mcmc\n");
     process_one(self,
-                obs_list,
-                row_guess, // in jacob coord system
-                col_guess,
-                T,counts,
+                impair,
+                1,
+                T,
+                counts,
                 res1,
                 &flags);
 
@@ -258,25 +265,11 @@ void process_pair(struct gmix_mcmc *self,
         goto _process_pair_bail;
     }
     print_one(self, res1);
+    mca_stats_write_brief(self->chain_data.stats, stderr);
 
-    obs_list = obs_list_free(obs_list);
-    obs_list = make_obs_list(impair->im2,
-                             impair->wt2,
-                             impair->psf_image,
-                             self->conf.psf_ngauss,
-                             row,
-                             col,
-                             &flags);
-    if (flags != 0) {
-        goto _process_pair_bail;
-    }
-
-
-    fprintf(stderr,"running image 2 mcmc\n");
     process_one(self,
-                obs_list,
-                row_guess, // in jacob coord system
-                col_guess,
+                impair,
+                2,
                 T,
                 counts,
                 res2,
@@ -286,9 +279,9 @@ void process_pair(struct gmix_mcmc *self,
         goto _process_pair_bail;
     }
     print_one(self, res2);
+    mca_stats_write_brief(self->chain_data.stats, stderr);
 
 _process_pair_bail:
-    obs_list = obs_list_free(obs_list);
     impair = ring_image_pair_free(impair);
     if (flags != 0) {
         fprintf(stderr, "error processing pair, aborting: %s: %d", __FILE__,__LINE__);
@@ -298,7 +291,7 @@ _process_pair_bail:
     return;
 }
 
-void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream, FILE* output_stream)
+void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream)
 {
     struct object obj={{0}};
     struct result res1 = {0}, res2={0};
@@ -314,9 +307,7 @@ void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream, FILE* output_str
     long nlines = fileio_count_lines(input_stream);
     rewind(input_stream);
 
-    // always work in pairs
-
-    fprintf(stderr,"processing %ld objects\n\n", nlines);
+    fprintf(stderr,"processing %ld pairs\n\n", nlines);
 
     for (long i=0; i<nlines; i++) {
         if (!object_read(&obj, input_stream)) {
@@ -344,8 +335,8 @@ static void load_config(struct gmix_mcmc_config *conf, const char *name)
 
 int main(int argc, char **argv)
 {
-    if (argc < 4) {
-        printf("usage: %s config objlist output_file\n", argv[0]);
+    if (argc < 3) {
+        printf("usage: %s config objlist\n", argv[0]);
         exit(1);
     }
     randn_seed();
@@ -353,13 +344,11 @@ int main(int argc, char **argv)
     struct gmix_mcmc_config conf={0};
     load_config(&conf, argv[1]);
     FILE *input_stream = fileio_open_or_die(argv[2],"r");
-    FILE *output_stream = fileio_open_or_die(argv[3],"w");
 
-    printf("running sim\n");
-    run_sim(&conf, input_stream, output_stream);
-    printf("finished running sim\n");
+    fprintf(stderr,"running sim\n");
+    run_sim(&conf, input_stream);
+    fprintf(stderr,"finished running sim\n");
 
     fclose(input_stream);
-    fclose(output_stream);
     return 0;
 }

@@ -239,8 +239,8 @@ static struct image *make_image(const struct gmix *gmix,
                                 double s2n,
                                 double cen1_offset,
                                 double cen2_offset,
-                                double *cen1_start,
-                                double *cen2_start,
+                                double *cen1,
+                                double *cen2,
                                 double *skysig, // output
                                 long *flags) // output
 {
@@ -257,32 +257,23 @@ static struct image *make_image(const struct gmix *gmix,
         box_size+=1;
     }
 
-    *cen1_start =( ((float)box_size) - 1.0)/2.0;
-    *cen2_start=*cen1_start;
+    *cen1 =( ((float)box_size) - 1.0)/2.0;
+    *cen2 =*cen1;
 
-    fprintf(stderr,"cen1_start: %g\n", *cen1_start);
+    *cen1 += cen1_offset;
+    *cen2 += cen2_offset;
+
     tmp_gmix = gmix_new_copy(gmix, flags);
     if (*flags != 0) {
         goto _ring_make_image_bail;
     }
-    gmix_set_cen(tmp_gmix,
-                 *cen1_start+cen1_offset,
-                 *cen2_start+cen2_offset);
+    gmix_set_cen(tmp_gmix, *cen1, *cen2);
 
     image = gmix_image_new(tmp_gmix, box_size, box_size, nsub);
     if (!image) {
         goto _ring_make_image_bail;
     }
 
-    /*
-    (*flags) |= gmix_image_add_randn(image,
-                                     s2n,
-                                     tmp_gmix,
-                                     skysig);
-    if (*flags != 0) {
-        goto _ring_make_image_bail;
-    }
-    */
     image_add_randn_matched(image, s2n, skysig);
 
 _ring_make_image_bail:
@@ -294,12 +285,7 @@ _ring_make_image_bail:
     return image;
 }
 
-struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self,
-                                            double *cen1_start,
-                                            double *cen2_start,
-                                            double *psf_cen1_start,
-                                            double *psf_cen2_start,
-                                            long *flags)
+struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *flags)
 {
     struct ring_image_pair *impair=NULL;
 
@@ -309,13 +295,17 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self,
                  __FILE__,__LINE__);
         exit(1);
     }
+
+    impair->cen1_offset=self->cen1_offset;
+    impair->cen2_offset=self->cen2_offset;
+
     impair->im1 = make_image(self->gmix1,
                              RING_IMAGE_NSUB,
                              self->s2n,
                              self->cen1_offset,
                              self->cen2_offset,
-                             cen1_start,
-                             cen2_start,
+                             &impair->cen1,
+                             &impair->cen2,
                              &impair->skysig1,
                              flags);
     if (*flags != 0) {
@@ -326,8 +316,8 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self,
                              self->s2n,
                              self->cen1_offset,
                              self->cen2_offset,
-                             cen1_start,
-                             cen2_start,
+                             &impair->cen1,
+                             &impair->cen2,
                              &impair->skysig2,
                              flags);
     if (*flags != 0) {
@@ -339,8 +329,8 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self,
                                    RING_PSF_S2N,
                                    self->cen1_offset,
                                    self->cen2_offset,
-                                   psf_cen1_start,
-                                   psf_cen2_start,
+                                   &impair->psf_cen1,
+                                   &impair->psf_cen2,
                                    &impair->psf_skysig,
                                    flags);
     if (*flags != 0) {
