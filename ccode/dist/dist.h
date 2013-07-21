@@ -5,7 +5,7 @@
 #define _PRIORS_HEADER_GUARD
 
 #define DIST_LOG_LOWVAL -9.999e9
-#define DIST_LOG_MINARG 1.0e-10
+#define DIST_LOG_MINARG 1.0e-300
 
 #define DIST_BAD_DIST 0x1
 #define DIST_WRONG_NPARS 0x2
