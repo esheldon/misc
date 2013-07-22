@@ -25,8 +25,8 @@ struct obs_list *make_obs_list(const struct image *image,
                                const struct image *weight,
                                const struct image *psf_image,
                                long psf_ngauss,
-                               double coord_row, // center of coord system
-                               double coord_col,
+                               double row,
+                               double col,
                                long *flags)
 
 {
@@ -34,7 +34,7 @@ struct obs_list *make_obs_list(const struct image *image,
     struct jacobian jacob = {0};
 
     jacobian_set_identity(&jacob);
-    jacobian_set_cen(&jacob, coord_row, coord_col);
+    jacobian_set_cen(&jacob, row, col);
 
     obs_fill(&self->data[0],
              image,
@@ -54,20 +54,33 @@ struct obs_list *make_obs_list(const struct image *image,
 // note row,col returned are the "center start", before offsetting,
 // so we can properly use it in the prior
 static
-struct ring_image_pair *get_image_pair(struct gsim_ring *ring,
-                                       long is2n,
+struct ring_image_pair *get_image_pair(struct object *obj,
                                        double *T, double *counts)
 {
     struct ring_pair *rpair=NULL;
     struct ring_image_pair *impair=NULL;
     long flags=0;
 
-    rpair = ring_pair_new_new(ring, is2n, &flags);
+    rpair = ring_pair_new(obj->model,
+                          obj->pars,
+                          obj->npars,
+                          obj->psf_model,
+                          obj->psf_pars,
+                          obj->psf_npars,
+                          &obj->shear,
+                          obj->s2n,
+                          obj->cen1_offset,
+                          obj->cen2_offset,
+                          &flags);
     if (flags != 0) {
         goto _get_image_pair_bail;
     }
 
+    //ring_pair_print(rpair,stderr);
+
     impair = ring_image_pair_new(rpair, &flags);
+    //image_view(impair->im1, "-m");
+    //image_view(impair->im2, "-m");
 
     if (flags != 0) {
         goto _get_image_pair_bail;
@@ -176,12 +189,12 @@ static void process_psfs(struct gmix_mcmc *self)
 }
 
 void process_one(struct gmix_mcmc *self,
-                 struct ring_image_pair *impair,
-                 long pairnum,
-                 double T,
-                 double counts,
-                 struct result *res,
-                 long *flags)
+                     struct ring_image_pair *impair,
+                     long pairnum,
+                     double T,
+                     double counts,
+                     struct result *res,
+                     long *flags)
 {
     double row_guess=0, col_guess=0;
     struct obs_list *obs_list=NULL;
@@ -199,8 +212,8 @@ void process_one(struct gmix_mcmc *self,
                              wt,
                              impair->psf_image,
                              self->conf.psf_ngauss,
-                             impair->coord_cen1, // center of coord system
-                             impair->coord_cen2, // center of coord system
+                             impair->cen1, // center of coord system
+                             impair->cen2, // center of coord system
                              flags);
     if (*flags != 0) {
         goto _process_one_bail;
@@ -229,46 +242,44 @@ _process_one_bail:
 }
 
 
-// process and print results to stdout
-// some log info goes to stderr
-void process_pair(struct gsim_ring *ring,
-                  struct gmix_mcmc *gmix_mcmc,
-                  long is2n)
+void process_pair(struct gmix_mcmc *self,
+                  struct object *obj,
+                  struct result *res1,
+                  struct result *res2)
 {
 
     long flags=0;
-    struct result res = {0};
     double T=0, counts=0;
 
-    struct ring_image_pair *impair = get_image_pair(ring, is2n, &T, &counts);
+    struct ring_image_pair *impair = get_image_pair(obj, &T, &counts);
 
-    process_one(gmix_mcmc,
+    process_one(self,
                 impair,
                 1,
                 T,
                 counts,
-                &res,
+                res1,
                 &flags);
 
     if (flags != 0) {
         goto _process_pair_bail;
     }
-    print_one(gmix_mcmc, &res);
-    mca_stats_write_brief(gmix_mcmc->chain_data.stats, stderr);
+    print_one(self, res1);
+    mca_stats_write_brief(self->chain_data.stats, stderr);
 
-    process_one(gmix_mcmc,
+    process_one(self,
                 impair,
                 2,
                 T,
                 counts,
-                &res,
+                res2,
                 &flags);
 
     if (flags != 0) {
         goto _process_pair_bail;
     }
-    print_one(gmix_mcmc, &res);
-    mca_stats_write_brief(gmix_mcmc->chain_data.stats, stderr);
+    print_one(self, res2);
+    mca_stats_write_brief(self->chain_data.stats, stderr);
 
 _process_pair_bail:
     impair = ring_image_pair_free(impair);
@@ -280,117 +291,64 @@ _process_pair_bail:
     return;
 }
 
-static void print_header(long nlines, long npars)
+void run_sim(struct gmix_mcmc_config *conf, FILE* input_stream)
 {
-    printf("SIZE =                  %16ld\n", nlines);
-    printf("{'_DTYPE': [('npars', 'i2'),\n");
-    printf("            ('arate', 'f8'),\n");
-    printf("            ('pars', 'f8', %ld),\n", npars);
-    printf("            ('pcov', 'f8', (%ld,%ld)),\n", npars, npars);
-    printf("            ('P', 'f8'),\n");
-    printf("            ('Q', 'f8', 2),\n");
-    printf("            ('R', '<f8', (2, 2))],\n");
-    printf(" '_DELIM':' ',\n");
-    printf(" '_VERSION': '1.0'}\n");
-    printf("END\n");
-    printf("\n");
-}
+    struct object obj={{0}};
+    struct result res1 = {0}, res2={0};
+    struct gmix_mcmc *gmix_mcmc=NULL;
 
-/*
-long get_npairs(double s2n, double fac, long min_npairs)
-{
-    double rat = 100.0/s2n;
-    long npair = (long) ( round( fac*rat*rat ) );
-
-    if (npair < 1) {
-        npair = 1;
-    }
-    if (npair < min_npairs) {
-        npair = min_npairs;
-    }
-    return (long) npair;
-}
-*/
-
-static void run_sim(struct gsim_ring *ring,
-                    struct gmix_mcmc *gmix_mcmc,
-                    long is2n,
-                    long npairs)
-{
-
-    print_header(npairs*2, gmix_mcmc->conf.npars);
-    fprintf(stderr,"processing %ld pairs\n\n", npairs);
-
-    for (long i=0; i<npairs; i++) {
-        fprintf(stderr,"%ld/%ld\n", i+1, npairs);
-        process_pair(ring, gmix_mcmc, is2n);
-    }
-}
-
-static void load_ring(struct gsim_ring *ring, const char *name)
-{
-    long flags=gsim_ring_fill_from_file(ring, name);
-    if (flags != 0) {
-        fprintf(stderr,"fatal error reading ring config, exiting\n");
-        exit(1);
-    }
-    gsim_ring_config_print(&ring->conf, stderr);
-}
-
-
-static struct gmix_mcmc *load_gmix_mcmc(const char *name)
-{
     long flags=0;
-    struct gmix_mcmc *self=gmix_mcmc_new_from_config(name,&flags);
-    if (flags != 0) {
-        fprintf(stderr,"fatal error reading mcmc conf, exiting\n");
-        exit(1);
-    }
-    gmix_mcmc_config_print(&self->conf, stderr);
 
-    return self;
+    gmix_mcmc = gmix_mcmc_new(conf, &flags);
+    if (flags != 0) {
+        goto _run_sim_bail;
+    }
+
+    long nlines = fileio_count_lines(input_stream);
+    rewind(input_stream);
+
+    fprintf(stderr,"processing %ld pairs\n\n", nlines);
+
+    for (long i=0; i<nlines; i++) {
+        if (!object_read(&obj, input_stream)) {
+            fprintf(stderr, "error reading object, aborting: %s: %d", __FILE__,__LINE__);
+            exit(1);
+        }
+
+        object_print(&obj, stderr);
+        process_pair(gmix_mcmc, &obj, &res1, &res2);
+    }
+_run_sim_bail:
+    gmix_mcmc = gmix_mcmc_free(gmix_mcmc);
+
 }
 
-long check_is2n(struct gsim_ring *ring, long is2n)
+static void load_mcmc_config(struct gmix_mcmc_config *conf, const char *name)
 {
-    size_t n_s2n = ring->conf.n_s2n;
-    if (is2n >= n_s2n) {
-        fprintf(stderr,"is2n out of bounds: [0,%lu]\n", n_s2n-1);
-        return 0;
-    } else {
-        return 1;
+    long flags=gmix_mcmc_config_load(conf, name);
+    if (flags != 0) {
+        fprintf(stderr,"fatal error reading conf, exiting\n");
+        exit(1);
     }
+    gmix_mcmc_config_print(conf, stderr);
 }
 
 int main(int argc, char **argv)
 {
-    if (argc < 5) {
-        printf("usage: %s sim-conf gmix-mcmc-config is2n npairs\n", argv[0]);
+    if (argc < 3) {
+        printf("usage: %s sim-conf gmix-mcmc-config\n", argv[0]);
         exit(1);
     }
     randn_seed();
 
-    // value type
-    struct gsim_ring ring={{{0}}};
-    load_ring(&ring, argv[1]);
-
-    // reference type
-    struct gmix_mcmc *gmix_mcmc = load_gmix_mcmc(argv[2]);
-
-    long is2n = atol(argv[3]);
-    long npairs = atol(argv[4]);
-
-    if (!check_is2n(&ring, is2n)) {
-        goto _main_cleanup;
-    }
+    struct gmix_mcmc_config mcmc_conf={0};
+    load_mcmc_config(&mcmc_conf, argv[1]);
+    FILE *input_stream = fileio_open_or_die(argv[2],"r");
 
     fprintf(stderr,"running sim\n");
-    run_sim(&ring, gmix_mcmc, is2n, npairs);
+    run_sim(&mcmc_conf, input_stream);
     fprintf(stderr,"finished running sim\n");
 
-    // cleanup
-_main_cleanup:
-    gmix_mcmc = gmix_mcmc_free(gmix_mcmc);
-
+    fclose(input_stream);
     return 0;
 }

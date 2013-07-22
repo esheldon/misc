@@ -123,32 +123,14 @@ Quick look Queue
 
         - redo colors in MEDS
 
+            - write effective pixel scale into the output files
+            - also fit the first of the single epoch images, or coadd,
+              depending on a flag.
+
             - test max radius for various models?  This is in additioi to the
               5-sigma cutout for evaluating the gaussians.  I suspect we can
               shave off even more time.  Would have to define elliptial
               contour.
-
-            - do proper full multi-band fit
-
-                - run eli's cluster tiles
-
-                - copy conf data into metadata
-
-                - only fit objects with max (s/n)_{psf} >= 4 in at least one
-                  band.  A bit circular, because need to make sure aperture is
-                  appropriate *based* on the gaussian fit!  If have 5 sigma
-                  limit evaluating the gaussian itself this would effectively
-                  do this
-
-
-                - put in time limit per object, of say
-                    3*nband seconds
-                - break if hit max tries or time limie
-
-                - explore apertures.  maybe just do a gauss fit and then
-                  5-sigma.
-
-            - explore pileup at e1=0, e2=-1 in mcmc
 
             - mcmc
                 - look into trimming, but based on what size measure?

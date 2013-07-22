@@ -9,19 +9,6 @@
 
 #define GAUSS_PADDING 5
 #define RING_IMAGE_NSUB 16
-#define RING_PSF_S2N 1.0e8
-
-// for now models are always simple or bulge+disk, so pars are, e.g.
-// 
-//    [eta,eta2,Tbulge,Tdisk,Fbulge,Fdisk]
-//
-// it is OK to have either flux zero.  
-//
-// The PSF is for now a simple model with only a scale length and shape.  Can
-// be GMIX_COELLIP (but only one gauss) or GMIX_TURB.
-//
-//    [eta1,eta2,T]
-//
 
 struct gsim_ring {
     struct gsim_ring_config conf;
@@ -42,9 +29,8 @@ void gsim_ring_fill(struct gsim_ring *self, const struct gsim_ring_config *conf)
 
 struct ring_pair {
     double s2n;
+    double psf_s2n;
 
-    double cen1_start;
-    double cen2_start;
     double cen1_offset;
     double cen2_offset;
 
@@ -58,8 +44,8 @@ struct ring_image_pair {
     struct image *wt1;
     struct image *im2;
     struct image *wt2;
-    double cen1;
-    double cen2;
+    double coord_cen1; // coord system center
+    double coord_cen2;
 
     double skysig1;
     double skysig2;
@@ -67,8 +53,8 @@ struct ring_image_pair {
 
     struct image *psf_image;
 
-    double psf_cen1;
-    double psf_cen2;
+    double psf_coord_cen1;
+    double psf_coord_cen2;
 
     double psf_skysig;
 
@@ -91,6 +77,8 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
                                 double cen1_offset,
                                 double cen2_offset,
                                 long *flags);
+
+struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, long is2n, long *flags);
 
 struct ring_pair *ring_pair_free(struct ring_pair *self);
 
