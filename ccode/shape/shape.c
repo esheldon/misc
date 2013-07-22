@@ -228,6 +228,22 @@ int shape_set_eta(struct shape *self, double eta1, double eta2)
     return 1;
 }
 
+double shape_get_theta(const struct shape *self)
+{
+    return 0.5*atan2( self->g2, self->g1 );
+}
+
+void shape_rotate(struct shape *self, double theta_radians)
+{
+    double twotheta = 2*theta_radians;
+
+    double cos2angle = cos(twotheta);
+    double sin2angle = sin(twotheta);
+    double e1rot =  self->e1*cos2angle + self->e2*sin2angle;
+    double e2rot = -self->e1*sin2angle + self->e2*cos2angle;
+
+    shape_set_e(self, e1rot, e2rot);
+}
 
 struct shape *shape_add(struct shape *self, const struct shape *shear)
 {

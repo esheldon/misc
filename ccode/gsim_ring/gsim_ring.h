@@ -37,6 +37,9 @@ struct gsim_ring {
 
 };
 
+long gsim_ring_fill_from_file(struct gsim_ring *self, const char *name);
+void gsim_ring_fill(struct gsim_ring *self, const struct gsim_ring_config *conf);
+
 struct ring_pair {
     double s2n;
 

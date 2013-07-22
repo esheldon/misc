@@ -43,6 +43,10 @@ int shape_set_g(struct shape *self, double g1, double g2);
 // set eta1,eta2 as well as g and e
 int shape_set_eta(struct shape *self, double eta1, double eta2);
 
+double shape_get_theta(const struct shape *self);
+
+void shape_rotate(struct shape *self, double theta_radians);
+
 // create a new shape and place in it self+shear
 // returns NULL if failure (e.g. e >= 1)
 struct shape *shape_add(struct shape *self, const struct shape *shear);
