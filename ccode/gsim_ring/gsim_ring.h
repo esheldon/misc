@@ -4,12 +4,14 @@
 #include <stdio.h>
 #include "gmix.h"
 #include "shape.h"
+#include "dist.h"
+#include "gsim_ring_config.h"
 
 #define GAUSS_PADDING 5
 #define RING_IMAGE_NSUB 16
 #define RING_PSF_S2N 1.0e8
 
-// for now models are always bulge+disk, so pars are
+// for now models are always simple or bulge+disk, so pars are, e.g.
 // 
 //    [eta,eta2,Tbulge,Tdisk,Fbulge,Fdisk]
 //
@@ -20,6 +22,20 @@
 //
 //    [eta1,eta2,T]
 //
+
+struct gsim_ring {
+    struct gsim_ring_config conf;
+
+    // can generalize this
+    struct dist_gauss cen1_dist;
+    struct dist_gauss cen2_dist;
+
+    struct dist_gmix3_eta shape_prior;
+
+    struct dist_lognorm T_dist;
+    struct dist_lognorm counts_dist;
+
+};
 
 struct ring_pair {
     double s2n;

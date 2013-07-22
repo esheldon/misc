@@ -35,6 +35,7 @@ sources = ['gsim-ring-mcmc',
            'result',
            'obs',
            'gsim_ring',
+           'gsim_ring_config',
            'object',
            'fileio']
 
