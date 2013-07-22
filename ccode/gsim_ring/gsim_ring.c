@@ -115,6 +115,7 @@ static long check_npars(enum gmix_model model, long npars)
 
     return status;
 }
+
 // for simple, pars are
 //     [eta,T,F]
 //

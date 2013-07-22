@@ -46,16 +46,15 @@ struct gsim_ring_config {
     char psf_model_name[GSIM_RING_MAXNAME];
     enum gmix_model psf_model;
     double psf_T;
-    double psf_eta1;
-    double psf_eta2;
+    struct shape psf_shape;
+    double psf_s2n;
 
     // shear
-    double shear1;
-    double shear2;
+    struct shape shear;
 };
 
-long gsim_ring_config_load(struct gsim_ring_config *self);
-void gsim_ring_config_print(struct gsim_ring_config *self, FILE *stream);
+long gsim_ring_config_load(struct gsim_ring_config *self, const char *name);
+void gsim_ring_config_print(const struct gsim_ring_config *self, FILE *stream);
 
 
 #endif

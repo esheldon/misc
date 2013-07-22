@@ -1,0 +1,1 @@
+../gsim_ring/gsim_ring_config.c

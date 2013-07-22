@@ -323,7 +323,7 @@ _run_sim_bail:
 
 }
 
-static void load_config(struct gmix_mcmc_config *conf, const char *name)
+static void load_mcmc_config(struct gmix_mcmc_config *conf, const char *name)
 {
     long flags=gmix_mcmc_config_load(conf, name);
     if (flags != 0) {
@@ -336,17 +336,17 @@ static void load_config(struct gmix_mcmc_config *conf, const char *name)
 int main(int argc, char **argv)
 {
     if (argc < 3) {
-        printf("usage: %s config objlist\n", argv[0]);
+        printf("usage: %s sim-conf gmix-mcmc-config\n", argv[0]);
         exit(1);
     }
     randn_seed();
 
-    struct gmix_mcmc_config conf={0};
-    load_config(&conf, argv[1]);
+    struct gmix_mcmc_config mcmc_conf={0};
+    load_mcmc_config(&mcmc_conf, argv[1]);
     FILE *input_stream = fileio_open_or_die(argv[2],"r");
 
     fprintf(stderr,"running sim\n");
-    run_sim(&conf, input_stream);
+    run_sim(&mcmc_conf, input_stream);
     fprintf(stderr,"finished running sim\n");
 
     fclose(input_stream);
