@@ -96,23 +96,21 @@ static void fill_pars_6par(const double *inpars,
     pars2[4] = inpars[1];
     pars2[5] = inpars[2];
 }
-static void fill_pars_6par_new(double cen1,
-                               double cen2,
-                               const struct shape *shape1,
+static void fill_pars_6par_new(const struct shape *shape1,
                                const struct shape *shape2,
                                double T, double counts,
                                double *pars1,
                                double *pars2)
 {
-    pars1[0] = cen1;
-    pars1[1] = cen2;
+    pars1[0] = 0;
+    pars1[1] = 0;
     pars1[2] = shape1->g1;
     pars1[3] = shape1->g2;
     pars1[4] = T;
     pars1[5] = counts;
 
-    pars2[0] = cen1;
-    pars2[1] = cen2;
+    pars2[0] = 0;
+    pars2[1] = 0;
     pars2[2] = shape2->g1;
     pars2[3] = shape2->g2;
     pars2[4] = T;
@@ -131,14 +129,12 @@ static void fill_pars_6par_psf(const double *inpars, double *pars)
     pars[5] = 1; // arbitrary
 }
 
-static void fill_pars_6par_psf_new(double cen1,
-                                   double cen2,
-                                   const struct shape *shape,
+static void fill_pars_6par_psf_new(const struct shape *shape,
                                    double T,
                                    double *pars)
 {
-    pars[0] = cen1;
-    pars[1] = cen2;
+    pars[0] = 0;
+    pars[1] = 0;
     pars[2] = shape->g1;
     pars[3] = shape->g2;
     pars[4] = T;
@@ -271,9 +267,10 @@ struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, long is2n, lon
         return NULL;
     }
     self->s2n=ring->conf.s2n[is2n];
+    self->psf_s2n=ring->conf.psf_s2n;
 
-    double cen1 = dist_gauss_sample(&ring->cen1_dist);
-    double cen2 = dist_gauss_sample(&ring->cen2_dist);
+    self->cen1_offset = dist_gauss_sample(&ring->cen1_dist);
+    self->cen2_offset = dist_gauss_sample(&ring->cen2_dist);
 
     double T = dist_lognorm_sample(&ring->T_dist);
     double counts = dist_lognorm_sample(&ring->counts_dist);
@@ -288,8 +285,8 @@ struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, long is2n, lon
     shape_add_inplace(&shape1, &ring->conf.shear);
     shape_add_inplace(&shape2, &ring->conf.shear);
 
-    fill_pars_6par_new(cen1, cen2, &shape1, &shape2, T, counts, pars1, pars2);
-    fill_pars_6par_psf_new(cen1, cen2, &ring->conf.psf_shape, ring->conf.psf_T, psf_pars);
+    fill_pars_6par_new(&shape1, &shape2, T, counts, pars1, pars2);
+    fill_pars_6par_psf_new(&ring->conf.psf_shape, ring->conf.psf_T, psf_pars);
 
     psf_gmix = gmix_new_model(ring->conf.psf_model, psf_pars, psf_npars, flags);
     gmix1_0=gmix_new_model(ring->conf.obj_model, pars1, npars, flags);
@@ -350,8 +347,8 @@ static struct image *make_image(const struct gmix *gmix,
                                 double s2n,
                                 double cen1_offset,
                                 double cen2_offset,
-                                double *cen1,
-                                double *cen2,
+                                double *coord_cen1,
+                                double *coord_cen2,
                                 double *skysig, // output
                                 long *flags) // output
 {
@@ -368,17 +365,17 @@ static struct image *make_image(const struct gmix *gmix,
         box_size+=1;
     }
 
-    *cen1 =( ((float)box_size) - 1.0)/2.0;
-    *cen2 =*cen1;
+    *coord_cen1 =( ((float)box_size) - 1.0)/2.0;
+    *coord_cen2 =*coord_cen1;
 
-    *cen1 += cen1_offset;
-    *cen2 += cen2_offset;
+    double cen1 = *coord_cen1 + cen1_offset;
+    double cen2 = *coord_cen2 + cen2_offset;
 
     tmp_gmix = gmix_new_copy(gmix, flags);
     if (*flags != 0) {
         goto _ring_make_image_bail;
     }
-    gmix_set_cen(tmp_gmix, *cen1, *cen2);
+    gmix_set_cen(tmp_gmix, cen1, cen2);
 
     image = gmix_image_new(tmp_gmix, box_size, box_size, nsub);
     if (!image) {
@@ -415,8 +412,8 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *
                              self->s2n,
                              self->cen1_offset,
                              self->cen2_offset,
-                             &impair->cen1,
-                             &impair->cen2,
+                             &impair->coord_cen1,
+                             &impair->coord_cen2,
                              &impair->skysig1,
                              flags);
     if (*flags != 0) {
@@ -427,8 +424,8 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *
                              self->s2n,
                              self->cen1_offset,
                              self->cen2_offset,
-                             &impair->cen1,
-                             &impair->cen2,
+                             &impair->coord_cen1,
+                             &impair->coord_cen2,
                              &impair->skysig2,
                              flags);
     if (*flags != 0) {
@@ -437,11 +434,11 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *
 
     impair->psf_image = make_image(self->psf_gmix,
                                    RING_IMAGE_NSUB,
-                                   RING_PSF_S2N,
+                                   self->psf_s2n,
                                    self->cen1_offset,
                                    self->cen2_offset,
-                                   &impair->psf_cen1,
-                                   &impair->psf_cen2,
+                                   &impair->psf_coord_cen1,
+                                   &impair->psf_coord_cen2,
                                    &impair->psf_skysig,
                                    flags);
     if (*flags != 0) {

@@ -144,10 +144,10 @@ long gsim_ring_config_load(struct gsim_ring_config *self, const char *name)
     strcpy(self->psf_model_name,tstr);
     free(tstr);tstr=NULL;
 
-    self->psf_s2n = cfg_get_long(cfg,strcpy(key,"psf_s2n"),&status);
+    self->psf_s2n = cfg_get_double(cfg,strcpy(key,"psf_s2n"),&status);
     if (status) goto _gsim_ring_config_read_bail;
 
-    self->psf_T = cfg_get_long(cfg,strcpy(key,"psf_T"),&status);
+    self->psf_T = cfg_get_double(cfg,strcpy(key,"psf_T"),&status);
     if (status) goto _gsim_ring_config_read_bail;
 
     double arr2[2]={0};
@@ -220,6 +220,7 @@ void gsim_ring_config_print(const struct gsim_ring_config *self, FILE *stream)
     fprintf(stream,"psf_model:    %s (%u)\n", self->psf_model_name, self->psf_model);
     fprintf(stream,"psf_T:        %g\n", self->psf_T);
     fprintf(stream,"psf_shape:    [%g %g]\n", self->psf_shape.eta1, self->psf_shape.eta2);
+    fprintf(stream,"psf_s2n:        %g\n", self->psf_s2n);
 
     fprintf(stream,"shear:        [%g %g]\n", self->shear.eta1, self->shear.eta2);
 
