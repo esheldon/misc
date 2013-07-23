@@ -301,7 +301,7 @@ double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape 
     shape_plus = *shape;
     shape_minus = *shape;
 
-    shape_set_eta(&shape_plus, shape->eta1 + h, shape->eta2);
+    shape_set_eta(&shape_plus,  shape->eta1 + h, shape->eta2);
     shape_set_eta(&shape_minus, shape->eta1 - h, shape->eta2);
 
     shape_add_inplace(&shape_plus, shear);
@@ -312,7 +312,7 @@ double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape 
 
     // derivatives by eta2
 
-    shape_set_eta(&shape_plus, shape->eta1, shape->eta2 + h);
+    shape_set_eta(&shape_plus,  shape->eta1, shape->eta2 + h);
     shape_set_eta(&shape_minus, shape->eta1, shape->eta2 - h);
 
     shape_add_inplace(&shape_plus, shear);
