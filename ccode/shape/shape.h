@@ -54,4 +54,10 @@ struct shape *shape_add(struct shape *self, const struct shape *shear);
 // return 0 if failure (e.g. e>=1)
 int shape_add_inplace(struct shape *self, const struct shape *shear);
 
+//    jacobian of the transformation
+//        |des/deo|_{-shear}
+
+double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape *shear);
+double shape_dgs_by_dgo_jacob(const struct shape *shape, const struct shape *shear);
+
 #endif

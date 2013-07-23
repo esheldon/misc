@@ -26,7 +26,18 @@ int main(int argc, char **argv)
     shape_add_inplace(shape,shear);
     shape_show(shape,stdout);
 
+    shape_set_g(shape, 0.2, 0.1);
+    shape_set_g(shear, 0.04, 0.0);
+
+    double jacob_g=shape_dgs_by_dgo_jacob(shape, shear);
+    double jacob_eta=shape_detas_by_detao_jacob(shape, shear);
+
+    printf("\n");
+    printf("jacob g:   %.16g\n", jacob_g);
+    printf("jacob eta: %.16g\n", jacob_eta);
+
     shape=shape_free(shape);
     shear=shape_free(shear);
+
     return 0;
 }

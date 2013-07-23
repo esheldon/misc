@@ -284,3 +284,85 @@ int shape_add_inplace(struct shape *self, const struct shape *shear)
     }
     return 1;
 }
+
+// jacobian of the transformation
+//        |des/deo|_{shear}
+// for pqr you will evaluate at -shear
+
+double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape *shear)
+{
+    double h=1.e-6;
+    double h2inv = 1./(2*h);
+
+    struct shape shape_plus={0}, shape_minus={0};
+    //struct shape shape_offset={0};
+
+    // derivatives by eta1
+    shape_plus = *shape;
+    shape_minus = *shape;
+
+    shape_set_eta(&shape_plus, shape->eta1 + h, shape->eta2);
+    shape_set_eta(&shape_minus, shape->eta1 - h, shape->eta2);
+
+    shape_add_inplace(&shape_plus, shear);
+    shape_add_inplace(&shape_minus, shear);
+
+    double eta1s_by_eta1o = (shape_plus.eta1 - shape_minus.eta1)*h2inv;
+    double eta2s_by_eta1o = (shape_plus.eta2 - shape_minus.eta2)*h2inv;
+
+    // derivatives by eta2
+
+    shape_set_eta(&shape_plus, shape->eta1, shape->eta2 + h);
+    shape_set_eta(&shape_minus, shape->eta1, shape->eta2 - h);
+
+    shape_add_inplace(&shape_plus, shear);
+    shape_add_inplace(&shape_minus, shear);
+
+    double eta1s_by_eta2o = (shape_plus.eta1 - shape_minus.eta1)*h2inv;
+    double eta2s_by_eta2o = (shape_plus.eta2 - shape_minus.eta2)*h2inv;
+
+    double jacob = eta1s_by_eta1o*eta2s_by_eta2o - eta1s_by_eta2o*eta2s_by_eta1o;
+
+    return jacob;
+
+}
+
+double shape_dgs_by_dgo_jacob(const struct shape *shape, const struct shape *shear)
+{
+    double h=1.e-6;
+    double h2inv = 1./(2*h);
+
+    struct shape shape_plus={0}, shape_minus={0};
+
+    // derivatives by g1
+    shape_plus = *shape;
+    shape_minus = *shape;
+
+    shape_set_g(&shape_plus,  shape->g1 + h, shape->g2);
+    shape_set_g(&shape_minus, shape->g1 - h, shape->g2);
+
+    shape_add_inplace(&shape_plus, shear);
+    shape_add_inplace(&shape_minus, shear);
+
+    double g1s_by_g1o = (shape_plus.g1 - shape_minus.g1)*h2inv;
+    double g2s_by_g1o = (shape_plus.g2 - shape_minus.g2)*h2inv;
+
+    shape_set_g(&shape_plus,  shape->g1, shape->g2 + h);
+    shape_set_g(&shape_minus, shape->g1, shape->g2 - h);
+
+    shape_add_inplace(&shape_plus, shear);
+    shape_add_inplace(&shape_minus, shear);
+
+    double g1s_by_g2o = (shape_plus.g1 - shape_minus.g1)*h2inv;
+    double g2s_by_g2o = (shape_plus.g2 - shape_minus.g2)*h2inv;
+
+    printf("g1s_by_g1o: %g\n", g1s_by_g1o);
+    printf("g2s_by_g2o: %g\n", g2s_by_g2o);
+    printf("g1s_by_g2o: %g\n", g1s_by_g2o);
+    printf("g2s_by_g1o: %g\n", g2s_by_g1o);
+
+    double jacob = g1s_by_g1o*g2s_by_g2o - g1s_by_g2o*g2s_by_g1o;
+
+    return jacob;
+
+}
