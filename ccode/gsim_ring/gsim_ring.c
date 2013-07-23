@@ -248,7 +248,7 @@ _ring_pair_new_bail:
 
 }
 
-struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, long is2n, long *flags)
+struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, double s2n, long *flags)
 {
 
     double pars1[6] = {0};
@@ -266,7 +266,7 @@ struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, long is2n, lon
                 __FILE__,__LINE__);
         return NULL;
     }
-    self->s2n=ring->conf.s2n[is2n];
+    self->s2n=s2n;
     self->psf_s2n=ring->conf.psf_s2n;
 
     self->cen1_offset = dist_gauss_sample(&ring->cen1_dist);

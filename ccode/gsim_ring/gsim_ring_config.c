@@ -94,9 +94,6 @@ long gsim_ring_config_load(struct gsim_ring_config *self, const char *name)
         goto _gsim_ring_config_read_bail;
     }
 
-    load_dblarr(cfg, strcpy(key,"s2n"), self->s2n, &self->n_s2n, &status, &flags);
-    if (status || flags)  goto _gsim_ring_config_read_bail;
-
     // obj model conversion
     tstr = cfg_get_string(cfg,strcpy(key,"obj_model"),&status);
     if (status) goto _gsim_ring_config_read_bail;
@@ -177,13 +174,6 @@ _gsim_ring_config_read_bail:
 
 void gsim_ring_config_print(const struct gsim_ring_config *self, FILE *stream)
 {
-    fprintf(stream,"s2n:\n");
-    fprintf(stream,"    ");
-    for (long i=0; i<self->n_s2n; i++) {
-        fprintf(stream,"%g ",self->s2n[i]);
-    }
-    fprintf(stream,"\n");
-
 
     fprintf(stream,"obj_model:    %s (%u)\n", self->obj_model_name, self->obj_model);
 

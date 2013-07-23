@@ -27,6 +27,7 @@ if [[ $check == "" ]]; then
     module load meds/local
     module load gmix_meds/local
     module load psfex/local
+    module load gsim_ring/local
 
     # for oracle libraries
     module load libaio     # *
