@@ -55,14 +55,14 @@ struct obs_list *make_obs_list(const struct image *image,
 // so we can properly use it in the prior
 static
 struct ring_image_pair *get_image_pair(struct gsim_ring *ring,
-                                       long is2n,
+                                       double s2n,
                                        double *T, double *counts)
 {
     struct ring_pair *rpair=NULL;
     struct ring_image_pair *impair=NULL;
     long flags=0;
 
-    rpair = ring_pair_new_new(ring, is2n, &flags);
+    rpair = ring_pair_new_new(ring, s2n, &flags);
     if (flags != 0) {
         goto _get_image_pair_bail;
     }
@@ -233,14 +233,14 @@ _process_one_bail:
 // some log info goes to stderr
 void process_pair(struct gsim_ring *ring,
                   struct gmix_mcmc *gmix_mcmc,
-                  long is2n)
+                  double s2n)
 {
 
     long flags=0;
     struct result res = {0};
     double T=0, counts=0;
 
-    struct ring_image_pair *impair = get_image_pair(ring, is2n, &T, &counts);
+    struct ring_image_pair *impair = get_image_pair(ring, s2n, &T, &counts);
 
     process_one(gmix_mcmc,
                 impair,
@@ -314,7 +314,7 @@ long get_npairs(double s2n, double fac, long min_npairs)
 
 static void run_sim(struct gsim_ring *ring,
                     struct gmix_mcmc *gmix_mcmc,
-                    long is2n,
+                    double s2n,
                     long npairs)
 {
 
@@ -323,7 +323,7 @@ static void run_sim(struct gsim_ring *ring,
 
     for (long i=0; i<npairs; i++) {
         fprintf(stderr,"%ld/%ld\n", i+1, npairs);
-        process_pair(ring, gmix_mcmc, is2n);
+        process_pair(ring, gmix_mcmc, s2n);
     }
 }
 
@@ -351,21 +351,10 @@ static struct gmix_mcmc *load_gmix_mcmc(const char *name)
     return self;
 }
 
-long check_is2n(struct gsim_ring *ring, long is2n)
-{
-    size_t n_s2n = ring->conf.n_s2n;
-    if (is2n >= n_s2n) {
-        fprintf(stderr,"is2n out of bounds: [0,%lu]\n", n_s2n-1);
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
 int main(int argc, char **argv)
 {
     if (argc < 5) {
-        printf("usage: %s sim-conf gmix-mcmc-config is2n npairs\n", argv[0]);
+        printf("usage: %s sim-conf gmix-mcmc-config s2n npairs\n", argv[0]);
         exit(1);
     }
     randn_seed();
@@ -377,19 +366,15 @@ int main(int argc, char **argv)
     // reference type
     struct gmix_mcmc *gmix_mcmc = load_gmix_mcmc(argv[2]);
 
-    long is2n = atol(argv[3]);
+    double s2n = atof(argv[3]);
     long npairs = atol(argv[4]);
 
-    if (!check_is2n(&ring, is2n)) {
-        goto _main_cleanup;
-    }
 
     fprintf(stderr,"running sim\n");
-    run_sim(&ring, gmix_mcmc, is2n, npairs);
+    run_sim(&ring, gmix_mcmc, s2n, npairs);
     fprintf(stderr,"finished running sim\n");
 
     // cleanup
-_main_cleanup:
     gmix_mcmc = gmix_mcmc_free(gmix_mcmc);
 
     return 0;
