@@ -24,6 +24,10 @@ if [[ $check == "" ]]; then
     module load pymangle   # *
     module load gmix_image/local # *
 
+    module load meds/local
+    module load gmix_meds/local
+    module load psfex/local
+
     # for oracle libraries
     module load libaio     # *
 
