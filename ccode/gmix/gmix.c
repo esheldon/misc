@@ -219,7 +219,7 @@ _coellip_pars_to_shapes_bail:
     return;
 }
 
-void gmix_pars_fill(struct gmix_pars *self, double *pars, size_t npars, long *flags)
+void gmix_pars_fill(struct gmix_pars *self, const double *pars, size_t npars, long *flags)
 {
     if (self->size != npars) {
         self->data = realloc(self->data, npars*sizeof(double));
@@ -247,7 +247,7 @@ void gmix_pars_fill(struct gmix_pars *self, double *pars, size_t npars, long *fl
 
 }
 
-struct gmix_pars *gmix_pars_new(enum gmix_model model, double *pars, size_t npars, long *flags)
+struct gmix_pars *gmix_pars_new(enum gmix_model model, const double *pars, size_t npars, long *flags)
 {
     struct gmix_pars *self=NULL;
 

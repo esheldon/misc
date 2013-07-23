@@ -144,7 +144,6 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
 // generic likelihood calculator
 void prob_calc_simple_likelihood(struct gmix *obj0,
                                  struct gmix *obj,
-                                 enum gmix_model model,
                                  const struct obs_list *obs_list,
                                  const struct gmix_pars *pars,
                                  double *s2n_numer,

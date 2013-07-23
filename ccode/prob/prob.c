@@ -24,7 +24,6 @@ enum prob_type prob_string2type(const char *type_name, long *flags)
 // generic likelihood calculator
 void prob_calc_simple_likelihood(struct gmix *obj0,
                                  struct gmix *obj,
-                                 enum gmix_model model,
                                  const struct obs_list *obs_list,
                                  const struct gmix_pars *pars,
                                  double *s2n_numer,
@@ -182,7 +181,6 @@ void prob_simple_ba_calc(struct prob_data_simple_ba *self,
 
     prob_calc_simple_likelihood(self->obj0,
                                 self->obj,
-                                self->model,
                                 obs_list,
                                 pars,
                                 s2n_numer,
@@ -243,6 +241,10 @@ prob_data_simple_gmix3_eta_new(enum gmix_model model,
 
     self->type = PROB_NOSPLIT_ETA;
     self->model=model;
+
+    if (*flags) {
+        goto _prob_data_simple_gmix3_eta_new_bail;
+    }
 
     self->obj0 = gmix_new_empty_simple(model, flags);
     if (*flags) {
@@ -314,7 +316,6 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
 
     prob_calc_simple_likelihood(self->obj0,
                                 self->obj,
-                                self->model,
                                 obs_list,
                                 pars,
                                 s2n_numer,

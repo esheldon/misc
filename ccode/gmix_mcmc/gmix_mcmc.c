@@ -180,12 +180,19 @@ static double get_lnprob(const double *pars, size_t npars, const void *data)
 
     struct gmix_mcmc *self=(struct gmix_mcmc *)data;
 
-    prob_simple_gmix3_eta_calc((struct prob_data_simple_gmix3_eta *)self->prob,
-                                self->obs_list,
-                                pars, npars,
-                                &s2n_numer, &s2n_denom,
-                                &lnprob, &flags);
+    struct prob_data_simple_gmix3_eta *prob = self->prob;
 
+    struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars, &flags);
+    if (flags != 0) {
+        lnprob = DIST_LOG_LOWVAL;
+    } else {
+        prob_simple_gmix3_eta_calc(prob,
+                                   self->obs_list,
+                                   gmix_pars,
+                                   &s2n_numer, &s2n_denom,
+                                   &lnprob, &flags);
+        gmix_pars = gmix_pars_free(gmix_pars);
+    }
     return lnprob;
 }
 
