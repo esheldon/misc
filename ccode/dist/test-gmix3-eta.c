@@ -1,3 +1,9 @@
+/*
+   stdout has some randoms
+
+   on stderr goes a test of pqr
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -30,6 +36,35 @@ int main(int argc, char **argv)
                         p1, p2, p3);
 
     struct shape shape={0};
+    struct shape shear={0};
+    shape_set_g(&shape, 0.2, 0.1);
+    shape_set_g(&shear, 0.04, 0.0);
+
+    double pj = dist_gmix3_eta_pj(&dist, &shape, &shear);
+    double P,Q1,Q2,R11,R12,R22;
+    dist_gmix3_eta_pqr(&dist,
+                  &shape,
+                  &P,
+                  &Q1,
+                  &Q2,
+                  &R11,
+                  &R12,
+                  &R22);
+
+
+
+    shape_show(&shape, stdout);
+    shape_show(&shear, stdout);
+
+    fprintf(stderr,"pj: %.16g\n", pj);
+    fprintf(stderr,"P:  %.16g\n", P);
+    fprintf(stderr,"Q1:  %.16g\n", Q1);
+    fprintf(stderr,"Q2:  %.16g\n", Q2);
+
+    fprintf(stderr,"R11:  %.16g\n", R11);
+    fprintf(stderr,"R12:  %.16g\n", R12);
+    fprintf(stderr,"R22:  %.16g\n", R22);
+
     for (long i=0; i<nrand; i++) {
         dist_gmix3_eta_sample(&dist, &shape);
         printf("%.16g %.16g\n", shape.eta1, shape.eta2);

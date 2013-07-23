@@ -116,6 +116,16 @@ double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape);
 double dist_g_ba_pj(const struct dist_g_ba *self,
                     const struct shape *shape,
                     const struct shape *shear);
+
+void dist_g_ba_pqr(const struct dist_g_ba *self,
+                   const struct shape *shape,
+                   double *P,
+                   double *Q1,
+                   double *Q2,
+                   double *R11,
+                   double *R12,
+                   double *R22);
+
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream);
 
 void dist_gmix3_eta_fill(struct dist_gmix3_eta *self,
@@ -138,6 +148,14 @@ void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self, struct shape *shap
 double dist_gmix3_eta_pj(const struct dist_gmix3_eta *self,
                          const struct shape *shape,
                          const struct shape *shear);
+void dist_gmix3_eta_pqr(const struct dist_gmix3_eta *self,
+                        const struct shape *shape,
+                        double *P,
+                        double *Q1,
+                        double *Q2,
+                        double *R11,
+                        double *R12,
+                        double *R22);
 
 void dist_gmix3_eta_print(const struct dist_gmix3_eta *self, FILE *stream);
 

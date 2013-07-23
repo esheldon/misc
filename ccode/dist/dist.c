@@ -363,6 +363,47 @@ double dist_g_ba_pj(const struct dist_g_ba *self,
     return p*j;
 }
 
+void dist_g_ba_pqr(const struct dist_g_ba *self,
+                   const struct shape *shape,
+                   double *P,
+                   double *Q1,
+                   double *Q2,
+                   double *R11,
+                   double *R12,
+                   double *R22)
+{
+    //double h=1.e-6;
+    double h=1.e-3;
+    double h2inv = 1./(2*h);
+    double hsqinv=1./(h*h);
+
+    struct shape shear={0};
+
+    *P = dist_g_ba_prob(self, shape);
+
+    shape_set_g(&shear, h, 0);
+    double Q1_p = dist_g_ba_pj(self, shape, &shear);
+    shape_set_g(&shear, -h, 0);
+    double Q1_m = dist_g_ba_pj(self, shape, &shear);
+
+    shape_set_g(&shear, 0, h);
+    double Q2_p = dist_g_ba_pj(self, shape, &shear);
+    shape_set_g(&shear, 0, -h);
+    double Q2_m = dist_g_ba_pj(self, shape, &shear);
+
+    shape_set_g(&shear, h, h);
+    double R12_pp = dist_g_ba_pj(self, shape, &shear);
+    shape_set_g(&shear, -h, -h);
+    double R12_mm = dist_g_ba_pj(self, shape, &shear);
+
+    *Q1 = (Q1_p - Q1_m)*h2inv;
+    *Q2 = (Q2_p - Q2_m)*h2inv;
+
+    *R11 = (Q1_p - 2*(*P) + Q1_m)*hsqinv;
+    *R22 = (Q2_p - 2*(*P) + Q2_m)*hsqinv;
+    *R12 = (R12_pp - Q1_p - Q2_p + 2*(*P) - Q1_m - Q2_m + R12_mm)*hsqinv*0.5;
+
+}
 
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream)
 {
@@ -515,6 +556,48 @@ double dist_gmix3_eta_pj(const struct dist_gmix3_eta *self,
 
     return p*j;
 }
+
+void dist_gmix3_eta_pqr(const struct dist_gmix3_eta *self,
+                        const struct shape *shape,
+                        double *P,
+                        double *Q1,
+                        double *Q2,
+                        double *R11,
+                        double *R12,
+                        double *R22)
+{
+    double h=1.e-3;
+    double h2inv = 1./(2*h);
+    double hsqinv=1./(h*h);
+
+    struct shape shear={0};
+
+    *P = dist_gmix3_eta_prob(self, shape);
+
+    shape_set_g(&shear, h, 0);
+    double Q1_p = dist_gmix3_eta_pj(self, shape, &shear);
+    shape_set_g(&shear, -h, 0);
+    double Q1_m = dist_gmix3_eta_pj(self, shape, &shear);
+
+    shape_set_g(&shear, 0, h);
+    double Q2_p = dist_gmix3_eta_pj(self, shape, &shear);
+    shape_set_g(&shear, 0, -h);
+    double Q2_m = dist_gmix3_eta_pj(self, shape, &shear);
+
+    shape_set_g(&shear, h, h);
+    double R12_pp = dist_gmix3_eta_pj(self, shape, &shear);
+    shape_set_g(&shear, -h, -h);
+    double R12_mm = dist_gmix3_eta_pj(self, shape, &shear);
+
+    *Q1 = (Q1_p - Q1_m)*h2inv;
+    *Q2 = (Q2_p - Q2_m)*h2inv;
+
+    *R11 = (Q1_p - 2*(*P) + Q1_m)*hsqinv;
+    *R22 = (Q2_p - 2*(*P) + Q2_m)*hsqinv;
+    *R12 = (R12_pp - Q1_p - Q2_p + 2*(*P) - Q1_m - Q2_m + R12_mm)*hsqinv*0.5;
+
+}
+
 
 void dist_gmix3_eta_print(const struct dist_gmix3_eta *self, FILE *stream)
 {

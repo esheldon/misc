@@ -291,7 +291,7 @@ int shape_add_inplace(struct shape *self, const struct shape *shear)
 
 double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape *shear)
 {
-    double h=1.e-6;
+    double h=1.e-3;
     double h2inv = 1./(2*h);
 
     struct shape shape_plus={0}, shape_minus={0};
@@ -329,7 +329,7 @@ double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape 
 
 double shape_dgs_by_dgo_jacob(const struct shape *shape, const struct shape *shear)
 {
-    double h=1.e-6;
+    double h=1.e-3;
     double h2inv = 1./(2*h);
 
     struct shape shape_plus={0}, shape_minus={0};
@@ -356,10 +356,12 @@ double shape_dgs_by_dgo_jacob(const struct shape *shape, const struct shape *she
     double g1s_by_g2o = (shape_plus.g1 - shape_minus.g1)*h2inv;
     double g2s_by_g2o = (shape_plus.g2 - shape_minus.g2)*h2inv;
 
+    /*
     printf("g1s_by_g1o: %g\n", g1s_by_g1o);
     printf("g2s_by_g2o: %g\n", g2s_by_g2o);
     printf("g1s_by_g2o: %g\n", g1s_by_g2o);
     printf("g2s_by_g1o: %g\n", g2s_by_g1o);
+    */
 
     double jacob = g1s_by_g1o*g2s_by_g2o - g1s_by_g2o*g2s_by_g1o;
 
