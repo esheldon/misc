@@ -29,9 +29,9 @@ int main(int argc, char **argv)
                         sigma1, sigma2, sigma3,
                         p1, p2, p3);
 
-    double eta1=0, eta2=0;
+    struct shape shape={0};
     for (long i=0; i<nrand; i++) {
-        dist_gmix3_eta_sample(&dist, &eta1, &eta2);
-        printf("%.16g %.16g\n", eta1, eta2);
+        dist_gmix3_eta_sample(&dist, &shape);
+        printf("%.16g %.16g\n", shape.eta1, shape.eta2);
     }
 }

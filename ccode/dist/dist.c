@@ -295,11 +295,11 @@ struct dist_g_ba *dist_g_ba_new(double sigma)
     return self;
 }
 
-double dist_g_ba_lnprob(const struct dist_g_ba *self, double g1, double g2)
+double dist_g_ba_lnprob(const struct dist_g_ba *self, const struct shape *shape)
 {
     double lnp=0, gsq=0, tmp=0;
 
-    gsq = g1*g1 + g2*g2;
+    gsq = shape->g1*shape->g1 + shape->g2*shape->g2;
 
     tmp = 1-gsq;
     if ( tmp < DIST_LOG_MINARG ) {
@@ -325,11 +325,11 @@ double dist_g_ba_lnprob(const struct dist_g_ba *self, double g1, double g2)
 }
 
 // p= (1-g**2)**2*exp(-0.5 * g**2 * ivar)
-double dist_g_ba_prob(const struct dist_g_ba *self, double g1, double g2)
+double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape)
 {
     double prob=0, gsq=0, chi2=0, tmp=0;
 
-    gsq = g1*g1 + g2*g2;
+    gsq = shape->g1*shape->g1 + shape->g2*shape->g2;
 
     tmp = 1-gsq;
     if (tmp > 0) {
@@ -345,6 +345,24 @@ double dist_g_ba_prob(const struct dist_g_ba *self, double g1, double g2)
     return prob;
 
 }
+
+double dist_g_ba_pj(const struct dist_g_ba *self,
+                    const struct shape *shape,
+                    const struct shape *shear)
+{
+    struct shape mshear={0}, newshape={0};
+    shape_set_g(&mshear, -shear->g1, -shear->g2);
+
+    double j = shape_dgs_by_dgo_jacob(shape, &mshear);
+
+    newshape = *shape;
+    shape_add_inplace(&newshape, &mshear);
+
+    double p = dist_g_ba_prob(self, &newshape);
+
+    return p*j;
+}
+
 
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream)
 {
@@ -427,10 +445,10 @@ struct dist_gmix3_eta *dist_gmix3_eta_new(double sigma1,
     return self;
 }
 
-double dist_gmix3_eta_lnprob(const struct dist_gmix3_eta *self, double eta1, double eta2)
+double dist_gmix3_eta_lnprob(const struct dist_gmix3_eta *self, const struct shape *shape)
 {
     double lnp=DIST_LOG_LOWVAL, p=0;
-    p = dist_gmix3_eta_prob(self, eta1, eta2);
+    p = dist_gmix3_eta_prob(self, shape);
     if (p > 0) {
         lnp = log(p);
     } else {
@@ -440,11 +458,11 @@ double dist_gmix3_eta_lnprob(const struct dist_gmix3_eta *self, double eta1, dou
 
 }
 
-double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, double eta1, double eta2)
+double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, const struct shape *shape)
 {
     double prob=0, eta_sq=0;
 
-    eta_sq = eta1*eta1 + eta2*eta2;
+    eta_sq = shape->eta1*shape->eta1 + shape->eta2*shape->eta2;
     prob += self->data[0].pnorm*exp(-0.5*self->data[0].ivar*eta_sq );
     prob += self->data[1].pnorm*exp(-0.5*self->data[1].ivar*eta_sq );
     prob += self->data[2].pnorm*exp(-0.5*self->data[2].ivar*eta_sq );
@@ -453,22 +471,10 @@ double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, double eta1, doubl
 }
 
 
-void dist_gmix3_eta_print(const struct dist_gmix3_eta *self, FILE *stream)
-{
-    fprintf(stream,"eta gmix dist\n");
-    for (long i=0; i<self->size; i++) {
-        fprintf(stream,"    sigma%ld:   %g\n", i+1, self->data[i].sigma);
-        fprintf(stream,"    p%ld:       %g\n", i+1, self->data[i].p);
-    }
-}
-
-
 // draw a value between 0 and 1 and use it to choose a gaussian
 // from which to draw shapes
 // data must be sorted by p
-void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self,
-                           double *eta1,
-                           double *eta2)
+void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self, struct shape *shape)
 {
     double p = drand48();
     long found=0, i=0;
@@ -487,6 +493,37 @@ void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self,
     }
 
     // The dimensions are independent
-    *eta1 = self->data[i].sigma*randn();
-    *eta2 = self->data[i].sigma*randn();
+    double eta1 = self->data[i].sigma*randn();
+    double eta2 = self->data[i].sigma*randn();
+
+    shape_set_eta(shape, eta1, eta2);
 }
+
+double dist_gmix3_eta_pj(const struct dist_gmix3_eta *self,
+                         const struct shape *shape,
+                         const struct shape *shear)
+{
+    struct shape mshear={0}, newshape={0};
+    shape_set_g(&mshear, -shear->g1, -shear->g2);
+
+    double j = shape_detas_by_detao_jacob(shape, &mshear);
+
+    newshape = *shape;
+    shape_add_inplace(&newshape, &mshear);
+
+    double p = dist_gmix3_eta_prob(self, &newshape);
+
+    return p*j;
+}
+
+void dist_gmix3_eta_print(const struct dist_gmix3_eta *self, FILE *stream)
+{
+    fprintf(stream,"eta gmix dist\n");
+    for (long i=0; i<self->size; i++) {
+        fprintf(stream,"    sigma%ld:   %g\n", i+1, self->data[i].sigma);
+        fprintf(stream,"    p%ld:       %g\n", i+1, self->data[i].p);
+    }
+}
+
+
+

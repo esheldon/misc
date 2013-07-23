@@ -62,7 +62,7 @@ struct ring_image_pair *get_image_pair(struct gsim_ring *ring,
     struct ring_image_pair *impair=NULL;
     long flags=0;
 
-    rpair = ring_pair_new_new(ring, s2n, &flags);
+    rpair = ring_pair_new(ring, s2n, &flags);
     if (flags != 0) {
         goto _get_image_pair_bail;
     }
@@ -72,9 +72,6 @@ struct ring_image_pair *get_image_pair(struct gsim_ring *ring,
     if (flags != 0) {
         goto _get_image_pair_bail;
     }
-
-    //fprintf(stderr,"skysig1: %g  skysig2: %g psf_skysig: %g\n",
-    //       impair->skysig1, impair->skysig2, impair->psf_skysig);
 
     *T=gmix_get_T(rpair->gmix1);
     *counts=gmix_get_psum(rpair->gmix1);
@@ -94,7 +91,7 @@ _get_image_pair_bail:
 void print_one(const struct gmix_mcmc *self,
                const struct result *res)
 {
-    //mca_stats_write_brief(self->chain_data.stats, stdout);
+    //mca_stats_write_brief(self->chain_data.stats, stderr);
     mca_stats_write_flat(self->chain_data.stats, stdout);
     result_print(res, stdout);
 

@@ -12,6 +12,8 @@
 
 //#include "VEC.h"
 
+#include "shape.h"
+
 enum dist {
     // 1d
     DIST_GAUSS,
@@ -108,8 +110,12 @@ double dist_lognorm_sample(const struct dist_lognorm *self);
 
 struct dist_g_ba *dist_g_ba_new(double sigma);
 void dist_g_ba_fill(struct dist_g_ba *self, double sigma);
-double dist_g_ba_lnprob(const struct dist_g_ba *self, double g1, double g2);
-double dist_g_ba_prob(const struct dist_g_ba *self, double g1, double g2);
+double dist_g_ba_lnprob(const struct dist_g_ba *self, const struct shape *shape);
+double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape);
+
+double dist_g_ba_pj(const struct dist_g_ba *self,
+                    const struct shape *shape,
+                    const struct shape *shear);
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream);
 
 void dist_gmix3_eta_fill(struct dist_gmix3_eta *self,
@@ -125,12 +131,16 @@ struct dist_gmix3_eta *dist_gmix3_eta_new(double sigma1,
                                           double p2,
                                           double p3);
                                           
-double dist_gmix3_eta_lnprob(const struct dist_gmix3_eta *self, double eta1, double eta2);
-double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, double eta1, double eta2);
+double dist_gmix3_eta_lnprob(const struct dist_gmix3_eta *self, const struct shape *shape);
+double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, const struct shape *shape);
+void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self, struct shape *shape);
+
+double dist_gmix3_eta_pj(const struct dist_gmix3_eta *self,
+                         const struct shape *shape,
+                         const struct shape *shear);
+
 void dist_gmix3_eta_print(const struct dist_gmix3_eta *self, FILE *stream);
 
-void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self,
-                           double *eta1,
-                           double *eta2);
+
 #endif
 

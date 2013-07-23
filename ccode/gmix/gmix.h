@@ -58,6 +58,7 @@ struct gmix_pars {
 struct gmix_pars *gmix_pars_new(enum gmix_model model, const double *pars, size_t npars, long *flags);
 void gmix_pars_fill(struct gmix_pars *self, const double *pars, size_t npars, long *flags);
 struct gmix_pars *gmix_pars_free(struct gmix_pars *self);
+void gmix_pars_print(const struct gmix_pars *self, FILE *stream);
 
 enum gmix_model gmix_string2model(const char *model_name, long *flags);
 long gmix_get_simple_npars(enum gmix_model model, long *flags);
@@ -74,6 +75,11 @@ struct gmix* gmix_new_empty_coellip(long npars, long *flags);
 struct gmix* gmix_new_empty_full(long npars, long *flags);
 
 struct gmix* gmix_new_model(const struct gmix_pars *pars, long *flags);
+struct gmix* gmix_new_model_from_array(enum gmix_model model,
+                                       const double *pars,
+                                       long npars,
+                                       long *flags);
+
 //struct gmix *gmix_new_coellip(const gmix_pars *pars, long *flags);
 
 

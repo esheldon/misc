@@ -14,15 +14,25 @@ LINKFLAGS=['-lm']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
 test_gmix3_eta_sources = ['test-gmix3-eta',
+                          'shape',
                           'randn',
                           'dist']
+test_g_ba_sources = ['test-g-ba',
+                     'shape',
+                     'randn',
+                     'dist']
+
 test_lognorm_sources = ['test-lognorm',
+                        'shape',
                         'randn',
                         'dist']
 test_gauss_sources = ['test-gauss',
+                      'shape',
                       'randn',
                       'dist']
+
 programs = [{'name':'test-gmix3-eta', 'sources':test_gmix3_eta_sources},
+            {'name':'test-g-ba', 'sources':test_g_ba_sources},
             {'name':'test-lognorm', 'sources':test_lognorm_sources},
             {'name':'test-gauss', 'sources':test_gauss_sources},
            ]
