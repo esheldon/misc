@@ -77,10 +77,7 @@ struct gmix* gmix_new_model(const struct gmix_pars *pars, long *flags);
 //struct gmix *gmix_new_coellip(const gmix_pars *pars, long *flags);
 
 
-void gmix_fill_model(struct gmix *self,
-                     enum gmix_model model,
-                     const struct gmix_pars *pars,
-                     long *flags);
+void gmix_fill_model(struct gmix *self, const struct gmix_pars *pars, long *flags);
 
 /*
 void gmix_fill_full(struct gmix *self, const double *pars, long npars, long *flags);

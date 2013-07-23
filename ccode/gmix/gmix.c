@@ -133,7 +133,7 @@ void gmix_resize(struct gmix *self, size_t size)
     if (self->size != size) {
         self->data = realloc(self->data, size*sizeof(struct gauss2));
         if (!self->data) {
-            fprintf(stderr,"error: could not allocate %lu struct gauss2, aborting\n",ngauss);
+            fprintf(stderr,"error: could not allocate %lu struct gauss2, aborting\n",size);
             self=gmix_free(self);
             exit(EXIT_FAILURE);
         }
@@ -181,7 +181,7 @@ struct gmix* gmix_new_empty_full(long npars, long *flags)
 }
 
 static void simple_pars_to_shape(enum gmix_model model,
-                                 double *pars,
+                                 const double *pars,
                                  size_t npars,
                                  struct shape *shape,
                                  long *flags)
@@ -204,7 +204,7 @@ _simple_pars_to_shapes_bail:
 }
 
 
-static void coellip_pars_to_shape(double *pars, size_t npars, struct shape *shape, long *flags)
+static void coellip_pars_to_shape(const double *pars, size_t npars, struct shape *shape, long *flags)
 {
 
     // just as a check on the pars
@@ -230,7 +230,7 @@ void gmix_pars_fill(struct gmix_pars *self, const double *pars, size_t npars, lo
         }
     }
 
-    self->npars = npars;
+    self->size = npars;
     memcpy(self->data, pars, npars*sizeof(double));
 
     // for these models we set a shape
@@ -260,12 +260,10 @@ struct gmix_pars *gmix_pars_new(enum gmix_model model, const double *pars, size_
 
     self->model=model;
     gmix_pars_fill(self, pars, npars, flags);
-    if (*flags != 0) {
-        if (self) {
-            self=gmix_pars_free(self);
-        }
-    }
 
+    if (*flags != 0) {
+        self=gmix_pars_free(self);
+    }
     return self;
 }
 
@@ -348,7 +346,7 @@ static void fill_simple(struct gmix *self,
 
 static void fill_dev10(struct gmix *self, const struct gmix_pars *pars, long *flags)
 {
-    static const long npars_expected=6, ngauss_expected=10;
+    static const long ngauss_expected=10;
 
     if (pars->model != GMIX_DEV) {
         fprintf(stderr,"dev10: expected model==GMIX_DEV, got %u\n", pars->model);
@@ -436,6 +434,57 @@ void gmix_fill_turb3(struct gmix *self, const struct gmix_pars *pars, long *flag
 
     fill_simple(self, pars, Fvals, pvals, flags);
 }
+
+static void fill_coellip(struct gmix *self, const struct gmix_pars *pars, long *flags)
+{
+    long ngauss=0, Tstart=0, Astart=0;
+    double row=0, col=0, Ti=0, Ai=0;
+    struct gauss2 *gauss=NULL;
+
+    long i=0;
+
+    if (pars->model != GMIX_COELLIP) {
+        fprintf(stderr,"expected model==GMIX_COELLIP, got %u\n", pars->model);
+        *flags |= GMIX_BAD_MODEL;
+        return;
+    }
+
+    ngauss=gmix_get_coellip_ngauss(pars->size,flags);
+    if (ngauss <= 0) {
+        *flags |= GMIX_ZERO_GAUSS;
+        return;
+    }
+    gmix_resize(self, ngauss);
+
+    row=pars->data[0];
+    col=pars->data[1];
+
+    Tstart=4;
+    Astart=Tstart+ngauss;
+
+    for (i=0; i<self->size; i++) {
+        gauss = &self->data[i];
+
+        Ti = pars->data[Tstart+i];
+        Ai = pars->data[Astart+i];
+
+        gauss2_set(gauss,
+                   Ai,
+                   row, 
+                   col, 
+                   (Ti/2.)*(1-pars->shape.e1),
+                   (Ti/2.)*pars->shape.e2,
+                   (Ti/2.)*(1+pars->shape.e1),
+                   flags);
+        if (*flags) {
+            return;
+        }
+    }
+
+    return;
+}
+
+
 
 static void fill_full(struct gmix *self, const struct gmix_pars *pars, long *flags)
 {
@@ -834,56 +883,6 @@ struct gmix *gmix_convolve(const struct gmix *obj_gmix,
 
 
 
-
-
-static void fill_coellip(struct gmix *self, const struct gmix_pars *pars, long *flags)
-{
-    long ngauss=0, Tstart=0, Astart=0;
-    double row=0, col=0, Ti=0, Ai=0;
-    struct gauss2 *gauss=NULL;
-
-    long i=0;
-
-    if (pars->model != GMIX_COELLIP) {
-        fprintf(stderr,"expected model==GMIX_COELLIP, got %u\n", pars->model);
-        *flags |= GMIX_BAD_MODEL;
-        return;
-    }
-
-    ngauss=gmix_get_coellip_ngauss(pars->size,flags);
-    if (ngauss <= 0) {
-        *flags |= GMIX_ZERO_GAUSS;
-        return;
-    }
-    gmix_resize(self, ngauss);
-
-    row=pars->data[0];
-    col=pars->data[1];
-
-    Tstart=4;
-    Astart=Tstart+ngauss;
-
-    for (i=0; i<self->size; i++) {
-        gauss = &self->data[i];
-
-        Ti = pars->data[Tstart+i];
-        Ai = pars->data[Astart+i];
-
-        gauss2_set(gauss,
-                   Ai,
-                   row, 
-                   col, 
-                   (Ti/2.)*(1-pars->shape.e1),
-                   (Ti/2.)*pars->shape.e2,
-                   (Ti/2.)*(1+pars->shape.e1),
-                   flags);
-        if (*flags) {
-            return;
-        }
-    }
-
-    return;
-}
 
 
 
