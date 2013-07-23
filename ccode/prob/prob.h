@@ -130,7 +130,8 @@ double prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self
 void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
                                 const struct obs_list *obs_list,
                                 const struct gmix_pars *pars,
-                                double *s2n_numer, double *s2n_denom,
+                                double *s2n_numer,
+                                double *s2n_denom,
                                 double *lnprob,
                                 long *flags);
 
