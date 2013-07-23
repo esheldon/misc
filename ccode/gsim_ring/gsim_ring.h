@@ -67,6 +67,7 @@ long ring_get_npars_short(enum gmix_model model, long *flags);
 
 // creates a new ring pair, convolved wih the PSF and sheared
 
+/*
 struct ring_pair *ring_pair_new(enum gmix_model model,
                                 const double *pars, long npars,
                                 enum gmix_model psf_model,
@@ -77,8 +78,8 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
                                 double cen1_offset,
                                 double cen2_offset,
                                 long *flags);
-
-struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, double s2n, long *flags);
+*/
+struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *flags);
 
 struct ring_pair *ring_pair_free(struct ring_pair *self);
 

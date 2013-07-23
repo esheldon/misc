@@ -121,8 +121,6 @@ struct gmix* gmix_new(size_t ngauss, long *flags)
         exit(EXIT_FAILURE);
     }
 
-    self->size=ngauss;
-
     gmix_resize(self, ngauss);
     return self;
 
@@ -161,7 +159,7 @@ struct gmix* gmix_new_empty_coellip(long npars, long *flags)
     struct gmix *self=NULL;
     long ngauss=0;
     ngauss=gmix_get_coellip_ngauss(npars, flags);
-    if (ngauss <= 0) {
+    if (*flags != 0 || ngauss <= 0) {
         return NULL;
     }
     self = gmix_new(ngauss, flags);
@@ -252,7 +250,7 @@ struct gmix_pars *gmix_pars_new(enum gmix_model model, const double *pars, size_
     struct gmix_pars *self=NULL;
 
     self=calloc(1, sizeof(struct gmix_pars));
-    if (self==NULL) {
+    if (!self) {
         fprintf(stderr,"could not allocate struct gmix_pars: %s: %d\n",
                 __FILE__,__LINE__);
         exit(1);
@@ -260,10 +258,10 @@ struct gmix_pars *gmix_pars_new(enum gmix_model model, const double *pars, size_
 
     self->model=model;
     gmix_pars_fill(self, pars, npars, flags);
-
     if (*flags != 0) {
         self=gmix_pars_free(self);
     }
+
     return self;
 }
 
@@ -277,6 +275,18 @@ struct gmix_pars *gmix_pars_free(struct gmix_pars *self)
         self=NULL;
     }
     return self;
+}
+
+void gmix_pars_print(const struct gmix_pars *self, FILE *stream)
+{
+    fprintf(stream,"model: %d\n", self->model);
+    fprintf(stream,"shape:\n");
+    shape_show(&self->shape, stream);
+    fprintf(stream,"pars: ");
+    for (long i=0; i<self->size; i++) {
+        fprintf(stream,"%g ", self->data[i]);
+    }
+    fprintf(stream,"\n");
 }
 
 struct gmix* gmix_new_model(const struct gmix_pars *pars, long *flags)
@@ -293,13 +303,42 @@ struct gmix* gmix_new_model(const struct gmix_pars *pars, long *flags)
     if (!self) {
         return NULL;
     }
+    if (*flags != 0) {
+        fprintf(stderr,"error making empty model\n");
+        goto _gmix_new_model_bail;
+    }
 
     gmix_fill_model(self, pars, flags);
     if (*flags) {
+        fprintf(stderr,"error filling new model\n");
+    }
+
+_gmix_new_model_bail:
+    if (*flags != 0) {
         self=gmix_free(self);
     }
 
     return self;
+}
+
+struct gmix* gmix_new_model_from_array(enum gmix_model model,
+                                       const double *pars,
+                                       long npars,
+                                       long *flags)
+{
+    struct gmix *self=NULL;
+
+    struct gmix_pars *gmix_pars=gmix_pars_new(model, pars, npars, flags);
+    if (*flags != 0) {
+        goto _gmix_new_model_from_array_bail;
+    }
+
+    self=gmix_new_model(gmix_pars, flags);
+
+_gmix_new_model_from_array_bail:
+    gmix_pars=gmix_pars_free(gmix_pars);
+    return self;
+
 }
 
 /* no error checking except on shape */
@@ -437,11 +476,9 @@ void gmix_fill_turb3(struct gmix *self, const struct gmix_pars *pars, long *flag
 
 static void fill_coellip(struct gmix *self, const struct gmix_pars *pars, long *flags)
 {
-    long ngauss=0, Tstart=0, Astart=0;
+    long Tstart=0, Astart=0;
     double row=0, col=0, Ti=0, Ai=0;
     struct gauss2 *gauss=NULL;
-
-    long i=0;
 
     if (pars->model != GMIX_COELLIP) {
         fprintf(stderr,"expected model==GMIX_COELLIP, got %u\n", pars->model);
@@ -449,7 +486,7 @@ static void fill_coellip(struct gmix *self, const struct gmix_pars *pars, long *
         return;
     }
 
-    ngauss=gmix_get_coellip_ngauss(pars->size,flags);
+    long ngauss=gmix_get_coellip_ngauss(pars->size,flags);
     if (ngauss <= 0) {
         *flags |= GMIX_ZERO_GAUSS;
         return;
@@ -462,7 +499,7 @@ static void fill_coellip(struct gmix *self, const struct gmix_pars *pars, long *
     Tstart=4;
     Astart=Tstart+ngauss;
 
-    for (i=0; i<self->size; i++) {
+    for (long i=0; i<self->size; i++) {
         gauss = &self->data[i];
 
         Ti = pars->data[Tstart+i];

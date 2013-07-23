@@ -76,6 +76,7 @@ long ring_get_npars_short(enum gmix_model model, long *flags)
 
 
 
+/*
 static void fill_pars_6par(const double *inpars,
                            const struct shape *shape1,
                            const struct shape *shape2,
@@ -96,11 +97,12 @@ static void fill_pars_6par(const double *inpars,
     pars2[4] = inpars[1];
     pars2[5] = inpars[2];
 }
-static void fill_pars_6par_new(const struct shape *shape1,
-                               const struct shape *shape2,
-                               double T, double counts,
-                               double *pars1,
-                               double *pars2)
+*/
+static void fill_pars_6par(const struct shape *shape1,
+                           const struct shape *shape2,
+                           double T, double counts,
+                           double *pars1,
+                           double *pars2)
 {
     pars1[0] = 0;
     pars1[1] = 0;
@@ -117,6 +119,7 @@ static void fill_pars_6par_new(const struct shape *shape1,
     pars2[5] = counts;
 }
 
+/*
 static void fill_pars_6par_psf(const double *inpars, double *pars)
 {
     struct shape shape;
@@ -128,10 +131,11 @@ static void fill_pars_6par_psf(const double *inpars, double *pars)
     pars[4] = inpars[2];
     pars[5] = 1; // arbitrary
 }
+*/
 
-static void fill_pars_6par_psf_new(const struct shape *shape,
-                                   double T,
-                                   double *pars)
+static void fill_pars_6par_psf(const struct shape *shape,
+                               double T,
+                               double *pars)
 {
     pars[0] = 0;
     pars[1] = 0;
@@ -142,6 +146,7 @@ static void fill_pars_6par_psf_new(const struct shape *shape,
 }
 
 
+/*
 static long check_npars(enum gmix_model model, long npars)
 {
     long status=0;
@@ -158,6 +163,7 @@ static long check_npars(enum gmix_model model, long npars)
 
     return status;
 }
+*/
 
 // for simple, pars are
 //     [eta,T,F]
@@ -165,6 +171,7 @@ static long check_npars(enum gmix_model model, long npars)
 // For BD, the pars should be length 5
 //     [eta,Tbulge,Tdisk,Fbulge,Fdisk]
 
+/*
 struct ring_pair *ring_pair_new(enum gmix_model model,
                                 const double *pars, long npars,
                                 enum gmix_model psf_model,
@@ -247,8 +254,8 @@ _ring_pair_new_bail:
     return self;
 
 }
-
-struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, double s2n, long *flags)
+*/
+struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *flags)
 {
 
     double pars1[6] = {0};
@@ -275,22 +282,21 @@ struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, double s2n, lo
     double T = dist_lognorm_sample(&ring->T_dist);
     double counts = dist_lognorm_sample(&ring->counts_dist);
 
-    double eta1=0, eta2=0;
-    dist_gmix3_eta_sample(&ring->shape_prior, &eta1, &eta2);
+    dist_gmix3_eta_sample(&ring->shape_prior, &shape1);
 
-    shape_set_eta(&shape1, eta1, eta2);
     shape2 = shape1;
     shape_rotate(&shape2, M_PI_2);
 
     shape_add_inplace(&shape1, &ring->conf.shear);
     shape_add_inplace(&shape2, &ring->conf.shear);
 
-    fill_pars_6par_new(&shape1, &shape2, T, counts, pars1, pars2);
-    fill_pars_6par_psf_new(&ring->conf.psf_shape, ring->conf.psf_T, psf_pars);
+    fill_pars_6par(&shape1, &shape2, T, counts, pars1, pars2);
+    fill_pars_6par_psf(&ring->conf.psf_shape, ring->conf.psf_T, psf_pars);
 
-    psf_gmix = gmix_new_model(ring->conf.psf_model, psf_pars, psf_npars, flags);
-    gmix1_0=gmix_new_model(ring->conf.obj_model, pars1, npars, flags);
-    gmix2_0=gmix_new_model(ring->conf.obj_model, pars2, npars, flags);
+    psf_gmix = gmix_new_model_from_array(ring->conf.psf_model, psf_pars, psf_npars, flags);
+    gmix1_0=gmix_new_model_from_array(ring->conf.obj_model, pars1, npars, flags);
+    gmix2_0=gmix_new_model_from_array(ring->conf.obj_model, pars2, npars, flags);
+
     if (*flags != 0) {
         goto _ring_pair_new_bail;
     }

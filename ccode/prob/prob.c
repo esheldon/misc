@@ -162,7 +162,7 @@ void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
     (*lnprob) += dist_gauss_lnprob(&self->cen1_prior,pars->data[0]);
     (*lnprob) += dist_gauss_lnprob(&self->cen2_prior,pars->data[1]);
 
-    (*lnprob) += dist_g_ba_lnprob(&self->shape_prior,pars->shape.g1, pars->shape.g2);
+    (*lnprob) += dist_g_ba_lnprob(&self->shape_prior, &pars->shape);
 
     (*lnprob) += dist_lognorm_lnprob(&self->T_prior,pars->data[4]);
     (*lnprob) += dist_lognorm_lnprob(&self->counts_prior,pars->data[5]);
@@ -292,7 +292,7 @@ double prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self
     lnprob += dist_gauss_lnprob(&self->cen1_prior,pars->data[0]);
     lnprob += dist_gauss_lnprob(&self->cen2_prior,pars->data[1]);
 
-    lnprob += dist_gmix3_eta_lnprob(&self->shape_prior,pars->shape.eta1,pars->shape.eta2);
+    lnprob += dist_gmix3_eta_lnprob(&self->shape_prior, &pars->shape);
 
     lnprob += dist_lognorm_lnprob(&self->T_prior,pars->data[4]);
     lnprob += dist_lognorm_lnprob(&self->counts_prior,pars->data[5]);
