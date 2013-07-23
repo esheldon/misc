@@ -346,7 +346,6 @@ double dist_g_ba_prob(const struct dist_g_ba *self, double g1, double g2)
 
 }
 
-
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream)
 {
     fprintf(stream,"g dist BA13\n");
