@@ -26,8 +26,7 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
                                  struct gmix *obj,
                                  enum gmix_model model,
                                  const struct obs_list *obs_list,
-                                 const double *pars,
-                                 long npars,
+                                 const struct gmix_pars *pars,
                                  double *s2n_numer,
                                  double *s2n_denom,
                                  double *loglike,
@@ -44,8 +43,7 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
 
     *flags=0;
 
-    gmix_fill_model(obj0,model,pars,npars,flags);
-
+    gmix_fill_model(obj0,pars,flags);
 
     // g out of range is not a fatal error in the likelihood
     if (*flags) {
@@ -173,7 +171,7 @@ void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
 
 void prob_simple_ba_calc(struct prob_data_simple_ba *self,
                          const struct obs_list *obs_list,
-                         const double *pars, long npars,
+                         const struct gmix_pars *pars,
                          double *s2n_numer, double *s2n_denom,
                          double *lnprob, long *flags)
 {
@@ -187,7 +185,6 @@ void prob_simple_ba_calc(struct prob_data_simple_ba *self,
                                 self->model,
                                 obs_list,
                                 pars,
-                                npars,
                                 s2n_numer,
                                 s2n_denom,
                                 &loglike,
@@ -305,21 +302,13 @@ double prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self
 
 void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
                                 const struct obs_list *obs_list,
-                                const double *pars, long npars,
+                                const gmix_pars *pars,
                                 double *s2n_numer, double *s2n_denom,
                                 double *lnprob, long *flags)
 {
 
     double loglike=0, priors_lnprob=0;
-    double gpars[6];
     struct shape shape={0};
-
-    memcpy(gpars, pars, 6*sizeof(double));
-
-    shape_set_eta(&shape, pars[2], pars[3]);
-
-    gpars[2] = shape.g1;
-    gpars[3] = shape.g2;
 
     *lnprob=0;
 
@@ -327,8 +316,7 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
                                 self->obj,
                                 self->model,
                                 obs_list,
-                                gpars,
-                                npars,
+                                pars,
                                 s2n_numer,
                                 s2n_denom,
                                 &loglike,
@@ -338,9 +326,7 @@ void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
         goto _prob_simple_gmix3_eta_calc_bail;
     }
 
-    // not this is pars with eta, not gpars
-    // flags are always zero from here
-    priors_lnprob = prob_simple_gmix3_eta_calc_priors(self, pars, npars, flags);
+    priors_lnprob = prob_simple_gmix3_eta_calc_priors(self, pars, flags);
     if (*flags != 0) {
         goto _prob_simple_gmix3_eta_calc_bail;
     }

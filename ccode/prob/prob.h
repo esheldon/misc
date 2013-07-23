@@ -71,7 +71,7 @@ prob_data_simple_ba_new(enum gmix_model model,
 struct prob_data_simple_ba *prob_data_simple_ba_free(struct prob_data_simple_ba *self);
                                                  
 void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
-                                const double *pars, long npars,
+                                const struct gmix_pars *pars,
                                 double *lnprob,
                                 long *flags);
 
@@ -79,7 +79,7 @@ void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
 // also running s/n values
 void prob_simple_ba_calc(struct prob_data_simple_ba *self,
                          const struct obs_list *obs_list,
-                         const double *pars, long npars,
+                         const struct gmix_pars *pars,
                          double *s2n_numer, double *s2n_denom,
                          double *lnprob,
                          long *flags);
@@ -122,14 +122,14 @@ prob_data_simple_gmix3_eta_new(enum gmix_model model,
 struct prob_data_simple_gmix3_eta *prob_data_simple_gmix3_eta_free(struct prob_data_simple_gmix3_eta *self);
                                                  
 double prob_simple_gmix3_eta_calc_priors(struct prob_data_simple_gmix3_eta *self,
-                                         const double *pars, long npars,
+                                         const struct gmix_pars *pars,
                                          long *flags);
 
 // calculate the lnprob for the input pars
 // also running s/n values
 void prob_simple_gmix3_eta_calc(struct prob_data_simple_gmix3_eta *self,
                                 const struct obs_list *obs_list,
-                                const double *pars, long npars,
+                                const struct gmix_pars *pars,
                                 double *s2n_numer, double *s2n_denom,
                                 double *lnprob,
                                 long *flags);
@@ -146,8 +146,7 @@ void prob_calc_simple_likelihood(struct gmix *obj0,
                                  struct gmix *obj,
                                  enum gmix_model model,
                                  const struct obs_list *obs_list,
-                                 const double *pars,
-                                 long npars,
+                                 const struct gmix_pars *pars,
                                  double *s2n_numer,
                                  double *s2n_denom,
                                  double *loglike,
