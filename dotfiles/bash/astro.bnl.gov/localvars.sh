@@ -14,14 +14,14 @@ if [[ -e $f ]]; then
     f=~astrodat/setup/setup-wq.sh
     source "$f"
 
-    f=/opt/astro/SL53/bin/setup.hadoop.sh
-    source "$f"
+    #f=/opt/astro/SL53/bin/setup.hadoop.sh
+    #source "$f"
 
     # make want to change to not have hadoop at the end?
-    append_path C_INCLUDE_PATH $HADOOP_HOME/src/c++/libhdfs/
-    append_path CPATH $HADOOP_HOME/src/c++/libhdfs/
-    append_path LD_LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
-    append_path LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
+    #append_path C_INCLUDE_PATH $HADOOP_HOME/src/c++/libhdfs/
+    #append_path CPATH $HADOOP_HOME/src/c++/libhdfs/
+    #append_path LD_LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
+    #append_path LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
 
 fi
 
@@ -68,3 +68,7 @@ export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
 
 export CLUSTERSTEP=~/lensing/cluster-step
 export CLUSTERSTEP_HDFS=hdfs:///user/esheldon/lensing/cluster-step
+
+export TMPDIR=~/oh/tmp
+
+export DESWL_CHECKOUT=~/git/deswl

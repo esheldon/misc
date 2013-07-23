@@ -12,3 +12,4 @@ prepend-path PATH $ESUTIL_DIR/bin
 prepend-path PYTHONPATH $ESUTIL_DIR/lib/python2.7/site-packages/
 
 setenv ESUTIL_DIR $ESUTIL_DIR
+setenv ESUTIL_VERS work
