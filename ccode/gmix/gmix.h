@@ -55,8 +55,8 @@ struct gmix_pars {
     struct shape shape;
 };
 
-struct gmix_pars *gmix_pars_new(enum gmix_model model, double *pars, size_t npars, long *flags);
-void gmix_pars_fill(struct gmix_pars *self, double *pars, size_t npars, long *flags);
+struct gmix_pars *gmix_pars_new(enum gmix_model model, const double *pars, size_t npars, long *flags);
+void gmix_pars_fill(struct gmix_pars *self, const double *pars, size_t npars, long *flags);
 struct gmix_pars *gmix_pars_free(struct gmix_pars *self);
 
 enum gmix_model gmix_string2model(const char *model_name, long *flags);
