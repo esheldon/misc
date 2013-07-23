@@ -4,7 +4,17 @@ build the tests for
 
 from fabricate import *
 import sys, os
+import optparse
 import glob
+
+parser = optparse.OptionParser()
+# make an options list, also send to fabricate
+optlist=[optparse.Option('--prefix','-p',default=sys.exec_prefix,help="where to install")]
+         
+parser.add_options(optlist)
+
+options,args = parser.parse_args()
+prefix=os.path.expanduser( options.prefix )
 
 CC='gcc'
 
@@ -41,6 +51,7 @@ sources = ['gsim-ring-mcmc',
 
 
 programs = [{'name':'gsim-ring-mcmc', 'sources':sources}]
+install_targets = [(prog['name'],'bin') for prog in programs]
 
 def build():
     compile()
@@ -56,8 +67,25 @@ def link():
         objects = [s+'.o' for s in prog['sources']]
         run(CC,'-o', prog['name'], objects,LINKFLAGS)
 
+def install():
+    import shutil
+
+    # make sure everything is built first
+    build()
+
+    for target in install_targets:
+        (name,subdir) = target
+        subdir = os.path.join(prefix, subdir)
+        if not os.path.exists(subdir):
+            os.makedirs(subdir)
+
+        dest=os.path.join(subdir, os.path.basename(name))
+        sys.stdout.write("install: %s\n" % dest)
+        shutil.copy(name, dest)
+
+
 def clean():
     autoclean()
 
 
-main()
+main(extra_options=optlist)
