@@ -24,6 +24,8 @@ if [[ $check == "" ]]; then
     module load pymangle   # *
     module load gmix_image/local # *
 
+    module load gsim_ring/local
+
     # for oracle libraries
     module load libaio     # *
 
