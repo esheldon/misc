@@ -15,8 +15,6 @@
 struct gsim_ring_config {
 
     // object pairs
-    double s2n[GSIM_RING_MAXARR];
-    size_t n_s2n;
 
     char obj_model_name[GSIM_RING_MAXNAME];
     enum gmix_model obj_model;

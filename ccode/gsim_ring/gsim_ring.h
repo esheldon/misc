@@ -78,7 +78,7 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
                                 double cen2_offset,
                                 long *flags);
 
-struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, long is2n, long *flags);
+struct ring_pair *ring_pair_new_new(const struct gsim_ring *ring, double s2n, long *flags);
 
 struct ring_pair *ring_pair_free(struct ring_pair *self);
 

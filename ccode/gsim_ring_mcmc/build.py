@@ -51,7 +51,12 @@ sources = ['gsim-ring-mcmc',
 
 
 programs = [{'name':'gsim-ring-mcmc', 'sources':sources}]
-install_targets = [(prog['name'],'bin') for prog in programs]
+prog_installs = [(prog['name'],'bin') for prog in programs]
+
+configs = glob.glob('./config/*.cfg')
+config_installs = [ (conf,'share') for conf in configs]
+
+install_targets = prog_installs + config_installs
 
 def build():
     compile()
