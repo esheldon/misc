@@ -14,8 +14,8 @@ LINKFLAGS=['-lm']
 
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2','-mfpmath=sse']
 
-test_sources = ['test','gauss','gmix','image','gmix_em','mtx2','gmix_image']
-test_cocenter_sources = ['test-cocenter','gauss','gmix','image','gmix_em','mtx2','gmix_image']
+test_sources = ['test','gauss2','gmix','image','gmix_em','mtx2','gmix_image']
+test_cocenter_sources = ['test-cocenter','gauss2','gmix','image','gmix_em','mtx2','gmix_image']
 
 programs = [{'name':'test', 'sources':test_sources},
             {'name':'test-cocenter', 'sources':test_cocenter_sources}]

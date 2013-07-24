@@ -128,14 +128,13 @@ if &t_Co > 2 || has("gui_running")
     if has("gui_running")
         Zenburn()
 
-
 		" Set pointer
 		set mouseshape=a:beam
 		" I don't want clicking in the window to put the mouse there!
 		"set mouse=""
 
         "set gfn=Monaco\ 10
-        set gfn=peep
+        set gfn=peep\ 14
 
         " turn off annoying cursor blinking
         set gcr=a:blinkon0
@@ -277,9 +276,12 @@ set expandtab
 
 
 " C-indent mode "
-" set cindent "
+set cindent "
 " This only indents by 2 space "
 " set cinoptions=>2
+
+" align function args
+set cino=(0
 
 " Tab-indenting "
 set cinkeys=0{,0},:,0#,!<Tab>,!^F

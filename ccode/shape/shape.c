@@ -14,16 +14,17 @@ struct shape *shape_new(void)
     }
     return self;
 }
-struct shape *shape_new_e1e2(double e1, double e2)
+
+struct shape *shape_new_e(double e1, double e2)
 {
     struct shape *self=shape_new();
-    shape_set_e1e2(self,e1,e2);
+    shape_set_e(self,e1,e2);
     return self;
 }
-struct shape *shape_new_g1g2(double g1, double g2)
+struct shape *shape_new_g(double g1, double g2)
 {
     struct shape *self=shape_new();
-    shape_set_g1g2(self,g1,g2);
+    shape_set_g(self,g1,g2);
     return self;
 }
 struct shape *shape_free(struct shape *self)
@@ -34,18 +35,26 @@ struct shape *shape_free(struct shape *self)
 
 void shape_show(const struct shape *self, FILE *fptr)
 {
-    fprintf(fptr,"e1: %12.9f e2: %12.9f\n", self->e1, self->e2);
-    fprintf(fptr,"g1: %12.9f g2: %12.9f\n", self->g1, self->g2);
+    fprintf(fptr,"e1:   %12.9f e2:   %12.9f\n", self->e1, self->e2);
+    fprintf(fptr,"g1:   %12.9f g2:   %12.9f\n", self->g1, self->g2);
+    fprintf(fptr,"eta1: %12.9f eta2: %12.9f\n", self->eta1, self->eta2);
 }
-void shape_write_e1e2(const struct shape *self, FILE *fptr)
+
+void shape_write_e(const struct shape *self, FILE *fptr)
 {
     fprintf(fptr,"%.16g %.16g\n", self->e1, self->e2);
 }
-void shape_write_g1g2(const struct shape *self, FILE *fptr)
+void shape_write_g(const struct shape *self, FILE *fptr)
 {
     fprintf(fptr,"%.16g %.16g\n", self->g1, self->g2);
 }
-void shape_read_e1e2(struct shape *self, FILE *fptr)
+void shape_write_eta(const struct shape *self, FILE *fptr)
+{
+    fprintf(fptr,"%.16g %.16g\n", self->eta1, self->eta2);
+}
+
+
+void shape_read_e(struct shape *self, FILE *fptr)
 {
     double e1=0,e2=0;
     int nread=fscanf(fptr,"%lf %lf", &e1, &e2);
@@ -54,9 +63,9 @@ void shape_read_e1e2(struct shape *self, FILE *fptr)
                 nread);
         exit(EXIT_FAILURE);
     }
-    shape_set_e1e2(self, e1, e2);
+    shape_set_e(self, e1, e2);
 }
-void shape_read_g1g2(struct shape *self, FILE *fptr)
+void shape_read_g(struct shape *self, FILE *fptr)
 {
     double g1=0,g2=0;
     int nread=fscanf(fptr,"%lf %lf\n", &g1, &g2);
@@ -65,20 +74,23 @@ void shape_read_g1g2(struct shape *self, FILE *fptr)
                 nread);
         exit(EXIT_FAILURE);
     }
-    shape_set_g1g2(self, g1, g2);
+    shape_set_g(self, g1, g2);
 }
-
-
-
-
-static double e2g(double e)
+void shape_read_eta(struct shape *self, FILE *fptr)
 {
-    return tanh(.5*atanh(e));
+    double eta1=0,eta2=0;
+    int nread=fscanf(fptr,"%lf %lf\n", &eta1, &eta2);
+    if (nread != 2) {
+        fprintf(stderr,"expected to read 2 doubles, read %d\n",
+                nread);
+        exit(EXIT_FAILURE);
+    }
+    shape_set_eta(self, eta1, eta2);
 }
-static double g2e(double g)
-{
-    return tanh(2.*atanh(g));
-}
+
+
+
+
 
 static void setbad(struct shape *self)
 {
@@ -86,99 +98,176 @@ static void setbad(struct shape *self)
     self->e2=-9999;
     self->g1=-9999;
     self->g2=-9999;
+    self->eta1=-9999;
+    self->eta2=-9999;
 }
-int shape_set_e1e2(struct shape *self, double e1, double e2)
+int shape_set_e(struct shape *self, double e1, double e2)
 {
-
-    double etot=sqrt(e1*e1 + e2*e2);
-    if (etot==0) {
-        self->g1=0;
-        self->g2=0;
-        return 1;
-    } 
-
-    if (etot >= 1) {
-        fprintf(stderr,"error: e must be < 1, found "
-                "%.16g. %s: %d\n",etot,__FILE__,__LINE__);
-        setbad(self);
-        return 0;
-    }
-
-    double gtot=e2g(etot);
-    if (gtot >= 1) {
-        fprintf(stderr,"error: g must be < 1, found "
-                "%.16g. %s: %d\n",gtot,__FILE__,__LINE__);
-        setbad(self);
-        return 0;
-    }
-
-    double fac=gtot/etot;
 
     self->e1=e1;
     self->e2=e2;
-    self->g1=e1*fac;
-    self->g2=e2*fac;
+    double e=sqrt(e1*e1 + e2*e2);
 
-    return 1;
-}
-int shape_set_g1g2(struct shape *self, double g1, double g2)
-{
-
-    double gtot=sqrt(g1*g1 + g2*g2);
-    if (gtot==0) {
-        self->e1=0;
-        self->e2=0;
+    if (e==0) {
+        self->g1=0;
+        self->g2=0;
+        self->eta1=0;
+        self->eta2=0;
         return 1;
     } 
 
-    if (gtot >= 1) {
-        fprintf(stderr,"error: g must be < 1, found "
-                "%.16g. %s: %d\n",gtot,__FILE__,__LINE__);
+    if (e >= 1) {
+        fprintf(stderr,"error: e must be < 1, found "
+                "%.16g. %s: %d\n",e,__FILE__,__LINE__);
         setbad(self);
         return 0;
     }
 
-    double etot=g2e(gtot);
-    if (etot >= 1) {
+    double eta = atanh(e);
+    double g = tanh(0.5*eta);
+
+
+    if (g >= 1) {
         fprintf(stderr,"error: g must be < 1, found "
-                "%.16g. %s: %d\n",etot,__FILE__,__LINE__);
+                "%.16g. %s: %d\n",g,__FILE__,__LINE__);
         setbad(self);
         return 0;
     }
 
-    double fac=etot/gtot;
+    double cos2theta = e1/e;
+    double sin2theta = e2/e;
+
+    self->g1=g*cos2theta;
+    self->g2=g*sin2theta;
+    self->eta1=eta*cos2theta;
+    self->eta2=eta*sin2theta;
+
+    return 1;
+}
+int shape_set_g(struct shape *self, double g1, double g2)
+{
 
     self->g1=g1;
     self->g2=g2;
-    self->e1=g1*fac;
-    self->e2=g2*fac;
+    double g=sqrt(g1*g1 + g2*g2);
+    if (g==0) {
+        self->e1=0;
+        self->e2=0;
+        self->eta1=0;
+        self->eta2=0;
+        return 1;
+    } 
+
+    if (g >= 1) {
+        fprintf(stderr,"error: g must be < 1, found "
+                "%.16g. %s: %d\n",g,__FILE__,__LINE__);
+        setbad(self);
+        return 0;
+    }
+
+    double eta = 2*atanh(g);
+    double e = tanh(eta);
+
+    if (e >= 1) {
+        setbad(self);
+        //e=0.999999;
+        fprintf(stderr,"error: e must be < 1, found "
+                "%.16g. %s: %d\n",e,__FILE__,__LINE__);
+        //fprintf(stderr,"original g1,g2: (%g,%g) "
+        //        "%s: %d\n",g1,g2,__FILE__,__LINE__);
+        return 0;
+    }
+
+    double cos2theta = g1/g;
+    double sin2theta = g2/g;
+
+    self->e1=e*cos2theta;
+    self->e2=e*sin2theta;
+    self->eta1=eta*cos2theta;
+    self->eta2=eta*sin2theta;
 
     return 1;
 }
 
-
-struct shape *shape_add(struct shape *self, struct shape *shear)
+// eta is well behaved, so we should not see an error returned
+int shape_set_eta(struct shape *self, double eta1, double eta2)
 {
-    struct shape *new=shape_new_e1e2(self->e1,self->e2);
+    
+    self->eta1=eta1;
+    self->eta2=eta2;
+
+    double eta=sqrt(eta1*eta1 + eta2*eta2);
+
+    if (eta==0) {
+        self->e1=0;
+        self->e2=0;
+        self->g1=0;
+        self->g2=0;
+        return 1;
+    }
+
+    double e = tanh(eta);
+    double g = tanh(0.5*eta);
+
+    if (e >= 1.0) {
+        e = 0.99999999;
+    }
+    if (g >= 1.0) {
+        g = 0.99999999;
+    }
+
+    double cos2theta = eta1/eta;
+    double sin2theta = eta2/eta;
+
+    self->e1=e*cos2theta;
+    self->e2=e*sin2theta;
+
+    self->g1=g*cos2theta;
+    self->g2=g*sin2theta;
+
+    return 1;
+}
+
+double shape_get_theta(const struct shape *self)
+{
+    return 0.5*atan2( self->g2, self->g1 );
+}
+
+void shape_rotate(struct shape *self, double theta_radians)
+{
+    double twotheta = 2*theta_radians;
+
+    double cos2angle = cos(twotheta);
+    double sin2angle = sin(twotheta);
+    double e1rot =  self->e1*cos2angle + self->e2*sin2angle;
+    double e2rot = -self->e1*sin2angle + self->e2*cos2angle;
+
+    shape_set_e(self, e1rot, e2rot);
+}
+
+struct shape *shape_add(struct shape *self, const struct shape *shear)
+{
+    struct shape *new=shape_new_e(self->e1,self->e2);
     if (!shape_add_inplace(new, shear)) {
         new=shape_free(new);
         return NULL;
     }
     return new;
 }
-int shape_add_inplace(struct shape *self, struct shape *shear)
+int shape_add_inplace(struct shape *self, const struct shape *shear)
 {
 
     if (shear->e1 == 0 && shear->e2 == 0) {
         return 1;
     }
 
-    double oneplusedot = 1.0 + self->e1*shear->e1 + self->e2*shear->e2;
+    double oneplusedot_inv  = 1.0 + self->e1*shear->e1 + self->e2*shear->e2;
 
-    if (oneplusedot == 0) {
-        shape_set_e1e2(self, 0, 0);
+    if (oneplusedot_inv == 0) {
+        shape_set_e(self, 0, 0);
         return 1;
     }
+    oneplusedot_inv = 1.0/oneplusedot_inv;
 
     double se1sq = shear->e1*shear->e1 + shear->e2*shear->e2;
 
@@ -187,11 +276,95 @@ int shape_add_inplace(struct shape *self, struct shape *shear)
     double e1 = (self->e1 + shear->e1 + shear->e2*fac*(self->e2*shear->e1 - self->e1*shear->e2));
     double e2 = (self->e2 + shear->e2 + shear->e1*fac*(self->e1*shear->e2 - self->e2*shear->e1));
 
-    e1 /= oneplusedot;
-    e2 /= oneplusedot;
+    e1 *= oneplusedot_inv;
+    e2 *= oneplusedot_inv;
 
-    if (!shape_set_e1e2(self,e1,e2)) {
+    if (!shape_set_e(self,e1,e2)) {
         return 0;
     }
     return 1;
+}
+
+// jacobian of the transformation
+//        |des/deo|_{shear}
+// for pqr you will evaluate at -shear
+
+double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape *shear)
+{
+    double h=1.e-3;
+    double h2inv = 1./(2*h);
+
+    struct shape shape_plus={0}, shape_minus={0};
+    //struct shape shape_offset={0};
+
+    // derivatives by eta1
+    shape_plus = *shape;
+    shape_minus = *shape;
+
+    shape_set_eta(&shape_plus,  shape->eta1 + h, shape->eta2);
+    shape_set_eta(&shape_minus, shape->eta1 - h, shape->eta2);
+
+    shape_add_inplace(&shape_plus, shear);
+    shape_add_inplace(&shape_minus, shear);
+
+    double eta1s_by_eta1o = (shape_plus.eta1 - shape_minus.eta1)*h2inv;
+    double eta2s_by_eta1o = (shape_plus.eta2 - shape_minus.eta2)*h2inv;
+
+    // derivatives by eta2
+
+    shape_set_eta(&shape_plus,  shape->eta1, shape->eta2 + h);
+    shape_set_eta(&shape_minus, shape->eta1, shape->eta2 - h);
+
+    shape_add_inplace(&shape_plus, shear);
+    shape_add_inplace(&shape_minus, shear);
+
+    double eta1s_by_eta2o = (shape_plus.eta1 - shape_minus.eta1)*h2inv;
+    double eta2s_by_eta2o = (shape_plus.eta2 - shape_minus.eta2)*h2inv;
+
+    double jacob = eta1s_by_eta1o*eta2s_by_eta2o - eta1s_by_eta2o*eta2s_by_eta1o;
+
+    return jacob;
+
+}
+
+double shape_dgs_by_dgo_jacob(const struct shape *shape, const struct shape *shear)
+{
+    double h=1.e-3;
+    double h2inv = 1./(2*h);
+
+    struct shape shape_plus={0}, shape_minus={0};
+
+    // derivatives by g1
+    shape_plus = *shape;
+    shape_minus = *shape;
+
+    shape_set_g(&shape_plus,  shape->g1 + h, shape->g2);
+    shape_set_g(&shape_minus, shape->g1 - h, shape->g2);
+
+    shape_add_inplace(&shape_plus, shear);
+    shape_add_inplace(&shape_minus, shear);
+
+    double g1s_by_g1o = (shape_plus.g1 - shape_minus.g1)*h2inv;
+    double g2s_by_g1o = (shape_plus.g2 - shape_minus.g2)*h2inv;
+
+    shape_set_g(&shape_plus,  shape->g1, shape->g2 + h);
+    shape_set_g(&shape_minus, shape->g1, shape->g2 - h);
+
+    shape_add_inplace(&shape_plus, shear);
+    shape_add_inplace(&shape_minus, shear);
+
+    double g1s_by_g2o = (shape_plus.g1 - shape_minus.g1)*h2inv;
+    double g2s_by_g2o = (shape_plus.g2 - shape_minus.g2)*h2inv;
+
+    /*
+    printf("g1s_by_g1o: %g\n", g1s_by_g1o);
+    printf("g2s_by_g2o: %g\n", g2s_by_g2o);
+    printf("g1s_by_g2o: %g\n", g1s_by_g2o);
+    printf("g2s_by_g1o: %g\n", g2s_by_g1o);
+    */
+
+    double jacob = g1s_by_g1o*g2s_by_g2o - g1s_by_g2o*g2s_by_g1o;
+
+    return jacob;
+
 }

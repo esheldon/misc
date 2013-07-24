@@ -25,8 +25,8 @@ CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 if not options.dbg:
     CFLAGS += ['-DNDEBUG']
 
-sources=['gsim','config','gconfig','object','catalog',
-         'image','gmix','gauss',
+sources=['gsim','config','gconfig','object_simple','catalog',
+         'image','gmix','gauss2',
          'gmix_image','image_rand','randn',
          'image_fits','shape']
 programs=[{'name':'gsim','sources':sources}]

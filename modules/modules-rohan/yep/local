@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"yep profiler for extensions; depends on google perftools"
+conflict yep
+
+eval set  [ array get env HOME ]
+
+set YEP_DIR $HOME/exports/yep-local
+
+prepend-path PYTHONPATH $YEP_DIR/lib/python2.7/site-packages/
+
+setenv YEP_DIR $YEP_DIR
+

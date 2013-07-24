@@ -213,7 +213,7 @@ int image_copy(const struct image *image, struct image *imout)
     }
     return 1;
 }
-struct image *image_newcopy(const struct image *image)
+struct image *image_new_copy(const struct image *image)
 {
     struct image *imout=NULL;
     size_t nrows=0, ncols=0, row=0;
@@ -306,6 +306,27 @@ double image_get_counts(const struct image *self)
     }
     return counts;
 }
+void image_get_minmax(const struct image *self, double *min, double *max)
+{
+    *min=0;
+    *max=0;
+
+    double *data=IM_ROW(self, 0);
+    size_t size=IM_SIZE(self);
+
+    *min=*data;
+    *max=*data;
+    for (size_t i=0; i<size; i++) {
+        if (*data > *max) {
+            *max=*data;
+        }
+        if (*data < *min) {
+            *min=*data;
+        }
+        data++;
+    }
+}
+
 
 void image_add_scalar(struct image *self, double val)
 {
@@ -403,3 +424,28 @@ void image_mask_print(const struct image_mask *mask, FILE *stream)
     fprintf(stream,"  colmin: %ld\n", mask->colmin);
     fprintf(stream,"  colmin: %ld\n", mask->colmax);
 }
+
+
+void image_view(const struct image *self, const char *options)
+{
+    char cmd[256];
+    char *name= tempnam(NULL,NULL);
+    printf("writing temporary image to: %s\n", name);
+    FILE *fobj=fopen(name,"w");
+    int ret=0;
+    image_write(self, fobj);
+
+    fclose(fobj);
+
+    sprintf(cmd,"image-view %s %s", options, name);
+    printf("%s\n",cmd);
+    ret=system(cmd);
+
+    sprintf(cmd,"rm %s", name);
+    printf("%s\n",cmd);
+    ret=system(cmd);
+    printf("ret: %d\n", ret);
+
+    free(name);
+}
+

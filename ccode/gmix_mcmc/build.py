@@ -16,8 +16,10 @@ LINKFLAGS=['-lm']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
 sources=['gmix_mcmc',
-         'gauss',
+         'gauss2',
+         'jacobian',
          'gmix',
+         'shape',
          'image','image_rand',
          'gmix_image','gmix_image_rand',
          'mca',

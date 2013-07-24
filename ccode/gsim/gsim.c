@@ -91,7 +91,7 @@
 #include <string.h>
 #include <time.h>
 #include "gconfig.h"
-#include "object.h"
+#include "object_simple.h"
 #include "catalog.h"
 #include "image.h"
 #include "gmix.h"
@@ -166,9 +166,11 @@ void write_image(const struct image *self,
     image_write_fits(self, filename, clobber);
 }
 
-struct gmix *make_gmix0(struct object *object)
+struct gmix *make_gmix0(struct object_simple *object)
 {
     double pars[6] = {0};
+    long flags=0;
+
     pars[0] = object->row;
     pars[1] = object->col;
     pars[2] = object->shape.e1;
@@ -178,11 +180,11 @@ struct gmix *make_gmix0(struct object *object)
 
     struct gmix *gmix=NULL;
     if ( 0==strcasecmp(object->model, "exp") ) {
-        gmix=gmix_make_exp6(pars, 6);
+        gmix=gmix_new_model(GMIX_EXP, pars, 6, &flags);
     } else if ( 0==strcasecmp(object->model, "dev") ) {
-        gmix=gmix_make_dev10(pars, 6);
+        gmix=gmix_new_model(GMIX_DEV, pars, 6, &flags);
     } else if ( 0==strcasecmp(object->model, "gauss") ) {
-        gmix=gmix_make_coellip(pars, 6);
+        gmix=gmix_new_model(GMIX_COELLIP, pars, 6, &flags);
     } else {
         fprintf(stderr,"bad object model: '%s'\n", object->model);
         exit(EXIT_FAILURE);
@@ -192,11 +194,12 @@ struct gmix *make_gmix0(struct object *object)
 }
 
 
-struct gmix *make_psf_gmix(struct object *object, 
+struct gmix *make_psf_gmix(struct object_simple *object, 
                            double row, double col, 
                            double flux)
 {
     double pars[6] = {0};
+    long flags=0;
     pars[0] = row;
     pars[1] = col;
     pars[2] = object->psf_shape.e1;
@@ -206,9 +209,9 @@ struct gmix *make_psf_gmix(struct object *object,
 
     struct gmix *gmix=NULL;
     if ( 0==strcasecmp(object->psf_model, "turb") ) {
-        gmix=gmix_make_turb3(pars, 6);
+        gmix=gmix_new_model(GMIX_TURB, pars, 6, &flags);
     } else if ( 0==strcasecmp(object->psf_model, "gauss") ) {
-        gmix=gmix_make_coellip(pars, 6);
+        gmix=gmix_new_model(GMIX_COELLIP, pars, 6, &flags);
     } else {
         fprintf(stderr,"bad psf model: '%s'\n", object->psf_model);
         exit(EXIT_FAILURE);
@@ -218,7 +221,7 @@ struct gmix *make_psf_gmix(struct object *object,
 
 }
 
-struct gmix *make_star_gmix(struct object *object)
+struct gmix *make_star_gmix(struct object_simple *object)
 {
     struct gmix *gmix=make_psf_gmix(object,
                                     object->row, 
@@ -228,11 +231,12 @@ struct gmix *make_star_gmix(struct object *object)
 }
 
 
-struct gmix *make_galaxy_gmix(struct object *object)
+struct gmix *make_galaxy_gmix(struct object_simple *object)
 {
+    long flags=0;
     struct gmix *gmix0    = make_gmix0(object);
     struct gmix *gmix_psf = make_psf_gmix(object,1,1,1);
-    struct gmix *gmix     = gmix_convolve(gmix0, gmix_psf);
+    struct gmix *gmix     = gmix_convolve(gmix0, gmix_psf,&flags);
 
     gmix0 = gmix_free(gmix0);
     gmix_psf = gmix_free(gmix_psf);
@@ -241,7 +245,7 @@ struct gmix *make_galaxy_gmix(struct object *object)
 }
 
 
-struct gmix *make_gmix(struct object *object)
+struct gmix *make_gmix(struct object_simple *object)
 {
     struct gmix *gmix = NULL;
 
@@ -292,7 +296,7 @@ void put_gmix(const struct gconfig *conf, struct image *image, const struct gmix
     gmix_image_put_masked(image, gmix, conf->nsub, &mask);
 }
 
-void put_object(const struct gconfig *conf, struct image *image, struct object *object)
+void put_object(const struct gconfig *conf, struct image *image, struct object_simple *object)
 {
     struct gmix *gmix=make_gmix(object);
 
@@ -304,7 +308,7 @@ void put_object(const struct gconfig *conf, struct image *image, struct object *
 void put_objects(const struct gconfig *conf, struct image *image, struct catalog *cat)
 {
     fprintf(stderr,"putting objects\n");
-    struct object *object = cat->data;
+    struct object_simple *object = cat->data;
     for (ssize_t i=0; i<cat->size; i++) {
         if ( ((i+1) % 500) ==0 || i==0 ) {
             fprintf(stderr,"%ld/%ld\n", i+1, cat->size);

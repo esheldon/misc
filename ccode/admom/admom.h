@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "image.h"
-#include "gauss.h"
+#include "gauss2.h"
 
 #define AM_SHIFTMAX 5
 
@@ -49,7 +49,7 @@ c       2**8: detw <= 0
 
 struct am {
     // input parameters for algorithm
-    struct gauss guess;
+    struct gauss2 guess;
     double nsigma;  // number of sigma around center for calculations
     int maxiter;
     double shiftmax;
@@ -58,7 +58,7 @@ struct am {
 
 
     // outputs
-    struct gauss wt;
+    struct gauss2 wt;
     double s2n;
     double rho4;
     double uncer; // error on either e1 or e2 for round object
@@ -85,7 +85,7 @@ void admom_print(const struct am *am, FILE *stream);
   Returned are the skysig and the measured s/n which should be equivalent to
   the requested s/n to precision.
 */
-void admom_add_noise(struct image *image, double s2n, const struct gauss *wt,
+void admom_add_noise(struct image *image, double s2n, const struct gauss2 *wt,
                      double *skysig, double *s2n_meas);
 
 #endif

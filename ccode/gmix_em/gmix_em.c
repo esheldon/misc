@@ -68,7 +68,9 @@ void gmix_em_run(struct gmix_em* self,
         if (self->flags!=0)
             goto _gmix_em_bail;
 
-        gmix_em_gmix_set_fromiter(gmix, iter_struct);
+        self->flags |= gmix_em_gmix_set_fromiter(gmix, iter_struct);
+        if (self->flags!=0)
+            goto _gmix_em_bail;
 
         iter_struct->psky = iter_struct->skysum;
         iter_struct->nsky = iter_struct->psky/npoints;
@@ -118,7 +120,7 @@ int gmix_wmean_center(const struct gmix* gmix, struct vec2* mu_new)
     memset(&Cinvpsum,0,sizeof(struct mtx2));
     memset(&mu_Cinvpsum,0,sizeof(struct vec2));
 
-    const struct gauss* gauss = gmix->data;
+    const struct gauss2* gauss = gmix->data;
     for (i=0; i<gmix->size; i++) {
         // p*C^-1
         mtx2_set(&C, gauss->irr, gauss->irc, gauss->icc);
@@ -162,8 +164,8 @@ _gmix_wmean_center_bail:
 void gmix_wmean_covar(const struct gmix* gmix, struct mtx2 *cov)
 {
     double psum=0.0;
-    struct gauss *gauss=gmix->data;
-    struct gauss *end=gmix->data+gmix->size;
+    struct gauss2 *gauss=gmix->data;
+    struct gauss2 *end=gmix->data+gmix->size;
 
     mtx2_sprodi(cov, 0.0);
     
@@ -203,8 +205,12 @@ void gmix_em_cocenter_run(struct gmix_em* self,
     struct vec2 cen_new;
     struct gmix *gcopy=NULL;
     struct gmix_em_iter *iter_struct = iter_new(gmix->size);
+    long flags=0;
 
-    gcopy = gmix_new(gmix->size);
+    gcopy = gmix_new(gmix->size, &flags);
+    self->flags |= flags;
+    if (self->flags!=0)
+        goto _gmix_em_cocenter_bail;
 
     iter_struct->nsky = sky/counts;
     iter_struct->psky = sky/(counts/npoints);
@@ -222,8 +228,8 @@ void gmix_em_cocenter_run(struct gmix_em* self,
             goto _gmix_em_cocenter_bail;
 
         // copy for getting centers only
-        gmix_copy(gmix, gcopy);
-        gmix_em_gmix_set_fromiter(gcopy, iter_struct);
+        gmix_copy(gmix, gcopy,&flags);
+        self->flags |= gmix_em_gmix_set_fromiter(gcopy, iter_struct);
 
         if (!gmix_wmean_center(gcopy, &cen_new)) {
             self->flags += GMIX_EM_NEGATIVE_DET_COCENTER;
@@ -237,7 +243,7 @@ void gmix_em_cocenter_run(struct gmix_em* self,
             goto _gmix_em_cocenter_bail;
  
 
-        gmix_em_gmix_set_fromiter(gmix, iter_struct);
+        self->flags |= gmix_em_gmix_set_fromiter(gmix, iter_struct);
         // we only wanted to update the moments, set these back.
         // Should do with extra par in above function or something
         set_means(gmix, &cen_new);
@@ -278,7 +284,7 @@ int gmix_get_sums(struct gmix_em* self,
     double u=0, v=0, uv=0, u2=0, v2=0;
     size_t i=0, col=0, row=0;
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
-    struct gauss* gauss=NULL;
+    struct gauss2 *gauss=NULL;
     struct gmix_em_sums *sums=NULL;
 
     double counts=image_get_counts(image);
@@ -306,7 +312,7 @@ int gmix_get_sums(struct gmix_em* self,
 
                 chi2=gauss->dcc*u2 + gauss->drr*v2 - 2.0*gauss->drc*uv;
 
-                if (chi2 < EXP_MAX_CHI2) {
+                if (chi2 < GAUSS2_EXP_MAX_CHI2) {
                     sums->gi = gauss->norm*gauss->p*expd( -0.5*chi2 );
                 } else {
                     sums->gi=0;
@@ -356,11 +362,12 @@ _gmix_get_sums_bail:
 
 
 
-void gmix_em_gmix_set_fromiter(struct gmix *gmix, 
+long gmix_em_gmix_set_fromiter(struct gmix *gmix, 
                                struct gmix_em_iter* iter)
 {
+    long flags=0;
     struct gmix_em_sums *sums=iter->sums;
-    struct gauss *gauss = gmix->data;
+    struct gauss2 *gauss = gmix->data;
     size_t i=0;
     for (i=0; i<gmix->size; i++) {
         double p   = sums->pnew;
@@ -370,11 +377,13 @@ void gmix_em_gmix_set_fromiter(struct gmix *gmix,
         double irc = sums->uvsum/sums->pnew;
         double icc = sums->v2sum/sums->pnew;
 
-        gauss_set(gauss,p, row, col, irr, irc, icc);
+        gauss2_set(gauss,p, row, col, irr, irc, icc,&flags);
 
         sums++;
         gauss++;
     }
+
+    return flags;
 }
 
 

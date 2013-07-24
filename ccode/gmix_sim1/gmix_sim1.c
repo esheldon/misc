@@ -20,6 +20,7 @@ static int get_imsize(const struct gmix *gmix, double nsigma)
 }
 struct gmix_sim1 *gmix_sim1_cocen_new(const struct gmix *gmix, int nsub) 
 {
+    long flags=0;
     struct gmix_sim1 *self=NULL;
 
     self=calloc(1, sizeof(struct gmix_sim1));
@@ -32,7 +33,8 @@ struct gmix_sim1 *gmix_sim1_cocen_new(const struct gmix *gmix, int nsub)
     int imsize=get_imsize(gmix,self->nsigma);
     double cen=(imsize-1)/2.;
 
-    self->gmix=gmix_new_copy(gmix);
+    // whoops, ignoring flags
+    self->gmix=gmix_new_copy(gmix,&flags);
     for (size_t i=0; i<gmix->size; i++) {
         self->gmix->data[i].row=cen;
         self->gmix->data[i].col=cen;

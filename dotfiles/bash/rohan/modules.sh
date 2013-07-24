@@ -30,8 +30,12 @@ if [[ -e $f ]]; then
     module load shell_scripts
     module load perllib
 
+    module load scikit_learn # *
+
     module load meds/local # *
     module load gmix_meds/local
+    module load gsim_ring/local
+    module load psfex/local
 
     module load cosmology
 
