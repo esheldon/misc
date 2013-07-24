@@ -93,7 +93,8 @@ void print_one(const struct gmix_mcmc *self)
     //mca_stats_write_brief(self->chain_data.stats, stderr);
     mca_stats_write_flat(self->chain_data.stats, stdout);
 
-    printf("%.16g %.16g %.16g %.16g %.16g %.16g %.16g",
+    printf("%ld %.16g %.16g %.16g %.16g %.16g %.16g %.16g",
+           self->nuse,
             self->P,
             self->Q[0],
             self->Q[1],
@@ -288,6 +289,7 @@ static void print_header(long nlines, long npars)
     printf("            ('arate', 'f8'),\n");
     printf("            ('pars', 'f8', %ld),\n", npars);
     printf("            ('pcov', 'f8', (%ld,%ld)),\n", npars, npars);
+    printf("            ('nuse', 'i4'),\n");
     printf("            ('P', 'f8'),\n");
     printf("            ('Q', 'f8', 2),\n");
     printf("            ('R', '<f8', (2, 2))],\n");
