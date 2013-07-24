@@ -18,6 +18,8 @@
 #include "object.h"
 #include "result.h"
 
+#include "mca.h"
+
 #include "randn.h"
 
 // make an object list
@@ -199,9 +201,7 @@ void process_one(struct gmix_mcmc *self,
         im=impair->im2;
         wt=impair->wt2;
     }
-    obs_list = make_obs_list(im,
-                             wt,
-                             impair->psf_image,
+    obs_list = make_obs_list(im, wt, impair->psf_image,
                              self->conf.psf_ngauss,
                              impair->coord_cen1, // center of coord system
                              impair->coord_cen2, // center of coord system
@@ -212,7 +212,6 @@ void process_one(struct gmix_mcmc *self,
     }
 
     gmix_mcmc_set_obs_list(self, obs_list);
-
     process_psfs(self);
 
     while (1) {
@@ -227,7 +226,14 @@ void process_one(struct gmix_mcmc *self,
         mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
         *flags |= gmix_mcmc_calc_pqr(self);
         if (*flags == 0) {
-            break;
+            double dnuse=(double)self->nuse;
+            double frac = dnuse/MCA_CHAIN_NSTEPS(self->chain_data.chain);
+            if (frac > 0.8) {
+                break;
+            } else {
+                fprintf(stderr,
+                 "only %g used in pqr, re-trying with different guesses\n",frac);
+            }
         } else if (*flags == GMIX_MCMC_NOPOSITIVE) {
             fprintf(stderr,
               "problem calculating pqr, re-trying with different guesses\n");
