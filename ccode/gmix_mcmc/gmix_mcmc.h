@@ -14,6 +14,9 @@
 #define GMIX_MCMC_NOPOSITIVE 0x1
 #define GMIX_MCMC_INIT 0x80000000
 
+#define GMIX_MCMC_MINPROB_USE 1.0e-8
+#define GMIX_MCMC_MINFRAC_USE 0.80
+
 #ifndef wlog
 #define wlog(...) fprintf(stderr, __VA_ARGS__)
 #endif

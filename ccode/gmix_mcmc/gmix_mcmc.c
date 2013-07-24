@@ -194,7 +194,7 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
                 Pmax=P;
             }
             // fix because prior is already in distributions
-            if (P > 1.e-8) {
+            if (P > GMIX_MCMC_MINPROB_USE) {
                 nuse++;
                 double Pinv=1/P;
 
