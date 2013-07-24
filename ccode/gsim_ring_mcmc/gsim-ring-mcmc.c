@@ -229,10 +229,11 @@ void process_one(struct gmix_mcmc *self,
         if (*flags == 0) {
             break;
         } else if (*flags == GMIX_MCMC_NOPOSITIVE) {
-            fprintf(stderr,"problem calculating pqr, re-trying\n");
+            fprintf(stderr,
+              "problem calculating pqr, re-trying with different guesses\n");
         } else {
             // should not happen
-            fprintf(stderr,"fatal error in calculating pqrl\n");
+            fprintf(stderr,"fatal error in calculating pqr\n");
             goto _process_one_bail;
         }
     }
