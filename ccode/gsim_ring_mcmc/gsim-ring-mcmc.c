@@ -396,7 +396,7 @@ int main(int argc, char **argv)
     long npairs = atol(argv[4]);
 
 
-    fprintf(stderr,"running sim\n");
+    fprintf(stderr,"running sim with s2n: %g and npairs: %ld\n", s2n, npairs);
     run_sim(&ring, gmix_mcmc, s2n, npairs);
     fprintf(stderr,"finished running sim\n");
 
