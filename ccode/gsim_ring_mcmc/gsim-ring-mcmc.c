@@ -170,7 +170,7 @@ static void process_psfs(struct gmix_mcmc *self)
 
         if (try==n_retry) {
             // can later use or not use psf
-            fprintf(stderr, "error processing psf failed %ld times, aborting: %s: %d", 
+            fprintf(stderr, "error processing psf failed %ld times, aborting: %s: %d\n", 
                     n_retry, __FILE__,__LINE__);
             exit(1);
         }
@@ -207,6 +207,7 @@ void process_one(struct gmix_mcmc *self,
                              impair->coord_cen2, // center of coord system
                              flags);
     if (*flags != 0) {
+        fprintf(stderr,"error making obs list\n");
         goto _process_one_bail;
     }
 
@@ -216,11 +217,16 @@ void process_one(struct gmix_mcmc *self,
 
     gmix_mcmc_run(self, row_guess, col_guess, T, counts, flags);
     if (*flags != 0) {
+        fprintf(stderr,"error running mcmc\n");
         goto _process_one_bail;
     }
 
     mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
     *flags |= gmix_mcmc_calc_pqr(self);
+    if (*flags != 0) {
+        fprintf(stderr,"error calculating pqr\n");
+        goto _process_one_bail;
+    }
 
 #if 0
     mca_chain_plot(self->chain_data.burnin_chain,"");
@@ -275,7 +281,7 @@ void process_pair(struct gsim_ring *ring,
 _process_pair_bail:
     impair = ring_image_pair_free(impair);
     if (flags != 0) {
-        fprintf(stderr, "error processing pair, aborting: %s: %d", __FILE__,__LINE__);
+        fprintf(stderr, "error processing pair, aborting: %s: %d\n", __FILE__,__LINE__);
         exit(1);
     }
 

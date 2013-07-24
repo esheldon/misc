@@ -219,6 +219,7 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
 
         self->R[1][0] = self->R[0][1]; 
     } else {
+        fprintf(stderr,"no positive prior vals\n");
         flags |= GMIX_MCMC_NOPOSITIVE;
     }
 
@@ -272,28 +273,18 @@ void gmix_mcmc_run(struct gmix_mcmc *self,
                                                    T, counts,
                                                    nwalkers);
 
-    //fprintf(stderr,"guess:\n");
-    //mca_chain_write(guess, stderr);
-    //fprintf(stderr,"\n\n");
-
     mca_run(self->chain_data.burnin_chain,
             self->chain_data.mca_a,
             guess,
             &get_lnprob,
             self);
-    //fprintf(stderr,"burnin:\n");
-    //mca_chain_write(self->chain_data.burnin_chain, stderr);
-    //fprintf(stderr,"\n\n");
-
 
     mca_run(self->chain_data.chain,
             self->chain_data.mca_a,
             self->chain_data.burnin_chain,
             &get_lnprob,
             self);
-    //fprintf(stderr,"main chain:\n");
-    //mca_chain_write(self->chain_data.chain, stderr);
-    //fprintf(stderr,"\n\n");
+
     guess=mca_chain_free(guess);
 }
 
