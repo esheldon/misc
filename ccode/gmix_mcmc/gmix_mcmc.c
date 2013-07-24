@@ -222,7 +222,7 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
 
         self->R[1][0] = self->R[0][1]; 
     } else {
-        fprintf(stderr,"no positive prior vals; max was %g\n", Pmax);
+        fprintf(stderr,"no large prior vals; max was %g\n", Pmax);
         flags |= GMIX_MCMC_NOPOSITIVE;
     }
 
