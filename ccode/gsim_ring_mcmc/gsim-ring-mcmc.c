@@ -215,10 +215,16 @@ void process_one(struct gmix_mcmc *self,
 
     process_psfs(self);
 
-    gmix_mcmc_run(self, row_guess, col_guess, T, counts, flags);
-    if (*flags != 0) {
-        fprintf(stderr,"error running mcmc\n");
-        goto _process_one_bail;
+    while (1) {
+        gmix_mcmc_run(self, row_guess, col_guess, T, counts, flags);
+        if (*flags == 0) {
+            break;
+        } else if (*flags != GMIX_MCMC_NOPOSITIVE) {
+            fprintf(stderr,"error running mcmc\n");
+            goto _process_one_bail;
+        } else {
+            fprintf(stderr,"re-trying\n");
+        }
     }
 
     mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
