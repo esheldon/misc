@@ -74,30 +74,6 @@ long ring_get_npars_short(enum gmix_model model, long *flags)
 // will not case problems.  If you want to use non-cocentric psfs you
 // will need to be careful!
 
-
-
-/*
-static void fill_pars_6par(const double *inpars,
-                           const struct shape *shape1,
-                           const struct shape *shape2,
-                           double *pars1,
-                           double *pars2)
-{
-    pars1[0] = 0; // arbitrary at this point
-    pars1[1] = 0; // arbitrary at this point
-    pars1[2] = shape1->g1;
-    pars1[3] = shape1->g2;
-    pars1[4] = inpars[1];
-    pars1[5] = inpars[2];
-
-    pars2[0] = 0; // arbitrary at this point
-    pars2[1] = 0; // arbitrary at this point
-    pars2[2] = shape2->g1;
-    pars2[3] = shape2->g2;
-    pars2[4] = inpars[1];
-    pars2[5] = inpars[2];
-}
-*/
 static void fill_pars_6par(const struct shape *shape1,
                            const struct shape *shape2,
                            double T, double counts,
@@ -106,32 +82,19 @@ static void fill_pars_6par(const struct shape *shape1,
 {
     pars1[0] = 0;
     pars1[1] = 0;
-    pars1[2] = shape1->g1;
-    pars1[3] = shape1->g2;
+    pars1[2] = shape1->eta1;
+    pars1[3] = shape1->eta2;
     pars1[4] = T;
     pars1[5] = counts;
 
     pars2[0] = 0;
     pars2[1] = 0;
-    pars2[2] = shape2->g1;
-    pars2[3] = shape2->g2;
+    pars2[2] = shape2->eta1;
+    pars2[3] = shape2->eta2;
     pars2[4] = T;
     pars2[5] = counts;
 }
 
-/*
-static void fill_pars_6par_psf(const double *inpars, double *pars)
-{
-    struct shape shape;
-    shape_set_eta(&shape, inpars[0], inpars[1]);
-    pars[0] = 0; // arbitrary at this point
-    pars[1] = 0; // arbitrary at this point
-    pars[2] = shape.g1;
-    pars[3] = shape.g2;
-    pars[4] = inpars[2];
-    pars[5] = 1; // arbitrary
-}
-*/
 
 static void fill_pars_6par_psf(const struct shape *shape,
                                double T,
@@ -139,122 +102,13 @@ static void fill_pars_6par_psf(const struct shape *shape,
 {
     pars[0] = 0;
     pars[1] = 0;
-    pars[2] = shape->g1;
-    pars[3] = shape->g2;
+    pars[2] = shape->eta1;
+    pars[3] = shape->eta2;
     pars[4] = T;
     pars[5] = 1; // arbitrary
 }
 
 
-/*
-static long check_npars(enum gmix_model model, long npars)
-{
-    long status=0;
-    long flags=0;
-    long expected_npars = ring_get_npars_short(model, &flags);
-    if (flags == 0) {
-        if (npars != expected_npars) {
-            fprintf(stderr,"expected npars==%ld but got %ld: %s: %d\n", 
-                    expected_npars, npars, __FILE__,__LINE__);
-        } else {
-            status=1;
-        }
-    }
-
-    return status;
-}
-*/
-
-// for simple, pars are
-//     [eta,T,F]
-//
-// For BD, the pars should be length 5
-//     [eta,Tbulge,Tdisk,Fbulge,Fdisk]
-
-/*
-struct ring_pair *ring_pair_new(enum gmix_model model,
-                                const double *pars, long npars,
-                                enum gmix_model psf_model,
-                                const double *psf_pars,
-                                long psf_npars,
-                                const struct shape *shear,
-                                double s2n,
-                                double cen1_offset,
-                                double cen2_offset,
-                                long *flags)
-{
-    double pars1[6] = {0};
-    double pars2[6] = {0};
-    struct shape shape1={0}, shape2={0};
-    struct ring_pair *self=NULL;
-    struct gmix *gmix1_0=NULL, *gmix2_0=NULL, *psf_gmix=NULL;
-    long npars_full=6, psf_npars_full=0;
-
-    if (!check_npars(model, npars) || !check_npars(psf_model,psf_npars)) {
-        goto _ring_pair_new_bail;
-    }
-
-    self=calloc(1, sizeof(struct ring_pair));
-    if (self==NULL) {
-        fprintf(stderr,"Failed to allocate struct ring_pair: %s: %d\n", 
-                __FILE__,__LINE__);
-        return NULL;
-    }
-    self->s2n=s2n;
-    self->cen1_offset=cen1_offset;
-    self->cen2_offset=cen2_offset;
-
-    double theta1 = 2*M_PI*drand48();
-    double theta2 = theta1 + M_PI/2.0;
-
-    double eta1_1 = pars[0]*cos(2*theta1);
-    double eta2_1 = pars[0]*sin(2*theta1);
-
-    double eta1_2 = pars[0]*cos(2*theta2);
-    double eta2_2 = pars[0]*sin(2*theta2);
-
-    shape_set_eta(&shape1, eta1_1, eta2_1);
-    shape_set_eta(&shape2, eta1_2, eta2_2);
-    shape_add_inplace(&shape1, shear);
-    shape_add_inplace(&shape2, shear);
-
-    fill_pars_6par(pars, &shape1, &shape2, pars1, pars2);
-
-    psf_npars_full = 6;
-    double psf_pars_full[6]={0};
-    fill_pars_6par_psf(psf_pars, psf_pars_full);
-
-    psf_gmix = gmix_new_model(psf_model, psf_pars_full, psf_npars_full, flags);
-
-    gmix1_0=gmix_new_model(model, pars1, npars_full, flags);
-    gmix2_0=gmix_new_model(model, pars2, npars_full, flags);
-    if (*flags != 0) {
-        goto _ring_pair_new_bail;
-    }
-
-    self->gmix1 = gmix_convolve(gmix1_0, psf_gmix, flags);
-    self->gmix2 = gmix_convolve(gmix2_0, psf_gmix, flags);
-    self->psf_gmix = psf_gmix;
-
-    //fprintf(stderr,"psf_T: %g obj1_T: %g obj2_T: %g\n",
-    //        gmix_get_T(self->psf_gmix),
-    //        gmix_get_T(self->gmix1),
-    //        gmix_get_T(self->gmix2));
-    if (*flags != 0) {
-        goto _ring_pair_new_bail;
-    }
-
-
-_ring_pair_new_bail:
-    if (*flags != 0) {
-        self=ring_pair_free(self);
-    }
-    gmix1_0 = gmix_free(gmix1_0);
-    gmix2_0 = gmix_free(gmix2_0);
-    return self;
-
-}
-*/
 struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *flags)
 {
 

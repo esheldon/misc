@@ -212,6 +212,6 @@ void gsim_ring_config_print(const struct gsim_ring_config *self, FILE *stream)
     fprintf(stream,"psf_shape:    [%g %g]\n", self->psf_shape.eta1, self->psf_shape.eta2);
     fprintf(stream,"psf_s2n:        %g\n", self->psf_s2n);
 
-    fprintf(stream,"shear:        [%g %g]\n", self->shear.eta1, self->shear.eta2);
+    fprintf(stream,"shear:        [%g %g]\n", self->shear.g1, self->shear.g2);
 
 }
