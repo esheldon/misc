@@ -228,7 +228,7 @@ void process_one(struct gmix_mcmc *self,
         if (*flags == 0) {
             double dnuse=(double)self->nuse;
             double frac = dnuse/MCA_CHAIN_NSTEPS(self->chain_data.chain);
-            if (frac > 0.8) {
+            if (frac > GMIX_MCMC_MINFRAC_USE) {
                 break;
             } else {
                 fprintf(stderr,
