@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "mca.h"
 #include "config.h"
 #include "prob.h"
 #include "gmix.h"
@@ -166,6 +167,66 @@ struct gmix_mcmc *gmix_mcmc_free(struct gmix_mcmc *self)
 void gmix_mcmc_set_obs_list(struct gmix_mcmc *self, const struct obs_list *obs_list)
 {
     self->obs_list=obs_list;
+}
+
+
+// calculate P,Q,R with fix for the fact that the prior is already
+// in our chain; just divide by the prior
+long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
+{
+
+    const struct mca_chain *chain = self->chain_data.chain;
+    const struct prob_data_simple_gmix3_eta *prob = self->prob;
+
+    long nstep=MCA_CHAIN_NSTEPS(chain);
+    size_t npars = MCA_CHAIN_NPARS(chain);
+
+    double Psum=0, Q1sum=0, Q2sum=0, R11sum=0, R12sum=0, R22sum=0;
+    double P=0, Q1=0, Q2=0, R11=0, R12=0, R22=0;
+    long nuse=0, flags=0;
+
+    for (long i=0; i<nstep; i++) {
+        const double *pars = MCA_CHAIN_PARS(chain, i);
+        struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars, &flags);
+        if (flags==0) {
+
+            dist_gmix3_eta_pqr(&prob->shape_prior,
+                               &gmix_pars->shape,
+                               &P, &Q1, &Q2, &R11, &R12, &R22);
+
+            // fix because prior is already in distributions
+            if (P > 0) {
+                nuse++;
+                double Pinv=1/P;
+
+                Psum += P*Pinv;
+                Q1sum += Q1*Pinv;
+                Q2sum += Q2*Pinv;
+                R11sum += R11*Pinv;
+                R12sum += R12*Pinv;
+                R22sum += R22*Pinv;
+
+            } // P >0 check
+        } // flag check
+    } // steps
+
+    flags=0;
+
+    self->nuse = nuse;
+    if (nuse > 0) {
+        self->P = Psum/nuse;
+        self->Q[0] = Q1sum/nuse;
+        self->Q[1] = Q2sum/nuse;
+        self->R[0][0] = R11sum/nuse;
+        self->R[0][1] = R12sum/nuse;
+        self->R[1][1] = R22sum/nuse;
+
+        self->R[1][0] = self->R[0][1]; 
+    } else {
+        flags |= GMIX_MCMC_NOPOSITIVE;
+    }
+
+    return flags;
 }
 
 

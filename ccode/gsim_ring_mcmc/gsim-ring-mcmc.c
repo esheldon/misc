@@ -88,12 +88,19 @@ _get_image_pair_bail:
     return impair;
 }
 
-void print_one(const struct gmix_mcmc *self,
-               const struct result *res)
+void print_one(const struct gmix_mcmc *self)
 {
     //mca_stats_write_brief(self->chain_data.stats, stderr);
     mca_stats_write_flat(self->chain_data.stats, stdout);
-    result_print(res, stdout);
+
+    printf("%.16g %.16g %.16g %.16g %.16g %.16g %.16g",
+            self->P,
+            self->Q[0],
+            self->Q[1],
+            self->R[0][0],
+            self->R[0][1],
+            self->R[1][0],
+            self->R[1][1]);
 
     printf("\n");
 }
@@ -177,7 +184,6 @@ void process_one(struct gmix_mcmc *self,
                  long pairnum,
                  double T,
                  double counts,
-                 struct result *res,
                  long *flags)
 {
     double row_guess=0, col_guess=0;
@@ -213,7 +219,7 @@ void process_one(struct gmix_mcmc *self,
     }
 
     mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
-    result_calc(res, &self->chain_data);
+    *flags |= gmix_mcmc_calc_pqr(self);
 
 #if 0
     mca_chain_plot(self->chain_data.burnin_chain,"");
@@ -234,7 +240,7 @@ void process_pair(struct gsim_ring *ring,
 {
 
     long flags=0;
-    struct result res = {0};
+    //struct result res = {0};
     double T=0, counts=0;
 
     struct ring_image_pair *impair = get_image_pair(ring, s2n, &T, &counts);
@@ -244,13 +250,12 @@ void process_pair(struct gsim_ring *ring,
                 1,
                 T,
                 counts,
-                &res,
                 &flags);
 
     if (flags != 0) {
         goto _process_pair_bail;
     }
-    print_one(gmix_mcmc, &res);
+    print_one(gmix_mcmc);
     //mca_stats_write_brief(gmix_mcmc->chain_data.stats, stderr);
 
     process_one(gmix_mcmc,
@@ -258,13 +263,12 @@ void process_pair(struct gsim_ring *ring,
                 2,
                 T,
                 counts,
-                &res,
                 &flags);
 
     if (flags != 0) {
         goto _process_pair_bail;
     }
-    print_one(gmix_mcmc, &res);
+    print_one(gmix_mcmc);
     //mca_stats_write_brief(gmix_mcmc->chain_data.stats, stderr);
 
 _process_pair_bail:
