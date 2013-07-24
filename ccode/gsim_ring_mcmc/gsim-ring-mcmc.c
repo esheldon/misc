@@ -216,6 +216,7 @@ void process_one(struct gmix_mcmc *self,
     process_psfs(self);
 
     while (1) {
+        *flags=0;
         gmix_mcmc_run(self, row_guess, col_guess, T, counts, flags);
         if (*flags == 0) {
             break;
