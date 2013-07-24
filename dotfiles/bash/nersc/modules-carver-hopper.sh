@@ -32,7 +32,6 @@ module load numpy-hpcp
 module load scipy-hpcp
 module load ipython-hpcp
 
-module load cfitsio-hpcp/3.31-1.0
 
 #
 # des module installs
@@ -76,7 +75,7 @@ module unload espy && module load espy/local
 
 module load fitsio/local
 
-#module load cfitsio/3310
+module load cfitsio/beta
 module load ccfits/2.4
 
 module unload esutil && module load esutil/local
