@@ -178,7 +178,7 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
     size_t npars = MCA_CHAIN_NPARS(chain);
 
     double Psum=0, Q1sum=0, Q2sum=0, R11sum=0, R12sum=0, R22sum=0;
-    double P=0, Q1=0, Q2=0, R11=0, R12=0, R22=0;
+    double P=0, Q1=0, Q2=0, R11=0, R12=0, R22=0, Pmax=0;
     long nuse=0, flags=0;
 
     for (long i=0; i<nstep; i++) {
@@ -190,6 +190,9 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
                                &gmix_pars->shape,
                                &P, &Q1, &Q2, &R11, &R12, &R22);
 
+            if (P > Pmax) {
+                Pmax=P;
+            }
             // fix because prior is already in distributions
             if (P > 1.e-8) {
                 nuse++;
@@ -219,7 +222,7 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
 
         self->R[1][0] = self->R[0][1]; 
     } else {
-        fprintf(stderr,"no positive prior vals\n");
+        fprintf(stderr,"no positive prior vals; max was %g\n", Pmax);
         flags |= GMIX_MCMC_NOPOSITIVE;
     }
 
