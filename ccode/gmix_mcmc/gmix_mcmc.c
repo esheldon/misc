@@ -207,6 +207,8 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
 
             } // P >0 check
         } // flag check
+        gmix_pars = gmix_pars_free(gmix_pars);
+
     } // steps
 
     flags=0;
