@@ -218,22 +218,25 @@ void process_one(struct gmix_mcmc *self,
     while (1) {
         *flags=0;
         gmix_mcmc_run(self, row_guess, col_guess, T, counts, flags);
-        if (*flags == 0) {
-            break;
-        } else if (*flags != GMIX_MCMC_NOPOSITIVE) {
+        if (*flags != 0) {
+            // this is currently fatal
             fprintf(stderr,"error running mcmc\n");
             goto _process_one_bail;
+        }
+
+        mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
+        *flags |= gmix_mcmc_calc_pqr(self);
+        if (*flags == 0) {
+            break;
+        } else if (*flags == GMIX_MCMC_NOPOSITIVE) {
+            fprintf(stderr,"problem calculating pqr, re-trying\n");
         } else {
-            fprintf(stderr,"re-trying\n");
+            // should not happen
+            fprintf(stderr,"fatal error in calculating pqrl\n");
+            goto _process_one_bail;
         }
     }
 
-    mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
-    *flags |= gmix_mcmc_calc_pqr(self);
-    if (*flags != 0) {
-        fprintf(stderr,"error calculating pqr\n");
-        goto _process_one_bail;
-    }
 
 #if 0
     mca_chain_plot(self->chain_data.burnin_chain,"");
