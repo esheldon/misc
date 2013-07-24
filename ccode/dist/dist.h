@@ -148,6 +148,7 @@ void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self, struct shape *shap
 double dist_gmix3_eta_pj(const struct dist_gmix3_eta *self,
                          const struct shape *shape,
                          const struct shape *shear);
+
 void dist_gmix3_eta_pqr(const struct dist_gmix3_eta *self,
                         const struct shape *shape,
                         double *P,

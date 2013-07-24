@@ -11,6 +11,7 @@
 #include "mca.h"
 
 // 2147483648
+#define GMIX_MCMC_NOPOSITIVE 0x1
 #define GMIX_MCMC_INIT 0x80000000
 
 #ifndef wlog
@@ -48,6 +49,10 @@ struct gmix_mcmc {
     // for multi-band
     //const struct obs_list_list *obs_list_list;
 
+    long nuse;
+    double P;
+    double Q[2];
+    double R[2][2];
 };
 
 // you should caste prob_data_base to your actual type
@@ -61,6 +66,8 @@ struct gmix_mcmc *gmix_mcmc_free(struct gmix_mcmc *);
 struct gmix_mcmc *gmix_mcmc_new_from_config(const char *name, long *flags);
 
 void gmix_mcmc_set_obs_list(struct gmix_mcmc *self, const struct obs_list *obs_list);
+
+long gmix_mcmc_calc_pqr(struct gmix_mcmc *self);
 
 void gmix_mcmc_run(struct gmix_mcmc *self,
                    double row, double col,
