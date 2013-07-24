@@ -101,7 +101,7 @@ struct image *_image_new(size_t nrows, size_t ncols, int alloc_data);
 int image_copy(const struct image *image, struct image *imout);
 
 // make a new copy, conforming to the region in the mask
-struct image *image_newcopy(const struct image *image);
+struct image *image_new_copy(const struct image *image);
 
 // in this case we own the rows only, not the data to which they point
 struct image* image_from_array(double* data, size_t nrows, size_t ncols);
@@ -116,6 +116,7 @@ struct image *image_read(const char* filename);
 struct image *image_free(struct image *self);
 
 double image_get_counts(const struct image *self);
+void image_get_minmax(const struct image *self, double *min, double *max);
 
 // fix the bounds in one dimension so that the range lies
 // within [0,dim)
@@ -154,6 +155,7 @@ void image_mask_set(struct image_mask* self,
 void image_mask_print(const struct image_mask *mask, FILE *stream);
 
 
+void image_view(const struct image *self, const char *options);
 
 
 #endif

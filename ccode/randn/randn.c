@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <time.h>
 #include <math.h>
 #include "randn.h"
 
@@ -69,4 +70,18 @@ long poisson(double lambda)
         }
     }
     return k;
+}
+
+// random numbers in the range [-1,1]
+double srandu()
+{
+    return 2*(drand48()-0.5);
+}
+
+
+void randn_seed(void)
+{
+    time_t t1;
+    (void) time(&t1);
+    srand48((long) t1);
 }

@@ -3,8 +3,10 @@
 #include <float.h> // for DBL_MAX
 #include "gmix_image.h"
 #include "image.h"
-#include "gauss.h"
+#include "gauss2.h"
 #include "gmix.h"
+#include "jacobian.h"
+
 #include "fmath.h"
 
 struct image *gmix_image_new(const struct gmix *gmix, 
@@ -38,7 +40,7 @@ int gmix_image_put(struct image *image,
     int flags=0;
 
     if (!gmix_verify(gmix)) {
-        flags |= GMIX_IMAGE_NEGATIVE_DET;
+        flags |= GAUSS2_ERROR_NEGATIVE_DET;
         goto _gmix_image_put_model_bail;
     }
     if (nsub < 1) {
@@ -88,7 +90,7 @@ int gmix_image_put_masked(struct image *image,
 
     image_add_mask(masked_image, mask);
 
-    struct gauss *gauss=gmix->data;
+    struct gauss2 *gauss=gmix->data;
 
     for (int i=0; i<gmix->size; i++) {
         gauss->row -= mask->rowmin;
@@ -105,8 +107,193 @@ int gmix_image_put_masked(struct image *image,
     return flags;
 }
 
+
+static int get_loglike_wt_jacob_generic(const struct image *image, 
+                                        const struct image *weight, // either
+                                        double ivar,                // or
+                                        const struct jacobian *jacob,
+                                        const struct gmix *gmix, 
+                                        double *s2n_numer,
+                                        double *s2n_denom,
+                                        double *loglike)
+{
+    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
+
+    double u=0, v=0;
+    double diff=0;
+    ssize_t col=0, row=0;
+
+    double model_val=0;
+    double pixval=0;
+    int flags=0;
+
+    (*s2n_numer)=0;
+    (*s2n_denom)=0;
+    (*loglike)=0;
+
+    if (!gmix_verify(gmix)) {
+        *loglike=-9999.9e9;
+        flags |= GAUSS2_ERROR_NEGATIVE_DET;
+        goto _calculate_loglike_wt_jacob_bail;
+    }
+
+    if (ivar < 0) ivar=0.0;
+    for (row=0; row<nrows; row++) {
+        u=JACOB_PIX2U(jacob, row, 0);
+        v=JACOB_PIX2V(jacob, row, 0);
+        for (col=0; col<ncols; col++) {
+
+            if (weight) {
+                ivar=IM_GET(weight, row, col);
+                if (ivar < 0) ivar=0.0; // fpack...
+            }
+
+            if (ivar > 0) {
+                model_val=GMIX_EVAL(gmix, u, v);
+                pixval=IM_GET(image, row, col);
+                diff = model_val - pixval;
+
+                (*loglike) += diff*diff*ivar;
+
+                (*s2n_numer) += pixval*model_val*ivar;
+                (*s2n_denom) += model_val*model_val*ivar;
+            }
+
+            u += jacob->dudcol; v += jacob->dvdcol;
+        } // cols
+    } // rows
+
+    (*loglike) *= (-0.5);
+
+_calculate_loglike_wt_jacob_bail:
+    return flags;
+}
+
+int gmix_image_loglike_wt_jacob(const struct image *image, 
+                                const struct image *weight,
+                                const struct jacobian *jacob,
+                                const struct gmix *gmix, 
+                                double *s2n_numer,
+                                double *s2n_denom,
+                                double *loglike)
+
+{
+
+    double junk_ivar=0;
+    return get_loglike_wt_jacob_generic(image, 
+                                        weight,
+                                        junk_ivar,
+                                        jacob,
+                                        gmix, 
+                                        s2n_numer,
+                                        s2n_denom,
+                                        loglike);
+
+}
+
+
+int gmix_image_loglike_ivar_jacob(const struct image *image, 
+                                  double ivar,
+                                  const struct jacobian *jacob,
+                                  const struct gmix *gmix, 
+                                  double *s2n_numer,
+                                  double *s2n_denom,
+                                  double *loglike)
+{
+
+    struct image *junk_weight=NULL;
+
+    return get_loglike_wt_jacob_generic(image, 
+                                        junk_weight,
+                                        ivar,
+                                        jacob,
+                                        gmix, 
+                                        s2n_numer,
+                                        s2n_denom,
+                                        loglike);
+
+}
+
+int gmix_image_loglike_wt(const struct image *image, 
+                          const struct image *weight,
+                          const struct gmix *gmix, 
+                          double *s2n_numer,
+                          double *s2n_denom,
+                          double *loglike)
+{
+
+    double junk_ivar=0;
+    struct jacobian jacob;
+    jacobian_set_identity(&jacob);
+
+    return get_loglike_wt_jacob_generic(image, 
+                                        weight,
+                                        junk_ivar,
+                                        &jacob,
+                                        gmix, 
+                                        s2n_numer,
+                                        s2n_denom,
+                                        loglike);
+
+}
+
+
+int gmix_image_loglike_ivar(const struct image *image, 
+                            const struct gmix *gmix, 
+                            double ivar,
+                            double *s2n_numer,
+                            double *s2n_denom,
+                            double *loglike)
+{
+
+    int flags=0;
+    struct image *junk_weight=NULL;
+
+    struct jacobian jacob;
+    jacobian_set_identity(&jacob);
+
+    flags=get_loglike_wt_jacob_generic(image, 
+                                       junk_weight,
+                                       ivar,
+                                       &jacob,
+                                       gmix, 
+                                       s2n_numer,
+                                       s2n_denom,
+                                       loglike);
+
+
+    return flags;
+
+}
+
+double gmix_image_s2n_ivar(const struct image *image, 
+                           const struct gmix *weight,
+                           double ivar, 
+                           long *flags)
+{
+    double s2n=-9999;
+    double s2n_numer=0, s2n_denom=0, loglike=0;
+    *flags=gmix_image_loglike_ivar(image, 
+                                   weight, 
+                                   ivar,
+                                   &s2n_numer,
+                                   &s2n_denom,
+                                   &loglike);
+
+    if (*flags == 0) {
+        if (s2n_denom >= 0) {
+            s2n = s2n_numer/sqrt(s2n_denom);
+        }
+    }
+
+    return s2n;
+}
+
+
+
 // If this image is masked, the gaussian should be centered
 // properly in the sub-image, not the parent
+/*
 double gmix_image_loglike(const struct image *image, 
                           const struct gmix *gmix, 
                           double ivar,
@@ -114,7 +301,7 @@ double gmix_image_loglike(const struct image *image,
 {
     size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
 
-    //struct gauss *gauss=NULL;
+    //struct gauss2 *gauss=NULL;
     double diff=0;
     size_t col=0, row=0;
 
@@ -126,7 +313,7 @@ double gmix_image_loglike(const struct image *image,
     (*flags)=0;
 
     if (!gmix_verify(gmix)) {
-        (*flags) |= GMIX_IMAGE_NEGATIVE_DET;
+        (*flags) |= GAUSS2_ERROR_NEGATIVE_DET;
         loglike = GMIX_IMAGE_LOW_VAL;
         goto _gmix_image_loglike_bail;
     }
@@ -151,69 +338,10 @@ _gmix_image_loglike_bail:
 
     return loglike;
 }
+*/
 
-double gmix_image_loglike_margamp(
-        const struct image *image, 
-        const struct gmix *gmix, 
-        double ivar,
-        int *flags)
-{
-    size_t nrows=IM_NROWS(image), ncols=IM_NCOLS(image);
-
-    size_t col=0, row=0;
-
-    double loglike = 0;
-    double model_val=0;
-    double *rowdata=NULL;
-
-    double ierr=sqrt(ivar);
-    double A=1;
-    double ymodsum=0; // sum of (image/err)
-    double ymod2sum=0; // sum of (image/err)^2
-    double B=0.; // sum(model*image/err^2)/A
-
-    (*flags)=0;
-
-    if (!gmix_verify(gmix)) {
-        (*flags) |= GMIX_IMAGE_NEGATIVE_DET;
-        loglike = GMIX_IMAGE_LOW_VAL;
-        goto _gmix_image_loglike_margamp_bail;
-    }
-
-
-    for (row=0; row<nrows; row++) {
-        rowdata=IM_ROW(image, row);
-        for (col=0; col<ncols; col++) {
-
-            model_val = GMIX_EVAL(gmix, row, col);
-
-            ymodsum += model_val;
-            ymod2sum += model_val*model_val;
-            B += (*rowdata)*model_val;
-
-            rowdata++;
-        } // cols
-    } // rows
-
-
-    ymodsum *= ierr;
-    ymod2sum *= ierr*ierr;
-    double norm = sqrt(ymodsum*ymodsum*A/ymod2sum);
-
-    // renorm so A is fixed; also extra factor of 1/err^2 and 1/A
-    B *= (norm/ymodsum*ierr*ierr/A);
-
-    loglike = 0.5*A*B*B;
-
-
-_gmix_image_loglike_margamp_bail:
-
-    return loglike;
-}
-
-
-
-
+// should dump this, only works with no jacob
+/*
 double gmix_image_s2n(const struct image *image, 
                       double skysig, 
                       const struct gmix *weight,
@@ -228,7 +356,7 @@ double gmix_image_s2n(const struct image *image,
     (*flags)=0;
 
     if (!gmix_verify(weight)) {
-        (*flags) |= GMIX_IMAGE_NEGATIVE_DET;
+        (*flags) |= GAUSS2_ERROR_NEGATIVE_DET;
         goto _gmix_image_s2n_noise_bail;
     }
 
@@ -251,4 +379,4 @@ _gmix_image_s2n_noise_bail:
     return s2n;
 
 }
-
+*/

@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"scikits_learn install straight from git repo"
+conflict scikits_learn
+
+eval set  [ array get env HOME ]
+
+set SCIKITS_LEARN_DIR $HOME/exports/scikit-learn
+
+prepend-path PYTHONPATH $SCIKITS_LEARN_DIR/lib/python2.7/site-packages/
+
+setenv SCIKITS_LEARN_DIR $SCIKITS_LEARN_DIR
+

@@ -1,0 +1,336 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include "gmix.h"
+#include "image_rand.h"
+#include "gmix_image.h"
+#include "gmix_image_rand.h"
+#include "shape.h"
+#include "gsim_ring.h"
+
+long gsim_ring_fill_from_file(struct gsim_ring *self, const char *name)
+{
+    long flags=0;
+    struct gsim_ring_config config={{0}};
+
+    flags = gsim_ring_config_load(&config, name);
+    if (flags != 0) {
+        return flags;
+    }
+    gsim_ring_fill(self, &config);
+
+    return flags;
+}
+void gsim_ring_fill(struct gsim_ring *self, const struct gsim_ring_config *conf)
+{
+    // a value type
+    self->conf = (*conf);
+
+    dist_gauss_fill(&self->cen1_dist, conf->cen_prior_pars[0], conf->cen_prior_pars[1]);
+    dist_gauss_fill(&self->cen2_dist, conf->cen_prior_pars[0], conf->cen_prior_pars[1]);
+
+    dist_gmix3_eta_fill(&self->shape_prior,
+                        conf->shape_prior_pars[0],
+                        conf->shape_prior_pars[1],
+                        conf->shape_prior_pars[2],
+                        conf->shape_prior_pars[3],
+                        conf->shape_prior_pars[4],
+                        conf->shape_prior_pars[5]);
+
+
+    dist_lognorm_fill(&self->T_dist, conf->T_prior_pars[0], conf->T_prior_pars[1]);
+    dist_lognorm_fill(&self->counts_dist, conf->counts_prior_pars[0], conf->counts_prior_pars[1]);
+}
+
+long ring_get_npars_short(enum gmix_model model, long *flags)
+{
+    long npars=-1;
+    switch (model) {
+        case GMIX_EXP:
+            npars=3;
+            break;
+        case GMIX_DEV:
+            npars=3;
+            break;
+        case GMIX_BD:
+            npars=5;
+            break;
+        case GMIX_COELLIP: // for psf
+            npars=3;
+            break;
+        case GMIX_TURB: // for psf
+            npars=3;
+            break;
+        default:
+            fprintf(stderr, "bad model type: %u: %s: %d",
+                    model, __FILE__,__LINE__);
+            *flags |= GMIX_BAD_MODEL;
+            break;
+    }
+    return npars;
+}
+
+// centers for all models are set to 0, which means the convolutions
+// will not case problems.  If you want to use non-cocentric psfs you
+// will need to be careful!
+
+static void fill_pars_6par(const struct shape *shape1,
+                           const struct shape *shape2,
+                           double T, double counts,
+                           double *pars1,
+                           double *pars2)
+{
+    pars1[0] = 0;
+    pars1[1] = 0;
+    pars1[2] = shape1->eta1;
+    pars1[3] = shape1->eta2;
+    pars1[4] = T;
+    pars1[5] = counts;
+
+    pars2[0] = 0;
+    pars2[1] = 0;
+    pars2[2] = shape2->eta1;
+    pars2[3] = shape2->eta2;
+    pars2[4] = T;
+    pars2[5] = counts;
+}
+
+
+static void fill_pars_6par_psf(const struct shape *shape,
+                               double T,
+                               double *pars)
+{
+    pars[0] = 0;
+    pars[1] = 0;
+    pars[2] = shape->eta1;
+    pars[3] = shape->eta2;
+    pars[4] = T;
+    pars[5] = 1; // arbitrary
+}
+
+
+struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *flags)
+{
+
+    double pars1[6] = {0};
+    double pars2[6] = {0};
+    double psf_pars[6]={0};
+    struct shape shape1={0}, shape2={0};
+
+    struct ring_pair *self=NULL;
+    struct gmix *gmix1_0=NULL, *gmix2_0=NULL, *psf_gmix=NULL;
+    long npars=6, psf_npars=6;
+
+    self=calloc(1, sizeof(struct ring_pair));
+    if (self==NULL) {
+        fprintf(stderr,"Failed to allocate struct ring_pair: %s: %d\n", 
+                __FILE__,__LINE__);
+        return NULL;
+    }
+    self->s2n=s2n;
+    self->psf_s2n=ring->conf.psf_s2n;
+
+    self->cen1_offset = dist_gauss_sample(&ring->cen1_dist);
+    self->cen2_offset = dist_gauss_sample(&ring->cen2_dist);
+
+    double T = dist_lognorm_sample(&ring->T_dist);
+    double counts = dist_lognorm_sample(&ring->counts_dist);
+
+    dist_gmix3_eta_sample(&ring->shape_prior, &shape1);
+
+    shape2 = shape1;
+    shape_rotate(&shape2, M_PI_2);
+
+    shape_add_inplace(&shape1, &ring->conf.shear);
+    shape_add_inplace(&shape2, &ring->conf.shear);
+
+    fill_pars_6par(&shape1, &shape2, T, counts, pars1, pars2);
+    fill_pars_6par_psf(&ring->conf.psf_shape, ring->conf.psf_T, psf_pars);
+
+    psf_gmix = gmix_new_model_from_array(ring->conf.psf_model, psf_pars, psf_npars, flags);
+    gmix1_0=gmix_new_model_from_array(ring->conf.obj_model, pars1, npars, flags);
+    gmix2_0=gmix_new_model_from_array(ring->conf.obj_model, pars2, npars, flags);
+
+    if (*flags != 0) {
+        goto _ring_pair_new_bail;
+    }
+
+    self->gmix1 = gmix_convolve(gmix1_0, psf_gmix, flags);
+    self->gmix2 = gmix_convolve(gmix2_0, psf_gmix, flags);
+    self->psf_gmix = psf_gmix;
+
+    //fprintf(stderr,"psf_T: %g obj1_T: %g obj2_T: %g\n",
+    //        gmix_get_T(self->psf_gmix),
+    //        gmix_get_T(self->gmix1),
+    //        gmix_get_T(self->gmix2));
+    if (*flags != 0) {
+        goto _ring_pair_new_bail;
+    }
+
+
+_ring_pair_new_bail:
+    if (*flags != 0) {
+        self=ring_pair_free(self);
+    }
+    gmix1_0 = gmix_free(gmix1_0);
+    gmix2_0 = gmix_free(gmix2_0);
+    return self;
+
+}
+
+
+struct ring_pair *ring_pair_free(struct ring_pair *self)
+{
+    if (self) {
+        self->gmix1=gmix_free(self->gmix1);
+        self->gmix2=gmix_free(self->gmix2);
+        self->psf_gmix=gmix_free(self->psf_gmix);
+        free(self);
+        self=NULL;
+    }
+    return self;
+}
+
+void ring_pair_print(const struct ring_pair *self, FILE* stream)
+{
+    fprintf(stream,"s2n:   %g\n", self->s2n);
+
+    fprintf(stream,"gmix1:\n");
+    gmix_print(self->gmix1, stream);
+    fprintf(stream,"gmix2:\n");
+    gmix_print(self->gmix2, stream);
+}
+
+
+static struct image *make_image(const struct gmix *gmix,
+                                int nsub,
+                                double s2n,
+                                double cen1_offset,
+                                double cen2_offset,
+                                double *coord_cen1,
+                                double *coord_cen2,
+                                double *skysig, // output
+                                long *flags) // output
+{
+    struct gmix *tmp_gmix=NULL;
+    struct image *image=NULL;
+
+    // only really works for cocentered, but close enough
+    double T = gmix_get_T(gmix);
+
+    double sigma = T > 0 ? sqrt(T/2) : 2;
+
+    long box_size = (long) ( 2*sigma*GAUSS_PADDING );
+    if ((box_size % 2) == 0) {
+        box_size+=1;
+    }
+
+    *coord_cen1 =( ((float)box_size) - 1.0)/2.0;
+    *coord_cen2 =*coord_cen1;
+
+    double cen1 = *coord_cen1 + cen1_offset;
+    double cen2 = *coord_cen2 + cen2_offset;
+
+    tmp_gmix = gmix_new_copy(gmix, flags);
+    if (*flags != 0) {
+        goto _ring_make_image_bail;
+    }
+    gmix_set_cen(tmp_gmix, cen1, cen2);
+
+    image = gmix_image_new(tmp_gmix, box_size, box_size, nsub);
+    if (!image) {
+        goto _ring_make_image_bail;
+    }
+
+    image_add_randn_matched(image, s2n, skysig);
+
+_ring_make_image_bail:
+    tmp_gmix=gmix_free(tmp_gmix);
+    if (*flags != 0) {
+        image=image_free(image);
+    }
+
+    return image;
+}
+
+struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *flags)
+{
+    struct ring_image_pair *impair=NULL;
+
+    impair = calloc(1, sizeof(struct ring_image_pair));
+    if (!impair) {
+        fprintf(stderr, "could not allocate struct ring_image_pair: %s: %d",
+                 __FILE__,__LINE__);
+        exit(1);
+    }
+
+    impair->cen1_offset=self->cen1_offset;
+    impair->cen2_offset=self->cen2_offset;
+
+    impair->im1 = make_image(self->gmix1,
+                             RING_IMAGE_NSUB,
+                             self->s2n,
+                             self->cen1_offset,
+                             self->cen2_offset,
+                             &impair->coord_cen1,
+                             &impair->coord_cen2,
+                             &impair->skysig1,
+                             flags);
+    if (*flags != 0) {
+        goto _ring_make_image_pair_bail;
+    }
+    impair->im2 = make_image(self->gmix2,
+                             RING_IMAGE_NSUB,
+                             self->s2n,
+                             self->cen1_offset,
+                             self->cen2_offset,
+                             &impair->coord_cen1,
+                             &impair->coord_cen2,
+                             &impair->skysig2,
+                             flags);
+    if (*flags != 0) {
+        goto _ring_make_image_pair_bail;
+    }
+
+    impair->psf_image = make_image(self->psf_gmix,
+                                   RING_IMAGE_NSUB,
+                                   self->psf_s2n,
+                                   self->cen1_offset,
+                                   self->cen2_offset,
+                                   &impair->psf_coord_cen1,
+                                   &impair->psf_coord_cen2,
+                                   &impair->psf_skysig,
+                                   flags);
+    if (*flags != 0) {
+        goto _ring_make_image_pair_bail;
+    }
+
+    double ivar1=1/(impair->skysig1*impair->skysig1);
+    double ivar2=1/(impair->skysig2*impair->skysig2);
+
+    impair->wt1 = image_new(IM_NROWS(impair->im1),IM_NCOLS(impair->im1));
+    impair->wt2 = image_new(IM_NROWS(impair->im2),IM_NCOLS(impair->im2));
+    image_add_scalar(impair->wt1, ivar1);
+    image_add_scalar(impair->wt2, ivar2);
+
+_ring_make_image_pair_bail:
+    if (*flags != 0) {
+        impair=ring_image_pair_free(impair);
+    }
+
+    return impair;
+}
+
+struct ring_image_pair *ring_image_pair_free(struct ring_image_pair *self)
+{
+    if (self) {
+        self->im1=image_free(self->im1);
+        self->im2=image_free(self->im2);
+        self->wt1=image_free(self->wt1);
+        self->wt2=image_free(self->wt2);
+        self->psf_image=image_free(self->psf_image);
+        free(self);
+        self=NULL;
+    }
+    return self;
+}

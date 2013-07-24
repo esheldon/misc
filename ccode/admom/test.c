@@ -3,12 +3,12 @@
 #include <math.h>
 #include <time.h>
 #include "admom.h"
-#include "gauss.h"
+#include "gauss2.h"
 #include "image.h"
 #include "randn.h"
 
 
-void fill_gauss_image(struct image *image, const struct gauss *gauss)
+void fill_gauss_image(struct image *image, const struct gauss2 *gauss)
 {
     size_t nrows=0, ncols=0, row=0, col=0;
     double rowm=0,rowm2=0,colm=0,colm2=0,chi2=0;
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 
     struct am am = {{0}};
     struct image *im=NULL, *noisy_im=NULL;
-    struct gauss gauss={0};
+    struct gauss2 gauss={0};
     time_t t1;
     double meandiff=0, imvar=0;
     double skysig=0, s2n_meas=0;
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     double icc=2.;
 
     // make the true gaussian 
-    if (!gauss_set(&gauss, 1.0, row, col, irr, irc, icc)) {
+    if (!gauss2_set(&gauss, 1.0, row, col, irr, irc, icc)) {
         fprintf(stderr,"bad gaussian determinant\n");
         exit(EXIT_FAILURE);
     }
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
         admom_add_noise(noisy_im, s2n, &gauss, &skysig, &s2n_meas);
         am.skysig = skysig;
 
-        gauss_set(&am.guess,
+        gauss2_set(&am.guess,
                   1.,
                   gauss.row + 2*(drand48()-0.5),
                   gauss.col + 2*(drand48()-0.5),

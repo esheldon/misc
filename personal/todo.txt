@@ -27,6 +27,16 @@ Quick look Queue
 
     nersc
 
+        - meds
+            - use 30 as zero point
+            - bug in fitsio
+                - beta "d" has fix but can't install
+            - there is a bug writing string fields to meds, or at least
+            how python fitsio shows them (that's it probably).
+
+            - new low-thresh coadd catalogs take too long, cutting some fields
+            - move blacklist code into deswl
+
         - cfitsio globally as cfitsio-des?
         - CCfits globally as ccfits-des
         - can get web access for files: access for apache but not other
@@ -41,65 +51,127 @@ Quick look Queue
     redmapper
         - add/modify entries to eduardo's null test etc. document
 
+    bafit
+        
+        - c code
+            - figure out if s/n is coming out correctly; s/n on flux is only
+              about 3 for an s/n=100 object!
+            - make a python code to write out the input file.
+            - instead generate the data totally inside?  Would mean being able
+              to draw from lognormal (easy I think) and from the shape prior.
+
+
+        - see constant bias at low s/n.  Bug?
+            - try g prior after?
+            - try in eta space?
+
+        - Importance sampling: to a maxlike fit and then importance
+        sample at twice width or something.  What about size? lognormal?
+        flux?
+
+        - Gary thinks we have to use *correct* priors.  Try gaussian center,
+          lognormal T, normal g, lognormal flux.
+            - center will have to go into the convolved image code.
+
+
+    LM fitting simple
+        - Center currently always set to zero with no randomness!
+        - required inputs are image, weight (or ivar), and psf (or list)
+        - *optional* jacob
+        - optional guesses
+            - cen
+            - T
+            - counts
+            - g1,g2
+        - optional priors
+            - cen
+            - T
+            - counts
+            - g1,g2
+           
+        - starting guesses
+            - one of the two above must be present
+                - if the guess is present, always use it
+                - otherwise draw from the prior
+
+        - OR...
+            - always require priors to be sent.  The trick there is if we want
+              a flat prior we need to have a bound on it, and also drawing
+              from it could result in crazy starting values
+        - OR...
+            - always require guesses, but these could be the expectation value
+              of the prior.
+
+    isampler fitting
+        - deal when all prior zero
+
+        - check covar but fixing it didn't work.  I was just returning error
+          (defres).  What to do, restart fit?
+
+        - same as above used for the initial ML fit.
+        - then draw from the fits
+            - cen draw from normal*prior
+            - draw g1,g2 from normal*prior.
+            - T
+                - if T > 0, draw from lognormal*prior.
+                - if T <= 0, draw from normal*prior
+                - If prior sent, would expect it to be positive only.
+
+            - counts from normal*prior?
+
     DES
 
         - redo colors in MEDS
-            - outlier rejection needed.  Will have to define some kind of
-              pixel grid in uv space to do this.
-            - for psf we can make an initial guess from an unweighted moment.
-            - also maybe try more than once on psfs since they seem to be
-              failing more than I would like (EM might also fix that)
 
-            - EM psf fitting with jacobian.  We only ever work on SE images so
-              this is relatively straightforward.
+            - write effective pixel scale into the output files
+            - also fit the first of the single epoch images, or coadd,
+              depending on a flag.
+
+            - test max radius for various models?  This is in additioi to the
+              5-sigma cutout for evaluating the gaussians.  I suspect we can
+              shave off even more time.  Would have to define elliptial
+              contour.
+
+            - mcmc
+                - look into trimming, but based on what size measure?
+                - start guess for flux from psf flux?
+                - don't use lmfit as name :)
+
+            - flux is biased high at low S/N.  Looks to be more biased than
+              the shear!  
+              
+                - Would it be improved by using prior during?
+                    - running now geg01r06
+                - prior on T?  How would we get one?
+                    - need to run
+
+            - porting mcmc to run with multi-epoch or regular
+                - fix up calc_stats (can copy from lmfit stuff)
+
+            - also need to perhaps run em if it is more stable than admom?  or
+              at least catch the error and try again.
+
+            - maybe supress fpack weight zeros noise?  Currently forcing 0 but
+              could also set zero if simply much smaller than the median?
+
+            - cases where match_model=='nil': psf fitting failing altogether?
+
+            - make sure to port over prior fixes to cluster step
+
             - s2n with in 1.5'' aperture; how to do that?
-            - For matched fit, need to be able to specify the run of a
-              detband, since runs and bands are tied together.  det_run= could
-              in principle imply the filename for the det_cat.
+                - add a parameter that is maxrad to likelihood code
+                - new function to do weight s/n that takes a max rad can be
+                  slower since it only needs be called once at the end.
 
-            - explore using EM and non-coelliptical fits to PSF
-                - get working on sky coords
+            - fix centroids in fits (other than matched)?
+            - throw out cutouts that hit too much edge?
 
-            - need to possibly store the psf fits in a separate file or
-              extension.
-
-            - ~aperture corrections on psfflux: put back difference
-                from model and psf image
-
-                    flux = flux*(1+(model-psfimage)/psfimage)
-
-                how to do on stack?  average that frac diff?
-
-            - I think Flux fitter should just inherit from Base
-            - should we use the lowest_psum?
-            - bulge+disk?
-                - coelliptical would add two parameters
-
-                    [cen1,cen2,e1,e2,T1,T2,p1,p2]
-
-                and we are back to similar situation as coelliptical
-                gaussians, which just don't work that well.  bdco
-
-            - very long term
-                - sersic?
-                - run Hoggs code on a closely spaced grid of n?
-
-            - when gauss is psf, 2 won't fit well; might want fallback to 1
-              gauss.
-            - need seg maps!  Also need to make sure we download all the
-              g,r,i,z images for the spte runs.
 
         - gmix
-            - psfex image generation code
             - shapelets psf image generation code
             - gary's alternative bayesian formulation
-        - get seg for spt east
-            * sent email to Robert, he says after some coadd fixes
         - get outlier pixel rejection, features etc. from Daniel
             * sent email to daniel
-        - psf size vs mag
-            - Gary argues don't want poisson weighting
-            * sent mail to mike about new measure
         - convert coadd to wget as well
 
         - Daniel says weight map might have wrong normalization
@@ -122,9 +194,6 @@ Quick look Queue
 
     MEDS
         
-        - add id back into meds
-        - add ra,dec
-        - Add $DESDATA to the metadata
         - make some metadata not string, if they exist
 
         In api, generate some useful filenames automatically,

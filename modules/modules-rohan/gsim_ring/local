@@ -1,0 +1,14 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"gsim_ring local install"
+conflict gsim_ring
+
+eval set [ array get env HOME ]
+
+set GSIM_RING_DIR $HOME/exports/gsim_ring-local
+
+prepend-path PATH $GSIM_RING_DIR/bin
+
+setenv GSIM_RING_DIR $GSIM_RING_DIR
+setenv GSIM_RING_VERS local

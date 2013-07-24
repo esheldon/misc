@@ -1,0 +1,256 @@
+Overall
+    
+    - How do you define S/N generally?  I see a few places where it is some
+      kind of PSF flux but it is not everywhere clear.  I see a footnote 54,
+      but I'm not sure if that is the same S/N referred to at other times.
+
+
+
+2.2
+
+    p1
+
+
+        Bullet 1
+
+            Spell out DIA as Difference Image Analysis at this point in the
+            document.
+
+        Bullet 2
+            
+            You say "detected on deep coadds as well as individual visits" I
+            think you mean detected on coadds *or* individual visits.  There
+            will be detections on both coadds and SE visits as well as only
+            coadd or SE visits.
+        
+        There are, I think, missing categories here:  
+        
+            - multi-fit measurements.
+              ** I see you do discuss this in section 5.1/5.2 but not here.
+
+            - Some data product that facilitates straightforward processing of
+              the multi-epoch data (e.g. cutout or a cutout service)
+
+              ** I see you mention multifit in section 5.1/5.2, but without
+              mention of a data product to facilitate that outside the primary
+              processing. 
+
+        Footnote 4  I suspect your use of the word Source will result in
+        confusion.
+
+4
+
+    4.1
+
+        How do you define "apparition"?
+
+        Footnote 15
+
+            An anectdote : in DES we find it useful to make cutouts variable
+            in size according to objects size, and then rounding up to 2^N or
+            3*2^N for optimal FFT processing.  I understand for transient
+            alerts one would probably produce a small, fixed size cutout.
+
+
+5.2
+
+    photoZ "...widely accepted algorithm..." ha!
+
+5.5
+
+    Footnote 85
+
+        Explain why coadds are a storage driver.  
+
+
+Questions in Charge
+--------------------
+
+    - 1 Does the definition of Level 1 Data Products satisfy the data product
+      requirements laid out in the LSST Science Requirements Document?
+
+      The SRD is vague enough that this document certainly seems to fullfill
+      the requirements.
+
+    - 2 Are LSST time domain event alert contents and distribution plans
+      adequate to enable science cases depending on immediate follow-up?
+
+      The SRD is vague...
+
+    - 3 Does the definition of Level 2 Data Products satisfy the data product
+      requirements laid out in the LSST Science Requirements Document?
+
+        - I don't think lensing is addressed sufficiently in either the SRD or
+          this document.  My intuition is that the lensing will be the most
+          technically challenging part of the image processing, and also
+          possibly the most computationally expensive, depending on the
+          algorithm.  The products outlined appear to be the minimum needed to
+          do decent photometry and support the time domain science.
+
+    - 4 Are the catalog Data Products envisioned for Level 1 and Level 2
+      appropriately comprehensive to enable a significant fraction of science
+      envisioned for the LSST (the LSST Science Drivers, LSST SRD, Section 2),
+      without further access to pixel data?
+
+        - Weak lensing is not addressed.  Is it supposed that the weak lensing
+          measures will be level 3?  If so, significant computational support
+          will be needed at level 3.
+
+          I think it is appropriate that *research* into weak lensing measures
+          should supported at level 3, but there should also be a plan for at
+          least one algorithm to run at level 2.  This will have associated
+          data products, both input and output, that are not accounted for
+          here.
+     
+    - 5 Do planned Level 3 capabilities, in conjunction with Level 1 and Level
+      2 data products, reasonably enable science cases that greatly benefit
+      from co-location with LSST data and computing, within the guidelines and
+      boundaries defined in the LSST SRD?
+
+        - mention that it seems more like a skyserver level thing in terms of
+          resources, even though ti has much more extensive capabilities.
+        
+        - If weak lensing is intended for level 3, then significant cpu time
+          should be budgeted.
+
+    - 6 Is the definition of all levels of LSST data products appropriately
+      understood and mature to enable the start of construction of LSST Data
+      Management systems (subject to formal flow-down to specification
+      documents)?
+
+        - see above
+
+    - 7 Do designs for LSST Data Products include adequate provisions for
+      adjustments during construction, commissioning, and operations as needed
+      to ensure the continued scientific adequacy of LSST Data Products?
+
+        - I'm not sure what is meant by provisions here.  It seems to me what
+          must be planned for is increase in complexity or number of
+          algorithms used in the processing.  Since some of the required data
+          products depend on unsolved scientific problems (lensing and
+          photozs), it is not yet possible to scope these.
+
+          The language adopted for photozs is along the lines of "we will use
+          the best algorithms as determined by the community".  For both
+          lensing and photozs, it is possibly this consensus will not  have
+          been reached by the start of LSST.  Should LSST support this
+          research then, since primary LSST science goals depend upon it?
+
+
+The panel is asked to produce a written report that includes Requests for
+Action (RFA), if any, and Observations, if any. These are defined as follows:
+
+    - Tier 1 – Immediate RFA:  these items are recommended for immediate
+      action and closure prior to updating the technical baseline for the
+      Final Design Review.
+
+    - Tier 2 - RFA:  these items are recommended for action and inclusion in a
+      revision of the technical baseline after the Final Design Review (in
+      Construction).
+
+    - Tier 3 - Concerns:  these are comments or “soft” recommendations that
+      require action by the design/engineering team, but have no specific
+      recommended timeline.
+
+    - Observations – these are general comments and require no response.
+
+
+Talks
+-------
+
+Mario intro
+
+    - should think of level 2 as be all end all: if don't expect to meet
+      expectations, say so!
+
+Strauss
+
+    - S/N is always a value in the PSF convolved map
+
+
+
+    - level 1 Mario
+
+        - every transaction is recorded, so you can can query the database for
+          the state at any previous state of the db
+
+          Ask jacek more about this
+
+        - maybe recommend change Source name
+
+        - sized for 4 brokers, 1 special for user filters
+
+    - level 2 Robert
+        
+        * allocated ?3? Seconds per object for lensing?
+
+        x merge detections from coadds of multiple bands and external.
+            x pushed through deblender even if no detected pixels
+
+        - make recommendation about "cutout service" (parent or children) that
+          should, when processed in parallel, has no serious bottleneck
+
+          Note, no such service exists.
+
+          They should make it very clear that this service will be avalable
+          and something about the expected performance.
+
+          Reasonable that the user says in advance what regions of sky they
+          will process (or objects) so that the system can determine how to
+          get the required *total* throughput to all processes.
+
+        - recommend clarification that level 2 products can facilitate later
+          analysis
+
+        * recommend storage limit rather than number of samples (about
+          facilitating)
+
+        x think about how much information you *really* need for the
+          likelihood (bits).
+
+        * "compression" ideas: do "nearest" neighbor (and differnces for
+          derivative) in parameter space for p(z) and model likelihoods to
+          facilitate later computations without comprimizing details of
+          likelihood.
+
+        * a little about metadata?  Others will as well.
+
+        x choosing elliptical apertures: Robert has some ideas based on an
+          initial measurement from adaptive moments.
+          - I see adaptive moments fail sometimes for s/n=5
+
+        * psf model? Not determined
+
+        x why would you become PSF dependent in color if the model isn't
+        good?
+
+        * recommend something about sky determination.
+
+        x currently fixing center except for bulge+disk
+
+        x are fixing structureal parameters for non-canonical bands, but
+          letting fluxes float, doing simultaneous fit!
+
+
+    - level 3 Gregory
+
+        - 10% capability and storage
+
+            - enough?  Assumption is all core science should be possible from
+              level 2 (not including spectroscopy)
+
+        - It has become clear this is considered small time.  It is not meant
+          to be a major computing platform for working on LSST data.
+
+        - clearly minor: it would be good to see a plan for making it easy for
+        people with sufficient resources to efficiently get all the images,
+        maybe in yearly deliveries.
+
+
+    - database
+
+        - what engine in MySQL?  InnoDB and MyISAM have known issues with
+          potential data corruption.
+
+            - they use append only tables
+            - they use small partitions to fix the copy-on-index problem

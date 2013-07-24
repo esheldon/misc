@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "object.h"
+#include "object_simple.h"
 #include "catalog.h"
 
 static ssize_t catalog_count(FILE *fobj)
 {
-    struct object object = {{0}};
+    struct object_simple object = {{0}};
 
     ssize_t count=0;
 
-    while (object_read_one(&object, fobj)) {
+    while (object_simple_read_one(&object, fobj)) {
         count += 1;
     }
 
@@ -32,7 +32,7 @@ static FILE *open_catalog(const char *filename)
 struct catalog *catalog_read(const char *filename)
 {
     struct catalog *self=NULL;
-    struct object *object=NULL;
+    struct object_simple *object=NULL;
 
     fprintf(stderr,"reading catalog: %s\n", filename);
     FILE *fobj=open_catalog(filename);
@@ -46,12 +46,12 @@ struct catalog *catalog_read(const char *filename)
     ssize_t count=catalog_count(fobj);
 
     self->size=count;
-    self->data=calloc(count, sizeof(struct object));
+    self->data=calloc(count, sizeof(struct object_simple));
 
 
     object=self->data;
     for (ssize_t i=0; i< count; i++) {
-        object_read_one(object, fobj);
+        object_simple_read_one(object, fobj);
         object++;
     }
 

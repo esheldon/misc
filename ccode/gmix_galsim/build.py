@@ -24,7 +24,7 @@ LINKFLAGS=['-lcfitsio','-lm']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
 sources=['gmix-galsim','gmix_image','gmix_image_fits',
-         'gmix','gmix_mcmc','image','mca','gauss',
+         'gmix','gmix_mcmc','image','mca','gauss2',
          'image_rand','randn',
          'admom','shape','config']
 objlist_sources=['gmix-galsim-objlist']
