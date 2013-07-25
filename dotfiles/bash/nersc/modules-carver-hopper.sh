@@ -53,7 +53,7 @@ module unload meds && module load meds/local
 module unload psfex && module load psfex/local
 module unload gmix_meds && module load gmix_meds/local
 
-module unload gsim_ring && load gsim_ring/local
+module unload gsim_ring && module load gsim_ring/local
 
 module load deswl-checkout/local
 
