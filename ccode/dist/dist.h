@@ -23,28 +23,10 @@ enum dist {
     DIST_GMIX3_ETA 
 };
 
-// generic distributions
-/*
-struct dist1d {
+
+struct dist_base {
     enum dist dist_type;
-    void *data;
 };
-struct dist2d {
-    enum dist dist_type;
-    void *data;
-};
-
-struct dist1d *dist1d_new(enum dist dist_type, VEC(double) pars, long *flags);
-struct dist2d *dist2d_new(enum dist dist_type, VEC(double) pars, long *flags);
-
-struct dist1d *dist1d_free(struct dist1d *self);
-struct dist2d *dist2d_free(struct dist2d *self);
-
-double dist1d_lnprob(struct dist1d *self, double x);
-double dist1d_prob(struct dist1d *self, double x);
-double dist2d_lnprob(struct dist2d *self, double x, double y);
-double dist2d_prob(struct dist2d *self, double x, double y);
-*/
 
 // these should always be value types, so they can be copied
 // that means static sized fields
