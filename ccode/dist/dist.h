@@ -110,6 +110,14 @@ void dist_g_ba_pqr(const struct dist_g_ba *self,
                    double *R11,
                    double *R12,
                    double *R22);
+void dist_g_ba_pqr_num(const struct dist_g_ba *self,
+                       const struct shape *shape,
+                       double *P,
+                       double *Q1,
+                       double *Q2,
+                       double *R11,
+                       double *R12,
+                       double *R22);
 
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream);
 
