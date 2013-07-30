@@ -271,7 +271,6 @@ double dist_g_ba_pj(const struct dist_g_ba *self,
 
     return p*j;
 }
-
 void dist_g_ba_pqr(const struct dist_g_ba *self,
                    const struct shape *shape,
                    double *P,
@@ -280,6 +279,53 @@ void dist_g_ba_pqr(const struct dist_g_ba *self,
                    double *R11,
                    double *R12,
                    double *R22)
+{
+
+    *P = dist_g_ba_prob(self, shape);
+
+
+    double sigma = self->sigma;
+    double sig2 = sigma*sigma;
+    double sig4 = sig2*sig2;
+    double sig2inv = 1./sig2;
+    double sig4inv = 1./sig4;
+
+    double g1sq = shape->g1*shape->g1;
+    double g2sq = shape->g2*shape->g2;
+    double g1_4 = g1sq*g1sq;
+    double g1_6 = g1sq*g1_4;
+
+    double g2_4 = g2sq*g2sq;
+    double g2_6 = g2sq*g2_4;
+
+
+    double gsq = g1sq + g2sq;
+    double omgsq = 1. - gsq;
+    double omgsq2 = omgsq*omgsq;
+
+    double fac = exp(-0.5*gsq*sig2inv)*omgsq2;
+
+    double Qf = fac*(omgsq + 8*sig2)*sig2inv;
+
+    *Q1 = shape->g1*Qf;
+    *Q2 = shape->g2*Qf;
+
+    *R11 = (fac * (g1_6 + g1_4*(-2 + 2*g2sq - 19*sig2) + (1 + g2sq)*sig2*(-1 + g2sq - 8*sig2) + g1sq*(1 + g2_4 + 20*sig2 + 72*sig4 - 2*g2sq*(1 + 9*sig2))))*sig4inv;
+    *R22 = (fac * (g2_6 + g2_4*(-2 + 2*g1sq - 19*sig2) + (1 + g1sq)*sig2*(-1 + g1sq - 8*sig2) + g2sq*(1 + g1_4 + 20*sig2 + 72*sig4 - 2*g1sq*(1 + 9*sig2))))*sig4inv;
+
+    *R12 = fac * shape->g1*shape->g2 * (80 + omgsq2*sig4inv + 20*omgsq*sig2inv);
+
+}
+
+
+void dist_g_ba_pqr_num(const struct dist_g_ba *self,
+                       const struct shape *shape,
+                       double *P,
+                       double *Q1,
+                       double *Q2,
+                       double *R11,
+                       double *R12,
+                       double *R22)
 {
     double h=1.e-3;
     double h2inv = 1./(2*h);
