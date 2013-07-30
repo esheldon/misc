@@ -163,6 +163,10 @@ void dist_g_ba_fill(struct dist_g_ba *self, double sigma)
     self->dist_type=DIST_G_BA;
     self->sigma=sigma;
     self->ivar=1./(sigma*sigma);
+
+    // maxval is at 0,0
+    struct shape shape={0};
+    self->maxval = dist_g_ba_prob(self, &shape);
 }
 
 
@@ -227,6 +231,28 @@ double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape)
     }
     return prob;
 
+}
+
+// since g is bounded, we can use the cut method
+void dist_g_ba_sample(const struct dist_g_ba *self, struct shape *shape)
+{
+    while (1) {
+        double g1=srandu();
+        double g2=srandu();
+
+        double gsq=g1*g1 + g2*g2;
+        if (gsq < 1) {
+
+            shape_set_g(shape, g1, g2);
+
+            double prob=dist_g_ba_prob(self, shape);
+            double prand=self->maxval*drand48();
+
+            if (prand < prob) {
+                break;
+            }
+        }
+    }
 }
 
 double dist_g_ba_pj(const struct dist_g_ba *self,

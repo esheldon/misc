@@ -52,6 +52,8 @@ struct dist_g_ba {
     enum dist dist_type;
     double sigma;
     double ivar;
+
+    double maxval;
 };
 
 // 3 round gaussians centered at zero
@@ -94,6 +96,7 @@ struct dist_g_ba *dist_g_ba_new(double sigma);
 void dist_g_ba_fill(struct dist_g_ba *self, double sigma);
 double dist_g_ba_lnprob(const struct dist_g_ba *self, const struct shape *shape);
 double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape);
+void dist_g_ba_sample(const struct dist_g_ba *self, struct shape *shape);
 
 double dist_g_ba_pj(const struct dist_g_ba *self,
                     const struct shape *shape,
