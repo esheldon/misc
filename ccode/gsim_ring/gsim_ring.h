@@ -27,6 +27,7 @@ struct gsim_ring {
 
 struct gsim_ring *gsim_ring_new_from_config(const struct gsim_ring_config *conf);
 struct gsim_ring *gsim_ring_new_from_file(const char *name, long *flags);
+struct gsim_ring *gsim_ring_free(struct gsim_ring *self);
 
 struct ring_pair {
     double s2n;

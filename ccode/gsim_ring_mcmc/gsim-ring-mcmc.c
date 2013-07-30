@@ -245,7 +245,7 @@ void process_one(struct gmix_mcmc *self,
     }
 
 
-#if 0
+#if 1
     mca_chain_plot(self->chain_data.burnin_chain,"");
     mca_chain_plot(self->chain_data.chain,"");
 #endif
@@ -341,7 +341,7 @@ static struct gsim_ring *load_ring(const char *name)
         fprintf(stderr,"fatal error reading ring config, exiting\n");
         exit(1);
     }
-    gsim_ring_config_print(&ring->conf, stderr);
+    gsim_ring_config_print(&self->conf, stderr);
 
     return self;
 }
@@ -376,11 +376,11 @@ int main(int argc, char **argv)
 
 
     fprintf(stderr,"running sim with s2n: %g and npairs: %ld\n", s2n, npairs);
-    run_sim(&ring, gmix_mcmc, s2n, npairs);
+    run_sim(ring, gmix_mcmc, s2n, npairs);
     fprintf(stderr,"finished running sim\n");
 
     // cleanup
-    gsim_ring=gsim_ring_free(ring);
+    ring=gsim_ring_free(ring);
     gmix_mcmc = gmix_mcmc_free(gmix_mcmc);
 
     return 0;

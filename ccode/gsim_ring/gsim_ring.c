@@ -6,30 +6,32 @@
 #include "gmix_image.h"
 #include "gmix_image_rand.h"
 #include "shape.h"
+#include "dist.h"
 #include "gsim_ring.h"
 
 void fill_shape_prior(struct gsim_ring *self)
 {
 
     switch (self->conf.shape_prior) {
+
         case DIST_GMIX3_ETA:
-            struct dist_gmix3_eta *shape_prior=calloc(1, sizeof(struct dist_gmix3_eta));
-            if (!self) {
-                fprintf(stderr, "Could not allocate struct dist_gmix3_eta: %s: %d",
-                        model, __FILE__,__LINE__);
-                exit(1);
+            {
+                struct dist_gmix3_eta *shape_prior=
+                    dist_gmix3_eta_new(self->conf.shape_prior_pars[0],
+                                       self->conf.shape_prior_pars[1],
+                                       self->conf.shape_prior_pars[2],
+                                       self->conf.shape_prior_pars[3],
+                                       self->conf.shape_prior_pars[4],
+                                       self->conf.shape_prior_pars[5]);
+
+                self->shape_prior = (void *) shape_prior;
             }
-
-            dist_gmix3_eta_fill(shape_prior,
-                                conf->shape_prior_pars[0],
-                                conf->shape_prior_pars[1],
-                                conf->shape_prior_pars[2],
-                                conf->shape_prior_pars[3],
-                                conf->shape_prior_pars[4],
-                                conf->shape_prior_pars[5]);
-
-            self->shape_prior = (void *) shape_prior;
-
+            break;
+        case DIST_G_BA:
+            {
+                struct dist_g_ba *shape_prior=dist_g_ba_new(self->conf.shape_prior_pars[0]);
+                self->shape_prior = (void *) shape_prior;
+            }
             break;
         default:
             fprintf(stderr, "bad shape prior type: %u: %s: %d, aborting\n",
@@ -42,7 +44,7 @@ struct gsim_ring *gsim_ring_new_from_config(const struct gsim_ring_config *conf)
     struct gsim_ring *self=calloc(1,sizeof(struct gsim_ring));
     if (!self) {
         fprintf(stderr, "Could not allocate struct gsim_ring: %s: %d",
-                model, __FILE__,__LINE__);
+                __FILE__,__LINE__);
         exit(1);
     }
     // a value type
@@ -55,6 +57,8 @@ struct gsim_ring *gsim_ring_new_from_config(const struct gsim_ring_config *conf)
 
     dist_lognorm_fill(&self->T_dist, conf->T_prior_pars[0], conf->T_prior_pars[1]);
     dist_lognorm_fill(&self->counts_dist, conf->counts_prior_pars[0], conf->counts_prior_pars[1]);
+
+    return self;
 }
 
 struct gsim_ring *gsim_ring_new_from_file(const char *name, long *flags)
@@ -63,10 +67,9 @@ struct gsim_ring *gsim_ring_new_from_file(const char *name, long *flags)
     struct gsim_ring_config config={{0}};
 
     *flags = gsim_ring_config_load(&config, name);
-    if (*flags != 0) {
-        return flags;
+    if (*flags == 0) {
+        self=gsim_ring_new_from_config(&config);
     }
-    self=gsim_ring_new_from_config(&config);
 
     return self;
 }
@@ -148,6 +151,32 @@ static void fill_pars_6par_psf(const struct shape *shape,
 }
 
 
+static void sample_shape_prior(const struct gsim_ring *self, struct shape *shape)
+{
+    switch (self->conf.shape_prior) {
+
+        case DIST_GMIX3_ETA:
+            {
+                const struct dist_gmix3_eta *shape_prior=
+                    (struct dist_gmix3_eta *) self->shape_prior;
+                dist_gmix3_eta_sample(shape_prior, shape);
+            }
+            break;
+        case DIST_G_BA:
+            {
+                const struct dist_g_ba *shape_prior=
+                    (struct dist_g_ba *) self->shape_prior;
+                dist_g_ba_sample(shape_prior, shape);
+            }
+            break;
+        default:
+            fprintf(stderr, "bad shape prior type: %u: %s: %d, aborting\n",
+                    self->conf.shape_prior, __FILE__,__LINE__);
+            exit(1);
+    }
+
+}
+
 struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *flags)
 {
 
@@ -175,7 +204,8 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *
     double T = dist_lognorm_sample(&ring->T_dist);
     double counts = dist_lognorm_sample(&ring->counts_dist);
 
-    dist_gmix3_eta_sample(&ring->shape_prior, &shape1);
+    sample_shape_prior(ring, &shape1);
+    //dist_gmix3_eta_sample(&ring->shape_prior, &shape1);
 
     shape2 = shape1;
     shape_rotate(&shape2, M_PI_2);
