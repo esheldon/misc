@@ -17,15 +17,16 @@ struct gsim_ring {
     struct dist_gauss cen1_dist;
     struct dist_gauss cen2_dist;
 
-    struct dist_gmix3_eta shape_prior;
+    //struct dist_gmix3_eta shape_prior;
+    struct dist_base *shape_prior;
 
     struct dist_lognorm T_dist;
     struct dist_lognorm counts_dist;
 
 };
 
-long gsim_ring_fill_from_file(struct gsim_ring *self, const char *name);
-void gsim_ring_fill(struct gsim_ring *self, const struct gsim_ring_config *conf);
+struct gsim_ring *gsim_ring_new_from_config(const struct gsim_ring_config *conf);
+struct gsim_ring *gsim_ring_new_from_file(const char *name, long *flags);
 
 struct ring_pair {
     double s2n;

@@ -264,7 +264,6 @@ void process_pair(struct gsim_ring *ring,
 {
 
     long flags=0;
-    //struct result res = {0};
     double T=0, counts=0;
 
     struct ring_image_pair *impair = get_image_pair(ring, s2n, &T, &counts);
@@ -280,7 +279,6 @@ void process_pair(struct gsim_ring *ring,
         goto _process_pair_bail;
     }
     print_one(gmix_mcmc);
-    //mca_stats_write_brief(gmix_mcmc->chain_data.stats, stderr);
 
     process_one(gmix_mcmc,
                 impair,
@@ -293,7 +291,6 @@ void process_pair(struct gsim_ring *ring,
         goto _process_pair_bail;
     }
     print_one(gmix_mcmc);
-    //mca_stats_write_brief(gmix_mcmc->chain_data.stats, stderr);
 
 _process_pair_bail:
     impair = ring_image_pair_free(impair);
@@ -322,21 +319,6 @@ static void print_header(long nlines, long npars)
     printf("\n");
 }
 
-/*
-long get_npairs(double s2n, double fac, long min_npairs)
-{
-    double rat = 100.0/s2n;
-    long npair = (long) ( round( fac*rat*rat ) );
-
-    if (npair < 1) {
-        npair = 1;
-    }
-    if (npair < min_npairs) {
-        npair = min_npairs;
-    }
-    return (long) npair;
-}
-*/
 
 static void run_sim(struct gsim_ring *ring,
                     struct gmix_mcmc *gmix_mcmc,
@@ -345,22 +327,23 @@ static void run_sim(struct gsim_ring *ring,
 {
 
     print_header(npairs*2, gmix_mcmc->conf.npars);
-    fprintf(stderr,"processing %ld pairs\n\n", npairs);
-
     for (long i=0; i<npairs; i++) {
         fprintf(stderr,"%ld/%ld\n", i+1, npairs);
         process_pair(ring, gmix_mcmc, s2n);
     }
 }
 
-static void load_ring(struct gsim_ring *ring, const char *name)
+static struct gsim_ring *load_ring(const char *name)
 {
-    long flags=gsim_ring_fill_from_file(ring, name);
+    long flags=0;
+    struct gsim_ring *self=gsim_ring_new_from_file(name, &flags);
     if (flags != 0) {
         fprintf(stderr,"fatal error reading ring config, exiting\n");
         exit(1);
     }
     gsim_ring_config_print(&ring->conf, stderr);
+
+    return self;
 }
 
 
@@ -385,11 +368,7 @@ int main(int argc, char **argv)
     }
     randn_seed();
 
-    // value type
-    struct gsim_ring ring={{{0}}};
-    load_ring(&ring, argv[1]);
-
-    // reference type
+    struct gsim_ring *ring=load_ring(argv[1]);
     struct gmix_mcmc *gmix_mcmc = load_gmix_mcmc(argv[2]);
 
     double s2n = atof(argv[3]);
@@ -401,6 +380,7 @@ int main(int argc, char **argv)
     fprintf(stderr,"finished running sim\n");
 
     // cleanup
+    gsim_ring=gsim_ring_free(ring);
     gmix_mcmc = gmix_mcmc_free(gmix_mcmc);
 
     return 0;
