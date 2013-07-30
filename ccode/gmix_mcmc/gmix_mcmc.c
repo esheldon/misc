@@ -8,9 +8,64 @@
 #include "gmix_mcmc_config.h"
 #include "gmix_mcmc.h"
 
-// we can generalize these later
 // you should caste prob_data_base to your actual type
-static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *conf, long *flags)
+static struct prob_data_base *get_prob_ba13(const struct gmix_mcmc_config *conf, long *flags)
+{
+
+    struct prob_data_simple_ba *prob=NULL;
+
+    struct dist_gauss cen_prior={0};
+
+    struct dist_g_ba shape_prior={0};
+
+    struct dist_lognorm T_prior={0};
+    struct dist_lognorm counts_prior={0};
+
+    fprintf(stderr,"loading prob ba13\n");
+
+    if (conf->cen_prior_npars != 2
+            || conf->T_prior_npars != 2
+            || conf->counts_prior_npars != 2
+            || conf->shape_prior_npars != 1) {
+
+        fprintf(stderr,"error: wrong npars: %s: %d\n",
+                __FILE__,__LINE__);
+        *flags |= DIST_WRONG_NPARS;
+        return NULL;
+    }
+    dist_gauss_fill(&cen_prior,
+                    conf->cen_prior_pars[0],
+                    conf->cen_prior_pars[1]);
+    dist_lognorm_fill(&T_prior, 
+                      conf->T_prior_pars[0],
+                      conf->T_prior_pars[1]);
+    dist_lognorm_fill(&counts_prior,
+                      conf->counts_prior_pars[0],
+                      conf->counts_prior_pars[1]);
+    dist_g_ba_fill(&shape_prior, conf->shape_prior_pars[0]);
+
+    // priors get copied
+    prob=prob_data_simple_ba_new(conf->fitmodel,
+                                 conf->psf_ngauss,
+
+                                 &cen_prior,
+                                 &cen_prior,
+
+                                 &shape_prior,
+
+                                 &T_prior,
+                                 &counts_prior,
+                                 flags);
+
+    fprintf(stderr,"prob:\n");
+    prob_simple_ba_print(prob, stderr);
+
+    return (struct prob_data_base *) prob;
+}
+
+
+// you should caste prob_data_base to your actual type
+static struct prob_data_base *get_prob_gmix3_eta(const struct gmix_mcmc_config *conf, long *flags)
 {
 
     struct prob_data_simple_gmix3_eta *prob=NULL;
@@ -71,10 +126,47 @@ static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *co
     return (struct prob_data_base *) prob;
 }
 
+static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *conf, long *flags)
+{
+    switch (conf->prob_type) {
+        case PROB_NOSPLIT_ETA:
+            return get_prob_gmix3_eta(conf, flags);
+            break;
+        case PROB_BA13:
+            return get_prob_ba13(conf, flags);
+            break;
+        default:
+            fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
+                    conf->prob_type, __FILE__,__LINE__);
+            exit(1);
+
+    }
+}
 // can generalize this
 static struct prob_data_base *prob_free_generic(struct prob_data_base *prob)
 {
-    prob_data_simple_gmix3_eta_free( (struct prob_data_simple_gmix3_eta *) prob);
+    switch (prob->type) {
+        case PROB_NOSPLIT_ETA:
+            {
+                struct prob_data_simple_gmix3_eta *ptmp
+                    =(struct prob_data_simple_gmix3_eta *) prob;
+                prob_data_simple_gmix3_eta_free(ptmp);
+            }
+            break;
+        case PROB_BA13:
+            {
+                struct prob_data_simple_ba *ptmp
+                    =(struct prob_data_simple_ba *) prob;
+                prob_data_simple_ba_free(ptmp);
+            }
+            break;
+
+        default:
+            fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
+                    prob->type, __FILE__,__LINE__);
+            exit(1);
+    }
+
     return NULL;
 }
 
@@ -166,13 +258,56 @@ void gmix_mcmc_set_obs_list(struct gmix_mcmc *self, const struct obs_list *obs_l
 }
 
 
+static void calc_pqr(struct gmix_mcmc *self,
+                     const double *pars,
+                     size_t npars,
+                     double *P,
+                     double *Q1, double *Q2,
+                     double *R11, double *R12, double *R22,
+                     long *flags)
+{
+    switch (self->prob->type) {
+        case PROB_NOSPLIT_ETA:
+            {
+                struct prob_data_simple_gmix3_eta *prob = 
+                    (struct prob_data_simple_gmix3_eta *)self->prob;
+
+                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars, flags);
+                if (*flags==0) {
+                    dist_gmix3_eta_pqr(&prob->shape_prior,
+                                       &gmix_pars->shape,
+                                       P, Q1, Q2, R11, R12, R22);
+                    gmix_pars = gmix_pars_free(gmix_pars);
+                }
+            }
+            break;
+        case PROB_BA13:
+            {
+                struct prob_data_simple_ba *prob = 
+                    (struct prob_data_simple_ba *)self->prob;
+
+                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars, flags);
+                if (*flags==0) {
+                    dist_g_ba_pqr(&prob->shape_prior,
+                                  &gmix_pars->shape,
+                                  P, Q1, Q2, R11, R12, R22);
+                    gmix_pars = gmix_pars_free(gmix_pars);
+                }
+            }
+            break;
+
+        default:
+            fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
+                    self->prob->type, __FILE__,__LINE__);
+            exit(1);
+    }
+}
 // calculate P,Q,R with fix for the fact that the prior is already
 // in our chain; just divide by the prior
 long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
 {
 
     const struct mca_chain *chain = self->chain_data.chain;
-    const struct prob_data_simple_gmix3_eta *prob = self->prob;
 
     long nstep=MCA_CHAIN_NSTEPS(chain);
     size_t npars = MCA_CHAIN_NPARS(chain);
@@ -183,13 +318,10 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
 
     for (long i=0; i<nstep; i++) {
         const double *pars = MCA_CHAIN_PARS(chain, i);
-        struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars, &flags);
+
+        calc_pqr(self,pars,npars,&P,&Q1,&Q2,&R11,&R12,&R22,&flags);
+
         if (flags==0) {
-
-            dist_gmix3_eta_pqr(&prob->shape_prior,
-                               &gmix_pars->shape,
-                               &P, &Q1, &Q2, &R11, &R12, &R22);
-
             if (P > Pmax) {
                 Pmax=P;
             }
@@ -207,7 +339,6 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
 
             } // P >0 check
         } // flag check
-        gmix_pars = gmix_pars_free(gmix_pars);
 
     } // steps
 
@@ -232,9 +363,6 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
 }
 
 
-// can generalize this by adding a callback to the prob struct
-// and allowing different guess sizes/values for different model types
-
 // note flags get "lost" here, you need good error messages
 static double get_lnprob(const double *pars, size_t npars, const void *data)
 {
@@ -243,19 +371,56 @@ static double get_lnprob(const double *pars, size_t npars, const void *data)
 
     struct gmix_mcmc *self=(struct gmix_mcmc *)data;
 
-    struct prob_data_simple_gmix3_eta *prob = self->prob;
+    switch (self->prob->type) {
+        case PROB_NOSPLIT_ETA:
+            {
+                struct prob_data_simple_gmix3_eta *prob = 
+                    (struct prob_data_simple_gmix3_eta *)self->prob;
 
-    struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars, &flags);
-    if (flags != 0) {
-        lnprob = DIST_LOG_LOWVAL;
-    } else {
-        prob_simple_gmix3_eta_calc(prob,
-                                   self->obs_list,
-                                   gmix_pars,
-                                   &s2n_numer, &s2n_denom,
-                                   &lnprob, &flags);
-        gmix_pars = gmix_pars_free(gmix_pars);
+                struct gmix_pars *gmix_pars=
+                    gmix_pars_new(prob->model, pars, npars, &flags);
+                if (flags != 0) {
+                    lnprob = DIST_LOG_LOWVAL;
+                } else {
+
+                    prob_simple_gmix3_eta_calc(prob,
+                                               self->obs_list,
+                                               gmix_pars,
+                                               &s2n_numer, &s2n_denom,
+                                               &lnprob, &flags);
+
+                    gmix_pars = gmix_pars_free(gmix_pars);
+                }
+            }
+            break;
+        case PROB_BA13:
+            {
+                struct prob_data_simple_ba *prob = 
+                    (struct prob_data_simple_ba *)self->prob;
+
+                struct gmix_pars *gmix_pars=
+                    gmix_pars_new(prob->model, pars, npars, &flags);
+                if (flags != 0) {
+                    lnprob = DIST_LOG_LOWVAL;
+                } else {
+
+                    prob_simple_ba_calc(prob,
+                                        self->obs_list,
+                                        gmix_pars,
+                                        &s2n_numer, &s2n_denom,
+                                        &lnprob, &flags);
+
+                    gmix_pars = gmix_pars_free(gmix_pars);
+                }
+            }
+            break;
+
+        default:
+            fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
+                    self->prob->type, __FILE__,__LINE__);
+            exit(1);
     }
+
     return lnprob;
 }
 

@@ -40,7 +40,7 @@ long dist_get_npars(enum dist dist_type, long *flags)
             break;
 
         default: 
-            fprintf(stderr,"Bad 1d dist type %u: %s: %d\n",
+            fprintf(stderr,"Bad dist type %u: %s: %d\n",
                     dist_type, __FILE__,__LINE__);
             *flags |= DIST_BAD_DIST;
             break;
@@ -311,7 +311,6 @@ void dist_g_ba_pqr(const struct dist_g_ba *self,
     *R11 = (Q1_p - 2*(*P) + Q1_m)*hsqinv;
     *R22 = (Q2_p - 2*(*P) + Q2_m)*hsqinv;
     *R12 = (R12_pp - Q1_p - Q2_p + 2*(*P) - Q1_m - Q2_m + R12_mm)*hsqinv*0.5;
-
 }
 
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream)

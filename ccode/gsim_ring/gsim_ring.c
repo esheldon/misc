@@ -205,7 +205,6 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *
     double counts = dist_lognorm_sample(&ring->counts_dist);
 
     sample_shape_prior(ring, &shape1);
-    //dist_gmix3_eta_sample(&ring->shape_prior, &shape1);
 
     shape2 = shape1;
     shape_rotate(&shape2, M_PI_2);

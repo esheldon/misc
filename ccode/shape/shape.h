@@ -59,5 +59,6 @@ int shape_add_inplace(struct shape *self, const struct shape *shear);
 
 double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape *shear);
 double shape_dgs_by_dgo_jacob(const struct shape *shape, const struct shape *shear);
+double shape_dgs_by_dgo_jacob_num(const struct shape *shape, const struct shape *shear);
 
 #endif
