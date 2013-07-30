@@ -189,16 +189,16 @@ double dist_g_ba_lnprob(const struct dist_g_ba *self, const struct shape *shape)
     gsq = shape->g1*shape->g1 + shape->g2*shape->g2;
 
     tmp = 1-gsq;
-    if ( tmp < DIST_LOG_MINARG ) {
+
+    lnp = log(tmp);
+    if (!isfinite(lnp)) {
         lnp = DIST_LOG_LOWVAL;
     } else {
 
         //p= (1-g**2)**2*exp(-0.5 * g**2 * ivar)
         // log(p) = 2*log(1-g^2) - 0.5*g^2 * ivar
 
-        // should do a fast math version; I suspect this
-        // will be a bottleneck
-        lnp = log(tmp);
+        //lnp = log(tmp);
 
         lnp *= 2;
         
@@ -281,7 +281,6 @@ void dist_g_ba_pqr(const struct dist_g_ba *self,
                    double *R12,
                    double *R22)
 {
-    //double h=1.e-6;
     double h=1.e-3;
     double h2inv = 1./(2*h);
     double hsqinv=1./(h*h);
