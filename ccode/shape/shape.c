@@ -329,6 +329,20 @@ double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape 
 
 double shape_dgs_by_dgo_jacob(const struct shape *shape, const struct shape *shear)
 {
+    double ssq = shear->g1*shear->g1 + shear->g2*shear->g2;
+    double num = (ssq - 1)*(ssq - 1);
+    double denom=(1 
+                  + 2*shape->g1*shear->g1
+                  + 2*shape->g2*shear->g2
+                  + shape->g1*shape->g1*ssq
+                  + shape->g2*shape->g2*ssq);
+    denom *= denom;
+
+    return num/denom;
+}
+
+double shape_dgs_by_dgo_jacob_num(const struct shape *shape, const struct shape *shear)
+{
     double h=1.e-3;
     double h2inv = 1./(2*h);
 

@@ -245,7 +245,7 @@ void process_one(struct gmix_mcmc *self,
     }
 
 
-#if 1
+#if 0
     mca_chain_plot(self->chain_data.burnin_chain,"");
     mca_chain_plot(self->chain_data.chain,"");
 #endif
