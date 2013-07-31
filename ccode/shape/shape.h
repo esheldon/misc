@@ -1,6 +1,12 @@
 #ifndef _SHAPE_HEADER_GUARD
 #define _SHAPE_HEADER_GUARD
 
+enum shape_system {
+    SHAPE_SYSTEM_ETA,
+    SHAPE_SYSTEM_G,
+    SHAPE_SYSTEM_E
+};
+
 struct shape {
     double g1;
     double g2;

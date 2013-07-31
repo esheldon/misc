@@ -181,6 +181,7 @@ struct gmix* gmix_new_empty_full(long npars, long *flags)
 static void simple_pars_to_shape(enum gmix_model model,
                                  const double *pars,
                                  size_t npars,
+                                 enum shape_system system,
                                  struct shape *shape,
                                  long *flags)
 {
@@ -195,7 +196,21 @@ static void simple_pars_to_shape(enum gmix_model model,
         goto _simple_pars_to_shapes_bail;
     }
 
-    shape_set_eta(shape, pars[2], pars[3]);
+    switch (system) {
+        case SHAPE_SYSTEM_ETA:
+            shape_set_eta(shape, pars[2], pars[3]);
+            break;
+        case SHAPE_SYSTEM_G:
+            shape_set_g(shape, pars[2], pars[3]);
+            break;
+        case SHAPE_SYSTEM_E:
+            shape_set_e(shape, pars[2], pars[3]);
+            break;
+
+        default:
+            fprintf(stderr, "bad shape system: %u\n", system);
+            *flags |= GMIX_BAD_MODEL;
+    }
 
 _simple_pars_to_shapes_bail:
     return;
@@ -217,7 +232,11 @@ _coellip_pars_to_shapes_bail:
     return;
 }
 
-void gmix_pars_fill(struct gmix_pars *self, const double *pars, size_t npars, long *flags)
+void gmix_pars_fill(struct gmix_pars *self,
+                    const double *pars,
+                    size_t npars,
+                    enum shape_system system,
+                    long *flags)
 {
     if (self->size != npars) {
         self->data = realloc(self->data, npars*sizeof(double));
@@ -238,14 +257,18 @@ void gmix_pars_fill(struct gmix_pars *self, const double *pars, size_t npars, lo
                self->model == GMIX_DEV   ||
                self->model == GMIX_BD    ||
                self->model == GMIX_TURB) {
-        simple_pars_to_shape(self->model, pars, npars, &self->shape, flags);
+        simple_pars_to_shape(self->model, pars, npars, system, &self->shape, flags);
     } else {
         *flags |= GMIX_BAD_MODEL;
     }
 
 }
 
-struct gmix_pars *gmix_pars_new(enum gmix_model model, const double *pars, size_t npars, long *flags)
+struct gmix_pars *gmix_pars_new(enum gmix_model model,
+                                const double *pars,
+                                size_t npars,
+                                enum shape_system system,
+                                long *flags)
 {
     struct gmix_pars *self=NULL;
 
@@ -257,7 +280,7 @@ struct gmix_pars *gmix_pars_new(enum gmix_model model, const double *pars, size_
     }
 
     self->model=model;
-    gmix_pars_fill(self, pars, npars, flags);
+    gmix_pars_fill(self, pars, npars, system, flags);
     if (*flags != 0) {
         self=gmix_pars_free(self);
     }
@@ -324,11 +347,12 @@ _gmix_new_model_bail:
 struct gmix* gmix_new_model_from_array(enum gmix_model model,
                                        const double *pars,
                                        long npars,
+                                       enum shape_system system,
                                        long *flags)
 {
     struct gmix *self=NULL;
 
-    struct gmix_pars *gmix_pars=gmix_pars_new(model, pars, npars, flags);
+    struct gmix_pars *gmix_pars=gmix_pars_new(model, pars, npars, system, flags);
     if (*flags != 0) {
         goto _gmix_new_model_from_array_bail;
     }
@@ -595,8 +619,8 @@ static void fill_bd(struct gmix *self, const struct gmix_pars *pars, long *flags
     pars_exp[4] = pars->data[5];
     pars_exp[5] = pars->data[7];
 
-    struct gmix_pars *gmix_pars_dev = gmix_pars_new(GMIX_DEV, pars_dev, npars_dev, flags);
-    struct gmix_pars *gmix_pars_exp = gmix_pars_new(GMIX_EXP, pars_exp, npars_exp, flags);
+    struct gmix_pars *gmix_pars_dev = gmix_pars_new(GMIX_DEV, pars_dev, npars_dev, pars->shape_system, flags);
+    struct gmix_pars *gmix_pars_exp = gmix_pars_new(GMIX_EXP, pars_exp, npars_exp, pars->shape_system, flags);
 
     gmix_dev = gmix_new_model(gmix_pars_dev, flags);
     if (*flags) {
