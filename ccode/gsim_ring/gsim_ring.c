@@ -6,40 +6,82 @@
 #include "gmix_image.h"
 #include "gmix_image_rand.h"
 #include "shape.h"
+#include "dist.h"
 #include "gsim_ring.h"
 
-long gsim_ring_fill_from_file(struct gsim_ring *self, const char *name)
+void fill_shape_prior(struct gsim_ring *self)
 {
-    long flags=0;
-    struct gsim_ring_config config={{0}};
 
-    flags = gsim_ring_config_load(&config, name);
-    if (flags != 0) {
-        return flags;
+    switch (self->conf.shape_prior) {
+
+        case DIST_GMIX3_ETA:
+            {
+                struct dist_gmix3_eta *shape_prior=
+                    dist_gmix3_eta_new(self->conf.shape_prior_pars[0],
+                                       self->conf.shape_prior_pars[1],
+                                       self->conf.shape_prior_pars[2],
+                                       self->conf.shape_prior_pars[3],
+                                       self->conf.shape_prior_pars[4],
+                                       self->conf.shape_prior_pars[5]);
+
+                self->shape_prior = (void *) shape_prior;
+            }
+            break;
+        case DIST_G_BA:
+            {
+                struct dist_g_ba *shape_prior=dist_g_ba_new(self->conf.shape_prior_pars[0]);
+                self->shape_prior = (void *) shape_prior;
+            }
+            break;
+        default:
+            fprintf(stderr, "bad shape prior type: %u: %s: %d, aborting\n",
+                    self->conf.shape_prior, __FILE__,__LINE__);
+            exit(1);
     }
-    gsim_ring_fill(self, &config);
-
-    return flags;
 }
-void gsim_ring_fill(struct gsim_ring *self, const struct gsim_ring_config *conf)
+struct gsim_ring *gsim_ring_new_from_config(const struct gsim_ring_config *conf)
 {
+    struct gsim_ring *self=calloc(1,sizeof(struct gsim_ring));
+    if (!self) {
+        fprintf(stderr, "Could not allocate struct gsim_ring: %s: %d",
+                __FILE__,__LINE__);
+        exit(1);
+    }
     // a value type
     self->conf = (*conf);
 
     dist_gauss_fill(&self->cen1_dist, conf->cen_prior_pars[0], conf->cen_prior_pars[1]);
     dist_gauss_fill(&self->cen2_dist, conf->cen_prior_pars[0], conf->cen_prior_pars[1]);
 
-    dist_gmix3_eta_fill(&self->shape_prior,
-                        conf->shape_prior_pars[0],
-                        conf->shape_prior_pars[1],
-                        conf->shape_prior_pars[2],
-                        conf->shape_prior_pars[3],
-                        conf->shape_prior_pars[4],
-                        conf->shape_prior_pars[5]);
-
+    fill_shape_prior(self);
 
     dist_lognorm_fill(&self->T_dist, conf->T_prior_pars[0], conf->T_prior_pars[1]);
     dist_lognorm_fill(&self->counts_dist, conf->counts_prior_pars[0], conf->counts_prior_pars[1]);
+
+    return self;
+}
+
+struct gsim_ring *gsim_ring_new_from_file(const char *name, long *flags)
+{
+    struct gsim_ring *self=NULL;
+    struct gsim_ring_config config={{0}};
+
+    *flags = gsim_ring_config_load(&config, name);
+    if (*flags == 0) {
+        self=gsim_ring_new_from_config(&config);
+    }
+
+    return self;
+}
+
+struct gsim_ring *gsim_ring_free(struct gsim_ring *self)
+{
+    if (self) {
+        free(self->shape_prior);
+        free(self);
+        self=NULL;
+    }
+    return self;
 }
 
 long ring_get_npars_short(enum gmix_model model, long *flags)
@@ -109,6 +151,32 @@ static void fill_pars_6par_psf(const struct shape *shape,
 }
 
 
+static void sample_shape_prior(const struct gsim_ring *self, struct shape *shape)
+{
+    switch (self->conf.shape_prior) {
+
+        case DIST_GMIX3_ETA:
+            {
+                const struct dist_gmix3_eta *shape_prior=
+                    (struct dist_gmix3_eta *) self->shape_prior;
+                dist_gmix3_eta_sample(shape_prior, shape);
+            }
+            break;
+        case DIST_G_BA:
+            {
+                const struct dist_g_ba *shape_prior=
+                    (struct dist_g_ba *) self->shape_prior;
+                dist_g_ba_sample(shape_prior, shape);
+            }
+            break;
+        default:
+            fprintf(stderr, "bad shape prior type: %u: %s: %d, aborting\n",
+                    self->conf.shape_prior, __FILE__,__LINE__);
+            exit(1);
+    }
+
+}
+
 struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *flags)
 {
 
@@ -136,7 +204,7 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *
     double T = dist_lognorm_sample(&ring->T_dist);
     double counts = dist_lognorm_sample(&ring->counts_dist);
 
-    dist_gmix3_eta_sample(&ring->shape_prior, &shape1);
+    sample_shape_prior(ring, &shape1);
 
     shape2 = shape1;
     shape_rotate(&shape2, M_PI_2);
@@ -144,12 +212,14 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *
     shape_add_inplace(&shape1, &ring->conf.shear);
     shape_add_inplace(&shape2, &ring->conf.shear);
 
+    // pars gets filled with eta
     fill_pars_6par(&shape1, &shape2, T, counts, pars1, pars2);
     fill_pars_6par_psf(&ring->conf.psf_shape, ring->conf.psf_T, psf_pars);
 
-    psf_gmix = gmix_new_model_from_array(ring->conf.psf_model, psf_pars, psf_npars, flags);
-    gmix1_0=gmix_new_model_from_array(ring->conf.obj_model, pars1, npars, flags);
-    gmix2_0=gmix_new_model_from_array(ring->conf.obj_model, pars2, npars, flags);
+    // eta
+    psf_gmix = gmix_new_model_from_array(ring->conf.psf_model, psf_pars, psf_npars, SHAPE_SYSTEM_ETA, flags);
+    gmix1_0=gmix_new_model_from_array(ring->conf.obj_model, pars1, npars, SHAPE_SYSTEM_ETA, flags);
+    gmix2_0=gmix_new_model_from_array(ring->conf.obj_model, pars2, npars, SHAPE_SYSTEM_ETA, flags);
 
     if (*flags != 0) {
         goto _ring_pair_new_bail;

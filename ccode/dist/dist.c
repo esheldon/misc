@@ -40,136 +40,17 @@ long dist_get_npars(enum dist dist_type, long *flags)
             break;
 
         default: 
-            fprintf(stderr,"Bad 1d dist type %u: %s: %d\n",
+            fprintf(stderr,"Bad dist type %u: %s: %d\n",
                     dist_type, __FILE__,__LINE__);
             *flags |= DIST_BAD_DIST;
             break;
     }
     return npars;
 }
-/*
-struct dist1d *dist1d_new(enum dist dist_type, VEC(double) pars, long *flags)
-{
-    size_t nbytes=0;
-
-    struct dist1d *self=calloc(1, sizeof(struct dist1d));
-    if (!self) {
-        fprintf(stderr,"Could not allocate struct dist_gmix3_eta: %s: %d\n",
-                       __FILE__,__LINE__);
-        exit(1);
-    }
-
-    self->dist_type=dist_type;
-
-    switch (dist_type) {
-        case DIST_GAUSS:
-            if (VEC_SIZE(pars) != 2) {
-                *flags |= DIST_WRONG_NPARS;
-            }
-            self->data = dist_gauss_new(VEC_GET(pars,0), VEC_GET(pars,1));
-            break;
-        case DIST_LOGNORMAL:
-            if (VEC_SIZE(pars) != 2) {
-                *flags |= DIST_WRONG_NPARS;
-            }
-            self->data = dist_lognorm_new(VEC_GET(pars,0), VEC_GET(pars,1));
-            break;
-        default: 
-            fprintf(stderr,"Bad 1d dist type %u: %s: %d\n",
-                    dist_type, __FILE__,__LINE__);
-            *flags |= DIST_BAD_DIST;
-            break;
-    }
-
-_dist1d_new_bail:
-    if (*flags != 0) {
-        fprintf(stderr,"Bad number of pars %lu for dist type %u: %s: %d\n",
-                VEC_SIZE(pars), dist_type, __FILE__,__LINE__);
-        self=dist1d_free(self);
-    }
-    return self;
-}
-
-struct dist2d *dist2d_new(enum dist dist_type, VEC(double) pars, long *flags)
-{
-    size_t nbytes=0;
-
-    struct dist2d *self=calloc(1, sizeof(struct dist2d));
-    if (!self) {
-        fprintf(stderr,"Could not allocate struct dist_gmix3_eta: %s: %d\n",
-                       __FILE__,__LINE__);
-        exit(1);
-    }
-
-    self->dist_type=dist_type;
-
-    switch (dist_type) {
-        case DIST_G_BA:
-            if (VEC_SIZE(pars) != 1) {
-                *flags |= DIST_WRONG_NPARS;
-            }
-            self->data = dist_g_ba_new(VEC_GET(pars,0));
-            break;
-        case DIST_GMIX3_ETA:
-            if (VEC_SIZE(pars) != 6) {
-                *flags |= DIST_WRONG_NPARS;
-            }
-            self->data = dist_gmix3_eta_new(VEC_GET(pars,0), // ivar1
-                                            VEC_GET(pars,1), // p1
-                                            VEC_GET(pars,2), // ivar2
-                                            VEC_GET(pars,3), // p2
-                                            VEC_GET(pars,4), // ivar3
-                                            VEC_GET(pars,5)); // p3
-            break;
-        default: 
-            fprintf(stderr,"Bad 2d dist type %u: %s: %d\n",
-                    dist_type, __FILE__,__LINE__);
-            *flags |= DIST_BAD_DIST;
-            break;
-    }
-
-_dist2d_new_bail:
-    if (*flags != 0) {
-        fprintf(stderr,"Bad number of pars %lu for dist type %u: %s: %d\n",
-                VEC_SIZE(pars), dist_type, __FILE__,__LINE__);
-        self=dist2d_free(self);
-    }
-    return self;
-}
-
-
-
-struct dist1d *dist1d_free(struct dist1d *self)
-{
-    if (self) {
-        free(self->data);
-        free(self);
-        self=NULL;
-    }
-    return self;
-}
-struct dist2d *dist2d_free(struct dist2d *self)
-{
-    if (self) {
-        free(self->data);
-        free(self);
-        self=NULL;
-    }
-    return self;
-}
-
-
-double dist1d_lnprob(struct dist1d *self, double x)
-{
-
-}
-
-*/
-
-
 
 void dist_gauss_fill(struct dist_gauss *self, double mean, double sigma)
 {
+    self->dist_type=DIST_GAUSS;
     self->mean=mean;
     self->sigma=sigma;
     self->ivar=1./(sigma*sigma);
@@ -217,6 +98,7 @@ double dist_gauss_sample(const struct dist_gauss *self)
 
 void dist_lognorm_fill(struct dist_lognorm *self, double mean, double sigma)
 {
+    self->dist_type=DIST_LOGNORMAL;
     self->mean=mean;
     self->sigma=sigma;
 
@@ -278,8 +160,13 @@ double dist_lognorm_sample(const struct dist_lognorm *self)
 
 void dist_g_ba_fill(struct dist_g_ba *self, double sigma)
 {
+    self->dist_type=DIST_G_BA;
     self->sigma=sigma;
     self->ivar=1./(sigma*sigma);
+
+    // maxval is at 0,0
+    struct shape shape={0};
+    self->maxval = dist_g_ba_prob(self, &shape);
 }
 
 
@@ -302,16 +189,16 @@ double dist_g_ba_lnprob(const struct dist_g_ba *self, const struct shape *shape)
     gsq = shape->g1*shape->g1 + shape->g2*shape->g2;
 
     tmp = 1-gsq;
-    if ( tmp < DIST_LOG_MINARG ) {
+
+    lnp = log(tmp);
+    if (!isfinite(lnp)) {
         lnp = DIST_LOG_LOWVAL;
     } else {
 
         //p= (1-g**2)**2*exp(-0.5 * g**2 * ivar)
         // log(p) = 2*log(1-g^2) - 0.5*g^2 * ivar
 
-        // should do a fast math version; I suspect this
-        // will be a bottleneck
-        lnp = log(tmp);
+        //lnp = log(tmp);
 
         lnp *= 2;
         
@@ -346,6 +233,28 @@ double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape)
 
 }
 
+// since g is bounded, we can use the cut method
+void dist_g_ba_sample(const struct dist_g_ba *self, struct shape *shape)
+{
+    while (1) {
+        double g1=srandu();
+        double g2=srandu();
+
+        double gsq=g1*g1 + g2*g2;
+        if (gsq < 1) {
+
+            shape_set_g(shape, g1, g2);
+
+            double prob=dist_g_ba_prob(self, shape);
+            double prand=self->maxval*drand48();
+
+            if (prand < prob) {
+                break;
+            }
+        }
+    }
+}
+
 double dist_g_ba_pj(const struct dist_g_ba *self,
                     const struct shape *shape,
                     const struct shape *shear)
@@ -362,7 +271,6 @@ double dist_g_ba_pj(const struct dist_g_ba *self,
 
     return p*j;
 }
-
 void dist_g_ba_pqr(const struct dist_g_ba *self,
                    const struct shape *shape,
                    double *P,
@@ -372,7 +280,53 @@ void dist_g_ba_pqr(const struct dist_g_ba *self,
                    double *R12,
                    double *R22)
 {
-    //double h=1.e-6;
+
+    *P = dist_g_ba_prob(self, shape);
+
+
+    double sigma = self->sigma;
+    double sig2 = sigma*sigma;
+    double sig4 = sig2*sig2;
+    double sig2inv = 1./sig2;
+    double sig4inv = 1./sig4;
+
+    double g1sq = shape->g1*shape->g1;
+    double g2sq = shape->g2*shape->g2;
+    double g1_4 = g1sq*g1sq;
+    double g1_6 = g1sq*g1_4;
+
+    double g2_4 = g2sq*g2sq;
+    double g2_6 = g2sq*g2_4;
+
+
+    double gsq = g1sq + g2sq;
+    double omgsq = 1. - gsq;
+    double omgsq2 = omgsq*omgsq;
+
+    double fac = exp(-0.5*gsq*sig2inv)*omgsq2;
+
+    double Qf = fac*(omgsq + 8*sig2)*sig2inv;
+
+    *Q1 = shape->g1*Qf;
+    *Q2 = shape->g2*Qf;
+
+    *R11 = (fac * (g1_6 + g1_4*(-2 + 2*g2sq - 19*sig2) + (1 + g2sq)*sig2*(-1 + g2sq - 8*sig2) + g1sq*(1 + g2_4 + 20*sig2 + 72*sig4 - 2*g2sq*(1 + 9*sig2))))*sig4inv;
+    *R22 = (fac * (g2_6 + g2_4*(-2 + 2*g1sq - 19*sig2) + (1 + g1sq)*sig2*(-1 + g1sq - 8*sig2) + g2sq*(1 + g1_4 + 20*sig2 + 72*sig4 - 2*g1sq*(1 + 9*sig2))))*sig4inv;
+
+    *R12 = fac * shape->g1*shape->g2 * (80 + omgsq2*sig4inv + 20*omgsq*sig2inv);
+
+}
+
+
+void dist_g_ba_pqr_num(const struct dist_g_ba *self,
+                       const struct shape *shape,
+                       double *P,
+                       double *Q1,
+                       double *Q2,
+                       double *R11,
+                       double *R12,
+                       double *R22)
+{
     double h=1.e-3;
     double h2inv = 1./(2*h);
     double hsqinv=1./(h*h);
@@ -402,7 +356,6 @@ void dist_g_ba_pqr(const struct dist_g_ba *self,
     *R11 = (Q1_p - 2*(*P) + Q1_m)*hsqinv;
     *R22 = (Q2_p - 2*(*P) + Q2_m)*hsqinv;
     *R12 = (R12_pp - Q1_p - Q2_p + 2*(*P) - Q1_m - Q2_m + R12_mm)*hsqinv*0.5;
-
 }
 
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream)
@@ -433,6 +386,8 @@ void dist_gmix3_eta_fill(struct dist_gmix3_eta *self,
                          double sigma1, double sigma2, double sigma3,
                          double p1, double p2, double p3)
 {
+    self->dist_type=DIST_GMIX3_ETA;
+
     double ivar1=1.0/(sigma1*sigma1);
     double ivar2=1.0/(sigma2*sigma2);
     double ivar3=1.0/(sigma3*sigma3);

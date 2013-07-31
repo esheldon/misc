@@ -70,6 +70,8 @@ prob_data_simple_ba_new(enum gmix_model model,
  
 struct prob_data_simple_ba *prob_data_simple_ba_free(struct prob_data_simple_ba *self);
                                                  
+void prob_simple_ba_print(struct prob_data_simple_ba *self, FILE *stream);
+
 void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
                                 const struct gmix_pars *pars,
                                 double *lnprob,

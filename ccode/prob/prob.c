@@ -150,6 +150,14 @@ struct prob_data_simple_ba *prob_data_simple_ba_free(struct prob_data_simple_ba 
     }
     return NULL;
 }
+void prob_simple_ba_print(struct prob_data_simple_ba *self, FILE *stream)
+{
+    dist_gauss_print(&self->cen1_prior, stream);
+    dist_gauss_print(&self->cen2_prior, stream);
+    dist_g_ba_print(&self->shape_prior, stream);
+    dist_lognorm_print(&self->T_prior,stream);
+    dist_lognorm_print(&self->counts_prior,stream);
+}
 
 void prob_simple_ba_calc_priors(struct prob_data_simple_ba *self,
                                 const struct gmix_pars *pars,
