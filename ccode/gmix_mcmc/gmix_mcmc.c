@@ -272,7 +272,8 @@ static void calc_pqr(struct gmix_mcmc *self,
                 struct prob_data_simple_gmix3_eta *prob = 
                     (struct prob_data_simple_gmix3_eta *)self->prob;
 
-                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars, flags);
+                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars, 
+                                                          SHAPE_SYSTEM_ETA, flags);
                 if (*flags==0) {
                     dist_gmix3_eta_pqr(&prob->shape_prior,
                                        &gmix_pars->shape,
@@ -286,7 +287,8 @@ static void calc_pqr(struct gmix_mcmc *self,
                 struct prob_data_simple_ba *prob = 
                     (struct prob_data_simple_ba *)self->prob;
 
-                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars, flags);
+                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars,
+                                                          SHAPE_SYSTEM_G, flags);
                 if (*flags==0) {
                     dist_g_ba_pqr(&prob->shape_prior,
                                   &gmix_pars->shape,
@@ -378,7 +380,7 @@ static double get_lnprob(const double *pars, size_t npars, const void *data)
                     (struct prob_data_simple_gmix3_eta *)self->prob;
 
                 struct gmix_pars *gmix_pars=
-                    gmix_pars_new(prob->model, pars, npars, &flags);
+                    gmix_pars_new(prob->model, pars, npars, SHAPE_SYSTEM_ETA, &flags);
                 if (flags != 0) {
                     lnprob = DIST_LOG_LOWVAL;
                 } else {
@@ -399,7 +401,7 @@ static double get_lnprob(const double *pars, size_t npars, const void *data)
                     (struct prob_data_simple_ba *)self->prob;
 
                 struct gmix_pars *gmix_pars=
-                    gmix_pars_new(prob->model, pars, npars, &flags);
+                    gmix_pars_new(prob->model, pars, npars, SHAPE_SYSTEM_G, &flags);
                 if (flags != 0) {
                     lnprob = DIST_LOG_LOWVAL;
                 } else {

@@ -48,6 +48,8 @@ struct gmix {
 struct gmix_pars {
     enum gmix_model model;
 
+    enum shape_system shape_system;
+
     size_t size;
     double *data;
 
@@ -55,8 +57,18 @@ struct gmix_pars {
     struct shape shape;
 };
 
-struct gmix_pars *gmix_pars_new(enum gmix_model model, const double *pars, size_t npars, long *flags);
-void gmix_pars_fill(struct gmix_pars *self, const double *pars, size_t npars, long *flags);
+struct gmix_pars *gmix_pars_new(enum gmix_model model,
+                                const double *pars,
+                                size_t npars,
+                                enum shape_system system,
+                                long *flags);
+
+void gmix_pars_fill(struct gmix_pars *self,
+                    const double *pars,
+                    size_t npars,
+                    enum shape_system system,
+                    long *flags);
+
 struct gmix_pars *gmix_pars_free(struct gmix_pars *self);
 void gmix_pars_print(const struct gmix_pars *self, FILE *stream);
 
@@ -78,6 +90,7 @@ struct gmix* gmix_new_model(const struct gmix_pars *pars, long *flags);
 struct gmix* gmix_new_model_from_array(enum gmix_model model,
                                        const double *pars,
                                        long npars,
+                                       enum shape_system system,
                                        long *flags);
 
 //struct gmix *gmix_new_coellip(const gmix_pars *pars, long *flags);

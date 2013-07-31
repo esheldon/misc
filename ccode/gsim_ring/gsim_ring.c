@@ -212,12 +212,14 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *
     shape_add_inplace(&shape1, &ring->conf.shear);
     shape_add_inplace(&shape2, &ring->conf.shear);
 
+    // pars gets filled with eta
     fill_pars_6par(&shape1, &shape2, T, counts, pars1, pars2);
     fill_pars_6par_psf(&ring->conf.psf_shape, ring->conf.psf_T, psf_pars);
 
-    psf_gmix = gmix_new_model_from_array(ring->conf.psf_model, psf_pars, psf_npars, flags);
-    gmix1_0=gmix_new_model_from_array(ring->conf.obj_model, pars1, npars, flags);
-    gmix2_0=gmix_new_model_from_array(ring->conf.obj_model, pars2, npars, flags);
+    // eta
+    psf_gmix = gmix_new_model_from_array(ring->conf.psf_model, psf_pars, psf_npars, SHAPE_SYSTEM_ETA, flags);
+    gmix1_0=gmix_new_model_from_array(ring->conf.obj_model, pars1, npars, SHAPE_SYSTEM_ETA, flags);
+    gmix2_0=gmix_new_model_from_array(ring->conf.obj_model, pars2, npars, SHAPE_SYSTEM_ETA, flags);
 
     if (*flags != 0) {
         goto _ring_pair_new_bail;
