@@ -23,28 +23,10 @@ enum dist {
     DIST_GMIX3_ETA 
 };
 
-// generic distributions
-/*
-struct dist1d {
+
+struct dist_base {
     enum dist dist_type;
-    void *data;
 };
-struct dist2d {
-    enum dist dist_type;
-    void *data;
-};
-
-struct dist1d *dist1d_new(enum dist dist_type, VEC(double) pars, long *flags);
-struct dist2d *dist2d_new(enum dist dist_type, VEC(double) pars, long *flags);
-
-struct dist1d *dist1d_free(struct dist1d *self);
-struct dist2d *dist2d_free(struct dist2d *self);
-
-double dist1d_lnprob(struct dist1d *self, double x);
-double dist1d_prob(struct dist1d *self, double x);
-double dist2d_lnprob(struct dist2d *self, double x, double y);
-double dist2d_prob(struct dist2d *self, double x, double y);
-*/
 
 // these should always be value types, so they can be copied
 // that means static sized fields
@@ -70,6 +52,8 @@ struct dist_g_ba {
     enum dist dist_type;
     double sigma;
     double ivar;
+
+    double maxval;
 };
 
 // 3 round gaussians centered at zero
@@ -112,6 +96,7 @@ struct dist_g_ba *dist_g_ba_new(double sigma);
 void dist_g_ba_fill(struct dist_g_ba *self, double sigma);
 double dist_g_ba_lnprob(const struct dist_g_ba *self, const struct shape *shape);
 double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape);
+void dist_g_ba_sample(const struct dist_g_ba *self, struct shape *shape);
 
 double dist_g_ba_pj(const struct dist_g_ba *self,
                     const struct shape *shape,
@@ -125,6 +110,14 @@ void dist_g_ba_pqr(const struct dist_g_ba *self,
                    double *R11,
                    double *R12,
                    double *R22);
+void dist_g_ba_pqr_num(const struct dist_g_ba *self,
+                       const struct shape *shape,
+                       double *P,
+                       double *Q1,
+                       double *Q2,
+                       double *R11,
+                       double *R12,
+                       double *R22);
 
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream);
 

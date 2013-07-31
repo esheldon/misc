@@ -38,12 +38,12 @@ struct gmix_mcmc {
     struct gmix_mcmc_chains chain_data;
 
     // e.g. PROB_NOSPLIT_ETA
-    enum prob_type prob_type;
+    //enum prob_type prob_type;
 
     // probability calculator struct, e.g. prob_data_simple_gmix3_eta 
     // contains references
     // cast to (struct prob_data_base* ) to check the ->type field
-    void *prob; 
+    struct prob_data_base *prob; 
 
     // these can be set and reset
     const struct obs_list *obs_list;
