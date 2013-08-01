@@ -196,20 +196,24 @@ static void simple_pars_to_shape(enum gmix_model model,
         goto _simple_pars_to_shapes_bail;
     }
 
+    int ret=0;
     switch (system) {
         case SHAPE_SYSTEM_ETA:
-            shape_set_eta(shape, pars[2], pars[3]);
+            ret=shape_set_eta(shape, pars[2], pars[3]);
             break;
         case SHAPE_SYSTEM_G:
-            shape_set_g(shape, pars[2], pars[3]);
+            ret=shape_set_g(shape, pars[2], pars[3]);
             break;
         case SHAPE_SYSTEM_E:
-            shape_set_e(shape, pars[2], pars[3]);
+            ret=shape_set_e(shape, pars[2], pars[3]);
             break;
-
         default:
             fprintf(stderr, "bad shape system: %u\n", system);
             *flags |= GMIX_BAD_MODEL;
+    }
+
+    if (ret == 0) {
+        *flags |= SHAPE_RANGE_ERROR;
     }
 
 _simple_pars_to_shapes_bail:
