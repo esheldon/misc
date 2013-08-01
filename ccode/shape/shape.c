@@ -160,8 +160,8 @@ int shape_set_g(struct shape *self, double g1, double g2)
 
     if (g >= 1) {
         //g = 0.99999999;
-        fprintf(stderr,"error: g must be < 1, found "
-                "%.16g. %s: %d\n",g,__FILE__,__LINE__);
+        //fprintf(stderr,"error: g must be < 1, found "
+        //        "%.16g. %s: %d\n",g,__FILE__,__LINE__);
         setbad(self);
         return 0;
     }
@@ -172,8 +172,8 @@ int shape_set_g(struct shape *self, double g1, double g2)
     if (e >= 1) {
         //e = 0.99999999;
         setbad(self);
-        fprintf(stderr,"error: e must be < 1, found "
-                "%.16g. %s: %d\n",e,__FILE__,__LINE__);
+        //fprintf(stderr,"error: e must be < 1, found "
+        //        "%.16g. %s: %d\n",e,__FILE__,__LINE__);
         return 0;
     }
 
