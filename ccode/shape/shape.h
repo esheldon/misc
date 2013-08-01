@@ -1,6 +1,8 @@
 #ifndef _SHAPE_HEADER_GUARD
 #define _SHAPE_HEADER_GUARD
 
+#define SHAPE_RANGE_ERROR 0x1
+
 enum shape_system {
     SHAPE_SYSTEM_ETA,
     SHAPE_SYSTEM_G,

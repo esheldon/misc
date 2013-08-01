@@ -189,7 +189,7 @@ void process_one(struct gmix_mcmc *self,
                  double counts,
                  long *flags)
 {
-    double row_guess=0, col_guess=0;
+    //double row_guess=0, col_guess=0;
     struct obs_list *obs_list=NULL;
     const struct image *im=NULL;
     const struct image *wt=NULL;
@@ -216,12 +216,9 @@ void process_one(struct gmix_mcmc *self,
 
     while (1) {
         *flags=0;
-        gmix_mcmc_run(self, row_guess, col_guess, T, counts, flags);
-        if (*flags != 0) {
-            // this is currently fatal
-            fprintf(stderr,"error running mcmc\n");
-            goto _process_one_bail;
-        }
+
+        // this makes a guess from the priors
+        gmix_mcmc_run_draw_prior(self);
 
         mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
         *flags |= gmix_mcmc_calc_pqr(self);
