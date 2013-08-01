@@ -426,11 +426,123 @@ static double get_lnprob(const double *pars, size_t npars, const void *data)
     return lnprob;
 }
 
+static
+struct mca_chain *gmix_mcmc_guess_simple_ba13(const struct prob_data_simple_ba *prob,
+                                              long nwalkers)
+{
+    size_t npars=6;
+
+    struct mca_chain *guess=mca_chain_new(nwalkers,1,npars);
+    struct shape shape={0};
+
+    double val=0;
+    for (size_t iwalk=0; iwalk<nwalkers; iwalk++) {
+        val = dist_gauss_sample(&prob->cen1_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 0) = val; 
+        val = dist_gauss_sample(&prob->cen2_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 1) = val; 
+
+
+        dist_g_ba_sample(&prob->shape_prior, &shape);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 2) = shape.g1; 
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 3) = shape.g2; 
+
+        val = dist_lognorm_sample(&prob->T_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 4) = val; 
+        val = dist_lognorm_sample(&prob->counts_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 5) = val; 
+    }
+
+    return guess;
+}
+static struct mca_chain *gmix_mcmc_guess_simple_gmix3_eta(const struct prob_data_simple_gmix3_eta *prob,
+                                                   long nwalkers)
+{
+    size_t npars=6;
+
+    struct mca_chain *guess=mca_chain_new(nwalkers,1,npars);
+    struct shape shape={0};
+
+    double val=0;
+    for (size_t iwalk=0; iwalk<nwalkers; iwalk++) {
+        val = dist_gauss_sample(&prob->cen1_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 0) = val; 
+        val = dist_gauss_sample(&prob->cen2_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 1) = val; 
+
+        dist_gmix3_eta_sample(&prob->shape_prior, &shape);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 2) = shape.eta1; 
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 3) = shape.eta2; 
+
+        val = dist_lognorm_sample(&prob->T_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 4) = val; 
+        val = dist_lognorm_sample(&prob->counts_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 5) = val; 
+    }
+
+    return guess;
+}
+
+
+struct mca_chain *gmix_mcmc_get_guess_prior(struct gmix_mcmc *self)
+{
+    long nwalkers=MCA_CHAIN_NWALKERS(self->chain_data.chain);
+    switch (self->prob->type) {
+        case PROB_NOSPLIT_ETA:
+            {
+                const struct prob_data_simple_gmix3_eta *prob=
+                    (struct prob_data_simple_gmix3_eta *) self->prob;
+                return gmix_mcmc_guess_simple_gmix3_eta(prob, nwalkers);
+            }
+        case PROB_BA13:
+            {
+                const struct prob_data_simple_ba *prob=
+                    (struct prob_data_simple_ba *) self->prob;
+                return gmix_mcmc_guess_simple_ba13(prob, nwalkers);
+            }
+        default:
+            fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
+                    self->prob->type, __FILE__,__LINE__);
+            exit(1);
+    }
+}
+
+void gmix_mcmc_run_draw_prior(struct gmix_mcmc *self)
+{
+    struct mca_chain *guess=gmix_mcmc_get_guess_prior(self);
+    gmix_mcmc_run(self, guess);
+    guess=mca_chain_free(guess);
+}
+
+void gmix_mcmc_run(struct gmix_mcmc *self, struct mca_chain *guess)
+{
+    if (!self->obs_list) {
+        fprintf(stderr,"gmix_mcmc->obs_list is not set! aborting: %s: %d\n",
+                __FILE__,__LINE__);
+        exit(1);
+    }
+
+    mca_run(self->chain_data.burnin_chain,
+            self->chain_data.mca_a,
+            guess,
+            &get_lnprob,
+            self);
+
+    mca_run(self->chain_data.chain,
+            self->chain_data.mca_a,
+            self->chain_data.burnin_chain,
+            &get_lnprob,
+            self);
+
+}
+
+
 // we will also need one for multi-band processing
-void gmix_mcmc_run(struct gmix_mcmc *self,
-                   double row, double col,
-                   double T, double counts,
-                   long *flags)
+/*
+void gmix_mcmc_run_uniform(struct gmix_mcmc *self,
+                           double row, double col,
+                           double T, double counts,
+                           long *flags)
 {
     if (!self->obs_list) {
         fprintf(stderr,"gmix_mcmc->obs_list is not set!: %s: %d\n",
@@ -459,7 +571,7 @@ void gmix_mcmc_run(struct gmix_mcmc *self,
 
     guess=mca_chain_free(guess);
 }
-
+*/
 
 struct mca_chain *gmix_mcmc_guess_simple(
         double row, double col,
