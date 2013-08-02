@@ -170,11 +170,7 @@ int shape_set_g(struct shape *self, double g1, double g2)
     double e = tanh(eta);
 
     if (e >= 1) {
-        //e = 0.99999999;
-        setbad(self);
-        //fprintf(stderr,"error: e must be < 1, found "
-        //        "%.16g. %s: %d\n",e,__FILE__,__LINE__);
-        return 0;
+        e = 0.999999999999;
     }
 
     double cos2theta = g1/g;
@@ -209,10 +205,10 @@ int shape_set_eta(struct shape *self, double eta1, double eta2)
     double g = tanh(0.5*eta);
 
     if (e >= 1.0) {
-        e = 0.99999999;
+        e = 0.999999999999;
     }
     if (g >= 1.0) {
-        g = 0.99999999;
+        g = 0.999999999999;
     }
 
     double cos2theta = eta1/eta;
