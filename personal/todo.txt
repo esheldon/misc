@@ -124,7 +124,8 @@ Quick look Queue
         - redo colors in MEDS
 
             - try 1 gauss and 3 gauss for comparison
-            - try alphawin_j2000 instead?
+            - try alphawin_j2000 instead.  Might not help with bi-model thing
+            seen, but perhaps the width and prior.
 
             - test max radius for various models?  This is in additioi to the
               5-sigma cutout for evaluating the gaussians.  I suspect we can
