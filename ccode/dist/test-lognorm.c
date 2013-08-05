@@ -22,6 +22,7 @@ int main(int argc, char **argv)
 
     for (long i=0; i<nrand; i++) {
         double val = dist_lognorm_sample(&dist);
-        printf("%.16g\n", val);
+        double lnp = dist_lognorm_lnprob(&dist, val);
+        printf("%.16g %.16g\n", val, lnp);
     }
 }
