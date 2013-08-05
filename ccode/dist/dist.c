@@ -126,12 +126,10 @@ struct dist_lognorm *dist_lognorm_new(double mean, double sigma)
 //lnprob = - 0.5*chi2 - logx;
 double dist_lognorm_lnprob(const struct dist_lognorm *self, double x)
 {
-    double lnp=0.0;
+    double lnp=DIST_LOG_LOWVAL;
 
     long double llogx = logl( (long double)x );
-    if (!finitel(llogx)) {
-        lnp = DIST_LOG_LOWVAL;
-    } else {
+    if (finitel(llogx)) {
         double logx = (double) llogx;
         double diff=logx - self->logmean;
         double chi2 = self->logivar*diff*diff;
@@ -199,31 +197,19 @@ struct dist_g_ba *dist_g_ba_new(double sigma)
 
 double dist_g_ba_lnprob(const struct dist_g_ba *self, const struct shape *shape)
 {
-    double lnp=0, gsq=0;
+    double lnp=DIST_LOG_LOWVAL, gsq=0;
 
     gsq = shape->g1*shape->g1 + shape->g2*shape->g2;
 
     long double tmp = 1-gsq;
-    llnp = logl(tmp);
+    long double llnp = logl(tmp);
 
-    if (!finitel(llnp)) {
-        lnp = DIST_LOG_LOWVAL;
-    } else {
-
+    if (finitel(llnp)) {
         //p= (1-g^2)**2*exp(-0.5 * g^2 * ivar)
         // log(p) = 2*log(1-g^2) - 0.5*g^2 * ivar
 
         lnp = (double) llnp;
         lnp = 2*lnp - 0.5*gsq*self->ivar;
-
-        /*
-        lnp *= 2;
-        
-        tmp = 0.5;
-        tmp *= gsq;
-        tmp *= self->ivar;
-        lnp -= tmp;
-        */
     }
     return lnp;
 
@@ -472,10 +458,12 @@ double dist_gmix3_eta_lnprob(const struct dist_gmix3_eta *self, const struct sha
 {
     double lnp=DIST_LOG_LOWVAL, p=0;
     p = dist_gmix3_eta_prob(self, shape);
-    if (p > 0) {
-        lnp = log(p);
-    } else {
-        fprintf(stderr,"dist_gmix3_eta_prob is <= 0: %g\n", p);
+
+    long double lp = (long double) p;
+    long double lnpl = logl(lp);
+
+    if (finitel(lnpl)) {
+        lnp = (double) lnpl;
     }
     return lnp;
 
