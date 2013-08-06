@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <time.h>
 #include <math.h>
 #include "randn.h"
@@ -83,5 +85,8 @@ void randn_seed(void)
 {
     time_t t1;
     (void) time(&t1);
-    srand48((long) t1);
+    pid_t pid = getpid();
+
+    long seed = (long)t1 + (long)pid;
+    srand48(seed);
 }
