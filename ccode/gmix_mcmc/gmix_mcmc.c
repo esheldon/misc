@@ -330,10 +330,9 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
             // fix because prior is already in distributions
             //if (P > GMIX_MCMC_MINPROB_USE) {
             if (P > 0 && fabs(Q1) < 20 && fabs(Q2) < 20
-                && R11 > -100 && R11 < 200
-                && R22 > -100 && R22 < 200
-                && fabs(R12) < 110
-                ) {
+                    && R11 > -100 && R11 < 200
+                    && R22 > -100 && R22 < 200
+                    && fabs(R12) < 110) {
                 double Pinv=1/P;
                 if (finite(Pinv)) {
 
@@ -348,7 +347,6 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
                 }
             } // P >0 check
         } // flag check
-
     } // steps
 
     flags=0;
@@ -364,7 +362,7 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
 
         self->R[1][0] = self->R[0][1]; 
     } else {
-        fprintf(stderr,"no large prior vals; max was %g\n", Pmax);
+        fprintf(stderr,"no good P,Q,R vals; max P was %g\n", Pmax);
         flags |= GMIX_MCMC_NOPOSITIVE;
     }
 
