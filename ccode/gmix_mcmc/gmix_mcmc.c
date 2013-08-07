@@ -329,7 +329,11 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
             }
             // fix because prior is already in distributions
             //if (P > GMIX_MCMC_MINPROB_USE) {
-            if (P > 0 && fabs(Q1) < 20 && fabs(Q2) < 20) {
+            if (P > 0 && fabs(Q1) < 20 && fabs(Q2) < 20
+                && R11 > -100 && R11 < 200
+                && R22 > -100 && R22 < 200
+                && fabs(R12) < 110
+                ) {
                 double Pinv=1/P;
                 if (finite(Pinv)) {
 
