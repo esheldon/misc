@@ -329,21 +329,30 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
             }
             // fix because prior is already in distributions
             //if (P > GMIX_MCMC_MINPROB_USE) {
-            if (P > 0 && fabs(Q1) < 20 && fabs(Q2) < 20
-                    && R11 > -100 && R11 < 200
-                    && R22 > -100 && R22 < 200
-                    && fabs(R12) < 110) {
+            if (P > 0) {
                 double Pinv=1/P;
                 if (finite(Pinv)) {
 
-                    nuse++;
+                    P *= Pinv;
+                    Q1 *= Pinv;
+                    Q2 *= Pinv;
+                    R11 *= Pinv;
+                    R12 *= Pinv;
+                    R22 *= Pinv;
 
-                    Psum += P*Pinv;
-                    Q1sum += Q1*Pinv;
-                    Q2sum += Q2*Pinv;
-                    R11sum += R11*Pinv;
-                    R12sum += R12*Pinv;
-                    R22sum += R22*Pinv;
+                   if (fabs(Q1) < 20 && fabs(Q2) < 20
+                           && R11 > -100 && R11 < 200
+                           && R22 > -100 && R22 < 200
+                           && fabs(R12) < 110) {
+                       nuse++;
+
+                       Psum += P;
+                       Q1sum += Q1;
+                       Q2sum += Q2;
+                       R11sum += R11;
+                       R12sum += R12;
+                       R22sum += R22;
+                   }
                 }
             } // P >0 check
         } // flag check
