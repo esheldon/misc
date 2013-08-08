@@ -3,6 +3,8 @@
 #include <math.h>
 #include "shape.h"
 
+// commenting until we put error checking in place
+/*
 struct shape *shape_new(void)
 {
     struct shape *self=calloc(1,sizeof(struct shape));
@@ -32,6 +34,7 @@ struct shape *shape_free(struct shape *self)
     free(self);
     return NULL;
 }
+*/
 
 void shape_show(const struct shape *self, FILE *fptr)
 {
@@ -94,12 +97,12 @@ void shape_read_eta(struct shape *self, FILE *fptr)
 
 static void setbad(struct shape *self)
 {
-    self->e1=-9999;
-    self->e2=-9999;
-    self->g1=-9999;
-    self->g2=-9999;
-    self->eta1=-9999;
-    self->eta2=-9999;
+    self->e1=-9999.e9;
+    self->e2=-9999.e9;
+    self->g1=-9999.e9;
+    self->g2=-9999.e9;
+    self->eta1=-9999.e9;
+    self->eta2=-9999.e9;
 }
 int shape_set_e(struct shape *self, double e1, double e2)
 {
@@ -117,8 +120,6 @@ int shape_set_e(struct shape *self, double e1, double e2)
     } 
 
     if (e >= 1) {
-        fprintf(stderr,"error: e must be < 1, found "
-                "%.16g. %s: %d\n",e,__FILE__,__LINE__);
         setbad(self);
         return 0;
     }
@@ -128,8 +129,6 @@ int shape_set_e(struct shape *self, double e1, double e2)
 
 
     if (g >= 1) {
-        fprintf(stderr,"error: g must be < 1, found "
-                "%.16g. %s: %d\n",g,__FILE__,__LINE__);
         setbad(self);
         return 0;
     }
@@ -159,9 +158,6 @@ int shape_set_g(struct shape *self, double g1, double g2)
     } 
 
     if (g >= 1) {
-        //g = SHAPE_MAX;
-        //fprintf(stderr,"error: g must be < 1, found "
-        //        "%.16g. %s: %d\n",g,__FILE__,__LINE__);
         setbad(self);
         return 0;
     }
@@ -170,7 +166,8 @@ int shape_set_g(struct shape *self, double g1, double g2)
     double e = tanh(eta);
 
     if (e >= 1) {
-        e = SHAPE_MAX;
+        setbad(self);
+        return 0;
     }
 
     double cos2theta = g1/g;
@@ -202,13 +199,15 @@ int shape_set_eta(struct shape *self, double eta1, double eta2)
     }
 
     double e = tanh(eta);
-    double g = tanh(0.5*eta);
-
     if (e >= 1.0) {
-        e = SHAPE_MAX;
+        setbad(self);
+        return 0;
     }
+
+    double g = tanh(0.5*eta);
     if (g >= 1.0) {
-        g = SHAPE_MAX;
+        setbad(self);
+        return 0;
     }
 
     double cos2theta = eta1/eta;
@@ -240,6 +239,7 @@ void shape_rotate(struct shape *self, double theta_radians)
     shape_set_e(self, e1rot, e2rot);
 }
 
+/*
 struct shape *shape_add(struct shape *self, const struct shape *shear)
 {
     struct shape *new=shape_new_e(self->e1,self->e2);
@@ -249,6 +249,7 @@ struct shape *shape_add(struct shape *self, const struct shape *shear)
     }
     return new;
 }
+*/
 int shape_add_inplace(struct shape *self, const struct shape *shear)
 {
 
@@ -284,10 +285,12 @@ int shape_add_inplace(struct shape *self, const struct shape *shear)
 //        |des/deo|_{shear}
 // for pqr you will evaluate at -shear
 
-double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape *shear)
+double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape *shear, 
+                                  long *flags)
 {
     double h=1.e-3;
     double h2inv = 1./(2*h);
+    long res=0;
 
     struct shape shape_plus={0}, shape_minus={0};
     //struct shape shape_offset={0};
@@ -296,28 +299,31 @@ double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape 
     shape_plus = *shape;
     shape_minus = *shape;
 
-    shape_set_eta(&shape_plus,  shape->eta1 + h, shape->eta2);
-    shape_set_eta(&shape_minus, shape->eta1 - h, shape->eta2);
+    res += shape_set_eta(&shape_plus,  shape->eta1 + h, shape->eta2);
+    res += shape_set_eta(&shape_minus, shape->eta1 - h, shape->eta2);
 
-    shape_add_inplace(&shape_plus, shear);
-    shape_add_inplace(&shape_minus, shear);
+    res += shape_add_inplace(&shape_plus, shear);
+    res += shape_add_inplace(&shape_minus, shear);
 
     double eta1s_by_eta1o = (shape_plus.eta1 - shape_minus.eta1)*h2inv;
     double eta2s_by_eta1o = (shape_plus.eta2 - shape_minus.eta2)*h2inv;
 
     // derivatives by eta2
 
-    shape_set_eta(&shape_plus,  shape->eta1, shape->eta2 + h);
-    shape_set_eta(&shape_minus, shape->eta1, shape->eta2 - h);
+    res += shape_set_eta(&shape_plus,  shape->eta1, shape->eta2 + h);
+    res += shape_set_eta(&shape_minus, shape->eta1, shape->eta2 - h);
 
-    shape_add_inplace(&shape_plus, shear);
-    shape_add_inplace(&shape_minus, shear);
+    res += shape_add_inplace(&shape_plus, shear);
+    res += shape_add_inplace(&shape_minus, shear);
 
     double eta1s_by_eta2o = (shape_plus.eta1 - shape_minus.eta1)*h2inv;
     double eta2s_by_eta2o = (shape_plus.eta2 - shape_minus.eta2)*h2inv;
 
     double jacob = eta1s_by_eta1o*eta2s_by_eta2o - eta1s_by_eta2o*eta2s_by_eta1o;
 
+    if (res != 8) {
+        *flags |= SHAPE_RANGE_ERROR;
+    }
     return jacob;
 
 }
@@ -336,10 +342,11 @@ double shape_dgs_by_dgo_jacob(const struct shape *shape, const struct shape *she
     return num/denom;
 }
 
-double shape_dgs_by_dgo_jacob_num(const struct shape *shape, const struct shape *shear)
+double shape_dgs_by_dgo_jacob_num(const struct shape *shape, const struct shape *shear, long *flags)
 {
     double h=1.e-3;
     double h2inv = 1./(2*h);
+    long res=0;
 
     struct shape shape_plus={0}, shape_minus={0};
 
@@ -347,20 +354,20 @@ double shape_dgs_by_dgo_jacob_num(const struct shape *shape, const struct shape 
     shape_plus = *shape;
     shape_minus = *shape;
 
-    shape_set_g(&shape_plus,  shape->g1 + h, shape->g2);
-    shape_set_g(&shape_minus, shape->g1 - h, shape->g2);
+    res += shape_set_g(&shape_plus,  shape->g1 + h, shape->g2);
+    res += shape_set_g(&shape_minus, shape->g1 - h, shape->g2);
 
-    shape_add_inplace(&shape_plus, shear);
-    shape_add_inplace(&shape_minus, shear);
+    res += shape_add_inplace(&shape_plus, shear);
+    res += shape_add_inplace(&shape_minus, shear);
 
     double g1s_by_g1o = (shape_plus.g1 - shape_minus.g1)*h2inv;
     double g2s_by_g1o = (shape_plus.g2 - shape_minus.g2)*h2inv;
 
-    shape_set_g(&shape_plus,  shape->g1, shape->g2 + h);
-    shape_set_g(&shape_minus, shape->g1, shape->g2 - h);
+    res += shape_set_g(&shape_plus,  shape->g1, shape->g2 + h);
+    res += shape_set_g(&shape_minus, shape->g1, shape->g2 - h);
 
-    shape_add_inplace(&shape_plus, shear);
-    shape_add_inplace(&shape_minus, shear);
+    res += shape_add_inplace(&shape_plus, shear);
+    res += shape_add_inplace(&shape_minus, shear);
 
     double g1s_by_g2o = (shape_plus.g1 - shape_minus.g1)*h2inv;
     double g2s_by_g2o = (shape_plus.g2 - shape_minus.g2)*h2inv;
@@ -374,6 +381,9 @@ double shape_dgs_by_dgo_jacob_num(const struct shape *shape, const struct shape 
 
     double jacob = g1s_by_g1o*g2s_by_g2o - g1s_by_g2o*g2s_by_g1o;
 
+    if (res != 8) {
+        *flags |= SHAPE_RANGE_ERROR;
+    }
     return jacob;
 
 }

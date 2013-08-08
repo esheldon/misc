@@ -83,7 +83,7 @@ double srandu()
 
 void randn_seed(void)
 {
-    time_t t1;
+    time_t t1=0;
     (void) time(&t1);
     pid_t pid = getpid();
 
