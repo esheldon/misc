@@ -256,33 +256,48 @@ void dist_g_ba_sample(const struct dist_g_ba *self, struct shape *shape)
         double gsq=g1*g1 + g2*g2;
         if (gsq < 1) {
 
-            shape_set_g(shape, g1, g2);
+            if (shape_set_g(shape, g1, g2)) {
 
-            double prob=dist_g_ba_prob(self, shape);
-            double prand=self->maxval*drand48();
+                double prob=dist_g_ba_prob(self, shape);
+                double prand=self->maxval*drand48();
 
-            if (prand < prob) {
-                break;
+                if (prand < prob) {
+                    break;
+                }
             }
+
         }
     }
 }
 
 double dist_g_ba_pj(const struct dist_g_ba *self,
                     const struct shape *shape,
-                    const struct shape *shear)
+                    const struct shape *shear,
+                    long *flags)
 {
+    double pj=-1.e9;
+
     struct shape mshear={0}, newshape={0};
-    shape_set_g(&mshear, -shear->g1, -shear->g2);
+    if (!shape_set_g(&mshear, -shear->g1, -shear->g2)) {
+        *flags |= SHAPE_RANGE_ERROR;
+        goto _dist_g_ba_pj_bail;
+    }
 
     double j = shape_dgs_by_dgo_jacob(shape, &mshear);
 
     newshape = *shape;
-    shape_add_inplace(&newshape, &mshear);
+    if (!shape_add_inplace(&newshape, &mshear)) {
+        *flags |= SHAPE_RANGE_ERROR;
+        goto _dist_g_ba_pj_bail;
+    }
 
     double p = dist_g_ba_prob(self, &newshape);
 
-    return p*j;
+    pj = p*j;
+
+_dist_g_ba_pj_bail:
+
+    return pj;
 }
 void dist_g_ba_pqr(const struct dist_g_ba *self,
                    const struct shape *shape,
@@ -338,7 +353,8 @@ void dist_g_ba_pqr_num(const struct dist_g_ba *self,
                        double *Q2,
                        double *R11,
                        double *R12,
-                       double *R22)
+                       double *R22,
+                       long *flags)
 {
     double h=1.e-3;
     double h2inv = 1./(2*h);
@@ -349,19 +365,19 @@ void dist_g_ba_pqr_num(const struct dist_g_ba *self,
     *P = dist_g_ba_prob(self, shape);
 
     shape_set_g(&shear, h, 0);
-    double Q1_p = dist_g_ba_pj(self, shape, &shear);
+    double Q1_p = dist_g_ba_pj(self, shape, &shear, flags);
     shape_set_g(&shear, -h, 0);
-    double Q1_m = dist_g_ba_pj(self, shape, &shear);
+    double Q1_m = dist_g_ba_pj(self, shape, &shear, flags);
 
     shape_set_g(&shear, 0, h);
-    double Q2_p = dist_g_ba_pj(self, shape, &shear);
+    double Q2_p = dist_g_ba_pj(self, shape, &shear, flags);
     shape_set_g(&shear, 0, -h);
-    double Q2_m = dist_g_ba_pj(self, shape, &shear);
+    double Q2_m = dist_g_ba_pj(self, shape, &shear, flags);
 
     shape_set_g(&shear, h, h);
-    double R12_pp = dist_g_ba_pj(self, shape, &shear);
+    double R12_pp = dist_g_ba_pj(self, shape, &shear, flags);
     shape_set_g(&shear, -h, -h);
-    double R12_mm = dist_g_ba_pj(self, shape, &shear);
+    double R12_mm = dist_g_ba_pj(self, shape, &shear, flags);
 
     *Q1 = (Q1_p - Q1_m)*h2inv;
     *Q2 = (Q2_p - Q2_m)*h2inv;
@@ -487,44 +503,67 @@ double dist_gmix3_eta_prob(const struct dist_gmix3_eta *self, const struct shape
 // data must be sorted by p
 void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self, struct shape *shape)
 {
-    double p = drand48();
-    long found=0, i=0;
+    // sometimes valid eta1,eta2 result in out of bounds g or e due
+    // to precision issues
+    while (1) {
+        double p = drand48();
+        long found=0, i=0;
 
-    double pcum=0;
-    for (i=0; i<self->size; i++) {
-        pcum += self->p_normalized[i];
-        if (p <= pcum) {
-            found=1;
+        double pcum=0;
+        for (i=0; i<self->size; i++) {
+            pcum += self->p_normalized[i];
+            if (p <= pcum) {
+                found=1;
+                break;
+            }
+        }
+
+        if (!found) {
+            i=self->size-1;
+        }
+
+        // The dimensions are independent
+        double eta1 = self->data[i].sigma*randn();
+        double eta2 = self->data[i].sigma*randn();
+
+        if (shape_set_eta(shape, eta1, eta2)) {
             break;
         }
     }
-
-    if (!found) {
-        i=self->size-1;
-    }
-
-    // The dimensions are independent
-    double eta1 = self->data[i].sigma*randn();
-    double eta2 = self->data[i].sigma*randn();
-
-    shape_set_eta(shape, eta1, eta2);
 }
 
 double dist_gmix3_eta_pj(const struct dist_gmix3_eta *self,
                          const struct shape *shape,
-                         const struct shape *shear)
+                         const struct shape *shear,
+                         long *flags)
 {
-    struct shape mshear={0}, newshape={0};
-    shape_set_g(&mshear, -shear->g1, -shear->g2);
+    double pj=-1.e9;
 
-    double j = shape_detas_by_detao_jacob(shape, &mshear);
+    struct shape mshear={0}, newshape={0};
+
+    if (!shape_set_g(&mshear, -shear->g1, -shear->g2)) {
+        *flags |= SHAPE_RANGE_ERROR;
+        goto _dist_gmix3_eta_pj_bail;
+    }
+
+    double j = shape_detas_by_detao_jacob(shape, &mshear, flags);
+    if (*flags != 0) {
+        goto _dist_gmix3_eta_pj_bail;
+    }
 
     newshape = *shape;
-    shape_add_inplace(&newshape, &mshear);
+
+    if (!shape_add_inplace(&newshape, &mshear)) {
+        *flags |= SHAPE_RANGE_ERROR;
+        goto _dist_gmix3_eta_pj_bail;
+    }
 
     double p = dist_gmix3_eta_prob(self, &newshape);
 
-    return p*j;
+    pj = p*j;
+
+_dist_gmix3_eta_pj_bail:
+    return pj;
 }
 
 void dist_gmix3_eta_pqr(const struct dist_gmix3_eta *self,
@@ -534,7 +573,8 @@ void dist_gmix3_eta_pqr(const struct dist_gmix3_eta *self,
                         double *Q2,
                         double *R11,
                         double *R12,
-                        double *R22)
+                        double *R22,
+                        long *flags)
 {
     double h=1.e-3;
     double h2inv = 1./(2*h);
@@ -544,20 +584,21 @@ void dist_gmix3_eta_pqr(const struct dist_gmix3_eta *self,
 
     *P = dist_gmix3_eta_prob(self, shape);
 
+    // these set_g for shears will not fail, but pj might
     shape_set_g(&shear, h, 0);
-    double Q1_p = dist_gmix3_eta_pj(self, shape, &shear);
+    double Q1_p = dist_gmix3_eta_pj(self, shape, &shear, flags);
     shape_set_g(&shear, -h, 0);
-    double Q1_m = dist_gmix3_eta_pj(self, shape, &shear);
+    double Q1_m = dist_gmix3_eta_pj(self, shape, &shear, flags);
 
     shape_set_g(&shear, 0, h);
-    double Q2_p = dist_gmix3_eta_pj(self, shape, &shear);
+    double Q2_p = dist_gmix3_eta_pj(self, shape, &shear, flags);
     shape_set_g(&shear, 0, -h);
-    double Q2_m = dist_gmix3_eta_pj(self, shape, &shear);
+    double Q2_m = dist_gmix3_eta_pj(self, shape, &shear, flags);
 
     shape_set_g(&shear, h, h);
-    double R12_pp = dist_gmix3_eta_pj(self, shape, &shear);
+    double R12_pp = dist_gmix3_eta_pj(self, shape, &shear, flags);
     shape_set_g(&shear, -h, -h);
-    double R12_mm = dist_gmix3_eta_pj(self, shape, &shear);
+    double R12_mm = dist_gmix3_eta_pj(self, shape, &shear, flags);
 
     *Q1 = (Q1_p - Q1_m)*h2inv;
     *Q2 = (Q2_p - Q2_m)*h2inv;

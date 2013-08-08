@@ -209,8 +209,14 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *
     shape2 = shape1;
     shape_rotate(&shape2, M_PI_2);
 
-    shape_add_inplace(&shape1, &ring->conf.shear);
-    shape_add_inplace(&shape2, &ring->conf.shear);
+    if (!shape_add_inplace(&shape1, &ring->conf.shear)) {
+        *flags |= SHAPE_RANGE_ERROR;
+        goto _ring_pair_new_bail;
+    }
+    if (!shape_add_inplace(&shape2, &ring->conf.shear)) {
+        *flags |= SHAPE_RANGE_ERROR;
+        goto _ring_pair_new_bail;
+    }
 
     // pars gets filled with eta
     fill_pars_6par(&shape1, &shape2, T, counts, pars1, pars2);
