@@ -68,15 +68,16 @@ struct dist_gauss *dist_gauss_new(double mean, double sigma)
 }
 double dist_gauss_lnprob(const struct dist_gauss *self, double x)
 {
-    double lnp=0.0;
 
-    // -0.5*self->ivar*(x-self->mean)**2
-    lnp = x;
-    lnp -= self->mean;
-    lnp *= lnp;
-    lnp *= self->ivar;
-    lnp *= (-0.5);
-    return lnp;
+    double diff = x - self->mean;
+    return -0.5*self->ivar*diff*diff;
+
+    //lnp = x;
+    //lnp -= self->mean;
+    //lnp *= lnp;
+    //lnp *= self->ivar;
+    //lnp *= (-0.5);
+    //return lnp;
 }
 void dist_gauss_print(const struct dist_gauss *self, FILE *stream)
 {
@@ -120,13 +121,24 @@ struct dist_lognorm *dist_lognorm_new(double mean, double sigma)
     dist_lognorm_fill(self, mean, sigma);
     return self;
 }
+
+//chi2 = self.logivar*(logx-self.logmean)**2;
+//lnprob = - 0.5*chi2 - logx;
 double dist_lognorm_lnprob(const struct dist_lognorm *self, double x)
 {
-    double lnp=0.0, logx=0;
+    double lnp=DIST_LOG_LOWVAL;
 
-    //chi2 = self.logivar*(logx-self.logmean)**2;
-    //lnprob = - 0.5*chi2 - logx;
+    long double llogx = logl( (long double)x );
+    if (finitel(llogx)) {
+        double logx = (double) llogx;
+        double diff=logx - self->logmean;
+        double chi2 = self->logivar*diff*diff;
 
+        lnp = -0.5*chi2 - logx;
+    }
+    return lnp;
+
+    /*
     if (x < DIST_LOG_MINARG) {
         lnp = DIST_LOG_LOWVAL;
     } else {
@@ -141,6 +153,7 @@ double dist_lognorm_lnprob(const struct dist_lognorm *self, double x)
         lnp -= logx;
     }
     return lnp;
+    */
 }
 void dist_lognorm_print(const struct dist_lognorm *self, FILE *stream)
 {
@@ -184,34 +197,32 @@ struct dist_g_ba *dist_g_ba_new(double sigma)
 
 double dist_g_ba_lnprob(const struct dist_g_ba *self, const struct shape *shape)
 {
-    double lnp=0, gsq=0, tmp=0;
+    double lnp=DIST_LOG_LOWVAL, gsq=0;
 
     gsq = shape->g1*shape->g1 + shape->g2*shape->g2;
 
-    tmp = 1-gsq;
+    long double tmp = 1-gsq;
+    long double llnp = logl(tmp);
 
-    lnp = log(tmp);
-    if (!isfinite(lnp)) {
-        lnp = DIST_LOG_LOWVAL;
-    } else {
-
-        //p= (1-g**2)**2*exp(-0.5 * g**2 * ivar)
+    if (finitel(llnp)) {
+        //p= (1-g^2)**2*exp(-0.5 * g^2 * ivar)
         // log(p) = 2*log(1-g^2) - 0.5*g^2 * ivar
 
-        //lnp = log(tmp);
-
-        lnp *= 2;
-        
-        tmp = 0.5;
-        tmp *= gsq;
-        tmp *= self->ivar;
-        lnp -= tmp;
+        lnp = (double) llnp;
+        lnp = 2*lnp - 0.5*gsq*self->ivar;
     }
     return lnp;
 
 }
 
+double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape)
+{
+    double lnp = dist_g_ba_lnprob(self, shape);
+    return exp(lnp);
+}
+
 // p= (1-g**2)**2*exp(-0.5 * g**2 * ivar)
+/*
 double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape)
 {
     double prob=0, gsq=0, chi2=0, tmp=0;
@@ -220,6 +231,7 @@ double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape)
 
     tmp = 1-gsq;
     if (tmp > 0) {
+
         tmp *= tmp;
 
         chi2 = gsq;
@@ -232,6 +244,7 @@ double dist_g_ba_prob(const struct dist_g_ba *self, const struct shape *shape)
     return prob;
 
 }
+*/
 
 // since g is bounded, we can use the cut method
 void dist_g_ba_sample(const struct dist_g_ba *self, struct shape *shape)
@@ -445,10 +458,12 @@ double dist_gmix3_eta_lnprob(const struct dist_gmix3_eta *self, const struct sha
 {
     double lnp=DIST_LOG_LOWVAL, p=0;
     p = dist_gmix3_eta_prob(self, shape);
-    if (p > 0) {
-        lnp = log(p);
-    } else {
-        fprintf(stderr,"dist_gmix3_eta_prob is <= 0: %g\n", p);
+
+    long double lp = (long double) p;
+    long double lnpl = logl(lp);
+
+    if (finitel(lnpl)) {
+        lnp = (double) lnpl;
     }
     return lnp;
 

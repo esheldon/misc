@@ -224,12 +224,14 @@ void process_one(struct gmix_mcmc *self,
         *flags |= gmix_mcmc_calc_pqr(self);
         if (*flags == 0) {
             double dnuse=(double)self->nuse;
-            double frac = dnuse/MCA_CHAIN_NSTEPS(self->chain_data.chain);
+            long nstep=MCA_CHAIN_NSTEPS(self->chain_data.chain);
+            double frac = dnuse/nstep;
             if (frac > GMIX_MCMC_MINFRAC_USE) {
                 break;
             } else {
                 fprintf(stderr,
-                 "only %g used in pqr, re-trying with different guesses\n",frac);
+                 "only %ld/%ld %g used in pqr, re-trying with different guesses\n",
+                 self->nuse, nstep, frac);
             }
         } else if (*flags == GMIX_MCMC_NOPOSITIVE) {
             fprintf(stderr,
