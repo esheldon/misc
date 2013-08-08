@@ -2,6 +2,7 @@
 #define _SHAPE_HEADER_GUARD
 
 #define SHAPE_RANGE_ERROR 0x1
+#define SHAPE_MAX 0.999999999999999
 
 enum shape_system {
     SHAPE_SYSTEM_ETA,
