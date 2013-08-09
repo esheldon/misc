@@ -230,7 +230,10 @@ static void coellip_pars_to_shape(const double *pars, size_t npars, struct shape
         goto _coellip_pars_to_shapes_bail;
     }
 
-    shape_set_eta(shape, pars[2], pars[3]);
+    if (!shape_set_eta(shape, pars[2], pars[3])) {
+        *flags |= SHAPE_RANGE_ERROR;
+        goto _coellip_pars_to_shapes_bail;
+    }
 
 _coellip_pars_to_shapes_bail:
     return;

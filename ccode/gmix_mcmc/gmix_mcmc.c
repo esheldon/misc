@@ -277,7 +277,8 @@ static void calc_pqr(struct gmix_mcmc *self,
                 if (*flags==0) {
                     dist_gmix3_eta_pqr(&prob->shape_prior,
                                        &gmix_pars->shape,
-                                       P, Q1, Q2, R11, R12, R22);
+                                       P, Q1, Q2, R11, R12, R22,
+                                       flags);
                     gmix_pars = gmix_pars_free(gmix_pars);
                 }
             }
@@ -304,6 +305,41 @@ static void calc_pqr(struct gmix_mcmc *self,
             exit(1);
     }
 }
+
+// "fix" pqr for the fact that the prior is already in the distribution of
+// points.  Just divide by the prior.  return 1 if the numerical values are all
+// ok.  note the allowed range works well for the gmix3 pars I have tried, but
+// I haven't tried others.  Also they are definitely too broad for ba13, but
+// that is OK since I use analytic formulas then and I don't expect crazy values
+
+static long fix_pqr(double *P, double *Q1, double *Q2,
+                    double *R11, double *R12, double *R22)
+{
+    long ok=0;
+    if (*P > 0) {
+        double Pinv=1/(*P);
+        if (finite(Pinv)) {
+
+            *P *= Pinv;
+            *Q1 *= Pinv;
+            *Q2 *= Pinv;
+            *R11 *= Pinv;
+            *R12 *= Pinv;
+            *R22 *= Pinv;
+
+            if (fabs(*Q1) < 20 && fabs(*Q2) < 20
+                    && (*R11) > -100 && (*R11) < 200
+                    && (*R22) > -100 && (*R22) < 200
+                    && fabs(*R12) < 110) {
+
+                ok=1;
+
+            }
+        }
+    } // P >0 check
+
+    return ok;
+}
 // calculate P,Q,R with fix for the fact that the prior is already
 // in our chain; just divide by the prior
 long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
@@ -321,6 +357,7 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
     for (long i=0; i<nstep; i++) {
         const double *pars = MCA_CHAIN_PARS(chain, i);
 
+        flags=0;
         calc_pqr(self,pars,npars,&P,&Q1,&Q2,&R11,&R12,&R22,&flags);
 
         if (flags==0) {
@@ -328,34 +365,18 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
                 Pmax=P;
             }
             // fix because prior is already in distributions
-            //if (P > GMIX_MCMC_MINPROB_USE) {
-            if (P > 0) {
-                double Pinv=1/P;
-                if (finite(Pinv)) {
-
-                    P *= Pinv;
-                    Q1 *= Pinv;
-                    Q2 *= Pinv;
-                    R11 *= Pinv;
-                    R12 *= Pinv;
-                    R22 *= Pinv;
-
-                   if (fabs(Q1) < 20 && fabs(Q2) < 20
-                           && R11 > -100 && R11 < 200
-                           && R22 > -100 && R22 < 200
-                           && fabs(R12) < 110) {
-                       nuse++;
-
-                       Psum += P;
-                       Q1sum += Q1;
-                       Q2sum += Q2;
-                       R11sum += R11;
-                       R12sum += R12;
-                       R22sum += R22;
-                   }
-                }
-            } // P >0 check
+            long ok=fix_pqr(&P,&Q1,&Q2,&R11,&R12,&R22);
+            if (ok) {
+                nuse++;
+                Psum += P;
+                Q1sum += Q1;
+                Q2sum += Q2;
+                R11sum += R11;
+                R12sum += R12;
+                R22sum += R22;
+            }
         } // flag check
+
     } // steps
 
     flags=0;
