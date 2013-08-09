@@ -21,12 +21,12 @@ struct shape {
     double eta2;
 };
 
-struct shape *shape_new(void);
-struct shape *shape_new_e(double e1, double e2);
-struct shape *shape_new_g(double g1, double g2);
+//struct shape *shape_new(void);
+//struct shape *shape_new_e(double e1, double e2);
+//struct shape *shape_new_g(double g1, double g2);
 
 // return NULL, use as sh=shape_free(sh);
-struct shape *shape_free(struct shape *self);
+//struct shape *shape_free(struct shape *self);
 
 // for human viewing, write both
 // e1: %.16g e2: %.16g
@@ -58,7 +58,7 @@ void shape_rotate(struct shape *self, double theta_radians);
 
 // create a new shape and place in it self+shear
 // returns NULL if failure (e.g. e >= 1)
-struct shape *shape_add(struct shape *self, const struct shape *shear);
+//struct shape *shape_add(struct shape *self, const struct shape *shear);
 
 // return 0 if failure (e.g. e>=1)
 int shape_add_inplace(struct shape *self, const struct shape *shear);
@@ -66,8 +66,10 @@ int shape_add_inplace(struct shape *self, const struct shape *shear);
 //    jacobian of the transformation
 //        |des/deo|_{-shear}
 
-double shape_detas_by_detao_jacob(const struct shape *shape, const struct shape *shear);
+double shape_detas_by_detao_jacob(const struct shape *shape,
+                                  const struct shape *shear, long *flags);
 double shape_dgs_by_dgo_jacob(const struct shape *shape, const struct shape *shear);
-double shape_dgs_by_dgo_jacob_num(const struct shape *shape, const struct shape *shear);
+double shape_dgs_by_dgo_jacob_num(const struct shape *shape,
+                                  const struct shape *shear, long *flags);
 
 #endif
