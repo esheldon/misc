@@ -8,3 +8,4 @@ source /global/project/projectdirs/des/wl/setup/setup.sh
 
 export export CLUSTERSTEP=/global/project/projectdirs/des/wl/cluster-step
 export DESWL_CHECKOUT=~/git/deswl
+export SHAPESIM_DIR=~esheldon/lensing/shapesim
