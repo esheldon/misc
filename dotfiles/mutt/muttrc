@@ -1,0 +1,155 @@
+# A basic .muttrc for use with Gmail
+
+# Change the following six lines to match your Gmail account details
+
+set imap_user = "erin.sheldon@gmail.com"
+set smtp_url = "smtp://erin.sheldon@gmail.com@smtp.gmail.com:587/"
+set from = "erin.sheldon@gmail.com"
+set realname = "Erin Sheldon"
+
+source ~/.muttrc-gmail
+
+# Change the following line to a different editor you prefer.
+
+#set editor = "vim"
+set editor = "vim -c 'set filetype=mail' -c 'set spell spelllang=en_us'"
+
+# Basic config, you can leave this as is
+
+set folder = "imaps://imap.gmail.com:993"
+
+set spoolfile = "+[Gmail]/All Mail"
+#set spoolfile = "+INBOX"
+
+set imap_check_subscribed
+
+set hostname = gmail.com
+
+set mail_check = 120
+
+set timeout = 300
+
+set imap_keepalive = 300
+
+set postponed = "+[Gmail]/Drafts"
+
+#set record = "+[Gmail]/Sent Mail"
+# gmail already saves
+set record = ""
+
+set header_cache=~/.mutt/cache/headers
+
+set message_cachedir=~/.mutt/cache/bodies
+
+set certificate_file=~/.mutt/certificates
+
+set move = no
+
+set include
+
+set  edit_headers
+
+set sort = 'threads'
+set sort_aux=last-date-received
+folder-hook . "exec collapse-all"   # by default collapse the threads
+unset collapse_unread               # don't collapse unread threads
+set   uncollapse_jump               # jump to the unread message
+set   fast_reply                    # don't prompt for stuff when replying
+
+set auto_tag = yes
+
+hdr_order Date From To Cc
+
+auto_view text/html
+
+bind editor <Tab> complete-query
+
+bind editor ^T complete
+
+bind editor <space> noop
+
+bind index G imap-fetch-mail
+bind index v collapse-thread
+
+#Ask before quitting, but default to yes
+set quit=ask-yes
+
+set sidebar_visible=no
+
+set pager_index_lines=10
+
+#
+# colors
+#
+
+color status blue black
+# regular unread messages
+color index brightgreen black "~U"
+# red for important
+color index red black "~F"
+
+color quoted     green      black
+color quoted1    yellow     black
+color quoted2    magenta    black
+color quoted3    blue       black
+color indicator  yellow     default
+
+color signature  blue       black
+
+color tree       brightgreen      black
+
+color header     yellow        black  ^From:
+color header     brightgreen        black  ^To:
+color header     cyan        black  ^Cc:
+color header     blue      black  ^Subject:
+color header     green        black  ^Date:
+color header     brightred        black  ^X-Operating-System:
+color header     brightred        black  ^User-Agent:
+color header     brightred        black  ^X-mailer:
+
+#
+# using google address book
+#
+
+# install goobook using "sudo pip install goobook"
+set query_command="goobook query '%s'"
+
+# completion
+bind editor <Tab> complete-query
+
+#To add email addresses (with "a" key normally bound to create-alias command)::
+# If you want to add an email's sender to Contacts, press a while it's selected in the index or pager.
+macro index,pager a "<pipe-message>goobook add<return>" "add the sender address to Google contacts"
+
+
+# x doesn't quit from index
+bind index x noop
+
+#set date_format = "!%a, %b %d, %Y at %I:%M:%S%p %Z"
+set date_format="%y-%m-%d %R"
+#set index_format = "%6C %Z %{%b %d} %-15.15L (%4l) %s"
+set index_format = "%6C %Z %d %-15.15L (%4l) %s"
+#set date_conditional = yes
+
+# moving in message
+bind pager j next-line
+bind pager k previous-line
+
+# Gmail-style keyboard shortcuts
+
+#macro index,pager y "<enter-command>unset trash\n <delete-message>" "Gmail archive message"
+
+macro index,pager d "<enter-command>set trash=\"imaps://imap.googlemail.com/[Gmail]/Trash\"\n <delete-message>" "Gmail delete message"
+
+#macro index,pager gl "<change-folder>"
+
+#macro index,pager gi "<change-folder>=INBOX<enter>" "Go to inbox"
+
+#macro index,pager ga "<change-folder>=[Gmail]/All Mail<enter>" "Go to all mail"
+
+#macro index,pager gs "<change-folder>=[Gmail]/Starred<enter>" "Go to starred messages"
+
+#macro index,pager gd "<change-folder>=[Gmail]/Drafts<enter>" "Go to drafts"
+
+#macro index,pager gt "<change-folder>=[Gmail]/Sent Mail<enter>" "Go to sent mail"
+
