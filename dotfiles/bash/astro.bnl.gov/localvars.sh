@@ -52,6 +52,7 @@ export MASK_DIR=~esheldon/masks
 
 export LENSDIR=~esheldon/lensing
 export LENSDIR_HDFS=hdfs:///user/esheldon/lensing
+export SHAPESIM_DIR=~esheldon/lensing/shapesim
 export GMIX_SDSS=~esheldon/gmix-sdss
 export SHAPESIM_FS=nfs
 

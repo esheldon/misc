@@ -10,3 +10,4 @@ export export CLUSTERSTEP=/global/project/projectdirs/des/wl/cluster-step
 export DESWL_CHECKOUT=~/git/deswl
 
 export LENSDIR=~esheldon/lensing
+export SHAPESIM_DIR=~esheldon/lensing/shapesim
