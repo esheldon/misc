@@ -28,6 +28,7 @@ if not options.dbg:
 sources=['gsim','config','gconfig','object_simple','catalog',
          'image','gmix','gauss2',
          'gmix_image','image_rand','randn',
+         'jacobian',
          'image_fits','shape']
 programs=[{'name':'gsim','sources':sources}]
 install_targets = [(prog['name'],'bin') for prog in programs]

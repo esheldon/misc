@@ -679,6 +679,9 @@ void gmix_fill_model(struct gmix *self,
         case GMIX_FULL:
             fill_full(self, pars, flags);
             break;
+        case GMIX_TURB:
+            gmix_fill_turb3(self, pars, flags);
+            break;
         default:
             fprintf(stderr, "bad simple gmix model type: %u\n", pars->model);
             *flags |= GMIX_BAD_MODEL;

@@ -45,26 +45,65 @@ application/postscript; /usr/bin/gv '%s'; test=test -n "$DISPLAY"; description=p
 application/ghostview; /usr/bin/gv '%s'; test=test -n "$DISPLAY"
 application/pdf; /usr/bin/gv '%s'; test=test -n "$DISPLAY"
 
-image/gif; qiv -tfi '%s'; description="GIF Image"; test=test "$DISPLAY"; nametemplate=%s.gif
-image/jpeg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
-image/jpg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
-image/pjpeg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
-image/tiff; qiv -tfi '%s'; description="TIFF Image"; test=test "$DISPLAY"; nametemplate=%s.tiff
-image/x-portable-bitmap; qiv -tfi '%s'; description="PBM Image"; test=test "$DISPLAY"; nametemplate=%s.pbm
-image/x-portable-graymap; qiv -tfi '%s'; description="PGM Image"; test=test "$DISPLAY";nametemplate=%s.pgm
-image/x-portable-pixmap; qiv -tfi '%s'; description="PPM Image"; test=test "$DISPLAY"; nametemplate=%s.ppm
-image/x-xbitmap; qiv -tfi '%s'; description="XBM Image"; test=test "$DISPLAY"; nametemplate=%s.xbm
-image/x-xpixmap; qiv -tfi '%s'; description="XPM Image"; test=test "$DISPLAY"; nametemplate=%s.xpm
-image/bmp; qiv -tfi '%s'; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp
-image/x-bmp; qiv -tfi '%s'; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp
-image/x-ms-bmp; qiv -tfi '%s'; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp
-image/x-rgb; qiv -tfi '%s'; description="RGB Image"; test=test "$DISPLAY"; nametemplate=%s.rgb
-image/targa; qiv -tfi '%s'; description="TARGA Image"; test=test "$DISPLAY"; nametemplate=%s.tga
-image/fits; qiv -tfi '%s'; description="FITS Image"; test=test "$DISPLAY"; nametemplate=%s.fits
-image/png; qiv -tfi '%s'; description="PNG Image"; test=test "$DISPLAY"; nametemplate=%s.png
-image/pm; qiv -tfi '%s'; description="PM Image"; test=test "$DISPLAY"; nametemplate=%s.pm
+#image/gif; qiv -tfi '%s'; description="GIF Image"; test=test "$DISPLAY"; nametemplate=%s.gif
+#image/jpeg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
+#image/jpg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
+#image/pjpeg; qiv -tfi '%s'; description="JPEG Image"; test=test "$DISPLAY"; nametemplate=%s.jpeg
+#image/tiff; qiv -tfi '%s'; description="TIFF Image"; test=test "$DISPLAY"; nametemplate=%s.tiff
+#image/x-portable-bitmap; qiv -tfi '%s'; description="PBM Image"; test=test "$DISPLAY"; nametemplate=%s.pbm
+#image/x-portable-graymap; qiv -tfi '%s'; description="PGM Image"; test=test "$DISPLAY";nametemplate=%s.pgm
+#image/x-portable-pixmap; qiv -tfi '%s'; description="PPM Image"; test=test "$DISPLAY"; nametemplate=%s.ppm
+#image/x-xbitmap; qiv -tfi '%s'; description="XBM Image"; test=test "$DISPLAY"; nametemplate=%s.xbm
+#image/x-xpixmap; qiv -tfi '%s'; description="XPM Image"; test=test "$DISPLAY"; nametemplate=%s.xpm
+#image/bmp; qiv -tfi '%s'; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp
+#image/x-bmp; qiv -tfi '%s'; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp
+#image/x-ms-bmp; qiv -tfi '%s'; description="BMP Image"; test=test "$DISPLAY"; nametemplate=%s.bmp
+#image/x-rgb; qiv -tfi '%s'; description="RGB Image"; test=test "$DISPLAY"; nametemplate=%s.rgb
+#image/targa; qiv -tfi '%s'; description="TARGA Image"; test=test "$DISPLAY"; nametemplate=%s.tga
+#image/png; qiv -tfi '%s'; description="PNG Image"; test=test "$DISPLAY"; nametemplate=%s.png
+#image/pm; qiv -tfi '%s'; description="PM Image"; test=test "$DISPLAY"; nametemplate=%s.pm
 
-text/plain; gview -f '%s'; edit=gvim -f '%s'; compose=gvim -f '%s'; test=test "$DISPLAY" != ""
+image/fits; qiv -tfi '%s'; description="FITS Image"; test=test "$DISPLAY"; nametemplate=%s.fits
+
+image/gif; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/jpeg; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/jpg; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/pjpeg; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/tiff; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/x-portable-bitmap; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/x-portable-graymap; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/x-portable-pixmap; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/x-xbitmap; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/x-xpixmap; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/bmp; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/x-bmp; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/x-ms-bmp; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/x-rgb; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/targa; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/png; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+image/pm; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+
+#text/plain; gview -f '%s'; edit=gvim -f '%s'; compose=gvim -f '%s'; test=test "$DISPLAY" != ""
+text/plain; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
 
 application/x-debian-package; /usr/lib/mime/debian-view '%s'; needsterminal; description=Debian GNU/Linux Package; nametemplate=%s.deb
 text/html; firefox -a firefox -remote 'openURL(file://%s, new-tab)'
+
+application/docx; libreoffice '%s'
+application/doc; libreoffice '%s'
+application/vnd.openxmlformats; libreoffice '%s'
+
+application/vnd.oasis.opendocument.text; libreoffice '%s'
+application/vnd.oasis.opendocument.text-template; libreoffice '%s'
+application/vnd.oasis.opendocument.text-web; libreoffice '%s'
+application/vnd.oasis.opendocument.text-master; libreoffice '%s'
+application/vnd.oasis.opendocument.graphics; libreoffice '%s'
+application/vnd.oasis.opendocument.graphics-template; libreoffice '%s'
+application/vnd.oasis.opendocument.presentation; libreoffice '%s'
+application/vnd.oasis.opendocument.presentation-template; libreoffice '%s'
+application/vnd.oasis.opendocument.spreadsheet; libreoffice '%s'
+application/vnd.oasis.opendocument.spreadsheet-template; libreoffice '%s'
+application/vnd.oasis.opendocument.chart; libreoffice '%s'
+application/vnd.oasis.opendocument.formula; libreoffice '%s'
+application/vnd.oasis.opendocument.database; libreoffice '%s'
+application/vnd.oasis.opendocument.image; libreoffice '%s'
