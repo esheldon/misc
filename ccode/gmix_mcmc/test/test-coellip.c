@@ -7,6 +7,7 @@
 #include "../gmix.h"
 #include "../gmix_image.h"
 #include "../gmix_mcmc.h"
+#include "../randn.h"
 #include "../admom.h"
 
 // these will hold pointers to data used in the fits
@@ -59,14 +60,14 @@ size_t get_pars_and_guess(double **pars_true, double **guess, double **widths)
     (*widths)[6] = 0.1*(*pars_true)[6];
     (*widths)[7] = 0.1*(*pars_true)[7];
 
-    (*guess)[0] = (*pars_true)[0] + (*widths)[0]*(drand48()-0.5);
-    (*guess)[1] = (*pars_true)[1] + (*widths)[1]*(drand48()-0.5);
-    (*guess)[2] = (*pars_true)[2] + (*widths)[2]*(drand48()-0.5);
-    (*guess)[3] = (*pars_true)[3] + (*widths)[3]*(drand48()-0.5);
-    (*guess)[4] = (*pars_true)[4] + (*widths)[4]*(drand48()-0.5);
-    (*guess)[5] = (*pars_true)[5] + (*widths)[5]*(drand48()-0.5);
-    (*guess)[6] = (*pars_true)[6] + (*widths)[6]*(drand48()-0.5);
-    (*guess)[7] = (*pars_true)[7] + (*widths)[7]*(drand48()-0.5);
+    (*guess)[0] = (*pars_true)[0] + (*widths)[0]*(randu()-0.5);
+    (*guess)[1] = (*pars_true)[1] + (*widths)[1]*(randu()-0.5);
+    (*guess)[2] = (*pars_true)[2] + (*widths)[2]*(randu()-0.5);
+    (*guess)[3] = (*pars_true)[3] + (*widths)[3]*(randu()-0.5);
+    (*guess)[4] = (*pars_true)[4] + (*widths)[4]*(randu()-0.5);
+    (*guess)[5] = (*pars_true)[5] + (*widths)[5]*(randu()-0.5);
+    (*guess)[6] = (*pars_true)[6] + (*widths)[6]*(randu()-0.5);
+    (*guess)[7] = (*pars_true)[7] + (*widths)[7]*(randu()-0.5);
 
     return npars;
 }

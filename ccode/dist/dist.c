@@ -259,7 +259,7 @@ void dist_g_ba_sample(const struct dist_g_ba *self, struct shape *shape)
             if (shape_set_g(shape, g1, g2)) {
 
                 double prob=dist_g_ba_prob(self, shape);
-                double prand=self->maxval*drand48();
+                double prand=self->maxval*randu();
 
                 if (prand < prob) {
                     break;
@@ -506,7 +506,7 @@ void dist_gmix3_eta_sample(const struct dist_gmix3_eta *self, struct shape *shap
     // sometimes valid eta1,eta2 result in out of bounds g or e due
     // to precision issues
     while (1) {
-        double p = drand48();
+        double p = randu();
         long found=0, i=0;
 
         double pcum=0;

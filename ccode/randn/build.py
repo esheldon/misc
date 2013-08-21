@@ -15,9 +15,10 @@ LINKFLAGS=['-lm']
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
 poisson_sources = ['gen-poisson','randn']
+randn_sources = ['gen-randn','randn']
 
-programs = [{'name':'gen-poisson', 'sources':poisson_sources}]
-
+programs = [{'name':'gen-poisson', 'sources':poisson_sources},
+            {'name':'gen-randn', 'sources':randn_sources}]
 
 def build():
     compile()

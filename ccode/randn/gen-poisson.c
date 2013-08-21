@@ -1,27 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include "randn.h"
 
-void do_seed(void) {
-    time_t tm;
-    (void) time(&tm);
-    srand48((long) tm);
+static void do_seed(const char *seed_str)
+{
+    if (!init_genrand_str(seed_str)) {
+        fprintf(stderr,"failed to convert to seed: '%s'\n", seed_str);
+        exit(1);
+    }
 }
 
 int main(int argc, char **argv)
 {
-    if (argc < 3) {
-        printf("test-poisson lambda num\n");
+    if (argc < 4) {
+        printf("gen-poisson seed lambda num\n");
         printf("  The results to to stdout\n");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
-    double lambda=atof(argv[1]);
-    long num=atol(argv[2]);
+    do_seed(argv[1]);
 
-    do_seed();
+    double lambda=atof(argv[2]);
+    long num=atol(argv[3]);
+
     for (long i=0; i<num; i++) {
         long pval = poisson(lambda);
         printf("%ld\n", pval);

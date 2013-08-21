@@ -227,6 +227,7 @@ void process_one(struct gmix_mcmc *self,
             long nstep=MCA_CHAIN_NSTEPS(self->chain_data.chain);
             double frac = dnuse/nstep;
             if (frac > GMIX_MCMC_MINFRAC_USE) {
+                // success
                 break;
             } else {
                 fprintf(stderr,
@@ -237,9 +238,9 @@ void process_one(struct gmix_mcmc *self,
             fprintf(stderr,
               "problem calculating pqr, re-trying with different guesses\n");
         } else {
-            // should not happen
+            // should not happen; we break with flags set
             fprintf(stderr,"fatal error in calculating pqr\n");
-            goto _process_one_bail;
+            break;
         }
     }
 
@@ -359,20 +360,29 @@ static struct gmix_mcmc *load_gmix_mcmc(const char *name)
     return self;
 }
 
-int main(int argc, char **argv)
+static void do_seed(const char *seed_str)
 {
-    if (argc < 5) {
-        printf("usage: %s sim-conf gmix-mcmc-config s2n npairs\n", argv[0]);
+    fprintf(stderr,"seeing seed: %s\n", seed_str);
+    if (!init_genrand_str(seed_str)) {
+        fprintf(stderr,"failed to convert to seed: '%s'\n", seed_str);
         exit(1);
     }
-    randn_seed();
+}
+int main(int argc, char **argv)
+{
+    if (argc < 6) {
+        printf("usage: %s sim-conf gmix-mcmc-config s2n npairs seed\n", argv[0]);
+        exit(1);
+    }
+
+    const char *seed_str=argv[5];
+    do_seed(seed_str);
 
     struct gsim_ring *ring=load_ring(argv[1]);
     struct gmix_mcmc *gmix_mcmc = load_gmix_mcmc(argv[2]);
 
     double s2n = atof(argv[3]);
     long npairs = atol(argv[4]);
-
 
     fprintf(stderr,"running sim with s2n: %g and npairs: %ld\n", s2n, npairs);
     run_sim(ring, gmix_mcmc, s2n, npairs);

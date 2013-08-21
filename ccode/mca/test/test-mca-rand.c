@@ -1,42 +1,47 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
+#include "../randn.h"
 #include "../mca.h"
 
 
 int main(int argc, char **argv)
 {
     size_t ntrial=1000000;
-    long nmax=10;
+    unsigned int nmax=100;
     double a=2;
-    time_t tm;
 
-    (void) time(&tm);
-    srand48((long) tm);
+    randn_seed();
 
     if (argc > 1) {
         ntrial=atol(argv[1]);
     }
 
+    unsigned int maxval=0;
+
     printf("testing mca_rand_long with %ld trials\n", ntrial);
     // first test the basic random number generator
     for (size_t i=0; i<ntrial; i++) {
-        long r = mca_rand_long(nmax);
+        unsigned int r = rand_uint_max(nmax);
         if (r < 0 || r >= nmax) {
             fprintf(stderr,
-                    "Error, found rand outside of range: [0,%ld)\n", nmax);
+                    "Error, found rand %u outside of range: [0,%u)\n", r, nmax);
             exit(EXIT_FAILURE);
         }
+
+        if (r > maxval) {
+            maxval=r;
+        }
     }
+    printf("got maxval %u from range [0,%u)\n", maxval, nmax);
 
     // now as a complement
     printf("testing mca_rand_complement with %ld trials\n", ntrial);
-    long current=3;
+    unsigned int current=3;
     for (size_t i=0; i<ntrial; i++) {
-        long r = mca_rand_complement(current, nmax);
+        unsigned int r = mca_rand_complement(current, nmax);
         if (r==current) {
             fprintf(stderr,
-                    "Error, rand equal to the complement: [0,%ld)\n", current);
+                    "Error, rand equal to the complement: [0,%u)\n", current);
             exit(EXIT_FAILURE);
         }
     }
