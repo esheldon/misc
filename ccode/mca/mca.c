@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include "randn.h"
 #include "mca.h"
 
 struct mca_chain *mca_chain_new(size_t nwalkers,
@@ -190,7 +191,7 @@ struct mca_chain *mca_make_guess(double *centers,
         double width=widths[ipar];
 
         for (size_t iwalk=0; iwalk<nwalkers; iwalk++) {
-            double val = center + width*(drand48()-0.5)*2;
+            double val = center + width*(randu()-0.5)*2;
             MCA_CHAIN_WPAR(chain, iwalk, 0, ipar) = val; 
         }
     }
@@ -409,7 +410,7 @@ static int mca_accept(double lnprob_old,
                       double z)
 {
     double lnprob_diff = (npars - 1.)*log(z) + lnprob_new - lnprob_old;
-    double r = drand48();
+    double r = randu();
 
     if (lnprob_diff > log(r)) {
         return 1;
@@ -436,7 +437,21 @@ static void mca_stretch_move(double a,
     }
 }
 
+/*
 
+   get a random long index in [0,n) from the *complement* of the input
+   current value, i.e. such that index!=current
+
+*/
+
+unsigned int mca_rand_complement(unsigned int current, unsigned int n)
+{
+    unsigned int i=current;
+    while (i == current) {
+        i = genrand_uint32_max(n);
+    }
+    return i;
+}
 
 static void step_walker(struct mca_chain *chain,
                         double a,
@@ -495,25 +510,13 @@ void mca_run(struct mca_chain *chain,
 
 
                 
-long mca_rand_long(long n)
-{
-    return lrand48() % n;
-}
 
-long mca_rand_complement(long current, long n)
-{
-    long i=current;
-    while (i == current) {
-        i = mca_rand_long(n);
-    }
-    return i;
-}
 
 double mca_rand_gofz(double a)
 {
     // ( (a-1) rand + 1 )^2 / a;
 
-    double z = (a - 1.)*drand48() + 1.;
+    double z = (a - 1.)*randu() + 1.;
 
     z = z*z/a;
 
@@ -531,8 +534,8 @@ double mca_randn()
     double x1, x2, w, y1;//, y2;
  
     do {
-        x1 = 2.*drand48() - 1.0;
-        x2 = 2.*drand48() - 1.0;
+        x1 = 2.*randu() - 1.0;
+        x2 = 2.*randu() - 1.0;
         w = x1*x1 + x2*x2;
     } while ( w >= 1.0 );
 

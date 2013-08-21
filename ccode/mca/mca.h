@@ -377,11 +377,11 @@ long mca_rand_long(long n);
 
 /*
 
-   get a random long index in [0,n) from the *complement* of the input
+   get a random unsigned index in [0,n) from the *complement* of the input
    current value, i.e. such that index!=current
 
 */
-long mca_rand_complement(long current, long n);
+unsigned int mca_rand_complement(unsigned int current, unsigned int n);
 
 /*
    generate random numbers 
