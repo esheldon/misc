@@ -178,18 +178,36 @@ struct gmix *make_gmix0(struct object_simple *object)
     pars[4] = object->T;
     pars[5] = object->counts;
 
+    struct gmix_pars *gpars=NULL;
     struct gmix *gmix=NULL;
+
     if ( 0==strcasecmp(object->model, "exp") ) {
-        gmix=gmix_new_model(GMIX_EXP, pars, 6, &flags);
+        gpars=gmix_pars_new(GMIX_EXP, pars, 6, SHAPE_SYSTEM_E, &flags);
     } else if ( 0==strcasecmp(object->model, "dev") ) {
-        gmix=gmix_new_model(GMIX_DEV, pars, 6, &flags);
+        gpars=gmix_pars_new(GMIX_DEV, pars, 6, SHAPE_SYSTEM_E, &flags);
     } else if ( 0==strcasecmp(object->model, "gauss") ) {
-        gmix=gmix_new_model(GMIX_COELLIP, pars, 6, &flags);
+        gpars=gmix_pars_new(GMIX_COELLIP, pars, 6, SHAPE_SYSTEM_E, &flags);
     } else {
         fprintf(stderr,"bad object model: '%s'\n", object->model);
         exit(EXIT_FAILURE);
     }
 
+    if (flags != 0) {
+        fprintf(stderr,"problem making pars: %s: %d\n",
+                __FILE__,__LINE__);
+        exit(1);
+    }
+
+
+    gmix = gmix_new_model(gpars, &flags);
+    if (flags != 0) {
+        fprintf(stderr,"problem making model: %s: %d\n",
+                __FILE__,__LINE__);
+        exit(1);
+    }
+
+
+    gpars=gmix_pars_free(gpars);
     return gmix;
 }
 
@@ -207,16 +225,33 @@ struct gmix *make_psf_gmix(struct object_simple *object,
     pars[4] = object->psf_T;
     pars[5] = flux;
 
+    struct gmix_pars *gpars=NULL;
     struct gmix *gmix=NULL;
+
     if ( 0==strcasecmp(object->psf_model, "turb") ) {
-        gmix=gmix_new_model(GMIX_TURB, pars, 6, &flags);
+        gpars=gmix_pars_new(GMIX_TURB, pars, 6, SHAPE_SYSTEM_E, &flags);
     } else if ( 0==strcasecmp(object->psf_model, "gauss") ) {
-        gmix=gmix_new_model(GMIX_COELLIP, pars, 6, &flags);
+        gpars=gmix_pars_new(GMIX_COELLIP, pars, 6, SHAPE_SYSTEM_E, &flags);
     } else {
         fprintf(stderr,"bad psf model: '%s'\n", object->psf_model);
         exit(EXIT_FAILURE);
     }
 
+    if (flags != 0) {
+        fprintf(stderr,"problem making psf pars: %s: %d\n",
+                __FILE__,__LINE__);
+        exit(1);
+    }
+
+    gmix = gmix_new_model(gpars, &flags);
+    if (flags != 0) {
+        fprintf(stderr,"problem making psf model: %s: %d\n",
+                __FILE__,__LINE__);
+        exit(1);
+    }
+
+
+    gpars=gmix_pars_free(gpars);
     return gmix;
 
 }

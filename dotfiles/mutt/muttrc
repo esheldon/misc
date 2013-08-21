@@ -7,6 +7,10 @@ set smtp_url = "smtp://erin.sheldon@gmail.com@smtp.gmail.com:587/"
 set from = "erin.sheldon@gmail.com"
 set realname = "Erin Sheldon"
 
+set imap_check_subscribed
+set hostname = gmail.com
+
+# holds the passwords
 source ~/.muttrc-gmail
 
 # Change the following line to a different editor you prefer.
@@ -17,20 +21,12 @@ set editor = "vim -c 'set filetype=mail' -c 'set spell spelllang=en_us'"
 # Basic config, you can leave this as is
 
 set folder = "imaps://imap.gmail.com:993"
-
 set spoolfile = "+[Gmail]/All Mail"
 #set spoolfile = "+INBOX"
 
-set imap_check_subscribed
-
-set hostname = gmail.com
-
 set mail_check = 120
-
 set timeout = 300
-
 set imap_keepalive = 300
-
 set postponed = "+[Gmail]/Drafts"
 
 #set record = "+[Gmail]/Sent Mail"
@@ -38,74 +34,97 @@ set postponed = "+[Gmail]/Drafts"
 set record = ""
 
 set header_cache=~/.mutt/cache/headers
-
 set message_cachedir=~/.mutt/cache/bodies
-
 set certificate_file=~/.mutt/certificates
 
 set move = no
-
 set include
+set nomark_old  # Don't mark unread new msgs as old.
 
 set  edit_headers
+set  fast_reply                    # don't prompt for stuff when replying
 
+set auto_tag = yes
+
+hdr_order Date From To Cc
+auto_view text/html
+
+bind editor <Tab> complete-query
+bind editor ^T complete
+bind editor <space> noop
+
+bind index G imap-fetch-mail
+
+# threads
 set sort = 'threads'
 set sort_aux=last-date-received
 folder-hook . "exec collapse-all"   # by default collapse the threads
 unset collapse_unread               # don't collapse unread threads
 set   uncollapse_jump               # jump to the unread message
-set   fast_reply                    # don't prompt for stuff when replying
-
-set auto_tag = yes
-
-hdr_order Date From To Cc
-
-auto_view text/html
-
-bind editor <Tab> complete-query
-
-bind editor ^T complete
-
-bind editor <space> noop
-
-bind index G imap-fetch-mail
 bind index v collapse-thread
+bind index V collapse-all
 
 #Ask before quitting, but default to yes
 set quit=ask-yes
 
 set sidebar_visible=no
 
+set nomarkers  # Don't want any wrap markers.
 set pager_index_lines=10
 
 #
 # colors
 #
 
+# the normal text
+color normal     default default
+
+# the various status lines
 color status blue black
+
 # regular unread messages
-color index brightgreen black "~U"
+color index brightgreen default "~U"
 # red for important
-color index red black "~F"
+color index brightred default "~F"
 
-color quoted     green      black
-color quoted1    yellow     black
-color quoted2    magenta    black
-color quoted3    blue       black
-color indicator  yellow     default
+# tagged messages
+color index yellow black ~T
 
-color signature  blue       black
+# quotations in the pager
+color quoted     green      default
+color quoted1    yellow     default
+color quoted2    magenta    default
+color quoted3    blue       default
 
-color tree       brightgreen      black
+# the current line where the cursor is
+color indicator  default black
 
-color header     yellow        black  ^From:
-color header     brightgreen        black  ^To:
-color header     cyan        black  ^Cc:
-color header     blue      black  ^Subject:
-color header     green        black  ^Date:
-color header     brightred        black  ^X-Operating-System:
-color header     brightred        black  ^User-Agent:
-color header     brightred        black  ^X-mailer:
+# the signature in the pager
+color signature  blue       default
+
+# for the tree in the threading view
+color tree       brightgreen      default
+
+# headers in the message view in the pager
+color header     yellow        default  ^From:
+color header     brightgreen   default  ^To:
+color header     cyan          default  ^Cc:
+color header     blue          default  ^Subject:
+color header     green         default  ^Date:
+color header     brightred     default  ^X-Operating-System:
+color header     brightred     default  ^User-Agent:
+color header     brightred     default  ^X-mailer:
+
+# when it says "attachment" in the pager
+color attachment yellow default
+
+# the empty lines in the pager
+color tilde default default
+
+
+# highlight some urls etc.
+color body brightgreen default "(http|https|ftp|news|telnet|finger)://[^ \"\t\r\n]*"
+color body brightgreen default "mailto:[-a-z_0-9.]+@[-a-z_0-9.]+"
 
 #
 # using google address book
@@ -119,37 +138,34 @@ bind editor <Tab> complete-query
 
 #To add email addresses (with "a" key normally bound to create-alias command)::
 # If you want to add an email's sender to Contacts, press a while it's selected in the index or pager.
-macro index,pager a "<pipe-message>goobook add<return>" "add the sender address to Google contacts"
+macro index,pager A "<pipe-message>goobook add; goobook reload<return>" "add the sender address to Google contacts"
 
+set pager_stop #don't page to next message when at end
+
+# Forward attached or in body? Ask.  If yes the attachments will be included
+set mime_forward=ask-yes
 
 # x doesn't quit from index
 bind index x noop
 
-#set date_format = "!%a, %b %d, %Y at %I:%M:%S%p %Z"
 set date_format="%y-%m-%d %R"
-#set index_format = "%6C %Z %{%b %d} %-15.15L (%4l) %s"
 set index_format = "%6C %Z %d %-15.15L (%4l) %s"
-#set date_conditional = yes
 
-# moving in message
-bind pager j next-line
-bind pager k previous-line
+bind index,pager \ce next-line
+bind index,pager \cy previous-line 
+bind index,pager \cf next-page
+bind index,pager \cb previous-page
 
-# Gmail-style keyboard shortcuts
 
-#macro index,pager y "<enter-command>unset trash\n <delete-message>" "Gmail archive message"
+bind index,pager a group-reply
 
-macro index,pager d "<enter-command>set trash=\"imaps://imap.googlemail.com/[Gmail]/Trash\"\n <delete-message>" "Gmail delete message"
+bind index,pager c mail
 
-#macro index,pager gl "<change-folder>"
+bind index,pager g change-folder
 
-#macro index,pager gi "<change-folder>=INBOX<enter>" "Go to inbox"
+bind index,pager R imap-fetch-mail
+bind index G last-entry
 
-#macro index,pager ga "<change-folder>=[Gmail]/All Mail<enter>" "Go to all mail"
-
-#macro index,pager gs "<change-folder>=[Gmail]/Starred<enter>" "Go to starred messages"
-
-#macro index,pager gd "<change-folder>=[Gmail]/Drafts<enter>" "Go to drafts"
-
-#macro index,pager gt "<change-folder>=[Gmail]/Sent Mail<enter>" "Go to sent mail"
-
+# \043 = pound sign (like the keyboard shortcut for Gmail's web interface)
+macro index,pager \043 "<save-message>=[Gmail]/Trash" "Trash Message"
+set noconfirmappend                     # Just append, don't hassle me.

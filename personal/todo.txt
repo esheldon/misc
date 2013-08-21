@@ -3,6 +3,7 @@ Quick look Queue
         - todo
         * running
 
+    - change ra,dec for meds to win?
 
     voids
         - seeing b modes in the lensing at very large radius
