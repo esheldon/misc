@@ -97,7 +97,7 @@ color quoted2    magenta    default
 color quoted3    blue       default
 
 # the current line where the cursor is
-color indicator  default black
+color indicator  white red
 
 # the signature in the pager
 color signature  blue       default
