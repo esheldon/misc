@@ -12,12 +12,16 @@
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("test-gmix3-eta nrand\n");
+    if (argc < 3) {
+        printf("test-gmix3-eta seed nrand\n");
         exit(1);
     }
 
-    randn_seed();
+
+    const char *seed_str=argv[1];
+    long nrand=atol(argv[2]);
+
+    init_genrand_str(seed_str);
 
     double sigma1=0.22;
     double p1=0.47;
@@ -28,7 +32,6 @@ int main(int argc, char **argv)
     double sigma3=1.47;
     double p3=0.006;
 
-    long nrand=atol(argv[1]);
 
     struct dist_gmix3_eta dist={0};
     dist_gmix3_eta_fill(&dist,
@@ -40,7 +43,8 @@ int main(int argc, char **argv)
     shape_set_g(&shape, 0.2, 0.1);
     shape_set_g(&shear, 0.04, 0.0);
 
-    double pj = dist_gmix3_eta_pj(&dist, &shape, &shear);
+    long flags=0;
+    double pj = dist_gmix3_eta_pj(&dist, &shape, &shear, &flags);
     double P,Q1,Q2,R11,R12,R22;
     dist_gmix3_eta_pqr(&dist,
                   &shape,
@@ -49,7 +53,8 @@ int main(int argc, char **argv)
                   &Q2,
                   &R11,
                   &R12,
-                  &R22);
+                  &R22,
+                  &flags);
 
 
 

@@ -31,10 +31,17 @@ test_gauss_sources = ['test-gauss',
                       'randn',
                       'dist']
 
+test_pqr_sources = ['mtx2',
+                    'shape',
+                    'dist',
+                    'randn',
+                    'test-pqr']
+
 programs = [{'name':'test-gmix3-eta', 'sources':test_gmix3_eta_sources},
             {'name':'test-g-ba', 'sources':test_g_ba_sources},
             {'name':'test-lognorm', 'sources':test_lognorm_sources},
             {'name':'test-gauss', 'sources':test_gauss_sources},
+            {'name':'test-pqr', 'sources':test_pqr_sources},
            ]
 
 def build():

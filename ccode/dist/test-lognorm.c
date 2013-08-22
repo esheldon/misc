@@ -6,16 +6,17 @@
 
 int main(int argc, char **argv)
 {
-    if (argc < 4) {
-        printf("test-lognorm mean sigma nrand\n");
+    if (argc < 5) {
+        printf("test-lognorm seed mean sigma nrand\n");
         exit(1);
     }
 
-    randn_seed();
+    const char *seed_str=argv[1];
+    init_genrand_str(seed_str);
 
-    double mean=atof(argv[1]);
-    double sigma=atof(argv[2]);
-    long nrand=atol(argv[3]);
+    double mean=atof(argv[2]);
+    double sigma=atof(argv[3]);
+    long nrand=atol(argv[4]);
 
     struct dist_lognorm dist={0};
     dist_lognorm_fill(&dist, mean, sigma);
