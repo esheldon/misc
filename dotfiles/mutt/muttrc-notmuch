@@ -1,40 +1,63 @@
 # A basic .muttrc for use with Gmail
 
-# Change the following six lines to match your Gmail account details
+# normal folders
+set mbox_type=Maildir
+set folder="~/maildir"
 
-set imap_user = "erin.sheldon@gmail.com"
 set smtp_url = "smtp://erin.sheldon@gmail.com@smtp.gmail.com:587/"
 set from = "erin.sheldon@gmail.com"
 set realname = "Erin Sheldon"
 
-set imap_check_subscribed
-set hostname = gmail.com
-
 # holds the passwords
 source ~/.muttrc-gmail
+
+# notmuch
+set nm_default_uri = "notmuch:///home/esheldon/maildir"
+set nm_record = yes
+set record="~/maildir/sent-mail"
+
+# first of the virtual mailboxes will be the spool
+set virtual_spoolfile=yes                          # enable virtual folders
+virtual-mailboxes \
+        "INBOX"     "notmuch://?query=tag:inbox and not tag:archive"\
+        "archive"   "notmuch://?query=tag:archive"\
+        "unread"    "notmuch://?query=tag:unread"\
+        "starred"   "notmuch://?query=tag:*"\
+        "sent"      "notmuch://?query=tag:sent"        # sets up queries for virtual folders
+
+macro index L "<vfolder-from-query>"              # perform query and limit
+macro pager L "<vfolder-from-query>"              # perform query and limit
+
+# go to the inbox
+macro index I "<vfolder-from-query>tag:inbox\n"
+macro pager I "<vfolder-from-query>tag:inbox\n"
+
+#macro index e "<modify-labels>+archive -unread -inbox\\n"        # tag as Archived
+#macro index I "<modify-labels>-inbox -unread\\n"                 # removed from inbox
+
+macro index e "<modify-labels-then-hide>+archive -inbox\n<sync-mailbox>"
+macro index S "<modify-labels-then-hide>-inbox -unread +junk\n" # tag as spam
+macro index + "<modify-labels>+*\n<sync-mailbox>"               # tag as starred
+macro index - "<modify-labels>-*\n<sync-mailbox>"               # tag as unstarred
+
+bind index,pager g change-vfolder
 
 # Change the following line to a different editor you prefer.
 
 #set editor = "vim"
 set editor = "vim -c 'set filetype=mail' -c 'set spell spelllang=en_us'"
 
+
+#virtual-mailboxes \
+#        "INBOX"     "notmuch://?query=tag:INBOX and NOT tag:archive"\
+
 # Basic config, you can leave this as is
 
-set folder = "imaps://imap.gmail.com:993"
-set spoolfile = "+[Gmail]/All Mail"
-#set spoolfile = "+INBOX"
 
 set mail_check = 120
-set timeout = 300
-set imap_keepalive = 300
-set postponed = "+[Gmail]/Drafts"
 
-#set record = "+[Gmail]/Sent Mail"
-# gmail already saves
-set record = ""
-
-set header_cache=~/.mutt/cache/headers
-set message_cachedir=~/.mutt/cache/bodies
+#set header_cache=~/.mutt/cache/headers
+#set message_cachedir=~/.mutt/cache/bodies
 set certificate_file=~/.mutt/certificates
 
 set move = no
@@ -56,7 +79,6 @@ bind editor <Tab> complete-query
 bind editor ^T complete
 bind editor <space> noop
 
-bind index G imap-fetch-mail
 
 # use N to go backwards
 bind index N search-opposite
@@ -156,7 +178,7 @@ set mime_forward=ask-yes
 bind index x noop
 
 set date_format="%y-%m-%d %R"
-set index_format = "%6C %Z %d %-15.15L (%4l) %s"
+set index_format = "%6C %Z %d %-15.15L (%4l) %?g?(%g)? %s"
 
 bind index,pager \ce next-line
 bind index,pager \cy previous-line 
@@ -165,14 +187,12 @@ bind index,pager \cb previous-page
 
 
 bind index,pager a group-reply
-
 bind index,pager c mail
-
-bind index,pager g change-folder
-
-bind index,pager R imap-fetch-mail
+#bind index,pager g change-folder
 bind index G last-entry
 
 # \043 = pound sign (like the keyboard shortcut for Gmail's web interface)
-macro index,pager \043 "<save-message>=[Gmail]/Trash" "Trash Message"
+#macro index,pager \043 "<save-message>=[Gmail]/Trash" "Trash Message"
 set noconfirmappend                     # Just append, don't hassle me.
+
+

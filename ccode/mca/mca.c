@@ -481,6 +481,7 @@ static void step_walker(struct mca_chain *chain,
     MCA_CHAIN_WACCEPT(chain,iwalker,istep) = accept;
 
     if (accept) {
+        // we already set pars_new above
         MCA_CHAIN_WLNPROB(chain,iwalker,istep) = lnprob_new;
     } else {
         // copy the older pars over what we put in above
