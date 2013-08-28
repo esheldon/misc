@@ -1,4 +1,7 @@
 Quick look Queue
+
+    - sg separation run on all data
+
     legend
         - todo
         * running
