@@ -54,7 +54,7 @@ set editor = "vim -c 'set filetype=mail' -c 'set spell spelllang=en_us'"
 # Basic config, you can leave this as is
 
 
-set mail_check = 120
+#set mail_check = 120
 
 #set header_cache=~/.mutt/cache/headers
 #set message_cachedir=~/.mutt/cache/bodies
@@ -88,6 +88,7 @@ bind pager N search-opposite
 set sort = 'threads'
 set sort_aux=last-date-received
 folder-hook . "exec collapse-all"   # by default collapse the threads
+#folder-hook . 'push <collapse-all><collapse-thread>'
 unset collapse_unread               # don't collapse unread threads
 set   uncollapse_jump               # jump to the unread message
 bind index v collapse-thread
@@ -178,7 +179,8 @@ set mime_forward=ask-yes
 bind index x noop
 
 set date_format="%y-%m-%d %R"
-set index_format = "%6C %Z %d %-15.15L (%4l) %?g?(%g)? %s"
+#set index_format = "%6C %Z %d %-15.15L (%4l) %?g?(%g)? %?M?+& ?%2M %s"
+set index_format = "%6C %d %-15.15L (%4l) %?g?(%g)? %?M?+& ?%2M %s"
 
 bind index,pager \ce next-line
 bind index,pager \cy previous-line 
