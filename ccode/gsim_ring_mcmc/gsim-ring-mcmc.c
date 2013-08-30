@@ -370,13 +370,18 @@ static void do_seed(const char *seed_str)
 }
 int main(int argc, char **argv)
 {
-    if (argc < 6) {
-        printf("usage: %s sim-conf gmix-mcmc-config s2n npairs seed\n", argv[0]);
+    if (argc < 5) {
+        printf("usage: %s sim-conf gmix-mcmc-config s2n npairs [seed]\n", argv[0]);
         exit(1);
     }
 
-    const char *seed_str=argv[5];
-    do_seed(seed_str);
+    if (argc == 6) {
+        const char *seed_str=argv[5];
+        do_seed(seed_str);
+    } else {
+        fprintf(stderr,"seeding from /dev/random\n");
+        randn_seed_devrand();
+    }
 
     struct gsim_ring *ring=load_ring(argv[1]);
     struct gmix_mcmc *gmix_mcmc = load_gmix_mcmc(argv[2]);

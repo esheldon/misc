@@ -217,6 +217,22 @@ static unsigned long devrand(void)
 {
     int fn;
     unsigned long r;
+    fn = open("/dev/random", O_RDONLY);
+    if (fn == -1) {
+        fprintf(stderr,"failed to open /dev/random\n");
+        exit(1);
+    }
+    if (read(fn, &r, 8) != 8) {
+        fprintf(stderr,"failed to read 4 bytes from /dev/random\n");
+        exit(1);
+    }
+    close(fn);
+    return r;
+}
+static unsigned long devurand(void)
+{
+    int fn;
+    unsigned long r;
     fn = open("/dev/urandom", O_RDONLY);
     if (fn == -1) {
         fprintf(stderr,"failed to open /dev/urandom\n");
@@ -231,11 +247,18 @@ static unsigned long devrand(void)
 }
 
 
+
 void randn_seed_devrand(void)
 {
     unsigned long s=devrand();
     init_genrand(s);
 }
+void randn_seed_devurand(void)
+{
+    unsigned long s=devurand();
+    init_genrand(s);
+}
+
 
 unsigned int genrand_uint32_max(unsigned int maxval)
 {

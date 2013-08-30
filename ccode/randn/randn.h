@@ -33,9 +33,10 @@ double genrand_real3(void);
 double genrand_res53(void);
 
 /*
-   Seed the random number generator using /dev/urandom
+   Seed the random number generator using /dev/random or /dev/urandom
 */
 void randn_seed_devrand(void);
+void randn_seed_devurand(void);
 
 
 /*
