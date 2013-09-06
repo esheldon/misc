@@ -60,10 +60,10 @@ elif [[ "$hname" == "theshire" ]]; then
     dotfileDir=$ddir/theshire
 elif [[ $isnersc == "Y" ]]; then
     dotfileDir=$ddir/nersc
-elif [[ $astrobnltest != "" ]]; then
-    dotfileDir=$ddir/astro.bnl.gov
 elif [[ $rplaytest != "" ]]; then
     dotfileDir=$ddir/rplay
+elif [[ $astrobnltest != "" ]]; then
+    dotfileDir=$ddir/astro.bnl.gov
 elif [[ $hname == "ria" ]]; then
     dotfileDir=$ddir/ria
 elif [[ $cheopstest != "" ]]; then
