@@ -5,6 +5,11 @@
         font-family: MonoSpace !important;
         font-size: 10pt !important;
     }
+
+    div.msg div.mb {
+        font-family: MonoSpace !important;
+        font-size: 10px !important;
+    }
 }
 
 textarea {
