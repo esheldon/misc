@@ -40,7 +40,7 @@ if [[ $check == "" ]]; then
     # also loads pcre      # *
     module load swig       # *
 
-    module load cfitsio/3330   # *
+    module load cfitsio/3350   # *
     module load ccfits/2.4     # *
 
     module load emcee
@@ -86,7 +86,7 @@ if [[ $check == "" ]]; then
     module unload tmv && module load tmv/0.71     # *
 
     # prereq: ccfits, tmv, desfiles, esutil
-    module unload shapelets-ess && module load shapelets-ess/local   # *
+    module unload shapelets && module load shapelets/local   # *
 
     module load galsim/local
 
