@@ -223,7 +223,7 @@ static unsigned long devrand(void)
         exit(1);
     }
     if (read(fn, &r, 8) != 8) {
-        fprintf(stderr,"failed to read 4 bytes from /dev/random\n");
+        fprintf(stderr,"failed to read 8 bytes from /dev/random\n");
         exit(1);
     }
     close(fn);
@@ -239,7 +239,7 @@ static unsigned long devurand(void)
         exit(1);
     }
     if (read(fn, &r, 8) != 8) {
-        fprintf(stderr,"failed to read 4 bytes from /dev/urandom\n");
+        fprintf(stderr,"failed to read 8 bytes from /dev/urandom\n");
         exit(1);
     }
     close(fn);

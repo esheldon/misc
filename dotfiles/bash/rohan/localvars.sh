@@ -9,3 +9,7 @@ export LENSDIR=~/lensing
 export SHAPESIM_FS=local
 
 export CLUSTERSTEP=~/data/cluster-step
+
+export DESDATA=~/data/DES
+export DESREMOTE=https://desar2.cosmology.illinois.edu:7443/DESFiles/desardata
+export DESPROJ=OPS

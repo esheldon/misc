@@ -1,5 +1,9 @@
 Quick look Queue
 
+    - comments for peter
+    - comments for andres
+    - need to remove the wrong zero points added to final cut?
+    - use the new tags.  Currently the only one is SVA1_CAODD_SPTE
     - sg separation run on all data
 
     legend

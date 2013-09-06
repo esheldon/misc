@@ -87,7 +87,7 @@ bind pager N search-opposite
 # threads
 set sort = 'threads'
 set sort_aux=last-date-received
-folder-hook . "exec collapse-all"   # by default collapse the threads
+#folder-hook . "exec collapse-all"   # by default collapse the threads
 #folder-hook . 'push <collapse-all><collapse-thread>'
 unset collapse_unread               # don't collapse unread threads
 set   uncollapse_jump               # jump to the unread message
