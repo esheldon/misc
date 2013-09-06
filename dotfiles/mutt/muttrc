@@ -65,7 +65,7 @@ bind pager N search-opposite
 # threads
 set sort = 'threads'
 set sort_aux=last-date-received
-folder-hook . "exec collapse-all"   # by default collapse the threads
+#folder-hook . "exec collapse-all"   # by default collapse the threads
 unset collapse_unread               # don't collapse unread threads
 set   uncollapse_jump               # jump to the unread message
 bind index v collapse-thread
@@ -138,7 +138,8 @@ color body brightgreen default "mailto:[-a-z_0-9.]+@[-a-z_0-9.]+"
 #
 
 # install goobook using "sudo pip install goobook"
-set query_command="goobook query '%s'"
+set query_command="goobook query '%s'" 
+#set query_command="goobook query '%s' | sed 's/\(.*\)\t\(.*\)\t.*/\2 \<\1\>/' | sed '/^$/d'"
 
 # completion
 bind editor <Tab> complete-query
@@ -156,7 +157,8 @@ set mime_forward=ask-yes
 bind index x noop
 
 set date_format="%y-%m-%d %R"
-set index_format = "%6C %Z %d %-15.15L (%4l) %s"
+#set index_format = "%6C %Z %d %-15.15L (%4l) %s"
+set index_format = "%6C %Z %d %-15.15L (%4l) %?M?+& ?%2M %s"
 
 bind index,pager \ce next-line
 bind index,pager \cy previous-line 

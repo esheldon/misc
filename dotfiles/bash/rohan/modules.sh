@@ -48,5 +48,8 @@ if [[ -e $f ]]; then
     module load espy/local
 
     module load gmix_image/local # *
+
+    module load desdb/local
+    module load deswl/local
 fi
 

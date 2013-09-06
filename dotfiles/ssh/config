@@ -5,6 +5,9 @@ ServerAliveInterval 120
 ServerAliveCountMax 10
 GSSAPIAuthentication yes
 
+ControlMaster auto
+ControlPath /tmp/%r@%h:%p
+ControlPersist yes
 
 # This section deals with port forwarding through gateways.  In all cases
 # we must first set up a connection through the gateway machine.  This 

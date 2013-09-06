@@ -54,6 +54,17 @@ Plugin {
         RxColor = red
     }
 }
+Plugin {
+    type = net
+    config {
+        interface = wlan
+        TxLimit = 200
+        RxLimit = 3000
+        TxColor = cyan
+        RxColor = red
+    }
+}
+
 
 # space and tray
 Plugin {

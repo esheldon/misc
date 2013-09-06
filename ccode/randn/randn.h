@@ -34,6 +34,10 @@ double genrand_res53(void);
 
 /*
    Seed the random number generator using /dev/random or /dev/urandom
+
+   /dev/random is better but can block
+
+   /dev/urandom will not block but can run out of entropy
 */
 void randn_seed_devrand(void);
 void randn_seed_devurand(void);
