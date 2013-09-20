@@ -4,15 +4,11 @@ Quick look Queue
     - make a new repository for mca; need to deal with
       random stuff.
 
-    - gmix_meds 
-        * use MedsExtractor in gmix-fit-meds
-        * get id from meds file
-        - test
-    - get checks from eli on quick run
     - comments for andres
-    - look for new tiles
-    - get full condor script set up
     - new eyeball for sva1
+
+
+
 
     legend
         - todo
