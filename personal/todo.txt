@@ -1,6 +1,7 @@
 Quick look Queue
 
 
+    - make catalog-only MEDS file
     - make a new repository for mca; need to deal with
       random stuff.
 
