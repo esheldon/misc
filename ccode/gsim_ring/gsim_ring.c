@@ -177,7 +177,8 @@ static void sample_shape_prior(const struct gsim_ring *self, struct shape *shape
 
 }
 
-struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *flags)
+struct ring_pair *ring_pair_new(const struct gsim_ring *ring,
+                                long *flags)
 {
 
     double pars1[6] = {0};
@@ -195,7 +196,6 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *
                 __FILE__,__LINE__);
         return NULL;
     }
-    self->s2n=s2n;
     self->psf_s2n=ring->conf.psf_s2n;
 
     self->cen1_offset = dist_gauss_sample(&ring->cen1_dist);
@@ -269,7 +269,6 @@ struct ring_pair *ring_pair_free(struct ring_pair *self)
 
 void ring_pair_print(const struct ring_pair *self, FILE* stream)
 {
-    fprintf(stream,"s2n:   %g\n", self->s2n);
 
     fprintf(stream,"gmix1:\n");
     gmix_print(self->gmix1, stream);
@@ -280,12 +279,10 @@ void ring_pair_print(const struct ring_pair *self, FILE* stream)
 
 static struct image *make_image(const struct gmix *gmix,
                                 int nsub,
-                                double s2n,
                                 double cen1_offset,
                                 double cen2_offset,
                                 double *coord_cen1,
                                 double *coord_cen2,
-                                double *skysig, // output
                                 long *flags) // output
 {
     struct gmix *tmp_gmix=NULL;
@@ -318,7 +315,6 @@ static struct image *make_image(const struct gmix *gmix,
         goto _ring_make_image_bail;
     }
 
-    image_add_randn_matched(image, s2n, skysig);
 
 _ring_make_image_bail:
     tmp_gmix=gmix_free(tmp_gmix);
@@ -329,7 +325,9 @@ _ring_make_image_bail:
     return image;
 }
 
-struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *flags)
+struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self,
+                                            double skysig,
+                                            long *flags)
 {
     struct ring_image_pair *impair=NULL;
 
@@ -345,24 +343,20 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *
 
     impair->im1 = make_image(self->gmix1,
                              RING_IMAGE_NSUB,
-                             self->s2n,
                              self->cen1_offset,
                              self->cen2_offset,
                              &impair->coord_cen1,
                              &impair->coord_cen2,
-                             &impair->skysig1,
                              flags);
     if (*flags != 0) {
         goto _ring_make_image_pair_bail;
     }
     impair->im2 = make_image(self->gmix2,
                              RING_IMAGE_NSUB,
-                             self->s2n,
                              self->cen1_offset,
                              self->cen2_offset,
                              &impair->coord_cen1,
                              &impair->coord_cen2,
-                             &impair->skysig2,
                              flags);
     if (*flags != 0) {
         goto _ring_make_image_pair_bail;
@@ -370,24 +364,30 @@ struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *
 
     impair->psf_image = make_image(self->psf_gmix,
                                    RING_IMAGE_NSUB,
-                                   self->psf_s2n,
                                    self->cen1_offset,
                                    self->cen2_offset,
                                    &impair->psf_coord_cen1,
                                    &impair->psf_coord_cen2,
-                                   &impair->psf_skysig,
                                    flags);
     if (*flags != 0) {
         goto _ring_make_image_pair_bail;
     }
 
-    double ivar1=1/(impair->skysig1*impair->skysig1);
-    double ivar2=1/(impair->skysig2*impair->skysig2);
+    impair->skysig1=skysig;
+    impair->skysig2=skysig;
+
+    image_add_randn(impair->im1, skysig);
+    image_add_randn(impair->im2, skysig);
+    image_add_randn_matched(impair->psf_image,
+                            self->psf_s2n,
+                            &impair->psf_skysig);
+
+    double ivar=1/(skysig*skysig);
 
     impair->wt1 = image_new(IM_NROWS(impair->im1),IM_NCOLS(impair->im1));
     impair->wt2 = image_new(IM_NROWS(impair->im2),IM_NCOLS(impair->im2));
-    image_add_scalar(impair->wt1, ivar1);
-    image_add_scalar(impair->wt2, ivar2);
+    image_add_scalar(impair->wt1, ivar);
+    image_add_scalar(impair->wt2, ivar);
 
 _ring_make_image_pair_bail:
     if (*flags != 0) {

@@ -5,6 +5,7 @@
 #include "gsim_ring.h"
 #include "shape.h"
 #include "image.h"
+#include "image_rand.h"
 #include "obs.h"
 #include "time.h"
 #include "fileio.h"
@@ -57,26 +58,22 @@ struct obs_list *make_obs_list(const struct image *image,
 // so we can properly use it in the prior
 static
 struct ring_image_pair *get_image_pair(struct gsim_ring *ring,
-                                       double s2n,
-                                       double *T, double *counts)
+                                       double skysig)
 {
     struct ring_pair *rpair=NULL;
     struct ring_image_pair *impair=NULL;
     long flags=0;
 
-    rpair = ring_pair_new(ring, s2n, &flags);
+    rpair = ring_pair_new(ring, &flags);
     if (flags != 0) {
         goto _get_image_pair_bail;
     }
 
-    impair = ring_image_pair_new(rpair, &flags);
+    impair = ring_image_pair_new(rpair, skysig, &flags);
 
     if (flags != 0) {
         goto _get_image_pair_bail;
     }
-
-    *T=gmix_get_T(rpair->gmix1);
-    *counts=gmix_get_psum(rpair->gmix1);
 
 _get_image_pair_bail:
     rpair = ring_pair_free(rpair);
@@ -185,8 +182,6 @@ static void process_psfs(struct gmix_mcmc *self)
 void process_one(struct gmix_mcmc *self,
                  struct ring_image_pair *impair,
                  long pairnum,
-                 double T,
-                 double counts,
                  long *flags)
 {
     //double row_guess=0, col_guess=0;
@@ -260,19 +255,16 @@ _process_one_bail:
 // some log info goes to stderr
 void process_pair(struct gsim_ring *ring,
                   struct gmix_mcmc *gmix_mcmc,
-                  double s2n)
+                  double skysig)
 {
 
     long flags=0;
-    double T=0, counts=0;
 
-    struct ring_image_pair *impair = get_image_pair(ring, s2n, &T, &counts);
+    struct ring_image_pair *impair = get_image_pair(ring, skysig);
 
     process_one(gmix_mcmc,
                 impair,
                 1,
-                T,
-                counts,
                 &flags);
 
     if (flags != 0) {
@@ -283,8 +275,6 @@ void process_pair(struct gsim_ring *ring,
     process_one(gmix_mcmc,
                 impair,
                 2,
-                T,
-                counts,
                 &flags);
 
     if (flags != 0) {
@@ -319,6 +309,39 @@ static void print_header(long nlines, long npars)
     printf("\n");
 }
 
+// get the sky noise based on the requested average counts
+static double get_skysig(const struct gsim_ring *ring, double s2n)
+{
+    struct ring_pair *rpair=NULL;
+    struct ring_image_pair *impair=NULL;
+    long flags=0;
+
+    rpair = ring_pair_new(ring, &flags);
+    if (flags != 0) {
+        fprintf(stderr,"error making ring to get sky noise\n");
+        exit(1);
+    }
+
+    // set the counts to the mean
+    gmix_set_psum(rpair->gmix1, ring->counts_dist.mean);
+    gmix_set_psum(rpair->gmix2, ring->counts_dist.mean);
+    impair = ring_image_pair_new(rpair, 0.0, &flags);
+
+    if (flags != 0) {
+        fprintf(stderr,"error making image to get sky noise\n");
+        exit(1);
+    }
+
+    double skysig1=0, skysig2=0;
+    image_add_randn_matched(impair->im1, s2n, &skysig1);
+    image_add_randn_matched(impair->im2, s2n, &skysig2);
+    double skysig = (skysig1+skysig2)/2.;
+
+    rpair = ring_pair_free(rpair);
+    impair = ring_image_pair_free(impair);
+
+    return skysig;
+}
 
 static void run_sim(struct gsim_ring *ring,
                     struct gmix_mcmc *gmix_mcmc,
@@ -326,12 +349,16 @@ static void run_sim(struct gsim_ring *ring,
                     long npairs)
 {
 
+    double skysig=get_skysig(ring, s2n);
+    fprintf(stderr,"for s/n=%g found skysig=%g\n",s2n,skysig);
+
     print_header(npairs*2, gmix_mcmc->conf.npars);
     for (long i=0; i<npairs; i++) {
         fprintf(stderr,"%ld/%ld\n", i+1, npairs);
-        process_pair(ring, gmix_mcmc, s2n);
+        process_pair(ring, gmix_mcmc, skysig);
     }
 }
+
 
 static struct gsim_ring *load_ring(const char *name)
 {
@@ -368,6 +395,7 @@ static void do_seed(const char *seed_str)
         exit(1);
     }
 }
+
 int main(int argc, char **argv)
 {
     if (argc < 5) {

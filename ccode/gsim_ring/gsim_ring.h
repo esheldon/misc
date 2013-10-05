@@ -30,7 +30,6 @@ struct gsim_ring *gsim_ring_new_from_file(const char *name, long *flags);
 struct gsim_ring *gsim_ring_free(struct gsim_ring *self);
 
 struct ring_pair {
-    double s2n;
     double psf_s2n;
 
     double cen1_offset;
@@ -81,14 +80,16 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
                                 double cen2_offset,
                                 long *flags);
 */
-struct ring_pair *ring_pair_new(const struct gsim_ring *ring, double s2n, long *flags);
+struct ring_pair *ring_pair_new(const struct gsim_ring *ring, long *flags);
 
 struct ring_pair *ring_pair_free(struct ring_pair *self);
 
 void ring_pair_print(const struct ring_pair *self, FILE* stream);
 
 
-struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self, long *flags);
+struct ring_image_pair *ring_image_pair_new(const struct ring_pair *self,
+                                            double skysig,
+                                            long *flags);
 
 struct ring_image_pair *ring_image_pair_free(struct ring_image_pair *self);
 
