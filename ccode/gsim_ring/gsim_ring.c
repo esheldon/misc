@@ -178,6 +178,10 @@ static void sample_shape_prior(const struct gsim_ring *self, struct shape *shape
 }
 
 struct ring_pair *ring_pair_new(const struct gsim_ring *ring,
+                                double cen1_offset, double cen2_offset,
+                                double T, double counts,
+                                const struct shape *shape1,
+                                const struct shape *shape2,
                                 long *flags)
 {
 
@@ -198,16 +202,8 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring,
     }
     self->psf_s2n=ring->conf.psf_s2n;
 
-    self->cen1_offset = dist_gauss_sample(&ring->cen1_dist);
-    self->cen2_offset = dist_gauss_sample(&ring->cen2_dist);
-
-    double T = dist_lognorm_sample(&ring->T_dist);
-    double counts = dist_lognorm_sample(&ring->counts_dist);
-
-    sample_shape_prior(ring, &shape1);
-
-    shape2 = shape1;
-    shape_rotate(&shape2, M_PI_2);
+    self->cen1_offset = cen1_offset;
+    self->cen2_offset = cen2_offset;
 
     if (!shape_add_inplace(&shape1, &ring->conf.shear)) {
         *flags |= SHAPE_RANGE_ERROR;
@@ -223,9 +219,15 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring,
     fill_pars_6par_psf(&ring->conf.psf_shape, ring->conf.psf_T, psf_pars);
 
     // eta
-    psf_gmix = gmix_new_model_from_array(ring->conf.psf_model, psf_pars, psf_npars, SHAPE_SYSTEM_ETA, flags);
-    gmix1_0=gmix_new_model_from_array(ring->conf.obj_model, pars1, npars, SHAPE_SYSTEM_ETA, flags);
-    gmix2_0=gmix_new_model_from_array(ring->conf.obj_model, pars2, npars, SHAPE_SYSTEM_ETA, flags);
+    psf_gmix = gmix_new_model_from_array(ring->conf.psf_model,
+                                         psf_pars, psf_npars,
+                                         SHAPE_SYSTEM_ETA, flags);
+    gmix1_0=gmix_new_model_from_array(ring->conf.obj_model,
+                                      pars1, npars,
+                                      SHAPE_SYSTEM_ETA, flags);
+    gmix2_0=gmix_new_model_from_array(ring->conf.obj_model,
+                                      pars2, npars,
+                                      SHAPE_SYSTEM_ETA, flags);
 
     if (*flags != 0) {
         goto _ring_pair_new_bail;
@@ -252,6 +254,28 @@ _ring_pair_new_bail:
     gmix2_0 = gmix_free(gmix2_0);
     return self;
 
+}
+
+
+struct ring_pair *ring_pair_new_sample(const struct gsim_ring *ring,
+                                       long *flags)
+{
+
+    struct shape shape1={0}, shape2={0};
+
+    double cen1_offset = dist_gauss_sample(&ring->cen1_dist);
+    double cen2_offset = dist_gauss_sample(&ring->cen2_dist);
+
+    double T = dist_lognorm_sample(&ring->T_dist);
+    double counts = dist_lognorm_sample(&ring->counts_dist);
+
+    sample_shape_prior(ring, &shape1);
+
+    shape2 = shape1;
+    shape_rotate(&shape2, M_PI_2);
+
+    return ring_pair_new(ring, cen1_offset, cen2_offset, T, counts,
+                         &shape1, &shape2, flags);
 }
 
 

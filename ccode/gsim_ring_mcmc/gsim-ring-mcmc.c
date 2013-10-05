@@ -309,14 +309,14 @@ static void print_header(long nlines, long npars)
     printf("\n");
 }
 
-// get the sky noise based on the requested average counts
+// get the sky noise based on the requested average counts and size
 static double get_skysig(const struct gsim_ring *ring, double s2n)
 {
     struct ring_pair *rpair=NULL;
     struct ring_image_pair *impair=NULL;
     long flags=0;
 
-    rpair = ring_pair_new(ring, &flags);
+    rpair = ring_pair_new_sample(ring, &flags);
     if (flags != 0) {
         fprintf(stderr,"error making ring to get sky noise\n");
         exit(1);
@@ -400,6 +400,7 @@ int main(int argc, char **argv)
 {
     if (argc < 5) {
         printf("usage: %s sim-conf gmix-mcmc-config s2n npairs [seed]\n", argv[0]);
+        printf("    s2n is the signal-to-noise at the mean counts\n");
         exit(1);
     }
 
