@@ -399,6 +399,106 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
     return flags;
 }
 
+static void calc_dbydg(struct gmix_mcmc *self,
+                       const double *pars,
+                       size_t npars,
+                       double *P,
+                       double *g1, double *g2,
+                       double *dbyg1, double *dbyg2,
+                       long *flags)
+{
+    switch (self->prob->type) {
+        case PROB_BA13:
+            {
+                struct prob_data_simple_ba *prob = 
+                    (struct prob_data_simple_ba *)self->prob;
+
+                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars,
+                                                          SHAPE_SYSTEM_G, flags);
+                if (*flags==0) {
+                    *g1 = gmix_pars->shape.g1;
+                    *g2 = gmix_pars->shape.g2;
+
+                    dist_g_ba_dbyg_num(&prob->shape_prior,
+                                       &gmix_pars->shape,
+                                       P, dbyg1, dbyg2,
+                                       flags);
+
+                    gmix_pars = gmix_pars_free(gmix_pars);
+                }
+            }
+            break;
+
+        default:
+            fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
+                    self->prob->type, __FILE__,__LINE__);
+            exit(1);
+    }
+}
+
+
+long gmix_mcmc_calc_lensfit(struct gmix_mcmc *self)
+{
+
+    const struct mca_chain *chain = self->chain_data.chain;
+
+    long nstep=MCA_CHAIN_NSTEPS(chain);
+    size_t npars = MCA_CHAIN_NPARS(chain);
+
+    struct shape shape={0};
+    double dbyg1=0, dbyg2=0, P=0, Pmax=0;
+    double g1sum=0, g2sum=0, g1_sensum=0, g2_sensum=0; 
+    long nuse=0, flags=0;
+
+    for (long i=0; i<nstep; i++) {
+        const double *pars = MCA_CHAIN_PARS(chain, i);
+
+        flags=0;
+        double g1=pars[2];
+        double g2=pars[3];
+        shape_set_g(&shape, g1, g2);
+        calc_dbyg(self, &shape, &P, &dbyg1, &dbyg2, &flags);
+
+        if (flags==0) {
+            if (P > Pmax) {
+                Pmax=P;
+            }
+
+            if (P > 0) {
+                double fac1 = dbyg1/P;
+                double fac2 = dbyg2/P;
+
+                g1sum += g1;
+                g2sum += g2;
+
+                g1_sensum += g1*fac1;
+                g2_sensum += g2*fac2;
+
+                nuse++;
+            } // P > 0
+        } // flag check
+
+    } // steps
+
+    flags=0;
+
+    self->nuse_lensfit = nuse;
+    if (nuse > 0) {
+        self->g[0] = g1sum/nuse;
+        self->g[0] = g2sum/nuse;
+
+        self->gsens[0] = g1_sensum/(nuse*nuse) - g1_sensum/nuse;
+        self->gsens[1] = g2_sensum/(nuse*nuse) - g2_sensum/nuse;
+
+    } else {
+        fprintf(stderr,"no good lensfit P vals; max P was %g\n", Pmax);
+        flags |= GMIX_MCMC_NOPOSITIVE;
+    }
+
+    return flags;
+}
+
+
 
 // note flags get "lost" here, you need good error messages
 static double get_lnprob(const double *pars, size_t npars, const void *data)
