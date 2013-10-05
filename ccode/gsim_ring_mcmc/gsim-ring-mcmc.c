@@ -64,7 +64,7 @@ struct ring_image_pair *get_image_pair(struct gsim_ring *ring,
     struct ring_image_pair *impair=NULL;
     long flags=0;
 
-    rpair = ring_pair_new(ring, &flags);
+    rpair = ring_pair_new_sample(ring, &flags);
     if (flags != 0) {
         goto _get_image_pair_bail;
     }
@@ -316,15 +316,23 @@ static double get_skysig(const struct gsim_ring *ring, double s2n)
     struct ring_image_pair *impair=NULL;
     long flags=0;
 
-    rpair = ring_pair_new_sample(ring, &flags);
+    double cen1_offset=0, cen2_offset=0;
+    double T      = ring->T_dist.mean;
+    double counts = ring->counts_dist.mean;
+    struct shape shape1={0}, shape2={0};
+
+    rpair = ring_pair_new(ring, cen1_offset, cen2_offset,
+                          T, counts,
+                          &shape1, &shape2,
+                          &flags);
+
+
     if (flags != 0) {
         fprintf(stderr,"error making ring to get sky noise\n");
         exit(1);
     }
 
-    // set the counts to the mean
-    gmix_set_psum(rpair->gmix1, ring->counts_dist.mean);
-    gmix_set_psum(rpair->gmix2, ring->counts_dist.mean);
+    // no-noise image
     impair = ring_image_pair_new(rpair, 0.0, &flags);
 
     if (flags != 0) {

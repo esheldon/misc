@@ -180,15 +180,14 @@ static void sample_shape_prior(const struct gsim_ring *self, struct shape *shape
 struct ring_pair *ring_pair_new(const struct gsim_ring *ring,
                                 double cen1_offset, double cen2_offset,
                                 double T, double counts,
-                                const struct shape *shape1,
-                                const struct shape *shape2,
+                                const struct shape *shape1_in,
+                                const struct shape *shape2_in,
                                 long *flags)
 {
 
     double pars1[6] = {0};
     double pars2[6] = {0};
     double psf_pars[6]={0};
-    struct shape shape1={0}, shape2={0};
 
     struct ring_pair *self=NULL;
     struct gmix *gmix1_0=NULL, *gmix2_0=NULL, *psf_gmix=NULL;
@@ -204,6 +203,9 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring,
 
     self->cen1_offset = cen1_offset;
     self->cen2_offset = cen2_offset;
+
+    struct shape shape1=(*shape1_in);
+    struct shape shape2=(*shape2_in);
 
     if (!shape_add_inplace(&shape1, &ring->conf.shear)) {
         *flags |= SHAPE_RANGE_ERROR;
