@@ -10,6 +10,10 @@ void image_add_randn(struct image *image, double skysig)
     size_t col=0, row=0;
     double *rowdata=NULL;
 
+    if (skysig <= 0) {
+        return;
+    }
+
     for (row=0; row<nrows; row++) {
         rowdata=IM_ROW(image, row);
         for (col=0; col<ncols; col++) {
