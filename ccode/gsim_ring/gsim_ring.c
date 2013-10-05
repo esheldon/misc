@@ -239,10 +239,6 @@ struct ring_pair *ring_pair_new(const struct gsim_ring *ring,
     self->gmix2 = gmix_convolve(gmix2_0, psf_gmix, flags);
     self->psf_gmix = psf_gmix;
 
-    //fprintf(stderr,"psf_T: %g obj1_T: %g obj2_T: %g\n",
-    //        gmix_get_T(self->psf_gmix),
-    //        gmix_get_T(self->gmix1),
-    //        gmix_get_T(self->gmix2));
     if (*flags != 0) {
         goto _ring_pair_new_bail;
     }

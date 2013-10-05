@@ -408,7 +408,7 @@ int main(int argc, char **argv)
 {
     if (argc < 5) {
         printf("usage: %s sim-conf gmix-mcmc-config s2n npairs [seed]\n", argv[0]);
-        printf("    s2n is the signal-to-noise at the mean counts\n");
+        printf("    s2n is the signal-to-noise at the sample means\n");
         exit(1);
     }
 
