@@ -80,7 +80,13 @@ struct ring_pair *ring_pair_new(enum gmix_model model,
                                 double cen2_offset,
                                 long *flags);
 */
-struct ring_pair *ring_pair_new(const struct gsim_ring *ring, long *flags);
+struct ring_pair *ring_pair_new_sample(const struct gsim_ring *ring, long *flags);
+struct ring_pair *ring_pair_new(const struct gsim_ring *ring,
+                                double cen1_offset, double cen2_offset,
+                                double T, double counts,
+                                const struct shape *shape1,
+                                const struct shape *shape2,
+                                long *flags);
 
 struct ring_pair *ring_pair_free(struct ring_pair *self);
 
