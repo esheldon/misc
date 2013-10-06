@@ -302,7 +302,7 @@ _dist_g_ba_pj_bail:
 
 void dist_g_ba_dbyg_num(const struct dist_g_ba *self,
                         const struct shape *shape,
-                        double *P, double *dbyg1, double *dbyg2,
+                        double *P, double *dbydg1, double *dbydg2,
                         long *flags)
 {
     static const double h=1.0e-6;
@@ -313,30 +313,30 @@ void dist_g_ba_dbyg_num(const struct dist_g_ba *self,
     double phigh=0, plow=0;
     int res1=0, res2=0;
 
-    *P = dist_g_ba_prob(self, &shape);
+    *P = dist_g_ba_prob(self, shape);
 
     res1=shape_set_g(&shape_low,  shape->g1-h, shape->g2);
     res2=shape_set_g(&shape_high, shape->g1+h, shape->g2);
 
     if (res1==0 || res2==0) {
-        *dbyg1=0;
+        *dbydg1=0;
         *flags |= 1;
     } else {
         plow  = dist_g_ba_prob(self, &shape_low);
         phigh = dist_g_ba_prob(self, &shape_high);
-        *dbyg1 = (phigh-plow)/h2;
+        *dbydg1 = (phigh-plow)/h2;
     }
 
     res1=shape_set_g(&shape_low,  shape->g1, shape->g2-h);
     res2=shape_set_g(&shape_high, shape->g1, shape->g2+h);
 
     if (res1==0 || res2==0) {
-        *dbyg2=0;
+        *dbydg2=0;
         *flags |= 1;
     } else {
         plow  = dist_g_ba_prob(self, &shape_low);
         phigh = dist_g_ba_prob(self, &shape_high);
-        *dbyg2 = (phigh-plow)/h2;
+        *dbydg2 = (phigh-plow)/h2;
     }
 
 }
