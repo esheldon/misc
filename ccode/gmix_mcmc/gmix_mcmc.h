@@ -57,6 +57,10 @@ struct gmix_mcmc {
     double P;
     double Q[2];
     double R[2][2];
+
+    long nuse_lensfit;
+    double g[2];
+    double gsens[2];
 };
 
 // you should caste prob_data_base to your actual type
@@ -72,6 +76,7 @@ struct gmix_mcmc *gmix_mcmc_new_from_config(const char *name, long *flags);
 void gmix_mcmc_set_obs_list(struct gmix_mcmc *self, const struct obs_list *obs_list);
 
 long gmix_mcmc_calc_pqr(struct gmix_mcmc *self);
+long gmix_mcmc_calc_lensfit(struct gmix_mcmc *self);
 
 void gmix_mcmc_run(struct gmix_mcmc *self,
                    struct mca_chain *guess);

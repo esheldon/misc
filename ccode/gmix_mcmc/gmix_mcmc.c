@@ -404,7 +404,7 @@ static void calc_dbydg(struct gmix_mcmc *self,
                        size_t npars,
                        double *P,
                        double *g1, double *g2,
-                       double *dbyg1, double *dbyg2,
+                       double *dbydg1, double *dbydg2,
                        long *flags)
 {
     switch (self->prob->type) {
@@ -413,15 +413,18 @@ static void calc_dbydg(struct gmix_mcmc *self,
                 struct prob_data_simple_ba *prob = 
                     (struct prob_data_simple_ba *)self->prob;
 
-                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model, pars, npars,
-                                                          SHAPE_SYSTEM_G, flags);
+                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model,
+                                                          pars,
+                                                          npars,
+                                                          SHAPE_SYSTEM_G,
+                                                          flags);
                 if (*flags==0) {
                     *g1 = gmix_pars->shape.g1;
                     *g2 = gmix_pars->shape.g2;
 
                     dist_g_ba_dbyg_num(&prob->shape_prior,
                                        &gmix_pars->shape,
-                                       P, dbyg1, dbyg2,
+                                       P, dbydg1, dbydg2,
                                        flags);
 
                     gmix_pars = gmix_pars_free(gmix_pars);
@@ -445,19 +448,16 @@ long gmix_mcmc_calc_lensfit(struct gmix_mcmc *self)
     long nstep=MCA_CHAIN_NSTEPS(chain);
     size_t npars = MCA_CHAIN_NPARS(chain);
 
-    struct shape shape={0};
-    double dbyg1=0, dbyg2=0, P=0, Pmax=0;
-    double g1sum=0, g2sum=0, g1_sensum=0, g2_sensum=0; 
+    double dbydg1=0, dbydg2=0, P=0, Pmax=0;
+    double g1=0, g2=0, g1sum=0, g2sum=0, g1_sensum=0, g2_sensum=0; 
+    double fac1_sum=0, fac2_sum=0;
     long nuse=0, flags=0;
 
     for (long i=0; i<nstep; i++) {
         const double *pars = MCA_CHAIN_PARS(chain, i);
 
         flags=0;
-        double g1=pars[2];
-        double g2=pars[3];
-        shape_set_g(&shape, g1, g2);
-        calc_dbyg(self, &shape, &P, &dbyg1, &dbyg2, &flags);
+        calc_dbydg(self, pars, npars, &P, &g1, &g2, &dbydg1, &dbydg2, &flags);
 
         if (flags==0) {
             if (P > Pmax) {
@@ -465,14 +465,17 @@ long gmix_mcmc_calc_lensfit(struct gmix_mcmc *self)
             }
 
             if (P > 0) {
-                double fac1 = dbyg1/P;
-                double fac2 = dbyg2/P;
+                double fac1 = dbydg1/P;
+                double fac2 = dbydg2/P;
 
                 g1sum += g1;
                 g2sum += g2;
 
                 g1_sensum += g1*fac1;
                 g2_sensum += g2*fac2;
+
+                fac1_sum += fac1;
+                fac2_sum += fac2;
 
                 nuse++;
             } // P > 0
@@ -485,10 +488,14 @@ long gmix_mcmc_calc_lensfit(struct gmix_mcmc *self)
     self->nuse_lensfit = nuse;
     if (nuse > 0) {
         self->g[0] = g1sum/nuse;
-        self->g[0] = g2sum/nuse;
+        self->g[1] = g2sum/nuse;
 
-        self->gsens[0] = g1_sensum/(nuse*nuse) - g1_sensum/nuse;
-        self->gsens[1] = g2_sensum/(nuse*nuse) - g2_sensum/nuse;
+        //                          < (g-<g>)*1/P*dP/dg >
+        //self->gsens[0] = 1.0 - ( g1_sensum/nuse - self->g[0]*fac1_sum/nuse);
+        //self->gsens[1] = 1.0 - ( g2_sensum/nuse - self->g[1]*fac2_sum/nuse);
+
+        self->gsens[0] = 1.0 - ( self->g[0]*fac1_sum/nuse - g1_sensum/nuse);
+        self->gsens[1] = 1.0 - ( self->g[1]*fac2_sum/nuse - g2_sensum/nuse);
 
     } else {
         fprintf(stderr,"no good lensfit P vals; max P was %g\n", Pmax);

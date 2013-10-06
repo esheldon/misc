@@ -123,7 +123,7 @@ void dist_g_ba_pqr_num(const struct dist_g_ba *self,
 
 void dist_g_ba_dbyg_num(const struct dist_g_ba *self,
                         const struct shape *shape,
-                        double *P, double *dbyg1, double *dbyg2,
+                        double *P, double *dbydg1, double *dbydg2,
                         long *flags);
 
 void dist_g_ba_print(const struct dist_g_ba *self, FILE *stream);

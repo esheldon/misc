@@ -92,15 +92,19 @@ void print_one(const struct gmix_mcmc *self)
     //mca_stats_write_brief(self->chain_data.stats, stderr);
     mca_stats_write_flat(self->chain_data.stats, stdout);
 
-    printf("%ld %.16g %.16g %.16g %.16g %.16g %.16g %.16g",
+    printf("%ld %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g",
            self->nuse,
-            self->P,
-            self->Q[0],
-            self->Q[1],
-            self->R[0][0],
-            self->R[0][1],
-            self->R[1][0],
-            self->R[1][1]);
+           self->P,
+           self->Q[0],
+           self->Q[1],
+           self->R[0][0],
+           self->R[0][1],
+           self->R[1][0],
+           self->R[1][1],
+           self->g[0],
+           self->g[1],
+           self->gsens[0],
+           self->gsens[1]);
 
     printf("\n");
 }
@@ -217,6 +221,7 @@ void process_one(struct gmix_mcmc *self,
 
         mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
         *flags |= gmix_mcmc_calc_pqr(self);
+        *flags |= gmix_mcmc_calc_lensfit(self);
         if (*flags == 0) {
             double dnuse=(double)self->nuse;
             long nstep=MCA_CHAIN_NSTEPS(self->chain_data.chain);
@@ -295,14 +300,16 @@ _process_pair_bail:
 static void print_header(long nlines, long npars)
 {
     printf("SIZE =                  %16ld\n", nlines);
-    printf("{'_DTYPE': [('npars', 'i2'),\n");
-    printf("            ('arate', 'f8'),\n");
-    printf("            ('pars', 'f8', %ld),\n", npars);
-    printf("            ('pcov', 'f8', (%ld,%ld)),\n", npars, npars);
-    printf("            ('nuse', 'i4'),\n");
-    printf("            ('P', 'f8'),\n");
-    printf("            ('Q', 'f8', 2),\n");
-    printf("            ('R', '<f8', (2, 2))],\n");
+    printf("{'_DTYPE': [('npars', 'i2'),            \n");
+    printf("            ('arate', 'f8'),            \n");
+    printf("            ('pars',  'f8', %ld),       \n", npars);
+    printf("            ('pcov',  'f8', (%ld,%ld)), \n", npars, npars);
+    printf("            ('nuse',  'i4'),            \n");
+    printf("            ('P',     'f8'),            \n");
+    printf("            ('Q',     'f8', 2),         \n");
+    printf("            ('R',     'f8', (2, 2)),    \n");
+    printf("            ('g',     'f8', 2),         \n");
+    printf("            ('gsens', 'f8', 2)],        \n");
     printf(" '_DELIM':' ',\n");
     printf(" '_VERSION': '1.0'}\n");
     printf("END\n");
