@@ -49,8 +49,36 @@ sources = ['gsim-ring-mcmc',
            'object',
            'fileio']
 
+sources_full = ['gsim-ring-mcmc-full',
+           'config',
+           'gmix_em',
+           'mtx2',
+           'gmix_mcmc_config',
+           'gmix_mcmc',
+           'shape',
+           'prob',
+           'dist',
+           'image',
+           'image_rand',
+           'gauss2',
+           'gmix',
+           'gmix_image',
+           'gmix_image_rand',
+           'mca',
+           'randn',
+           'jacobian',
+           'result',
+           'obs',
+           'gsim_ring',
+           'gsim_ring_config',
+           'object',
+           'fileio',
+           'shear_prob']
 
-programs = [{'name':'gsim-ring-mcmc', 'sources':sources}]
+
+programs = [{'name':'gsim-ring-mcmc', 'sources':sources},
+            {'name':'gsim-ring-mcmc-full', 'sources':sources_full},
+           ]
 prog_installs = [(prog['name'],'bin') for prog in programs]
 
 configs = glob.glob('./config/*.cfg')
