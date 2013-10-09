@@ -9,6 +9,7 @@
 #include "gmix_mcmc_config.h"
 #include "prob.h"
 #include "mca.h"
+#include "shear_prob.h"
 
 // 2147483648
 #define GMIX_MCMC_NOPOSITIVE 0x1
@@ -77,6 +78,8 @@ void gmix_mcmc_set_obs_list(struct gmix_mcmc *self, const struct obs_list *obs_l
 
 long gmix_mcmc_calc_pqr(struct gmix_mcmc *self);
 long gmix_mcmc_calc_lensfit(struct gmix_mcmc *self);
+long gmix_mcmc_fill_prob1(struct gmix_mcmc *self,
+                          struct shear_prob1 *shear_prob1);
 
 void gmix_mcmc_run(struct gmix_mcmc *self,
                    struct mca_chain *guess);

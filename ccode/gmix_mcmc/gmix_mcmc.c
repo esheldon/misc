@@ -399,6 +399,70 @@ long gmix_mcmc_calc_pqr(struct gmix_mcmc *self)
     return flags;
 }
 
+long gmix_mcmc_fill_prob1(struct gmix_mcmc *self,
+                          struct shear_prob1 *shear_prob1)
+
+{
+    if (self->prob->type != PROB_BA13) {
+        fprintf(stderr,"only PROB_BA13 for now\n");
+        exit(1);
+    }
+
+    const struct mca_chain *chain = self->chain_data.chain;
+
+    long nstep=MCA_CHAIN_NSTEPS(chain);
+    size_t npars = MCA_CHAIN_NPARS(chain);
+
+    struct prob_data_simple_ba *prob = 
+        (struct prob_data_simple_ba *)self->prob;
+
+    double Pmax=0;
+    long flags=0, nuse=0;
+    for (long istep=0; istep<nstep; istep++) {
+        const double *pars = MCA_CHAIN_PARS(chain, istep);
+        struct gmix_pars *gmix_pars=gmix_pars_new(prob->model,
+                                                  pars,
+                                                  npars,
+                                                  SHAPE_SYSTEM_G,
+                                                  &flags);
+        if (flags==0) {
+
+            double P=dist_g_ba_prob(&prob->shape_prior, &gmix_pars->shape);
+
+            if (P > 0) {
+                if (P > Pmax) {
+                    Pmax=P;
+                }
+                nuse++;
+                for (long ishear=0; ishear< shear_prob1->nshear; ishear++) {
+
+                    struct shape *shear = &shear_prob1->shears[ishear];
+                    double Pj=dist_g_ba_pj(&prob->shape_prior,
+                                           &gmix_pars->shape,
+                                           shear,
+                                           &flags);
+                    if (flags != 0) {
+                        fprintf(stderr,"range error\n");
+                    }
+                    double lnp = log(Pj/P);
+
+                    shear_prob1->lnprob[ishear] += lnp;
+                }
+            }
+        }
+        gmix_pars = gmix_pars_free(gmix_pars);
+    }
+
+    flags=0;
+    if (nuse == 0) {
+        fprintf(stderr,"no positive P vals; max P was %g\n", Pmax);
+        flags |= GMIX_MCMC_NOPOSITIVE;
+    }
+
+    return flags;
+}
+
+
 static void calc_dbydg(struct gmix_mcmc *self,
                        const double *pars,
                        size_t npars,
