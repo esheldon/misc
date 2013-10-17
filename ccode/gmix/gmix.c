@@ -59,7 +59,7 @@ long gmix_get_simple_npars(enum gmix_model model, long *flags)
 
 
         default:
-            fprintf(stderr, "bad simple gmix model type: %u", model);
+            fprintf(stderr, "bad simple gmix model type: %u\n", model);
             *flags |= GMIX_BAD_MODEL;
             break;
     }
@@ -70,20 +70,32 @@ long gmix_get_simple_ngauss(enum gmix_model model, long *flags)
 {
     long ngauss=0;
     switch (model) {
+
         case GMIX_EXP:
             ngauss=6;
             break;
         case GMIX_DEV:
             ngauss=10;
             break;
+
         case GMIX_BD:
             ngauss=16;
             break;
         case GMIX_TURB:
             ngauss=3;
             break;
+
+        case GMIX_EXP_SHEAR:
+            ngauss=6;
+            break;
+        case GMIX_DEV_SHEAR:
+            ngauss=10;
+            break;
+
+
+
         default:
-            fprintf(stderr, "bad simple gmix model type: %u", model);
+            fprintf(stderr, "bad simple gmix model type: %u\n", model);
             *flags |= GMIX_BAD_MODEL;
             ngauss=-1;
             break;

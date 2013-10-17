@@ -89,7 +89,6 @@ _get_image_pair_bail:
 
 void print_one(const struct gmix_mcmc *self)
 {
-    //mca_stats_write_brief(self->chain_data.stats, stderr);
     mca_stats_write_flat(self->chain_data.stats, stdout);
 
     const struct mca_stats *stats = self->chain_data.stats;
@@ -226,16 +225,16 @@ void process_one(struct gmix_mcmc *self,
         mca_chain_stats_fill(self->chain_data.stats, self->chain_data.chain);
         *flags |= gmix_mcmc_calc_lensfit(self);
         if (*flags == 0) {
-            double dnuse=(double)self->nuse;
+            long nuse=self->nuse_lensfit;
             long nstep=MCA_CHAIN_NSTEPS(self->chain_data.chain);
-            double frac = dnuse/nstep;
+            double frac = ( (double) nuse)/nstep;
             if (frac > GMIX_MCMC_MINFRAC_USE) {
                 // success
                 break;
             } else {
                 fprintf(stderr,
                  "only %ld/%ld %g used in lensfit, re-trying with different guesses\n",
-                 self->nuse, nstep, frac);
+                 nuse, nstep, frac);
             }
         } else if (*flags == GMIX_MCMC_NOPOSITIVE) {
             fprintf(stderr,

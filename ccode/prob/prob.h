@@ -11,9 +11,9 @@
 #include "obs.h"
 
 enum prob_type {
-    PROB_BA13=1,
-    PROB_NOSPLIT_ETA=2,
-    PROB_BA13_SHEAR=3  // full shear exploration
+    PROB_BA13,
+    PROB_NOSPLIT_ETA,
+    PROB_BA13_SHEAR  // full shear exploration
 };
 
 #define PROB_BAD_TYPE 0x1
@@ -89,6 +89,19 @@ void prob_simple_ba_calc(struct prob_data_simple_ba *self,
 
 
 // ba13 with exploration of shear in mcmc
+struct prob_data_simple_ba *
+prob_data_simple_ba_new_with_shear(enum gmix_model model,
+                                   long psf_ngauss,
+
+                                   const struct dist_gauss *cen1_prior,
+                                   const struct dist_gauss *cen2_prior,
+
+                                   const struct dist_g_ba *shape_prior,
+
+                                   const struct dist_lognorm *T_prior,
+                                   const struct dist_lognorm *counts_prior,
+                                   long *flags);
+
 void prob_simple_ba_calc_priors_with_shear(struct prob_data_simple_ba *self,
                                            const struct gmix_pars *pars,
                                            double *lnprob,
