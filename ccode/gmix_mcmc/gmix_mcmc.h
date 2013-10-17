@@ -54,6 +54,7 @@ struct gmix_mcmc {
     // for multi-band
     //const struct obs_list_list *obs_list_list;
 
+    // only used when doing pqr method
     long nuse;
     double P;
     double Q[2];
@@ -62,6 +63,7 @@ struct gmix_mcmc {
     long nuse_lensfit;
     double g[2];
     double gsens[2];
+
 };
 
 // you should caste prob_data_base to your actual type

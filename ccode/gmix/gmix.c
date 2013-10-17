@@ -490,12 +490,14 @@ static void fill_simple(struct gmix *self,
 }
 
 
+// can use for with and without shear because shear is at the end
 static void fill_dev10(struct gmix *self, const struct gmix_pars *pars, long *flags)
 {
     static const long ngauss_expected=10;
 
-    if (pars->model != GMIX_DEV) {
-        fprintf(stderr,"dev10: expected model==GMIX_DEV, got %u\n", pars->model);
+    if (pars->model != GMIX_DEV && pars->model != GMIX_DEV_SHEAR) {
+        fprintf(stderr,"dev10: expected model==GMIX_DEV or GMIX_DEV_SHEAR, got %u\n",
+                pars->model);
         *flags |= GMIX_BAD_MODEL;
         return;
     }
@@ -530,12 +532,14 @@ static void fill_dev10(struct gmix *self, const struct gmix_pars *pars, long *fl
 
 
 
+// can use for with and without shear because shear is at the end
 static void fill_exp6(struct gmix *self, const struct gmix_pars *pars, long *flags)
 {
     static const long ngauss_expected=6;
 
-    if (pars->model != GMIX_EXP) {
-        fprintf(stderr,"exp6: expected model==GMIX_EXP, got %u\n", pars->model);
+    if (pars->model != GMIX_EXP && pars->model != GMIX_EXP_SHEAR) {
+        fprintf(stderr,"exp6: expected model==GMIX_EXP or  GMIX_EXP_SHEAR, got %u\n",
+                pars->model);
         *flags |= GMIX_BAD_MODEL;
         return;
     }
@@ -746,6 +750,15 @@ void gmix_fill_model(struct gmix *self,
         case GMIX_DEV:
             fill_dev10(self, pars, flags);
             break;
+
+        case GMIX_EXP_SHEAR:
+            fill_exp6(self, pars, flags);
+            break;
+        case GMIX_DEV_SHEAR:
+            fill_dev10(self, pars, flags);
+            break;
+
+
         case GMIX_BD:
             fill_bd(self, pars, flags);
             break;
