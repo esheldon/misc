@@ -5,6 +5,7 @@
 #include "config.h"
 #include "prob.h"
 #include "gmix.h"
+#include "randn.h"
 #include "gmix_mcmc_config.h"
 #include "gmix_mcmc.h"
 
@@ -685,6 +686,43 @@ struct mca_chain *gmix_mcmc_guess_simple_ba13(const struct prob_data_simple_ba *
 
     return guess;
 }
+
+
+static
+struct mca_chain *gmix_mcmc_guess_simple_ba13_with_shear(const struct prob_data_simple_ba *prob,
+                                                         long nwalkers)
+{
+    size_t npars=8;
+
+    struct mca_chain *guess=mca_chain_new(nwalkers,1,npars);
+    struct shape shape={0};
+
+    double val=0;
+    for (size_t iwalk=0; iwalk<nwalkers; iwalk++) {
+        val = dist_gauss_sample(&prob->cen1_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 0) = val; 
+        val = dist_gauss_sample(&prob->cen2_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 1) = val; 
+
+
+        dist_g_ba_sample(&prob->shape_prior, &shape);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 2) = shape.g1; 
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 3) = shape.g2; 
+
+        val = dist_lognorm_sample(&prob->T_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 4) = val; 
+        val = dist_lognorm_sample(&prob->counts_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 5) = val; 
+
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 6) = 0.1*srandu(); 
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 7) = 0.1*srandu(); 
+
+    }
+
+    return guess;
+}
+
+
 static struct mca_chain *gmix_mcmc_guess_simple_gmix3_eta(const struct prob_data_simple_gmix3_eta *prob,
                                                    long nwalkers)
 {
@@ -730,6 +768,14 @@ struct mca_chain *gmix_mcmc_get_guess_prior(struct gmix_mcmc *self)
                     (struct prob_data_simple_ba *) self->prob;
                 return gmix_mcmc_guess_simple_ba13(prob, nwalkers);
             }
+
+        case PROB_BA13_SHEAR:
+            {
+                const struct prob_data_simple_ba *prob=
+                    (struct prob_data_simple_ba *) self->prob;
+                return gmix_mcmc_guess_simple_ba13_with_shear(prob, nwalkers);
+            }
+
         default:
             fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
                     self->prob->type, __FILE__,__LINE__);

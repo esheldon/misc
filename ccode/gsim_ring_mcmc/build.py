@@ -48,6 +48,31 @@ sources = ['gsim-ring-mcmc',
            'gsim_ring_config',
            'object',
            'fileio']
+sources_wshear = ['gsim-ring-mcmc-wshear',
+                  'config',
+                  'gmix_em',
+                  'mtx2',
+                  'gmix_mcmc_config',
+                  'gmix_mcmc',
+                  'shape',
+                  'prob',
+                  'dist',
+                  'image',
+                  'image_rand',
+                  'gauss2',
+                  'gmix',
+                  'gmix_image',
+                  'gmix_image_rand',
+                  'mca',
+                  'randn',
+                  'jacobian',
+                  'result',
+                  'obs',
+                  'gsim_ring',
+                  'gsim_ring_config',
+                  'object',
+                  'fileio']
+
 
 sources_full = ['gsim-ring-mcmc-full',
            'config',
@@ -77,6 +102,7 @@ sources_full = ['gsim-ring-mcmc-full',
 
 
 programs = [{'name':'gsim-ring-mcmc', 'sources':sources},
+            {'name':'gsim-ring-mcmc-wshear', 'sources':sources_wshear},
             {'name':'gsim-ring-mcmc-full', 'sources':sources_full},
            ]
 prog_installs = [(prog['name'],'bin') for prog in programs]
