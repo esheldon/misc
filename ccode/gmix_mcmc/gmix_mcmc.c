@@ -623,6 +623,30 @@ static double get_lnprob(const double *pars, size_t npars, const void *data)
             }
             break;
 
+        case PROB_BA13_SHEAR:
+            {
+                struct prob_data_simple_ba *prob = 
+                    (struct prob_data_simple_ba *)self->prob;
+
+                struct gmix_pars *gmix_pars=
+                    gmix_pars_new(prob->model, pars, npars, SHAPE_SYSTEM_G, &flags);
+                if (flags != 0) {
+                    lnprob = DIST_LOG_LOWVAL;
+                } else {
+
+                    prob_simple_ba_calc_with_shear(prob,
+                                                   self->obs_list,
+                                                   gmix_pars,
+                                                   &s2n_numer, &s2n_denom,
+                                                   &lnprob, &flags);
+
+                    gmix_pars = gmix_pars_free(gmix_pars);
+                }
+            }
+            break;
+
+
+
         default:
             fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
                     self->prob->type, __FILE__,__LINE__);
