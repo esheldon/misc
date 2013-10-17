@@ -11,12 +11,16 @@
 #define GMIX_MISMATCH_SIZE 0x8
 
 enum gmix_model {
-    GMIX_FULL=0,
-    GMIX_COELLIP=1,
-    GMIX_TURB=2,
-    GMIX_EXP=3,
-    GMIX_DEV=4,
-    GMIX_BD=5
+    GMIX_FULL,
+    GMIX_COELLIP,
+    GMIX_TURB,
+    GMIX_EXP,
+    GMIX_DEV,
+    GMIX_BD,
+
+    // these models have shear in the last 2 elements
+    GMIX_EXP_SHEAR,
+    GMIX_DEV_SHEAR
 };
 
 struct gmix {

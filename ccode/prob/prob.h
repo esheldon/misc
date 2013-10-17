@@ -12,7 +12,8 @@
 
 enum prob_type {
     PROB_BA13=1,
-    PROB_NOSPLIT_ETA=2
+    PROB_NOSPLIT_ETA=2,
+    PROB_BA13_SHEAR=3  // full shear exploration
 };
 
 #define PROB_BAD_TYPE 0x1
