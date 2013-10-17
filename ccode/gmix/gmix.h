@@ -55,6 +55,9 @@ struct gmix_pars {
 
     // not used by GMIX_FULL
     struct shape shape;
+
+    // used when exploring shear
+    struct shape shear;
 };
 
 struct gmix_pars *gmix_pars_new(enum gmix_model model,

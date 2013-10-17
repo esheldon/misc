@@ -87,6 +87,20 @@ void prob_simple_ba_calc(struct prob_data_simple_ba *self,
                          long *flags);
 
 
+// ba13 with exploration of shear in mcmc
+void prob_simple_ba_calc_priors_with_shear(struct prob_data_simple_ba *self,
+                                           const struct gmix_pars *pars,
+                                           double *lnprob,
+                                           long *flags);
+
+
+void prob_simple_ba_calc_with_shear(struct prob_data_simple_ba *self,
+                                    const struct obs_list *obs_list,
+                                    const struct gmix_pars *pars,
+                                    double *s2n_numer, double *s2n_denom,
+                                    double *lnprob, long *flags);
+
+
 // using gaussian mixture in eta space
 struct prob_data_simple_gmix3_eta {
     enum prob_type type;
