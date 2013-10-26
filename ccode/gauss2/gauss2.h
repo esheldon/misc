@@ -61,8 +61,25 @@ double gauss2_lnprob0(const struct gauss2 *self, double row, double col);
         - 2.0*(gauss)->drc*_u*_v;                              \
                                                                \
     double _val=0.0;                                           \
-    if (_chi2 < GAUSS2_EXP_MAX_CHI2) {                                \
+    if (_chi2 < GAUSS2_EXP_MAX_CHI2) {                         \
         _val = (gauss)->norm*(gauss)->p*expd( -0.5*_chi2 );    \
+    }                                                          \
+                                                               \
+    _val;                                                      \
+})
+
+#define GAUSS2_EVAL_SLOW(gauss, rowval, colval) ({             \
+    double _u = (rowval)-(gauss)->row;                         \
+    double _v = (colval)-(gauss)->col;                         \
+                                                               \
+    double _chi2 =                                             \
+        (gauss)->dcc*_u*_u                                     \
+        + (gauss)->drr*_v*_v                                   \
+        - 2.0*(gauss)->drc*_u*_v;                              \
+                                                               \
+    double _val=0.0;                                           \
+    if (_chi2 < GAUSS2_EXP_MAX_CHI2) {                         \
+        _val = (gauss)->norm*(gauss)->p*exp( -0.5*_chi2 );     \
     }                                                          \
                                                                \
     _val;                                                      \

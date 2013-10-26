@@ -178,6 +178,17 @@ struct gmix_list *gmix_list_free(struct gmix_list *self);
     _val;                                                      \
 })
 
+#define GMIX_EVAL_SLOW(gmix, rowval, colval) ({                \
+    double _val=0.0;                                           \
+    struct gauss2 *_gauss=(gmix)->data;                        \
+    for (int _i=0; _i<(gmix)->size; _i++) {                    \
+        _val += GAUSS2_EVAL_SLOW(_gauss, (rowval), (colval));  \
+        _gauss++;                                              \
+    }                                                          \
+    _val;                                                      \
+})
+
+
 
 
 #endif
