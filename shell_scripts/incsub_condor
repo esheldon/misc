@@ -1,0 +1,37 @@
+#!/bin/bash
+
+function count_jobs {
+    njobs=$( condor_q | awk '($2 == "esheldon" && ($6 == "R" || $6 == "I"))' | wc -l )
+
+    echo "$njobs"
+}
+
+njobs=$(count_jobs)
+
+sleeptime=120
+nmax=20000
+#sleeptime=5
+#nmax=200000
+
+for arg; do
+
+    dname=$(dirname $arg)
+    bname=$(basename $arg)
+
+    njobs=$(count_jobs)
+    while [[ $njobs -gt $nmax ]]; do
+        echo "$njobs is plenty of jobs....  (> $nmax)"
+        sleep $sleeptime
+        njobs=$(count_jobs)
+    done
+
+    pushd "$dname"
+
+    echo "submitting: $bname"
+    condor_submit "$bname"
+
+    popd
+
+    #sleep $sleeptime
+
+done
