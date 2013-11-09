@@ -131,6 +131,7 @@ int image_write_file(const struct image *self, const char *fname);
 // add a scalar to the image, within the mask. Keep the counts
 // consistent
 void image_add_scalar(struct image *self, double val);
+void image_set_scalar(struct image *self, double val);
 
 // get the mean difference and variance between two images.
 // returns 0 if the images are not the same shape, otherwise 1
