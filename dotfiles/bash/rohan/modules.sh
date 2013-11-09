@@ -23,6 +23,7 @@ if [[ -e $f ]]; then
     module load pymangle   # *
     module load sdsspy     # *
 
+    module load pgnumpy    # *
     module load biggles    # *
     module load esutil     # *
     module load recfile    # *

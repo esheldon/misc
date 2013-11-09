@@ -342,6 +342,21 @@ void image_add_scalar(struct image *self, double val)
 
     self->sky += val;
 }
+void image_set_scalar(struct image *self, double val)
+{
+    double *col=NULL, *end=NULL;
+    size_t row=0, nrows = IM_NROWS(self);
+    for (row=0;row<nrows;row++) {
+        col = IM_ROW_ITER(self,row);
+        end = IM_ROW_END(self,row);
+        for (; col != end; col++) {
+            (*col) = val;
+        }
+    }
+
+    self->sky = val;
+}
+
 
 
 int image_compare(const struct image *im1, const struct image *im2,
