@@ -70,6 +70,9 @@ export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
 export CLUSTERSTEP=~/lensing/cluster-step
 export CLUSTERSTEP_HDFS=hdfs:///user/esheldon/lensing/cluster-step
 
-export TMPDIR=~/oh/tmp
+export TMPDIR=/data/esheldon/tmp
 
 export DESWL_CHECKOUT=~/git/deswl
+
+export DESREMOTE_RSYNC=desar2.cosmology.illinois.edu::DESFiles
+export DES_RSYNC_PASSFILE=~/.des_rsync_pass
