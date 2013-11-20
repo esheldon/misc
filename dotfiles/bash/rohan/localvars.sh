@@ -12,4 +12,6 @@ export CLUSTERSTEP=~/data/cluster-step
 
 export DESDATA=~/data/DES
 export DESREMOTE=https://desar2.cosmology.illinois.edu:7443/DESFiles/desardata
+export DESREMOTE_RSYNC=desar2.cosmology.illinois.edu::DESFiles
+export DES_RSYNC_PASSFILE=~/.des_rsync_pass
 export DESPROJ=OPS

@@ -36,6 +36,7 @@ height			= 800
 # make window persistent when using interactively?
 #
 persistent		= false
+#persistent		= true
 
 # --------------------------------------------------
 [printer]
