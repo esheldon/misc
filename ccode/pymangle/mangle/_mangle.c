@@ -1,4 +1,4 @@
-#define NPY_NO_DEPRECATED_API
+//#define NPY_NO_DEPRECATED_API
 
 #include <string.h>
 #include <math.h>

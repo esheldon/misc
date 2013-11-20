@@ -4,14 +4,45 @@ source ~astrodat/setup/setup-modules.sh
 module load afs
 module load anaconda
 
-module load use.own
-module load ngmix/local
 module load biggles
 
-module load acor/1.0.2
-module load emcee/1.2.0
+module load acor
+module load emcee
 
-module load esutil/rplay
+# my stuff
+module load use.own
+
+module load local      # *
+
+module load perllib
+module load shell_scripts
+module load espy/local
+
+module load fitsio/local     # *
+module unload esutil && module load esutil/local     # *
+module load fimage/local     # *
+module load admom/local      # *
+
+module load psfex-ess/local
+
+module load gmix_image/local # *
+
+module load meds/local       # *
+module load gmix_meds/local
+
+module load ngmix/local
+
+module load gsim_ring/local
+
+module load desdb/local
+module load deswl/local
+
+module load gsim_ring/local # *
+
+#module load esutil/rplay
+#ModuleCmd_Load.c(204):ERROR:105: Unable to locate a modulefile for 'libaio'
+#ModuleCmd_Load.c(204):ERROR:105: Unable to locate a modulefile for 'swig'
+#ModuleCmd_Load.c(204):ERROR:105: Unable to locate a modulefile for 'tmv/0.71'
 
 if [[ $check == "blahblah" ]]; then
 
@@ -21,25 +52,22 @@ if [[ $check == "blahblah" ]]; then
 
     # this are under $MODULESHOME/modulefiles
     # and installed under $MODULE_INSTALLS
-    module load use.own
+    #module load use.own
 
-    #module load wq
-
-    module load pylint
+    #module load pylint
 
     module load mangle     # *
     module load pymangle   # *
-    module load gmix_image/local # *
+    #module load gmix_image/local # *
 
-    module load meds/local
-    module load gmix_meds/local
-    module load psfex-ess/local
-    module load gsim_ring/local
+    #module load meds/local
+    #module load gmix_meds/local
+    #module load psfex-ess/local
 
     # for oracle libraries
     module load libaio     # *
 
-    module load parallel
+    #module load parallel
 
     module load cjson      # *
 
@@ -47,39 +75,38 @@ if [[ $check == "blahblah" ]]; then
     # also loads pcre      # *
     module load swig       # *
 
-    module load cfitsio/3350   # *
-    module load ccfits/2.4     # *
+    #module load cfitsio/3350   # *
+    #module load ccfits/2.4     # *
 
-    module load emcee
-    module load acor
+    #module load emcee
+    #module load acor
 
     # these are under my ~/privatemodules
     # and installed generally under ~/exports
 
-    module load perllib
-    module load shell_scripts
-    module load espy/local
+    #module load perllib
+    #module load shell_scripts
+    #module load espy/local
 
     module load desfiles
-    module load desdb
+    #module load desdb
 
-    module load local      # *
+    #module load local      # *
 
     # this is currently just the python extension
     module load stomp      # *
 
-    module unload esutil && module load esutil/local     # *
+    #module unload esutil && module load esutil/local     # *
     module load recfile    # *
 
     module load cosmology  # *
-    module load admom      # *
-    module load fimage/local     # *
-    module load fitsio/local
+    #module load fimage/local     # *
+    #module load fitsio/local
 
     module load numpydb    # *
     module load pgnumpy    # *
 
-    module unload deswl-checkout && module load deswl-checkout/local
+    #module unload deswl-checkout && module load deswl-checkout/local
 
     #module load scikits_learn # *
     module load scikits_learn/new # *

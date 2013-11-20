@@ -19,7 +19,8 @@ prefix=os.path.expanduser( options.prefix )
 CC='gcc'
 
 # -lrt is only needed for the timing stuff
-LINKFLAGS=['-lm','-static']
+#LINKFLAGS=['-lm','-static']
+LINKFLAGS=['-lm']
 
 CFLAGS=['-std=gnu99','-Wall','-Werror','-O2']
 
