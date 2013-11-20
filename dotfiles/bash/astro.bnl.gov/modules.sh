@@ -1,12 +1,19 @@
 # will want a different one for tutti
-f=~astrodat/setup/setup-modules.sh
-if [[ -e $f ]]; then
-    source "$f"
-fi
-check=`module 2>&1`
-check=`echo $check | grep "command not found"`
+source ~astrodat/setup/setup-modules.sh
 
-if [[ $check == "" ]]; then
+module load afs
+module load anaconda
+
+module load use.own
+module load ngmix/local
+module load biggles
+
+module load acor/1.0.2
+module load emcee/1.2.0
+
+module load esutil/rplay
+
+if [[ $check == "blahblah" ]]; then
 
 
     # those marked with * have platform dependent code, e.g. the are

@@ -24,7 +24,7 @@ if [[ -e $f ]]; then
     module load sdsspy     # *
 
     module load pgnumpy    # *
-    module load biggles    # *
+    #module load biggles    # *
     module load esutil     # *
     module load recfile    # *
     module load fitsio     # *
