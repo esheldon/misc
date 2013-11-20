@@ -1,13 +1,13 @@
 Quick look Queue
 
 
-    - make catalog-only MEDS file
-    - make a new repository for mca; need to deal with
-      random stuff.
-
-    - comments for andres
-    - new eyeball for sva1
-
+    - write talk
+    - make all the codes use lists-of-lists: no more MB.  Will take a bit of
+      changing since psf is now optional
+    - look at the get_band_pars and make sure it is sensible for all cases
+    - normalization only fitter using lm.  Can create fdiff using numpy for
+      this I think.
+    - cmodel?
 
 
 
