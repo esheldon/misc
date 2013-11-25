@@ -48,7 +48,7 @@ cheopstest=`echo $host | grep -i cheops`
 cosmotest=`echo $host | grep -i cosmo.fas.nyu.edu`
 nyuphysicstest=`echo $host | grep -i physics.nyu.edu`
 eepctest=`echo $host | grep -i eepc`
-astrobnltest=`echo $host | grep -i bnl.gov`
+astrobnltest=`echo $host | grep -i rcf.bnl.gov`
 rplaytest=`echo $host | grep -i rplay`
 lsst_bnl_test=$(uname -n | grep -i lst.bnl)
 
