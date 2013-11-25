@@ -1,15 +1,30 @@
 Quick look Queue
 
 
-    - make catalog-only MEDS file
-    - make a new repository for mca; need to deal with
-      random stuff.
+    - test checkpointing
+    - write out psf info
+        - easiest is 1 row per psf used, keeping the file_id of the psf file
+          and the row in the meds file (mindex).  But when to write it out?
+          It might take up too much memory, need to see.
+            - 2*6 doubles per PSF.  Say 10 per object, 4 bands, 60,000
+              objects.  That's 60000 * 10 * 4 * 12 * 8 bytes = 230 Mb.
 
-    - comments for andres
-    - new eyeball for sva1
+              But in practice I'm only doing like 30 at a time, so it isn't a
+              problem.
 
+              Should just pre-allocate for every *possible* psf measurement,
+              although we won't use the failed ones.  Will checkpoint along
+              with the fit data.
 
-
+              POINTER from galaxy structure into psf file
+                - psf_start[nband]
+                - and then nimage_use to extract
+            
+    - measure priors
+        - shape
+        - T but it would only be for 23.5
+        - fluxes? but it would only be for 23.5
+        
 
     legend
         - todo
