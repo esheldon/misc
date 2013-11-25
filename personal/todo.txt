@@ -1,6 +1,7 @@
 Quick look Queue
 
 
+    - fix query in describe to always use other table
     - test checkpointing
     - write out psf info
         - easiest is 1 row per psf used, keeping the file_id of the psf file
@@ -16,14 +17,23 @@ Quick look Queue
               although we won't use the failed ones.  Will checkpoint along
               with the fit data.
 
-              POINTER from galaxy structure into psf file
+              POINTER from galaxy structure into psf structure
                 - psf_start[nband]
                 - and then nimage_use to extract
-            
+           tests
+              - make sure these four combinations agree
+                - no checkpoint used, no workdir
+                - checkpoint used, no workdir
+                - no checkpoint used, workdir
+                - checkpoint used, workdir
     - measure priors
         - shape
+            - can try "exp" form
+            - others?
         - T but it would only be for 23.5
+            - lognormal is close but not quite right
         - fluxes? but it would only be for 23.5
+            - not sure what do do here.
         
 
     legend
