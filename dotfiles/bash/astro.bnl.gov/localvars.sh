@@ -52,3 +52,5 @@ export DESWL_CHECKOUT=~/git/deswl
 
 export DESREMOTE_RSYNC=desar2.cosmology.illinois.edu::DESFiles
 export DES_RSYNC_PASSFILE=~/.des_rsync_pass
+
+export COSMOS_DIR=$LENSDIR/galsim-cosmos-data
