@@ -9,6 +9,11 @@ module load biggles
 module load acor
 module load emcee
 
+module load pycallgraph
+
+module unload tmv && module load tmv/0.71     # *
+module load galsim/jarvis                     # *
+
 # my stuff
 module load use.own
 
@@ -30,7 +35,7 @@ module load gmix_image/local # *
 module load meds/local       # *
 module load gmix_meds/local
 
-module load ngmix/local
+module load ngmix/local  # requires numba
 
 module load gsim_ring/local
 
@@ -39,10 +44,22 @@ module load deswl/local
 
 module load gsim_ring/local # *
 
-#module load esutil/rplay
+module load pymangle   # *
+
+# this is currently just the python extension
+module load stomp/local      # *
+
+module load recfile/local      # *
+
+module load cosmology  # *
+
+module load numpydb    # *
+module load columns
+
+module load sdsspy
+
 #ModuleCmd_Load.c(204):ERROR:105: Unable to locate a modulefile for 'libaio'
 #ModuleCmd_Load.c(204):ERROR:105: Unable to locate a modulefile for 'swig'
-#ModuleCmd_Load.c(204):ERROR:105: Unable to locate a modulefile for 'tmv/0.71'
 
 if [[ $check == "blahblah" ]]; then
 
@@ -57,7 +74,7 @@ if [[ $check == "blahblah" ]]; then
     #module load pylint
 
     module load mangle     # *
-    module load pymangle   # *
+    #module load pymangle   # *
     #module load gmix_image/local # *
 
     #module load meds/local
@@ -94,16 +111,16 @@ if [[ $check == "blahblah" ]]; then
     #module load local      # *
 
     # this is currently just the python extension
-    module load stomp      # *
+    #module load stomp      # *
 
     #module unload esutil && module load esutil/local     # *
-    module load recfile    # *
+    #module load recfile    # *
 
-    module load cosmology  # *
+    #module load cosmology  # *
     #module load fimage/local     # *
     #module load fitsio/local
 
-    module load numpydb    # *
+    #module load numpydb    # *
     module load pgnumpy    # *
 
     #module unload deswl-checkout && module load deswl-checkout/local
@@ -112,9 +129,8 @@ if [[ $check == "blahblah" ]]; then
     module load scikits_learn/new # *
 
     # python only
-    module load sdsspy
-    module load columns
-
+    #module load sdsspy
+    #module load columns
 
     # these get loaded in other scripts, be careful
     module unload tmv && module load tmv/0.71     # *

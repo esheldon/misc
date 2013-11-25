@@ -7,40 +7,16 @@ fi
 
 # all these require mount of /opt/astro/....
 # tutti does not mount these
-f=/opt/astro/SL53/bin/setup.astro.sh
-if [[ -e $f ]]; then
-    source "$f"
+#f=/opt/astro/SL64/bin/setup.astro.sh
+#if [[ -e $f ]]; then
+#    source "$f"
+#fi
 
-    f=~astrodat/setup/setup-wq.sh
-    source "$f"
-
-    #f=/opt/astro/SL53/bin/setup.hadoop.sh
-    #source "$f"
-
-    # make want to change to not have hadoop at the end?
-    #append_path C_INCLUDE_PATH $HADOOP_HOME/src/c++/libhdfs/
-    #append_path CPATH $HADOOP_HOME/src/c++/libhdfs/
-    #append_path LD_LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
-    #append_path LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
-
-fi
+source ~astrodat/setup/setup-wq.sh
 
 if [[ $(hostname) != "tutti.astro.bnl.gov" ]]; then
     source ~/local/des-oracle/setup.sh
 fi
-
-append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include
-append_path CPATH /usr/java/jdk1.6.0_14/include
-append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include/linux
-append_path CPATH /usr/java/jdk1.6.0_14/include/linux
-
-
-
-#append_path C_INCLUDE_PATH /astro/u/anze/local/include/
-#append_path CPATH /astro/u/anze/local/include/
-#append_path LD_LIBRARY_PATH /astro/u/anze/local/lib
-#append_path LIBRARY_PATH /astro/u/anze/local/lib
-
 
 export MAXBCG_CATDIR=/astro/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
 export CLUSTERS_INPUT=~/oh/clusters-input

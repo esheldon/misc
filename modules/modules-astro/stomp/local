@@ -6,7 +6,7 @@ conflict stomp
 
 eval set  [ array get env HOME ]
 
-set STOMP_DIR $HOME/exports/stomp-python2.7-work
+set STOMP_DIR $HOME/exports/stomp-local
 
 prepend-path PYTHONPATH $STOMP_DIR/lib/python2.7/site-packages/
 
