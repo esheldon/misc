@@ -9,48 +9,57 @@ if [[ -e $f ]]; then
 
     module load use.own
 
-    module load wq
+    # python
+    module load anaconda
+    module load espy/local
 
     module load emcee
     module load acor       # *
 
-    module load parallel
-
-    module load galsim     # *
-    module load admom      # *
-    module load fimage/local     # *
-    module load mangle     # *
-    module load pymangle   # *
-    module load sdsspy     # *
-
-    module load pgnumpy    # *
-    #module load biggles    # *
-    module load esutil     # *
-    module load recfile    # *
     module load fitsio     # *
-    module load shell_scripts
-    module load perllib
 
-    module load scikit_learn # *
+    module load ngmix/local
 
+    module load psfex/local # *
     module load meds/local # *
     module load gmix_meds/local
-    module load gsim_ring/local
-    module load psfex/local
-
-    module load cosmology
-
-    module load stomp      # *
-    module load local      # *
-
-    module unload tmv && module load tmv/0.71   # *
-    module load wl/local   # *
-
-    module load espy/local
-
+    # deprecated gmix image tools
     module load gmix_image/local # *
 
     module load desdb/local
     module load deswl/local
+
+    module load cosmology   # *
+    #module load stomp      # *
+
+    module load wq
+
+    # waiting for astropy.fits to be supported
+    #module load galsim     # *
+    module load admom      # *
+    module load fimage/local     # *
+    module load pymangle   # *
+    module load sdsspy     # *
+
+    module load pgnumpy    # *
+    module load biggles    # *
+    module load esutil     # *
+    module load recfile    # *
+
+    # not python
+
+    module load mangle     # *
+    module load gsim_ring/local
+
+    module load local      # *
+
+    module load tmv/0.71   # *
+    #module load wl/local   # * don't need currently
+
+    module load parallel
+    module load shell_scripts
+    module load perllib
+
+
 fi
 
