@@ -1,4 +1,6 @@
 #!/bin/bash
 ctl_file=$1
+user=$2
+pass=$3
 ORACLE_HOME=/direct/astro+astronfs02/esheldon/oracle-test/base/software
-$ORACLE_HOME/bin/sqlldr esheldon/tL3NZcUmP@leovip148.ncsa.uiuc.edu:1521/dessci control=$ctl_file
+$ORACLE_HOME/bin/sqlldr $user/$pass@leovip148.ncsa.uiuc.edu:1521/dessci control=$ctl_file
