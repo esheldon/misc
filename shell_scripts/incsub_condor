@@ -9,7 +9,7 @@ function count_jobs {
 njobs=$(count_jobs)
 
 sleeptime=120
-nmax=20000
+nmax=10000
 #sleeptime=5
 #nmax=200000
 
