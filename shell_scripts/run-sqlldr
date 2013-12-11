@@ -1,0 +1,4 @@
+#!/bin/bash
+ctl_file=$1
+ORACLE_HOME=/direct/astro+astronfs02/esheldon/oracle-test/base/software
+$ORACLE_HOME/bin/sqlldr esheldon/tL3NZcUmP@leovip148.ncsa.uiuc.edu:1521/dessci control=$ctl_file
