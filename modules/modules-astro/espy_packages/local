@@ -1,0 +1,23 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"a bunch of packages"
+conflict espy_packages
+
+module load acor
+module load emcee
+module load biggles
+
+eval set  [ array get env HOME ]
+
+set ESPY_PACKAGES_DIR $HOME/exports/espy_packages-local
+
+prepend-path PATH            $ESPY_PACKAGES_DIR/bin
+prepend-path C_INCLUDE_PATH  $ESPY_PACKAGES_DIR/include
+prepend-path CPATH           $ESPY_PACKAGES_DIR/include
+prepend-path LD_LIBRARY_PATU $ESPY_PACKAGES_DIR/lib
+prepend-path LIBRARY_PATH    $ESPY_PACKAGES_DIR/include
+prepend-path PYTHONPATH      $ESPY_PACKAGES_DIR/lib/python2.7/site-packages
+
+setenv ESPY_PACKAGES_DIR $ESPY_PACKAGES_DIR
+
