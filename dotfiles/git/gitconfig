@@ -3,3 +3,5 @@
 	email = erin.sheldon@gmail.com
 [core]
 	excludesfile = ~/.gitignore
+[push]
+	default = simple
