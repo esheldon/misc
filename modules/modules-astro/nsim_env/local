@@ -1,0 +1,15 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+# make sure PYTHONPATH is clean before using this module
+
+module-whatis	"conda environment that only has packages we need for the sim"
+conflict nsim_env
+
+eval set  [ array get env HOME ]
+
+set NSIM_ENV_DIR /astro/u/esheldon/anaconda-env/nsim-local
+
+prepend-path PATH $NSIM_ENV_DIR/bin
+
+setenv NSIM_ENV_DIR $NSIM_ENV_DIR
