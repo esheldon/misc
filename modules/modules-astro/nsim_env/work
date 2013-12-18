@@ -1,8 +1,6 @@
 #%Module########################################################################
 # vim: set filetype=tcl :
 
-# make sure PYTHONPATH is clean before using this module
-
 module-whatis	"conda environment that only has packages we need for the sim"
 conflict nsim_env
 
