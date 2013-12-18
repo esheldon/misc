@@ -7,9 +7,10 @@ conflict nsim
 
 eval set [ array get env HOME ]
 
-set NSIM_DIR $HOME/exports/nsim-env
+# we just use the environment dir
+set NSIM_DIR $HOME/anaconda-env/nsim-work
 
-append-path PATH $NSIM_DIR/bin
-append-path PYTHONPATH $NSIM_DIR/lib/python2.7/site-packages
+# we are over-riding python so must be in front
+prepend-path PATH $NSIM_DIR/bin
 
 setenv NSIM_DIR $NSIM_DIR
