@@ -14,8 +14,7 @@ shopt -s histappend
 
 export PAGER='less -R'
 
-sysname=`uname`
-host=`uname -n`
+host=$(hostname)
 hname=`echo $host | sed "s/\..*//g"` #only first part of name
 
 if [[ -e /usr/common/usg/bin/nersc_host ]]; then
@@ -26,11 +25,6 @@ else
 fi
 
 htype=`uname -s`
-
-# This is a kludge, but...
-if [ $sysname == "Darwin" ]; then
-    hname="fangorn"
-fi
 
 if [[ $hname == "desdb" || $hname == "desar" || $hname == "deslogin" ]]; then
 	hname="desdb"
@@ -43,39 +37,24 @@ export RSYNC_RSH="ssh"
 ddir=${HOME}/.dotfiles/bash
 defaultDotfileDir=$ddir/default
 
-# All cheopsen have same configuration
-cheopstest=`echo $host | grep -i cheops`
-cosmotest=`echo $host | grep -i cosmo.fas.nyu.edu`
-nyuphysicstest=`echo $host | grep -i physics.nyu.edu`
-eepctest=`echo $host | grep -i eepc`
-astrobnltest=`echo $host | grep -i rcf.bnl.gov`
+rcftest=`echo $host | grep -i rcf.bnl.gov`
 rplaytest=`echo $host | grep -i rplay`
 lsst_bnl_test=$(uname -n | grep -i lst.bnl)
 
 riemann_test=$(uname -n | grep n00)
 
-if [[ $hname == "fangorn" || $sysname == "Darwin" ]]; then
-    dotfileDir=$ddir/fangorn
-elif [[ "$hname" == "theshire" ]]; then
+if [[ "$hname" == "theshire" ]]; then
     dotfileDir=$ddir/theshire
 elif [[ $isnersc == "Y" ]]; then
     dotfileDir=$ddir/nersc
 elif [[ $rplaytest != "" ]]; then
+    # put before rcftest
     dotfileDir=$ddir/rplay
-elif [[ $astrobnltest != "" ]]; then
+elif [[ $rcftest != "" ]]; then
     # put this one last in case other bnl machines are matched
     dotfileDir=$ddir/astro.bnl.gov
 elif [[ $hname == "ria" ]]; then
     dotfileDir=$ddir/ria
-elif [[ $cheopstest != "" ]]; then
-    dotfileDir=$ddir/cheops
-elif [[ $nyuphysicstest != "" || $hname == "bias" || $hname == "anvil" || $hname == "prism" ]]; then
-    dotfileDir=$ddir/cosmo.fas.nyu.edu
-elif [[ $cosmotest != "" ]]; then
-    dotfileDir=$ddir/cosmo.fas.nyu.edu
-elif [[ $eepctest != "" ]]; then
-    dotfileDir=$ddir/default
-    host="eepc"
 elif [[ $riemann_test != "" ]]; then
 	dotfileDir=$ddir/riemann
 elif [[ "$hname" == "desdb" ]]; then
