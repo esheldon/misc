@@ -21,17 +21,18 @@ module load shell_scripts
 
 # -python
 
-module load espy/local
-
-# this module sets env vars into ~/exports/espy_packages-local
-# and also loads acor,emcee,pycallgraph,biggles from afs
+# loads the espy_packages stuff plus some other modules
 module load espy_packages/local
 
 # need their own modules because they hold data, and
 # thus need to set the NSIM_DIR etc
-module load nsim/local
-module load deswl/local
-module load gmix_meds/local
+#module load nsim/local
+#module load deswl/local
+#module load gmix_meds/local
+
+# this has python in it and can't be installed to
+# the packages dir
+#module load des-oracle
 
 
 # these modules were installed into espy_packages
@@ -41,12 +42,10 @@ module load gmix_meds/local
 #module load psfex-ess/local
 
 #module load meds/local       # *
-#module load gmix_meds/local
 
 #module load ngmix/local  # requires numba
 
 #module load desdb/local
-#module load deswl/local
 #module load pymangle   # *
 
 #module load recfile/local      # *

@@ -1,40 +1,33 @@
 Quick look Queue
 
+    - killing afs because python tries an open() in all package directories
+      till it finds a hit for a module/package it is trying to import
+        - try conda "virtual env" type thing
+            - try ngmix sims first
+                - get nsim package going to replace use of espy shapesim
+                - install into env
+                - test with strace
+    RENAME TO NSIM_ENV
+
+    - release ngmix table for cluster fields
+    - make dotfiles github repo
+
+
+    - SN meds files
+    - make code usable by others
+    - one deep run
 
     - fix query in describe to always use other table
-    - test checkpointing
-    - write out psf info
-        - easiest is 1 row per psf used, keeping the file_id of the psf file
-          and the row in the meds file (mindex).  But when to write it out?
-          It might take up too much memory, need to see.
-            - 2*6 doubles per PSF.  Say 10 per object, 4 bands, 60,000
-              objects.  That's 60000 * 10 * 4 * 12 * 8 bytes = 230 Mb.
 
-              But in practice I'm only doing like 30 at a time, so it isn't a
-              problem.
+    - combine and average the redo of sim
+    - run the redo of cluster fields
 
-              Should just pre-allocate for every *possible* psf measurement,
-              although we won't use the failed ones.  Will checkpoint along
-              with the fit data.
-
-              POINTER from galaxy structure into psf structure
-                - psf_start[nband]
-                - and then nimage_use to extract
-           tests
-              - make sure these four combinations agree
-                - no checkpoint used, no workdir
-                - checkpoint used, no workdir
-                - no checkpoint used, workdir
-                - checkpoint used, workdir
-    - measure priors
-        - shape
-            - can try "exp" form
-            - others?
-        - T but it would only be for 23.5
-            - lognormal is close but not quite right
-        - fluxes? but it would only be for 23.5
-            - not sure what do do here.
-        
+    - star-galaxy selection
+        - can we improve on spread model?
+        - maybe if we combine the fluxes from multiple bands?
+            - sum(flux*ivar)/sum(ivar) for both psf and galaxy
+            - psf_wflux, exp_wflux, dev_wflux
+            - make sure to soften the ivar, but with what?
 
     legend
         - todo
