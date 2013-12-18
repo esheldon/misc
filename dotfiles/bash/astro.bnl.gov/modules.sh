@@ -1,15 +1,14 @@
 # sets up modules and loads afs, anaconda, astrodat and wq
 source /opt/astro/SL64/bin/setup.astro.sh
 
-
 #
 # AFS modules
 #
 
 # tmv using intel now, and galsim needs tmv
-module load intel_compilers
-module load tmv/0.71         # *
-module load galsim/jarvis    # *
+#module load intel_compilers
+#module load tmv/0.71         # *
+#module load galsim/jarvis    # *
 
 #
 # my stuff
@@ -20,14 +19,19 @@ module load local      # *
 module load perllib
 module load shell_scripts
 
+# -python
+
 module load espy/local
 
 # this module sets env vars into ~/exports/espy_packages-local
 # and also loads acor,emcee,pycallgraph,biggles from afs
 module load espy_packages/local
 
-
-
+# need their own modules because they hold data, and
+# thus need to set the NSIM_DIR etc
+module load nsim/local
+module load deswl/local
+module load gmix_meds/local
 
 
 # these modules were installed into espy_packages
