@@ -10,7 +10,7 @@ module load emcee
 module load biggles
 
 # lots of packages here
-module load espy
+module load espy/local
 
 # need their own modules because they hold data, and
 # thus need to set the NSIM_DIR etc
