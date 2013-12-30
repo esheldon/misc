@@ -2,7 +2,7 @@
 
 function usage_and_exit {
     echo "usage:
-  incsub_condor [options] condor_file1 condor_file2 ...
+  condor-incsub [options] condor_file1 condor_file2 ...
 
 options:
   -n NJOBS_MAX  Maximum number of jobs in queue, default $nmax
