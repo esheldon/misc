@@ -21,7 +21,7 @@ njobs=$(count_jobs)
 
 # 5 minutes
 sleeptime=300
-nmax=5000
+nmax=10000
 
 if [ $# -lt 1 ]; then
     usage_and_exit
@@ -42,7 +42,7 @@ for arg; do
     bname=$(basename $arg)
 
     njobs=$(count_jobs)
-    while [[ $njobs -gt $nmax ]]; do
+    while [[ $njobs -ge $nmax ]]; do
         echo "$njobs is plenty of jobs....  (> $nmax)"
         sleep $sleeptime
         njobs=$(count_jobs)
