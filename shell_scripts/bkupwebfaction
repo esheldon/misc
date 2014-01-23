@@ -22,7 +22,7 @@ if [ $# -gt 0 ]; then
 fi
 
 
-backupdir=/home/esheldon/webfaction-backups
+backupdir=$HOME/webfaction-backups
 cd $backupdir
 
 if [ "$?" != "0" ]; then
