@@ -49,3 +49,8 @@ if 'xterm' in term or 'rxvt' in term:
 #    from esutil.numpy_util import ahelp
 #except:
 #    pass
+
+#try:
+#    import fitsio
+#except:
+#    pass
