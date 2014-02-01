@@ -1,59 +1,11 @@
 #!/bin/bash
-# usage: bkuprohan [options]
+# usage: backup-webfaction
 #
-# perform incremental backups using rsync
-# 
-# options is any string of the single letter options sent to rsync.
-# e.g. 
-#	bkuprohan P
-# adds the -P option
-#
-# use this for a dry run
-#    bkuprohan n
-#
-#  Note the options
-#   -avx are already used, as well as longer
-# ones --delete --exclude-from --link-dest
+# perform incremental backups using rsync.  See rsync-backup for details
+# of how the backup is performed.
 
-options=""
-if [ $# -gt 0 ]; then
-	options=$1
-	options="-$options"
-fi
+from_dir="web246.webfaction.com:webapps"
+backup_dir=$HOME/webfaction-backups
+name=webfaction
 
-
-backupdir=$HOME/webfaction-backups
-cd $backupdir
-
-if [ "$?" != "0" ]; then
-	echo Could not cd to backup directory $backupdir
-	exit 45
-fi
-
-dt=`date "+%Y-%m-%dT%H:%M:%S"`
-backup_name=backup-webfaction-$dt
-
-
-
-command="
-rsync
-    -av
-    $options
-    --delete
-    --link-dest=../current
-    web246.webfaction.com:webapps/
-    ./$backup_name/
-"
-
-echo "executing rsync command:"
-echo "$command"
-$command || exit 1
-
-if [ -e current ]; then
-	rm current
-fi
-ln -s $backup_name current
-
-
-echo Done
-date
+rsync-backup $from_dir $backup_dir $name
