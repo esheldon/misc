@@ -15,6 +15,15 @@
 #   -avx are already used, as well as longer
 # ones --delete --exclude-from --link-dest
 
+
+exclude_list=~/.dotfiles/backup_excludes/rohan
+backupdir=/media/havens/backups-rohan
+
+rsync-backup -e $exclude_list ~ $backupdir rohan
+
+exit 0
+
+
 options=""
 if [ $# -gt 0 ]; then
 	options=$1
@@ -22,7 +31,6 @@ if [ $# -gt 0 ]; then
 fi
 
 
-backupdir=/media/havens/backups-rohan
 cd $backupdir
 
 if [ "$?" != "0" ]; then
@@ -49,7 +57,7 @@ rsync
 
 echo "executing rsync command:"
 echo "$command"
-$command
+$command || exit 1
 
 if [ -e current ]; then
 	rm current
