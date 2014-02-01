@@ -47,7 +47,7 @@ rsync
 
 echo "executing rsync command:"
 echo "$command"
-$command
+$command || exit 1
 
 if [ -e current ]; then
 	rm current

@@ -15,10 +15,16 @@ import System.IO
 
 import qualified XMonad.StackSet as W
 
-myManageHooks = manageDocks <+> composeAll
+myManageHooks = composeAll [
+    manageDocks,
+    isFullscreen --> (doF W.focusDown <+> doFullFloat),
+    --isFullscreen --> doFullFloat,
+    manageHook defaultConfig
+    ]
+---myManageHooks = manageDocks <+> composeAll
     -- get full screen on things like flash in firefox
     -- Allows focusing other monitors without killing the fullscreen
-    [ isFullscreen --> (doF W.focusDown <+> doFullFloat) ]
+    --[ isFullscreen --> (doF W.focusDown <+> doFullFloat) ]
     --  
     --  -- Single monitor setups, or if the previous hook doesn't work
     --      [ isFullscreen --> doFullFloat
@@ -29,7 +35,7 @@ main = do
 	xmproc <- spawnPipe "/usr/bin/xmobar /home/esheldon/.xmonad/xmobarrc"
 	xmonad $ defaultConfig {
         manageHook = myManageHooks <+> manageHook defaultConfig,
-                   layoutHook = avoidStruts $ smartBorders $ layoutHook defaultConfig,
+                   layoutHook = avoidStruts . smartBorders $ layoutHook defaultConfig,
                    logHook = dynamicLogWithPP $ xmobarPP { 
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
