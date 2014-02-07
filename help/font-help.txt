@@ -1,22 +1,15 @@
-Note, this no longer seems to work in ubuntu
+Enabling Bitmapped Fonts
 
+If you'd like to use a fixed font in your terminal, use these commands:
 
-To get fixed and peep (bitmapped) font working in debian:
+cd /etc/fonts/conf.d/
+sudo rm /etc/fonts/conf.d/10* && sudo rm -rf 70-no-bitmaps.conf && sudo ln -s
+../conf.avail/70-yes-bitmaps.conf .
+sudo dpkg-reconfigure fontconfig
 
-Ensure xfonts-100dpi is installed
-dpkg-reconfigure fontconfig-config
-    And say "yes" to the question about bitmapped fonts.
+Logout, and log back in again, and you'll be able to select some new fixed
+fonts in your gnome-terminal or XFCE terminal's or profile. This was tested on
+Ubuntu 11.04 (Natty Narwhal) 
 
-Works in xfce4-terminal but not gnome-terminal currently.
-
-Then I had to reset the fonts for firefox under 
-    edit/preferences/content/fonts&colors/advanced
-    Fonts for: Western
-    Proportional: Serif Size: 16
-    Serif: serif
-    Sans-serif: sans-serif
-    Monospace: monospace Size: 12
-    
-
-To get some fonts to work in my ~/.fonts directory have to run mkfontdir
+Also to get fonts to work in my ~/.fonts directory have to run mkfontdir
 ~/.fonts
