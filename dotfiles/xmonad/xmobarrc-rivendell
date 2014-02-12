@@ -1,0 +1,14 @@
+Config { font = "xft:Terminus-12"
+       , bgColor = "black"
+       , fgColor = "grey"
+       , position = TopW L 85
+	   , lowerOnStart = True
+       , commands = [ Run Memory ["-t","Mem: <usedratio>%"] 100
+                    , Run Date "%a %b %_d %l:%M" "date" 10
+                    , Run StdinReader
+                    ]
+       , sepChar = "%"
+       , alignSep = "}{"
+       , template = "%StdinReader% }{ %memory%  | <fc=#ee9a00>%date%</fc>"
+       }
+
