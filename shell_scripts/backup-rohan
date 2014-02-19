@@ -1,0 +1,12 @@
+#!/bin/bash
+# usage: backup-rohan
+#
+# perform incremental backups using rsync.  See rsync-backup for details
+# of how the backup is performed.
+
+exclude_list=~/.dotfiles/backup_excludes/rohan
+from_dir=$HOME
+backup_dir=/media/havens/backups-rohan
+name=rohan
+
+rsync-backup -e $exclude_list $from_dir $backup_dir $name

@@ -19,6 +19,7 @@ if [[ -e $f ]]; then
     module load fitsio     # *
 
     module load ngmix/local
+    module load nsim/local
 
     module load psfex/local # *
     module load meds/local # *
