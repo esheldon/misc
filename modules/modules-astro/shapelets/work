@@ -14,6 +14,4 @@ prepend-path LIBRARY_PATH    $SHAPELETS_DIR/lib
 prepend-path C_INCLUDE_PATH  $SHAPELETS_DIR/include
 prepend-path CPATH           $SHAPELETS_DIR/include
 
-prepend-path PYTHONPATH      $SHAPELETS_DIR/lib/python2.7/site-packages
-
 setenv SHAPELETS_DIR $SHAPELETS_DIR
