@@ -11,5 +11,5 @@ while [ 1 ]; do
 
     mv -f $tmpfile $file
 
-    sleep 30
+    sleep 60
 done

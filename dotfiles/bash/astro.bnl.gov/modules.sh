@@ -6,8 +6,7 @@ source /opt/astro/SL64/bin/setup.astro.sh
 #
 
 # tmv using intel now, and galsim needs tmv
-#module load intel_compilers
-#module load tmv/0.71         # *
+module load tmv/0.71         # *
 #module load galsim/jarvis    # *
 
 #
