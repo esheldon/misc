@@ -179,7 +179,7 @@ void lensum_add(struct lensum* dest, struct lensum* src) {
 
 int lensum_read(FILE* stream, struct lensum* lensum) {
     int nbin=lensum->nbin;
-    int nexpect = 5+5*nbin;
+    int nexpect = 4+5*nbin;
     int nread=0;
     int i=0;
 

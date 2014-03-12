@@ -1,0 +1,13 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"sobjshear lensing code with im3"
+conflict sobjshear
+
+eval set  [ array get env HOME ]
+
+set SOBJSHEAR_DIR $HOME/exports/sobjshear-im3
+
+prepend-path PATH $SOBJSHEAR_DIR/bin
+
+setenv SOBJSHEAR_DIR $SOBJSHEAR_DIR 
