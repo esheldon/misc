@@ -28,6 +28,8 @@ setenv SHAPESIM_FS nfs
 setenv SHAPESIM_DIR $LENSDIR/shapesim
 setenv SHAPESIM_HDFS_DIR hdfs:///user/esheldon/lensing/shapesim
 
+setenv GREAT3_DATA_DIR $LENSDIR/great3
+
 setenv GMIX_SDSS $HOME/gmix-sdss
 
 setenv SGSEP_DIR $HOME/oh/star-galaxy-separation/
