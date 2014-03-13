@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"run on great3"
+conflict great3
+
+eval set [ array get env HOME ]
+
+set GREAT3_DIR $HOME/exports/great3-work
+
+append-path PATH $GREAT3_DIR/bin
+append-path PYTHONPATH $GREAT3_DIR/lib/python2.7/site-packages
+
+setenv GREAT3_DIR $GREAT3_DIR
