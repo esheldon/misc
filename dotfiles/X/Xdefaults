@@ -9,7 +9,6 @@ customization: -color
 !xterm*boldMode: false
 xterm*allowBoldFonts: false
 
-!xterm*faceName: Terminus:pixelsize=12
 
 ! This means just display a different color, dont use the bold font
 !xterm*colorBDMode: true
@@ -22,10 +21,12 @@ xterm*allowBoldFonts: false
 !xterm*Xft*antialias:  false
 
 !XTerm*renderFont: true
-!XTerm*faceName: ProggyTiny
 !XTerm*faceSize: 10 
 
 !xterm*faceName: Monaco:pixelsize=10
+
+xterm*faceName: peep
+xterm*faceSize: 12
 
 ! dont include the newline when triple clicking
 xterm*cutNewLine: true
