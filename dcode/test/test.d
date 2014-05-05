@@ -1,31 +1,63 @@
 import std.stdio;
-import std.math;
-import point;
-import hpoint;
 
-class CatPoint : Point {
-    // we inherit x,y,z
-    long index;
-    double cos_radius;
+enum ulong MAXDIM=1024;
 
-    this(double ra, double dec, long index, double cos_radius) {
-        this.index=index;
-        this.cos_radius = cos_radius;
-        super(ra,dec);
+struct Image(T) {
+    // backing storage
+    T[MAXDIM][MAXDIM] data;
+
+    // used size
+    long _nrow, _ncol;
+
+    /*
+    this(T)(this) {
+        _nrow=MAXDIM;
+        _ncol=MAXDIM;
     }
+    */
+    this(long nrow, long ncol) {
+
+        assert(nrow >= 0
+               && nrow <= MAXDIM
+               && ncol >= 0
+               && ncol <= MAXDIM);
+
+        _nrow=nrow;
+        _ncol=ncol;
+    }
+
+    @property long nrow() const {
+        return _nrow;
+    }
+    @property long ncol() const {
+        return _ncol;
+    }
+
+    @property void nrow(long nr) {
+        assert(nr >= 0 && nr <= MAXDIM);
+        _nrow=nr;
+    }
+    @property void ncol(long nc) {
+        assert(nc >= 0 && nc <= MAXDIM);
+        _ncol=nc;
+    }
+
 }
 
 int main() {
+    long nrow=3, ncol=5;
 
-    auto hp = new HPoint(210.0, 35.0);
-    auto cp = new CatPoint(57.3, -8.5,35,0.2);
+    writefln("hello");
+    auto image = Image!double(nrow, ncol);
+    /*
 
-    writeln("hp.phi (member): ",hp.phi);
-    writeln("cp.phi (property): ",cp.phi);
-    writefln("hp: (%s,%s,%s)",hp.x,hp.y,hp.z);
-    writefln("cp: (%s,%s,%s)",cp.x,cp.y,cp.z);
-    auto dotp = hp.dot(cp);
-    
-    writeln("dotp: ",dotp);
+    writefln("nrow: %s ncol: %s",image.nrow, image.ncol);
+
+    image.nrow=200;
+    image.ncol=80;
+
+    writefln("nrow: %s ncol: %s",image.nrow, image.ncol);
+    */
+
     return 0;
 }
