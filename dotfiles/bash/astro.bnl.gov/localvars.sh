@@ -1,75 +1,35 @@
-# sets up a ton of stuff
+#export MAXBCG_CATDIR=/astro/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
+#export CLUSTERS_INPUT=~/oh/clusters-input
 
-f=~astrodat/setup/setup.sh
-if [[ -e $f ]]; then
-    source "$f"
-fi
+#export PHOTOZ_DIR=~esheldon/photoz
+#export SWEEP_REDUCE=~esheldon/sweep-reduce
 
-# all these require mount of /opt/astro/....
-# tutti does not mount these
-f=/opt/astro/SL53/bin/setup.astro.sh
-if [[ -e $f ]]; then
-    source "$f"
+#export MASK_DIR=~esheldon/masks
 
-    f=~astrodat/setup/setup-wq.sh
-    source "$f"
+#export LENSDIR=~esheldon/lensing
+#export LENSDIR_HDFS=hdfs:///user/esheldon/lensing
 
-    #f=/opt/astro/SL53/bin/setup.hadoop.sh
-    #source "$f"
+#export GMIX_SDSS=~esheldon/gmix-sdss
 
-    # make want to change to not have hadoop at the end?
-    #append_path C_INCLUDE_PATH $HADOOP_HOME/src/c++/libhdfs/
-    #append_path CPATH $HADOOP_HOME/src/c++/libhdfs/
-    #append_path LD_LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
-    #append_path LIBRARY_PATH $HADOOP_HOME/c++/Linux-amd64-64/lib/
-
-fi
-
-if [[ $(hostname) != "tutti.astro.bnl.gov" ]]; then
-    source ~/local/des-oracle/setup.sh
-fi
-
-append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include
-append_path CPATH /usr/java/jdk1.6.0_14/include
-append_path C_INCLUDE_PATH /usr/java/jdk1.6.0_14/include/linux
-append_path CPATH /usr/java/jdk1.6.0_14/include/linux
-
-
-
-#append_path C_INCLUDE_PATH /astro/u/anze/local/include/
-#append_path CPATH /astro/u/anze/local/include/
-#append_path LD_LIBRARY_PATH /astro/u/anze/local/lib
-#append_path LIBRARY_PATH /astro/u/anze/local/lib
-
-
-export MAXBCG_CATDIR=/astro/tutti1/esheldon/lensinputs-v1/maxbcg/catalog
-export CLUSTERS_INPUT=~/oh/clusters-input
-
-export PHOTOZ_DIR=~esheldon/photoz
-export SWEEP_REDUCE=~esheldon/sweep-reduce
-
-export MASK_DIR=~esheldon/masks
-
-export LENSDIR=~esheldon/lensing
-export LENSDIR_HDFS=hdfs:///user/esheldon/lensing
-export SHAPESIM_DIR=~esheldon/lensing/shapesim
-export GMIX_SDSS=~esheldon/gmix-sdss
-export SHAPESIM_FS=nfs
-
-export PIXEL_MASK_BASIC=pixel_mask_dr4_basic
-export PIXEL_MASK_BOUND=pixel_mask_dr4_bound
-export PIXEL_MASK_SIMPLE=pixel_mask_dr4_simple
-export PIXEL_MASK_BASIC_PRINCETON=$MASK_DIR/pixel_mask_princeton_basic
+#export PIXEL_MASK_BASIC=pixel_mask_dr4_basic
+#export PIXEL_MASK_BOUND=pixel_mask_dr4_bound
+#export PIXEL_MASK_SIMPLE=pixel_mask_dr4_simple
+#export PIXEL_MASK_BASIC_PRINCETON=$MASK_DIR/pixel_mask_princeton_basic
 
 # location we keep simulations of the regauss algorithm
-export REGAUSSIM_DIR=~esheldon/lensing/regauss-sim
-export REGAUSSIM_HDFS_DIR=hdfs:///user/esheldon/lensing/regauss-sim
+#export REGAUSSIM_DIR=~esheldon/lensing/regauss-sim
+#export REGAUSSIM_HDFS_DIR=hdfs:///user/esheldon/lensing/regauss-sim
 
-export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
+#export SGSEP_DIR=~esheldon/oh/star-galaxy-separation/
 
-export CLUSTERSTEP=~/lensing/cluster-step
-export CLUSTERSTEP_HDFS=hdfs:///user/esheldon/lensing/cluster-step
+#export CLUSTERSTEP=~/lensing/cluster-step
+#export CLUSTERSTEP_HDFS=hdfs:///user/esheldon/lensing/cluster-step
 
-export TMPDIR=~/oh/tmp
+#export TMPDIR=/data/esheldon/tmp
 
-export DESWL_CHECKOUT=~/git/deswl
+#export DESWL_CHECKOUT=~/git/deswl
+
+#export DESREMOTE_RSYNC=desar2.cosmology.illinois.edu::DESFiles
+#export DES_RSYNC_PASSFILE=~/.des_rsync_pass
+
+#export COSMOS_DIR=$LENSDIR/galsim-cosmos-data

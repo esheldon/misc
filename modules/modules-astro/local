@@ -13,4 +13,35 @@ prepend-path LIBRARY_PATH    $localdir/lib
 prepend-path C_INCLUDE_PATH  $localdir/include
 prepend-path CPATH           $localdir/include
 
+setenv CLUSTERS_INPUT $HOME/oh/clusters-input
 
+setenv PHOTOZ_DIR $HOME/photoz
+setenv SWEEP_REDUCE $HOME/sweep-reduce
+
+setenv MASK_DIR $HOME/masks
+
+#set LENSDIR $HOME/lensing
+set LENSDIR /astro/astronfs02/esheldon/lensing
+setenv LENSDIR $LENSDIR
+setenv LENSDIR_HDFS hdfs:///user/esheldon/lensing
+setenv SHAPESIM_FS nfs
+setenv SHAPESIM_DIR $LENSDIR/shapesim
+setenv SHAPESIM_HDFS_DIR hdfs:///user/esheldon/lensing/shapesim
+
+setenv GREAT3_DATA_DIR $LENSDIR/great3
+
+setenv GMIX_SDSS $HOME/gmix-sdss
+
+setenv SGSEP_DIR $HOME/oh/star-galaxy-separation/
+
+setenv CLUSTERSTEP $LENSDIR/cluster-step
+setenv CLUSTERSTEP_HDFS hdfs:///user/esheldon/lensing/cluster-step
+
+setenv TMPDIR /data/esheldon/tmp
+
+setenv DESWL_CHECKOUT $HOME/git/deswl
+
+setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
+setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
+
+setenv COSMOS_DIR $LENSDIR/galsim-cosmos-data

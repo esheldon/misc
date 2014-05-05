@@ -1,2 +1,2 @@
-export PGDATABASE=des
-export PGUSER=des
+#export PGDATABASE=des
+#export PGUSER=des

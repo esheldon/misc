@@ -234,9 +234,9 @@ CPU1: ${color skyblue} ${cpu cpu1}%$color $alignr CPU2: ${color skyblue} ${cpu c
 ${color lightgrey}${cpugraph cpu1 25,120 006400 00FF00}$color ${color lightgrey}${cpugraph cpu2 25,120 006400 00FF00}$color
 Total CPU: ${color green} ${cpu cpu0}%$color
 ${color lightgrey}${cpugraph cpu0 006400 00FF00}$color
-Down: ${color FBB117}${downspeed eth1}$color $alignr Up: ${color FBB117} ${upspeed eth1}$color
-${color green}${totaldown eth1} $alignr ${totalup eth1}$color
-${color lightgrey}${downspeedgraph eth1 25,120 2554C7 306EFF 1000} ${upspeedgraph eth1 25,120 AF7817 FBB117 100}$color
+Down: ${color FBB117}${downspeed eth0}$color $alignr Up: ${color FBB117} ${upspeed eth0}$color
+${color green}${totaldown eth0} $alignr ${totalup eth0}$color
+${color lightgrey}${downspeedgraph eth0 25,120 2554C7 306EFF 1000} ${upspeedgraph eth0 25,120 AF7817 FBB117 100}$color
 RAM: ${color yellow}${mem}/${memmax}$color
 ${color skyblue}${memgraph 006400 00FF00}$color
 HD IO: ${color FBB117}${diskio}

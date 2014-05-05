@@ -20,6 +20,13 @@ enum gmix_model gmix_string2model(const char *model_name, long *flags)
         model=GMIX_DEV;
     } else if (0==strcmp(model_name,"GMIX_BD")) {
         model=GMIX_BD;
+
+    } else if (0==strcmp(model_name,"GMIX_EXP_SHEAR")) {
+        model=GMIX_EXP_SHEAR;
+    } else if (0==strcmp(model_name,"GMIX_DEV_SHEAR")) {
+        model=GMIX_DEV_SHEAR;
+
+
     } else {
         *flags |= GMIX_BAD_MODEL;
     }
@@ -42,8 +49,17 @@ long gmix_get_simple_npars(enum gmix_model model, long *flags)
         case GMIX_TURB:
             npars=6;
             break;
+
+        case GMIX_EXP_SHEAR:
+            npars=8;
+            break;
+        case GMIX_DEV_SHEAR:
+            npars=8;
+            break;
+
+
         default:
-            fprintf(stderr, "bad simple gmix model type: %u", model);
+            fprintf(stderr, "bad simple gmix model type: %u\n", model);
             *flags |= GMIX_BAD_MODEL;
             break;
     }
@@ -54,20 +70,32 @@ long gmix_get_simple_ngauss(enum gmix_model model, long *flags)
 {
     long ngauss=0;
     switch (model) {
+
         case GMIX_EXP:
             ngauss=6;
             break;
         case GMIX_DEV:
             ngauss=10;
             break;
+
         case GMIX_BD:
             ngauss=16;
             break;
         case GMIX_TURB:
             ngauss=3;
             break;
+
+        case GMIX_EXP_SHEAR:
+            ngauss=6;
+            break;
+        case GMIX_DEV_SHEAR:
+            ngauss=10;
+            break;
+
+
+
         default:
-            fprintf(stderr, "bad simple gmix model type: %u", model);
+            fprintf(stderr, "bad simple gmix model type: %u\n", model);
             *flags |= GMIX_BAD_MODEL;
             ngauss=-1;
             break;
@@ -220,6 +248,55 @@ _simple_pars_to_shapes_bail:
     return;
 }
 
+static void simple_pars_to_shape_with_shear(enum gmix_model model,
+                                            const double *pars,
+                                            size_t npars,
+                                            enum shape_system system,
+                                            struct shape *shape,
+                                            struct shape *shear,
+                                            long *flags)
+{
+
+    // just as a check on the pars
+    long npars_expected = gmix_get_simple_npars(model, flags);
+    if (*flags != 0) {
+        goto _simple_pars_to_shapes_bail;
+    }
+    if (npars_expected != npars) {
+        *flags |= GMIX_WRONG_NPARS;
+        goto _simple_pars_to_shapes_bail;
+    }
+
+    int ret=0;
+    switch (system) {
+        case SHAPE_SYSTEM_ETA:
+            ret=shape_set_eta(shape, pars[2], pars[3]);
+            break;
+        case SHAPE_SYSTEM_G:
+            ret=shape_set_g(shape, pars[2], pars[3]);
+            break;
+        case SHAPE_SYSTEM_E:
+            ret=shape_set_e(shape, pars[2], pars[3]);
+            break;
+        default:
+            fprintf(stderr, "bad shape system: %u\n", system);
+            *flags |= GMIX_BAD_MODEL;
+    }
+
+    if (ret == 0) {
+        *flags |= SHAPE_RANGE_ERROR;
+    }
+
+    ret=shape_set_g(shear, pars[npars-2], pars[npars-1]);
+
+    if (ret == 0) {
+        *flags |= SHAPE_RANGE_ERROR;
+    }
+
+_simple_pars_to_shapes_bail:
+    return;
+}
+
 
 static void coellip_pars_to_shape(const double *pars, size_t npars, struct shape *shape, long *flags)
 {
@@ -259,12 +336,23 @@ void gmix_pars_fill(struct gmix_pars *self,
 
     // for these models we set a shape
     if (self->model==GMIX_COELLIP) {
+
         coellip_pars_to_shape(pars, npars, &self->shape, flags);
+
     } else if (self->model == GMIX_EXP   || 
                self->model == GMIX_DEV   ||
                self->model == GMIX_BD    ||
                self->model == GMIX_TURB) {
-        simple_pars_to_shape(self->model, pars, npars, system, &self->shape, flags);
+
+        simple_pars_to_shape(self->model, pars, npars, system, &self->shape,
+                             flags);
+
+    } else if (self->model == GMIX_EXP_SHEAR   || 
+               self->model == GMIX_DEV_SHEAR) {
+
+        simple_pars_to_shape_with_shear(self->model, pars, npars, system,
+                                        &self->shape, &self->shear, flags);
+
     } else {
         *flags |= GMIX_BAD_MODEL;
     }
@@ -414,12 +502,14 @@ static void fill_simple(struct gmix *self,
 }
 
 
+// can use for with and without shear because shear is at the end
 static void fill_dev10(struct gmix *self, const struct gmix_pars *pars, long *flags)
 {
     static const long ngauss_expected=10;
 
-    if (pars->model != GMIX_DEV) {
-        fprintf(stderr,"dev10: expected model==GMIX_DEV, got %u\n", pars->model);
+    if (pars->model != GMIX_DEV && pars->model != GMIX_DEV_SHEAR) {
+        fprintf(stderr,"dev10: expected model==GMIX_DEV or GMIX_DEV_SHEAR, got %u\n",
+                pars->model);
         *flags |= GMIX_BAD_MODEL;
         return;
     }
@@ -454,12 +544,14 @@ static void fill_dev10(struct gmix *self, const struct gmix_pars *pars, long *fl
 
 
 
+// can use for with and without shear because shear is at the end
 static void fill_exp6(struct gmix *self, const struct gmix_pars *pars, long *flags)
 {
     static const long ngauss_expected=6;
 
-    if (pars->model != GMIX_EXP) {
-        fprintf(stderr,"exp6: expected model==GMIX_EXP, got %u\n", pars->model);
+    if (pars->model != GMIX_EXP && pars->model != GMIX_EXP_SHEAR) {
+        fprintf(stderr,"exp6: expected model==GMIX_EXP or  GMIX_EXP_SHEAR, got %u\n",
+                pars->model);
         *flags |= GMIX_BAD_MODEL;
         return;
     }
@@ -670,6 +762,15 @@ void gmix_fill_model(struct gmix *self,
         case GMIX_DEV:
             fill_dev10(self, pars, flags);
             break;
+
+        case GMIX_EXP_SHEAR:
+            fill_exp6(self, pars, flags);
+            break;
+        case GMIX_DEV_SHEAR:
+            fill_dev10(self, pars, flags);
+            break;
+
+
         case GMIX_BD:
             fill_bd(self, pars, flags);
             break;

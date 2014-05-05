@@ -14,6 +14,8 @@ enum prob_type prob_string2type(const char *type_name, long *flags)
         type=PROB_NOSPLIT_ETA;
     } else if (0==strcmp(type_name,"PROB_BA13")) {
         type=PROB_BA13;
+    } else if (0==strcmp(type_name,"PROB_BA13_SHEAR")) {
+        type=PROB_BA13_SHEAR;
     } else {
         *flags |= PROB_BAD_TYPE;
     }
@@ -215,6 +217,99 @@ _prob_simple_ba_calc_bail:
         *s2n_denom=0;
     }
 }
+
+/*
+   BA13 with shear in prior
+*/
+
+struct prob_data_simple_ba *
+prob_data_simple_ba_new_with_shear(enum gmix_model model,
+                        long psf_ngauss,
+
+                        const struct dist_gauss *cen1_prior,
+                        const struct dist_gauss *cen2_prior,
+
+                        const struct dist_g_ba *shape_prior,
+
+                        const struct dist_lognorm *T_prior,
+                        const struct dist_lognorm *counts_prior,
+                        long *flags)
+{
+    struct prob_data_simple_ba *prob=
+        prob_data_simple_ba_new(model,psf_ngauss,
+                                cen1_prior,
+                                cen2_prior,
+                                shape_prior,
+                                T_prior,
+                                counts_prior,
+                                flags);
+    prob->type = PROB_BA13_SHEAR;
+    return prob;
+}
+
+void prob_simple_ba_calc_priors_with_shear(struct prob_data_simple_ba *self,
+                                           const struct gmix_pars *pars,
+                                           double *lnprob,
+                                           long *flags)
+{
+    (*flags) = 0;
+    (*lnprob) = 0;
+
+    (*lnprob) += dist_gauss_lnprob(&self->cen1_prior,pars->data[0]);
+    (*lnprob) += dist_gauss_lnprob(&self->cen2_prior,pars->data[1]);
+
+    // this is P*J at -shear
+    (*lnprob) = dist_g_ba_pj(&self->shape_prior,
+                             &pars->shape,
+                             &pars->shear,
+                             flags);
+
+    (*lnprob) += dist_g_ba_lnprob(&self->shape_prior, &pars->shape);
+
+    (*lnprob) += dist_lognorm_lnprob(&self->T_prior,pars->data[4]);
+    (*lnprob) += dist_lognorm_lnprob(&self->counts_prior,pars->data[5]);
+}
+
+void prob_simple_ba_calc_with_shear(struct prob_data_simple_ba *self,
+                                    const struct obs_list *obs_list,
+                                    const struct gmix_pars *pars,
+                                    double *s2n_numer, double *s2n_denom,
+                                    double *lnprob, long *flags)
+{
+
+    double loglike=0, priors_lnprob=0;
+
+    *lnprob=0;
+
+    prob_calc_simple_likelihood(self->obj0,
+                                self->obj,
+                                obs_list,
+                                pars,
+                                s2n_numer,
+                                s2n_denom,
+                                &loglike,
+                                flags);
+
+    if (*flags != 0) {
+        goto _prob_simple_ba_calc_with_shear_bail;
+    }
+
+    // flags are always zero from here
+    prob_simple_ba_calc_priors_with_shear(self, pars, &priors_lnprob, flags);
+    if (*flags != 0) {
+        goto _prob_simple_ba_calc_with_shear_bail;
+    }
+
+    (*lnprob) = loglike + priors_lnprob;
+
+_prob_simple_ba_calc_with_shear_bail:
+    if (*flags != 0) {
+        (*lnprob) = PROB_LOG_LOWVAL;
+        *s2n_numer=0;
+        *s2n_denom=0;
+    }
+}
+
 
 /*
 

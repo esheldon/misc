@@ -394,33 +394,13 @@ from numpy import array,zeros,ones,where,arange,linspace, \\
 app.exec_lines.append(lines)
 
 lines="""
-import biggles
-from biggles import FramedPlot
-from biggles import PlotKey
-from biggles import Curve
-from biggles import Points
-"""
-
-app.exec_lines.append(lines)
-
-lines="""
 import esutil as eu
-from esutil.numpy_util import ahelp
-from esutil.numpy_util import aprint
-from esutil.numpy_util import where1
+from esutil.numpy_util import ahelp, aprint, where1
 from esutil.misc import colprint
-from esutil.misc import ptime
-from esutil import sfile
-from esutil import coords
 """
 app.exec_lines.append(lines)
 
-for p in ['os','sys', # 'time',
-          'fitsio','gmix_image','zphot',
-          'cosmology','admom','images','fimage',
-          'sdsspy','es_sdsspy','des','lensing',
-          'deswl','columns']:
-
+for p in ['fitsio']:
     lines="import %s" % p
     app.exec_lines.append(lines)
 

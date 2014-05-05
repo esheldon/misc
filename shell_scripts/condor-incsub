@@ -1,0 +1,60 @@
+#!/bin/bash
+
+function usage_and_exit {
+    echo "usage:
+  condor-incsub [options] condor_file1 condor_file2 ...
+
+options:
+  -n NJOBS_MAX  Maximum number of jobs in queue, default $nmax
+  -s SLEEPTIME  Sleep time while waiting for queue to drain, default $sleeptime
+"
+    exit 1
+}
+
+function count_jobs {
+    njobs=$( condor_q | awk '($2 == "esheldon" && ($6 == "R" || $6 == "I"))' | wc -l )
+
+    echo "$njobs"
+}
+
+njobs=$(count_jobs)
+
+# 5 minutes
+sleeptime=300
+nmax=10000
+
+if [ $# -lt 1 ]; then
+    usage_and_exit
+fi
+while getopts "n:s:" Option
+do
+    case $Option in
+        n) nmax=$OPTARG ;;
+        s) sleeptime=$OPTARG ;;
+        [?]) usage_and_exit ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+for arg; do
+
+    dname=$(dirname $arg)
+    bname=$(basename $arg)
+
+    njobs=$(count_jobs)
+    while [[ $njobs -ge $nmax ]]; do
+        echo "$njobs is plenty of jobs....  (> $nmax)"
+        sleep $sleeptime
+        njobs=$(count_jobs)
+    done
+
+    pushd "$dname"
+
+    echo "submitting: $bname"
+    condor_submit "$bname"
+
+    popd
+
+    sleep $sleeptime
+
+done

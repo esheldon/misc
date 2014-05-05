@@ -1,0 +1,16 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+# make sure PYTHONPATH is clean
+module-whatis	"run sims with ngmix; use special environment"
+conflict nsim
+
+eval set [ array get env HOME ]
+
+# we just use the environment dir
+set NSIM_DIR $HOME/anaconda-env/nsim-work
+
+# we are over-riding python so must be in front
+prepend-path PATH $NSIM_DIR/bin
+
+setenv NSIM_DIR $NSIM_DIR

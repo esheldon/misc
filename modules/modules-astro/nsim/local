@@ -1,0 +1,15 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+# make sure PYTHONPATH is clean
+module-whatis	"run sims with ngmix"
+conflict nsim
+
+eval set [ array get env HOME ]
+
+set NSIM_DIR $HOME/exports/nsim-local
+
+append-path PATH $NSIM_DIR/bin
+append-path PYTHONPATH $NSIM_DIR/lib/python2.7/site-packages
+
+setenv NSIM_DIR $NSIM_DIR

@@ -1,0 +1,10 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+# make sure PYTHONPATH is clean
+module-whatis	"config files for great3"
+conflict great3-config
+
+eval set [ array get env HOME ]
+
+setenv GREAT3_CONFIG_DIR $HOME/exports/great3-config-local

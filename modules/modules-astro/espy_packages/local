@@ -1,0 +1,36 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"a bunch of packages"
+conflict espy_packages
+
+# from afs
+module load acor
+module load emcee
+module load biggles
+
+# lots of packages here
+module load espy/local
+
+# need their own modules because they hold data, and
+# thus need to set the NSIM_DIR etc
+module load nsim/local
+module load deswl/local
+module load gmix_meds/local
+
+# this has python in it and can't be installed to
+# the packages dir
+module load des-oracle
+
+eval set  [ array get env HOME ]
+
+set ESPY_PACKAGES_DIR $HOME/exports/espy_packages-local
+
+append-path PATH            $ESPY_PACKAGES_DIR/bin
+append-path C_INCLUDE_PATH  $ESPY_PACKAGES_DIR/include
+append-path CPATH           $ESPY_PACKAGES_DIR/include
+append-path LD_LIBRARY_PATU $ESPY_PACKAGES_DIR/lib
+append-path LIBRARY_PATH    $ESPY_PACKAGES_DIR/include
+append-path PYTHONPATH      $ESPY_PACKAGES_DIR/lib/python2.7/site-packages
+
+setenv ESPY_PACKAGES_DIR $ESPY_PACKAGES_DIR

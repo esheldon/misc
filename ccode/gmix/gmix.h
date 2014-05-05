@@ -11,12 +11,16 @@
 #define GMIX_MISMATCH_SIZE 0x8
 
 enum gmix_model {
-    GMIX_FULL=0,
-    GMIX_COELLIP=1,
-    GMIX_TURB=2,
-    GMIX_EXP=3,
-    GMIX_DEV=4,
-    GMIX_BD=5
+    GMIX_FULL,
+    GMIX_COELLIP,
+    GMIX_TURB,
+    GMIX_EXP,
+    GMIX_DEV,
+    GMIX_BD,
+
+    // these models have shear in the last 2 elements
+    GMIX_EXP_SHEAR,
+    GMIX_DEV_SHEAR
 };
 
 struct gmix {
@@ -55,6 +59,9 @@ struct gmix_pars {
 
     // not used by GMIX_FULL
     struct shape shape;
+
+    // used when exploring shear
+    struct shape shear;
 };
 
 struct gmix_pars *gmix_pars_new(enum gmix_model model,
@@ -170,6 +177,17 @@ struct gmix_list *gmix_list_free(struct gmix_list *self);
     }                                                          \
     _val;                                                      \
 })
+
+#define GMIX_EVAL_SLOW(gmix, rowval, colval) ({                \
+    double _val=0.0;                                           \
+    struct gauss2 *_gauss=(gmix)->data;                        \
+    for (int _i=0; _i<(gmix)->size; _i++) {                    \
+        _val += GAUSS2_EVAL_SLOW(_gauss, (rowval), (colval));  \
+        _gauss++;                                              \
+    }                                                          \
+    _val;                                                      \
+})
+
 
 
 

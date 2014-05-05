@@ -1,99 +1,62 @@
-# will want a different one for tutti
-f=~astrodat/setup/setup-modules.sh
-if [[ -e $f ]]; then
-    source "$f"
-fi
-check=`module 2>&1`
-check=`echo $check | grep "command not found"`
+# sets up modules and loads afs, anaconda, astrodat and wq
+source /opt/astro/SL64/bin/setup.astro.sh
 
-if [[ $check == "" ]]; then
+#
+# AFS modules
+#
 
+# tmv using intel now, and galsim needs tmv
+module load tmv/0.71         # *
+#module load galsim/jarvis    # *
 
-    # those marked with * have platform dependent code, e.g. the are
-    # stand-alone C or extensions for python, etc.
+#
+# my stuff
+#
 
-    # this are under $MODULESHOME/modulefiles
-    # and installed under $MODULE_INSTALLS
-    module load use.own
+module load use.own
+module load local      # *
+module load perllib
+module load shell_scripts
 
-    #module load wq
+# -python
 
-    module load pylint
+# loads the espy_packages stuff plus some other modules
+module load espy_packages/local
 
-    module load mangle     # *
-    module load pymangle   # *
-    module load gmix_image/local # *
+# need their own modules because they hold data, and
+# thus need to set the NSIM_DIR etc
+#module load nsim/local
+#module load deswl/local
+#module load gmix_meds/local
 
-    module load meds/local
-    module load gmix_meds/local
-    module load psfex-ess/local
-    module load gsim_ring/local
-
-    # for oracle libraries
-    module load libaio     # *
-
-    module load parallel
-
-    module load cjson      # *
-
-    #module load pyyaml
-    # also loads pcre      # *
-    module load swig       # *
-
-    module load cfitsio/3350   # *
-    module load ccfits/2.4     # *
-
-    module load emcee
-    module load acor
-
-    # these are under my ~/privatemodules
-    # and installed generally under ~/exports
-
-    module load perllib
-    module load shell_scripts
-    module load espy/local
-
-    module load desfiles
-    module load desdb
-
-    module load local      # *
-
-    # this is currently just the python extension
-    module load stomp      # *
-
-    module unload esutil && module load esutil/local     # *
-    module load recfile    # *
-
-    module load cosmology  # *
-    module load admom      # *
-    module load fimage/local     # *
-    module load fitsio/local
-
-    module load numpydb    # *
-    module load pgnumpy    # *
-
-    module unload deswl-checkout && module load deswl-checkout/local
-
-    #module load scikits_learn # *
-    module load scikits_learn/new # *
-
-    # python only
-    module load sdsspy
-    module load columns
+# this has python in it and can't be installed to
+# the packages dir
+#module load des-oracle
 
 
-    # these get loaded in other scripts, be careful
-    module unload tmv && module load tmv/0.71     # *
+# these modules were installed into espy_packages
+#module load fitsio/local     # *
+#module unload esutil && module load esutil/local     # *
 
-    # prereq: ccfits, tmv, desfiles, esutil
-    module unload shapelets && module load shapelets/local   # *
+#module load psfex-ess/local
 
-    module load galsim/local
+#module load meds/local       # *
 
+#module load ngmix/local  # requires numba
 
-    module load esidl
-    module load sdssidl
-    module load idlastron
-fi
+#module load desdb/local
+#module load pymangle   # *
 
+#module load recfile/local      # *
 
+#module load cosmology  # *
+
+#module load sdsspy
+
+# not installed in espy_packages
+#module load fimage/local     # *
+#module load admom/local      # *
+#module load gmix_image/local # *
+#module load stomp/local      # *
+#module load numpydb    # *
+#module load columns

@@ -5,6 +5,7 @@
 #include "config.h"
 #include "prob.h"
 #include "gmix.h"
+#include "randn.h"
 #include "gmix_mcmc_config.h"
 #include "gmix_mcmc.h"
 
@@ -45,18 +46,32 @@ static struct prob_data_base *get_prob_ba13(const struct gmix_mcmc_config *conf,
     dist_g_ba_fill(&shape_prior, conf->shape_prior_pars[0]);
 
     // priors get copied
-    prob=prob_data_simple_ba_new(conf->fitmodel,
-                                 conf->psf_ngauss,
+    if (conf->prob_type == PROB_BA13_SHEAR) {
+        prob=prob_data_simple_ba_new_with_shear(conf->fitmodel,
+                                                conf->psf_ngauss,
 
-                                 &cen_prior,
-                                 &cen_prior,
+                                                &cen_prior,
+                                                &cen_prior,
 
-                                 &shape_prior,
+                                                &shape_prior,
 
-                                 &T_prior,
-                                 &counts_prior,
-                                 flags);
+                                                &T_prior,
+                                                &counts_prior,
+                                                flags);
 
+    } else {
+        prob=prob_data_simple_ba_new(conf->fitmodel,
+                                     conf->psf_ngauss,
+
+                                     &cen_prior,
+                                     &cen_prior,
+
+                                     &shape_prior,
+
+                                     &T_prior,
+                                     &counts_prior,
+                                     flags);
+    }
     fprintf(stderr,"prob:\n");
     prob_simple_ba_print(prob, stderr);
 
@@ -132,9 +147,16 @@ static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *co
         case PROB_NOSPLIT_ETA:
             return get_prob_gmix3_eta(conf, flags);
             break;
+
         case PROB_BA13:
             return get_prob_ba13(conf, flags);
             break;
+
+        // note  this is the same!
+        case PROB_BA13_SHEAR:
+            return get_prob_ba13(conf, flags);
+            break;
+
         default:
             fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
                     conf->prob_type, __FILE__,__LINE__);
@@ -145,25 +167,18 @@ static struct prob_data_base *prob_new_generic(const struct gmix_mcmc_config *co
 // can generalize this
 static struct prob_data_base *prob_free_generic(struct prob_data_base *prob)
 {
-    switch (prob->type) {
-        case PROB_NOSPLIT_ETA:
-            {
-                struct prob_data_simple_gmix3_eta *ptmp
-                    =(struct prob_data_simple_gmix3_eta *) prob;
-                prob_data_simple_gmix3_eta_free(ptmp);
-            }
-            break;
-        case PROB_BA13:
-            {
-                struct prob_data_simple_ba *ptmp
-                    =(struct prob_data_simple_ba *) prob;
-                prob_data_simple_ba_free(ptmp);
-            }
-            break;
-
-        default:
-            fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
-                    prob->type, __FILE__,__LINE__);
+    if (prob->type == PROB_NOSPLIT_ETA) {
+        struct prob_data_simple_gmix3_eta *ptmp
+            =(struct prob_data_simple_gmix3_eta *) prob;
+        prob_data_simple_gmix3_eta_free(ptmp);
+    } else if (prob->type == PROB_BA13
+                   || prob->type == PROB_BA13_SHEAR) {
+        struct prob_data_simple_ba *ptmp
+            =(struct prob_data_simple_ba *) prob;
+        prob_data_simple_ba_free(ptmp);
+    } else {
+        fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
+                prob->type, __FILE__,__LINE__);
             exit(1);
     }
 
@@ -471,35 +486,32 @@ static void calc_dbydg(struct gmix_mcmc *self,
                        double *dbydg1, double *dbydg2,
                        long *flags)
 {
-    switch (self->prob->type) {
-        case PROB_BA13:
-            {
-                struct prob_data_simple_ba *prob = 
-                    (struct prob_data_simple_ba *)self->prob;
 
-                struct gmix_pars *gmix_pars=gmix_pars_new(prob->model,
-                                                          pars,
-                                                          npars,
-                                                          SHAPE_SYSTEM_G,
-                                                          flags);
-                if (*flags==0) {
-                    *g1 = gmix_pars->shape.g1;
-                    *g2 = gmix_pars->shape.g2;
+    if (self->prob->type == PROB_BA13
+            || self->prob->type == PROB_BA13_SHEAR) {
+        struct prob_data_simple_ba *prob = 
+            (struct prob_data_simple_ba *)self->prob;
 
-                    dist_g_ba_dbyg_num(&prob->shape_prior,
-                                       &gmix_pars->shape,
-                                       P, dbydg1, dbydg2,
-                                       flags);
+        struct gmix_pars *gmix_pars=gmix_pars_new(prob->model,
+                                                  pars,
+                                                  npars,
+                                                  SHAPE_SYSTEM_G,
+                                                  flags);
+        if (*flags==0) {
+            *g1 = gmix_pars->shape.g1;
+            *g2 = gmix_pars->shape.g2;
 
-                    gmix_pars = gmix_pars_free(gmix_pars);
-                }
-            }
-            break;
+            dist_g_ba_dbyg_num(&prob->shape_prior,
+                               &gmix_pars->shape,
+                               P, dbydg1, dbydg2,
+                               flags);
 
-        default:
-            fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
-                    self->prob->type, __FILE__,__LINE__);
-            exit(1);
+            gmix_pars = gmix_pars_free(gmix_pars);
+        }
+    } else {
+        fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
+                self->prob->type, __FILE__,__LINE__);
+        exit(1);
     }
 }
 
@@ -623,6 +635,30 @@ static double get_lnprob(const double *pars, size_t npars, const void *data)
             }
             break;
 
+        case PROB_BA13_SHEAR:
+            {
+                struct prob_data_simple_ba *prob = 
+                    (struct prob_data_simple_ba *)self->prob;
+
+                struct gmix_pars *gmix_pars=
+                    gmix_pars_new(prob->model, pars, npars, SHAPE_SYSTEM_G, &flags);
+                if (flags != 0) {
+                    lnprob = DIST_LOG_LOWVAL;
+                } else {
+
+                    prob_simple_ba_calc_with_shear(prob,
+                                                   self->obs_list,
+                                                   gmix_pars,
+                                                   &s2n_numer, &s2n_denom,
+                                                   &lnprob, &flags);
+
+                    gmix_pars = gmix_pars_free(gmix_pars);
+                }
+            }
+            break;
+
+
+
         default:
             fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
                     self->prob->type, __FILE__,__LINE__);
@@ -661,6 +697,43 @@ struct mca_chain *gmix_mcmc_guess_simple_ba13(const struct prob_data_simple_ba *
 
     return guess;
 }
+
+
+static
+struct mca_chain *gmix_mcmc_guess_simple_ba13_with_shear(const struct prob_data_simple_ba *prob,
+                                                         long nwalkers)
+{
+    size_t npars=8;
+
+    struct mca_chain *guess=mca_chain_new(nwalkers,1,npars);
+    struct shape shape={0};
+
+    double val=0;
+    for (size_t iwalk=0; iwalk<nwalkers; iwalk++) {
+        val = dist_gauss_sample(&prob->cen1_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 0) = val; 
+        val = dist_gauss_sample(&prob->cen2_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 1) = val; 
+
+
+        dist_g_ba_sample(&prob->shape_prior, &shape);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 2) = shape.g1; 
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 3) = shape.g2; 
+
+        val = dist_lognorm_sample(&prob->T_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 4) = val; 
+        val = dist_lognorm_sample(&prob->counts_prior);
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 5) = val; 
+
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 6) = 0.1*srandu(); 
+        MCA_CHAIN_WPAR(guess, iwalk, 0, 7) = 0.1*srandu(); 
+
+    }
+
+    return guess;
+}
+
+
 static struct mca_chain *gmix_mcmc_guess_simple_gmix3_eta(const struct prob_data_simple_gmix3_eta *prob,
                                                    long nwalkers)
 {
@@ -700,12 +773,21 @@ struct mca_chain *gmix_mcmc_get_guess_prior(struct gmix_mcmc *self)
                     (struct prob_data_simple_gmix3_eta *) self->prob;
                 return gmix_mcmc_guess_simple_gmix3_eta(prob, nwalkers);
             }
+
         case PROB_BA13:
             {
                 const struct prob_data_simple_ba *prob=
                     (struct prob_data_simple_ba *) self->prob;
                 return gmix_mcmc_guess_simple_ba13(prob, nwalkers);
             }
+
+        case PROB_BA13_SHEAR:
+            {
+                const struct prob_data_simple_ba *prob=
+                    (struct prob_data_simple_ba *) self->prob;
+                return gmix_mcmc_guess_simple_ba13_with_shear(prob, nwalkers);
+            }
+
         default:
             fprintf(stderr, "bad prob type: %u: %s: %d, aborting\n",
                     self->prob->type, __FILE__,__LINE__);
