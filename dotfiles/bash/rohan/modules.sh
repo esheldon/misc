@@ -36,7 +36,7 @@ if [[ -e $f ]]; then
     module load wq
 
     # waiting for astropy.fits to be supported
-    #module load galsim     # *
+    module load galsim/local     # *
     module load admom      # *
     module load fimage/local     # *
     module load pymangle   # *
