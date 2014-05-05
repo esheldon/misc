@@ -24,4 +24,4 @@ setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
 setenv DESPROJ OPS
 
-setenv GREAT3_DATA_DIR $HOME/lensing/great3
+setenv GREAT3_DATA_DIR $HOME/data/lensing/great3
