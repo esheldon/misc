@@ -1,7 +1,7 @@
 #%Module########################################################################
 # vim: set filetype=tcl :
 
-module-whatis	"local installs under ~/local"
+module-whatis	"local stuff"
 
 eval set  [ array get env HOME ]
 
@@ -13,4 +13,15 @@ prepend-path LIBRARY_PATH    $localdir/lib
 prepend-path C_INCLUDE_PATH  $localdir/include
 prepend-path CPATH           $localdir/include
 
+setenv LENSDIR $HOME/lensing
+setenv SHAPESIM_FS local
 
+setenv CLUSTERSTEP $HOME/data/cluster-step
+
+setenv DESDATA $HOME/data/DES
+setenv DESREMOTE https://desar2.cosmology.illinois.edu/DESFiles/desardata
+setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
+setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
+setenv DESPROJ OPS
+
+setenv GREAT3_DATA_DIR $HOME/lensing/great3
