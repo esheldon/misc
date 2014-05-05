@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 
     double tot=0;
     int n=100000;
-    int nrepeat=1000;
+    int nrepeat=10000;
     double *d=malloc(n*sizeof(double));
     for (size_t i=0; i<n; i++) {
         d[i] = drand48();
