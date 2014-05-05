@@ -93,6 +93,7 @@ for subdir in coadd QA/segmap; do
         --exclude "*bleed.fits*" \
         --exclude "*stars.fits*" \
         --exclude "*scamp*" \
+        --exclude "*det*" \
         --exclude "*.ps" \
         "$remote_url/" .
 
