@@ -566,7 +566,7 @@ long gmix_mcmc_calc_lensfit(struct gmix_mcmc *self)
         self->g[0] = g1sum/nuse;
         self->g[1] = g2sum/nuse;
 
-        //                          < (g-<g>)*1/P*dP/dg >
+        //                          < (<g>-g)*1/P*dP/dg >
         //self->gsens[0] = 1.0 - ( g1_sensum/nuse - self->g[0]*fac1_sum/nuse);
         //self->gsens[1] = 1.0 - ( g2_sensum/nuse - self->g[1]*fac2_sum/nuse);
 
