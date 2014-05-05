@@ -7,7 +7,6 @@ source /opt/astro/SL64/bin/setup.astro.sh
 
 # tmv using intel now, and galsim needs tmv
 module load tmv/0.71         # *
-#module load galsim/jarvis    # *
 
 #
 # my stuff
@@ -17,6 +16,8 @@ module load use.own
 module load local      # *
 module load perllib
 module load shell_scripts
+
+module load galsim/local     # *
 
 # -python
 
