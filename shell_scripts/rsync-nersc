@@ -2,4 +2,4 @@
 
 src="$1"
 dest="$2"
-rsync -avz --chmod=a+r,Da+rx "$src" "$dest"
+rsync --progress -avz --chmod=a+r,Da+rx "$src" "$dest"
