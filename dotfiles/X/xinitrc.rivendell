@@ -29,5 +29,8 @@ else
     fbpanel &
 fi
 
+# needed on new system at work, forest
+xset fp+ ~/.fonts/
+
 #exec ck-launch-session dbus-launch xmonad
 exec xmonad
