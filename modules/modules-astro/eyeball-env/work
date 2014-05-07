@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+# make sure PYTHONPATH is clean
+module-whatis	"special environment for running the eyeball image maker code"
+conflict eyeball-env
+
+# we just use the environment dir
+set EYEBALLER_DIR /astro/astronfs02/esheldon/lensing/environments/eyeball
+
+# we are over-riding python so must be in front
+prepend-path PATH $EYEBALLER_DIR/bin
+
+setenv EYEBALLER_DIR $EYEBALLER_DIR
