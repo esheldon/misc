@@ -1,4 +1,3 @@
-(verse 1)
      E
      We were born before the wind
      E
@@ -8,7 +7,6 @@
      B                     E
      As we sailed into the mystic
 
-(verse 2)
      E
      Hark, now, hear the sailor's cry
      E
@@ -18,7 +16,6 @@
      B          E
      Into the mystic.
 
-(bridge)
      G#m                       A     
      When that foghorn whistle blows,
                       E
@@ -28,7 +25,6 @@
      B
      I wanna hear it, I don't have to fear it
 
-(chorus)
          E
      And I  wanna rock you gypsy soul
      E
@@ -38,10 +34,8 @@
                 E
      Into the mystic
 
+solo
 
-(SAX SOLO)   C ...  G ...  C
-
-(bridge)
      G#m                       A               
      When that foghorn whistle blows, 
                                E
@@ -51,7 +45,6 @@
      B
      I've gotta hear it, I don't have to fear it
 
-(ending chorus)                                  
      E
      And I wanna rock your gypsy soul
      E
