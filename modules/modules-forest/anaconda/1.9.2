@@ -1,0 +1,11 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"local stuff"
+
+eval set  [ array get env HOME ]
+
+set anaconda_dir $HOME/anaconda/1.9.2
+
+prepend-path PATH         $anaconda_dir/bin
+setenv       ANACONDA_DIR $anaconda_dir
