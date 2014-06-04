@@ -1,0 +1,20 @@
+#%Module1.0########################################################################
+# vim: set filetype=tcl :
+
+# make sure PYTHONPATH is clean
+module-whatis	"semi-complete environment"
+conflict fullenv
+
+eval set [ array get env HOME ]
+
+# we just use the environment dir
+set FULLENV_DIR /astro/astronfs02/esheldon/lensing/environments/full
+set NSIM_DIR $FULLENV_DIR 
+
+# we are over-riding python so must be in front
+prepend-path PATH            $FULLENV_DIR/bin
+prepend-path C_INCLUDE_PATH  $FULLENV_DIR/include
+prepend-path LD_LIBRARY_PATH $FULLENV_DIR/lib
+
+setenv NSIM_DIR $NSIM_DIR
+setenv GMIX_MEDS_DIR $NSIM_DIR
