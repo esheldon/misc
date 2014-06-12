@@ -8,4 +8,4 @@ from_dir="web246.webfaction.com:webapps"
 backup_dir=$HOME/webfaction-backups
 name=webfaction
 
-rsync-backup $from_dir $backup_dir $name
+$HOME/shell_scripts/rsync-backup $from_dir $backup_dir $name

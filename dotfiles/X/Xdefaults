@@ -47,7 +47,7 @@ xterm*scrollBar: false
 xterm*scrollKey: true
 xterm*scrollTtyOutput: false
 ! these go as "charnum1":48,"charnum2":48,"char-range":48,...
-xterm*charClass: 43:58,45-47:48,58:48,126:48
+xterm*charClass: 43:48,45-47:48,58:48,126:48
 xterm*cursorColor: yellow
 xterm*rightScrollBar: true
 ! just show selected parts of line

@@ -7,12 +7,11 @@ if [[ -e $f ]]; then
 
     module load use.own
 
-    # python
     module load espy/local
+    module load local_packages
 
     module load local      # *
     module load shell_scripts
-
 
 fi
 
