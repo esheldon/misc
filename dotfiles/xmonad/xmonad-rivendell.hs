@@ -34,7 +34,7 @@ main = do
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
                    },
-                   terminal = "xterm"
+                   terminal = "xterm -fa Terminus:size=12"
     }`additionalKeys` myKeyBindings
 
 -- newer versions of dmenu are for some reason not recognized automatically,
