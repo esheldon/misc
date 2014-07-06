@@ -1,7 +1,7 @@
 #%Module########################################################################
 # vim: set filetype=tcl :
 
-module-whatis	"numba based gaussian mixture models for images"
+module-whatis	"based gaussian mixture models for images"
 conflict ngmix
 
 eval set  [ array get env HOME ]
