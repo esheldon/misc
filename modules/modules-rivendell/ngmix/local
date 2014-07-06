@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"based gaussian mixture models for images"
+conflict ngmix
+
+eval set  [ array get env HOME ]
+
+set NGMIX_DIR $HOME/exports/ngmix-local
+
+prepend-path PYTHONPATH $NGMIX_DIR/lib/python3.4/site-packages/
+
+setenv NGMIX_DIR $NGMIX_DIR
+
