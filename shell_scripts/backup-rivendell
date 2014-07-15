@@ -1,0 +1,19 @@
+#!/bin/bash
+# usage: backup-rivendell
+#
+# perform incremental backups using rsync.  See rsync-backup for details
+# of how the backup is performed.
+
+exclude_list=~/.dotfiles/backup_excludes/rivendell
+from_dir=$HOME
+
+bdisk=/media/havens
+if [[ ! -e "$bdisk" ]]; then
+    echo "backup disk is missing: $bdisk"
+    exit 1
+fi
+
+backup_dir=/media/havens/backups-rivendell
+name=rivendell
+
+rsync-backup -e $exclude_list $from_dir $backup_dir $name
