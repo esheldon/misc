@@ -7,8 +7,12 @@ conflict eyeball-env
 
 # we just use the environment dir
 set EYEBALLER_DIR /astro/astronfs02/esheldon/lensing/environments/eyeball
+set EYEBALLER_DATADIR /astro/u/astrodat/data/DES/wlpipe
 
 # we are over-riding python so must be in front
 prepend-path PATH $EYEBALLER_DIR/bin
 
 setenv EYEBALLER_DIR $EYEBALLER_DIR
+setenv EYEBALLER_DATADIR $EYEBALLER_DATADIR
+
+setenv EYEBALLER_VERS work

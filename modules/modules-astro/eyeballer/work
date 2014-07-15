@@ -7,9 +7,11 @@ conflict eyeballer
 eval set [ array get env HOME ]
 
 set EYEBALLER_DIR $HOME/exports/eyeballer-work
+set EYEBALLER_DATADIR /astro/u/astrodat/data/DES/wlpipe
 
 prepend-path PATH $EYEBALLER_DIR/bin
 prepend-path PYTHONPATH $EYEBALLER_DIR/lib/python2.7/site-packages/
 
 setenv EYEBALLER_DIR $EYEBALLER_DIR
+setenv EYEBALLER_DATADIR $EYEBALLER_DATADIR
 setenv EYEBALLER_VERS work
