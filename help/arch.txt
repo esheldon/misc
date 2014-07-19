@@ -15,6 +15,19 @@ stuff later.
 grub
 ------
 
+to use nvidia driver, we cannot use the framebuffer in console for graphics
+and stuff.  Oh well; if you want that use nuveau.
+
+So edit /etc/default/grub and set
+GRUB_CMDLINE_LINUX_DEFAULT="nomodeset"
+
+then run
+
+grub-mkconfig -o /boot/grub/grub.cfg
+
+
+grub older
+-----
 remember, you *do* want to install grub on the MBR of sda!
 
 /boot/grub/menu.lst
