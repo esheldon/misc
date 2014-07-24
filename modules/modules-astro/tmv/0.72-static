@@ -1,0 +1,38 @@
+#%Module1.0#####################################################################
+##
+## tmv modulefile
+##
+##
+proc ModulesHelp { } {
+        global version prefix
+
+        puts stderr "\ttmv - loads the environment needed to use the Template Matrix/Vector Library for C++."
+	puts stderr "\tIt has been built with the Intel compiler and MKL."
+	puts stderr "\tSets TMV_DIR and TMVLINK environment variables."
+        puts stderr "\tModifies PATH, LD_LIBRARY_PATH and C_INCLUDE_PATH environment variables."
+        puts stderr "\n\tVersion $version\n"
+}
+
+module-whatis   "loads the static 0.72 tmv environment"
+
+# for Tcl script use only
+set     version         0.72
+set     prefix          /astro/u/esheldon/exports/tmv-0.72
+set	    tmv_dir		${prefix}
+
+conflict tmv
+#prereq intel_compilers
+module load intel_compilers
+
+setenv		TMV_DIR		${tmv_dir}
+setenv		TMVLINK		"-ltmv -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -liomp5 -lpthread"
+
+
+prepend-path    PATH            ${tmv_dir}/bin
+prepend-path    LD_LIBRARY_PATH ${tmv_dir}/lib
+prepend-path    LIBRARY_PATH    ${tmv_dir}/lib
+
+prepend-path    C_INCLUDE_PATH  ${tmv_dir}/include
+prepend-path    CPATH           ${tmv_dir}/include
+
+
