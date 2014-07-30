@@ -178,8 +178,16 @@ void shear_procpair(struct shear* self,
                 double eweight = src->weight;
                 double weight = scinv2*eweight;
 
+                double x = r*cos(theta);
+                double y = r*sin(theta);
+
                 lensum->weight += weight;
                 lensum->totpairs += 1;
+
+                lensum->x2sum += weight*x*x;
+                lensum->y2sum += weight*y*y;
+                lensum->xysum += weight*x*y;
+
                 lensum->npair[rbin] += 1;
 
                 lensum->wsum[rbin] += weight;

@@ -85,6 +85,9 @@ struct lensum* lensums_sum(struct lensums* lensums) {
     for (size_t i=0; i<lensums->size; i++) {
         tsum->weight   += lensum->weight;
         tsum->totpairs += lensum->totpairs;
+        tsum->x2sum += lensum->x2sum;
+        tsum->y2sum += lensum->y2sum;
+        tsum->xysum += lensum->xysum;
         for (size_t j=0; j<lensum->nbin; j++) {
             tsum->npair[j] += lensum->npair[j];
             tsum->rsum[j] += lensum->rsum[j];
@@ -167,6 +170,9 @@ void lensum_add(struct lensum* dest, struct lensum* src) {
 
     dest->weight   += src->weight;
     dest->totpairs += src->totpairs;
+    dest->x2sum += src->x2sum;
+    dest->y2sum += src->y2sum;
+    dest->xysum += src->xysum;
     for (size_t i=0; i<src->nbin; i++) {
         dest->npair[i] += src->npair[i];
         dest->rsum[i] += src->rsum[i];
@@ -179,7 +185,7 @@ void lensum_add(struct lensum* dest, struct lensum* src) {
 
 int lensum_read(FILE* stream, struct lensum* lensum) {
     int nbin=lensum->nbin;
-    int nexpect = 4+5*nbin;
+    int nexpect = 7+5*nbin;
     int nread=0;
     int i=0;
 
@@ -187,6 +193,10 @@ int lensum_read(FILE* stream, struct lensum* lensum) {
     nread+=fscanf(stream,"%ld", &lensum->zindex);
     nread+=fscanf(stream,"%lf", &lensum->weight);
     nread+=fscanf(stream,"%ld", &lensum->totpairs);
+
+    nread+=fscanf(stream,"%lf", &lensum->x2sum);
+    nread+=fscanf(stream,"%lf", &lensum->y2sum);
+    nread+=fscanf(stream,"%lf", &lensum->xysum);
 
     for (i=0; i<nbin; i++) 
         nread+=fscanf(stream,"%ld", &lensum->npair[i]);
@@ -209,8 +219,9 @@ void lensum_write(struct lensum* lensum, FILE* stream) {
 
     // id with tab at beginning is demanded by hadoop map reduce
     // should we just use zindex there?
-    fprintf(stream,"%ld\t%ld %.16g %ld ", 
-            lensum->index, lensum->zindex, lensum->weight, lensum->totpairs);
+    fprintf(stream,"%ld\t%ld %.16g %ld %.16g %.16g %.16g", 
+            lensum->index, lensum->zindex, lensum->weight, lensum->totpairs,
+            lensum->x2sum, lensum->y2sum, lensum->xysum);
 
     for (i=0; i<nbin; i++) 
         fprintf(stream,"%ld ", lensum->npair[i]);
@@ -232,6 +243,9 @@ void lensum_print(struct lensum* lensum) {
     wlog("  zindex:   %ld\n", lensum->zindex);
     wlog("  weight:   %lf\n", lensum->weight);
     wlog("  totpairs: %ld\n", lensum->totpairs);
+    wlog("  x2sum:    %lf\n", lensum->x2sum);
+    wlog("  y2sum:    %lf\n", lensum->y2sum);
+    wlog("  xysum:    %lf\n", lensum->xysum);
     wlog("  nbin:     %ld\n", lensum->nbin);
     wlog("  bin       npair            wsum            dsum            osum           rsum meanr\n");
 
@@ -255,6 +269,11 @@ struct lensum* lensum_copy(struct lensum* lensum) {
     copy->zindex = lensum->zindex;
     copy->weight = lensum->weight;
     copy->totpairs = lensum->totpairs;
+
+    copy->x2sum = lensum->x2sum;
+    copy->y2sum = lensum->y2sum;
+    copy->xysum = lensum->xysum;
+
     copy->nbin = lensum->nbin;
 
     for (i=0; i<copy->nbin; i++) {
@@ -276,6 +295,11 @@ void lensum_clear(struct lensum* lensum) {
     lensum->zindex=-1;
     lensum->weight=0;
     lensum->totpairs=0;
+
+    lensum->x2sum = 0;
+    lensum->y2sum = 0;
+    lensum->xysum = 0;
+
     for (size_t i=0; i<lensum->nbin; i++) {
         lensum->npair[i] = 0;
         lensum->wsum[i] = 0;
