@@ -1,0 +1,11 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"simple tools to work with healpix"
+conflict healpix
+
+eval set  [ array get env HOME ]
+
+set HEALPIX_DIR $HOME/exports/healpix-local
+
+prepend-path PYTHONPATH $HEALPIX_DIR/lib/python2.7/site-packages/
