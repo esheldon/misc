@@ -49,5 +49,7 @@ typedef int64_t int64;
 // min lens redshift to consider
 //#define MIN_ZLENS 0.05
 
+#define UNITS_MPC 1
+#define UNITS_ARCMIN 2
 
 #endif
