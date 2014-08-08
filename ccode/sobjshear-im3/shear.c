@@ -125,7 +125,7 @@ void shear_procpair(struct shear* self,
 
     // for sdss mask make sure object is in a pair of unmasked adjacent
     // quadrants.  Using short-circuiting in if statement
-    if (self->config->mask_style == MASK_STYLE_SDSS 
+    if (config->mask_style == MASK_STYLE_SDSS 
             && !shear_test_quad(lens, src)) {
         return;
     }
@@ -163,7 +163,13 @@ void shear_procpair(struct shear* self,
             double r, logr;
             int rbin;
 
-            r = phi*lens->da;
+            if (config->r_units==UNITS_MPC) {
+                // Mpc
+                r = phi*lens->da;
+            } else {
+                // arcmin
+                r = phi*R2D*60.;
+            }
             logr = log10(r);
 
             rbin = (int)( (logr-config->log_rmin)/config->log_binsize );
@@ -180,10 +186,16 @@ void shear_procpair(struct shear* self,
 
                 double x = r*cos(theta);
                 double y = r*sin(theta);
+                // will fail near boundaries, but maybe does what we want?
+                //double x = (src->ra-lens->ra)*lens->cosdec;
+                //double y = src->dec-lens->dec;
 
                 lensum->weight += weight;
                 lensum->totpairs += 1;
 
+                //lensum->x2sum += x*x;
+                //lensum->y2sum += y*y;
+                //lensum->xysum += x*y;
                 lensum->x2sum += weight*x*x;
                 lensum->y2sum += weight*y*y;
                 lensum->xysum += weight*x*y;
