@@ -243,6 +243,33 @@ if &t_Co > 2 || has("gui_running")
 endif 
 
 
+" will turn it back on later
+filetype off                  " required
+
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+" alternatively, pass a path where Vundle should install bundles
+"let path = '~/some/path/here'
+"call vundle#rc(path)
+
+" let Vundle manage Vundle, required
+Bundle 'gmarik/vundle'
+Bundle 'zah/nimrod.vim'
+Bundle 'scrooloose/syntastic'
+
+" for compilation
+fun! JumpToDef()
+  if exists("*GotoDefinition_" . &filetype)
+    call GotoDefinition_{&filetype}()
+  else
+    exe "norm! \<C-]>"
+  endif
+endf
+
+" Jump to tag
+nn <M-g> :call JumpToDef()<cr>
+ino <M-g> <esc>:call JumpToDef()<cr>i
 
 " Enable file type detection.
 " Use the default filetype settings, so that mail gets 'tw' set to 72,
