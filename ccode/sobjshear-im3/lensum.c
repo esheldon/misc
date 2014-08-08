@@ -219,7 +219,7 @@ void lensum_write(struct lensum* lensum, FILE* stream) {
 
     // id with tab at beginning is demanded by hadoop map reduce
     // should we just use zindex there?
-    fprintf(stream,"%ld\t%ld %.16g %ld %.16g %.16g %.16g", 
+    fprintf(stream,"%ld\t%ld %.16g %ld %.16g %.16g %.16g ", 
             lensum->index, lensum->zindex, lensum->weight, lensum->totpairs,
             lensum->x2sum, lensum->y2sum, lensum->xysum);
 
@@ -296,9 +296,9 @@ void lensum_clear(struct lensum* lensum) {
     lensum->weight=0;
     lensum->totpairs=0;
 
-    lensum->x2sum = 0;
-    lensum->y2sum = 0;
-    lensum->xysum = 0;
+    lensum->x2sum = 0.;
+    lensum->y2sum = 0.;
+    lensum->xysum = 0.;
 
     for (size_t i=0; i<lensum->nbin; i++) {
         lensum->npair[i] = 0;
