@@ -23,7 +23,7 @@ struct shear {
     double min_zlens, max_zlens;
 
     // output file pointer. We open at the beginning to make sure we can!
-    FILE* fptr;
+    //FILE* fptr;
 };
 
 struct shear* shear_init(const char* config_url, const char* lens_url);
