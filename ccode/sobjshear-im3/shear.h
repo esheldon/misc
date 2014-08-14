@@ -39,7 +39,5 @@ void shear_procpair(struct shear* self,
                     struct lens* lens, 
                     struct lensum* lensum);
 
-int shear_test_quad(struct lens* l, struct source* s);
-
 #endif
 

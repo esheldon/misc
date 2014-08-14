@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $# -lt 3 ]]; then
-    echo "run-sqlldr control_file user pass"
+    echo "run-sqlldr control_file user pass [nrows]"
     exit 1
 fi
 
@@ -9,15 +9,20 @@ ctl_file=$1
 user=$2
 pass=$3
 
-rows=1000
+rows=10000
+if [[ $# -gt 3 ]]; then
+    rows=$4
+fi
 readsize=200000000
 bindsize=200000000
+#readsize=1000000000
+#bindsize=1000000000
 
 ORACLE_HOME=/direct/astro+astronfs02/esheldon/oracle-test/base/software
 
 $ORACLE_HOME/bin/sqlldr \
     $user/$pass@leovip148.ncsa.uiuc.edu:1521/dessci \
     control=$ctl_file \
-    rows=1000 \
+    rows=$rows \
     bindsize=$bindsize \
     readsize=$readsize

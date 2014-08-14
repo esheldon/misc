@@ -15,6 +15,7 @@
 #include "interp.h"
 #include "tree.h"
 #include "sdss-survey.h"
+#include "quad.h"
 #include "log.h"
 
 
@@ -111,6 +112,84 @@ void shear_process_source(struct shear* self, struct source* src) {
 
 }
 
+static void reset_longitude_bounds(double *angle,
+                                   double min,
+                                   double max)
+{
+    while (*angle<min) {
+        *angle += 360.0;
+    }
+    while (*angle>=max) {
+        *angle -= 360.0;
+    }
+    return;
+}
+
+/*
+   r, posangle in radians
+
+   returns 0 if the radius is beyond the max allowed radius as defined in
+   lens->cos_search_angle. In that case fewer calculations are performed
+
+*/
+static int get_quad_info(const struct lens* lens,
+                         const struct source* src,
+                         int *quadrant,
+                         double *r_radians,
+                         double *posangle_radians)
+{
+    double cosradiff, sinradiff, arg, cos_r, pa;
+
+    cosradiff = src->cosra*lens->cosra + src->sinra*lens->sinra;
+    sinradiff = src->sinra*lens->cosra - src->cosra*lens->sinra;
+
+    // cos of angle separation
+    cos_r = lens->sindec*src->sindec + lens->cosdec*src->cosdec*cosradiff;
+
+    if (cos_r < lens->cos_search_angle) {
+        // outside search radius
+        return 0;
+    }
+
+    if (cos_r > 1.0)
+        cos_r=1.0;
+    else if (cos_r < -1.0)
+        cos_r=-1.0;
+
+    // angle of separation in radians
+    (*r_radians) = acos(cos_r);
+
+    // position angle
+    arg = lens->sindec*cosradiff - lens->cosdec*src->sindec/src->cosdec;
+
+    // -pi,pi
+    (*posangle_radians) = atan2(sinradiff, arg) - M_PI_2;
+
+    // degrees -180,180
+    pa = (*posangle_radians)*R2D;
+    reset_longitude_bounds(&pa, -180.0, 180.0);
+
+    (*quadrant) = quadeq_get_quadrant(pa);
+
+    return 1;
+}
+
+/*
+
+  SDSS specific, make sure the source is in an acceptable quadrant for this
+  lens
+
+ */
+static int shear_test_quad_sdss(struct lens* l, struct source* s) {
+    return test_quad_sincos_sdss(l->maskflags,
+                                 l->sinlam, l->coslam,
+                                 l->sineta, l->coseta,
+                                 s->sinlam, s->coslam,
+                                 s->sineta, s->coseta);
+}
+
+
+
 
 void shear_procpair(struct shear* self, 
                     struct source* src, 
@@ -118,112 +197,97 @@ void shear_procpair(struct shear* self,
                     struct lensum* lensum) {
 
     struct sconfig* config=self->config;
-    
-    double cosphi, cosradiff, sinradiff, theta;
-    double phi, arg, cos2theta, sin2theta;
-    double scinv;
 
-    // for sdss mask make sure object is in a pair of unmasked adjacent
+    // make sure object is in a pair of unmasked adjacent
     // quadrants.  Using short-circuiting in if statement
-    if (config->mask_style == MASK_STYLE_SDSS 
-            && !shear_test_quad(lens, src)) {
-        return;
+
+
+    // checks against max radius
+    int quadrant;
+    double r_radians, posangle_radians;
+    int keep=get_quad_info(lens, src,
+                           &quadrant,
+                           &r_radians,
+                           &posangle_radians);
+
+    if (!keep) {
+        goto _procpair_bail;
     }
 
-    cosradiff = src->cosra*lens->cosra + src->sinra*lens->sinra;
-    cosphi = lens->sindec*src->sindec + lens->cosdec*src->cosdec*cosradiff;
-
-    if (cosphi > lens->cos_search_angle) {
-        if (cosphi > 1.0) {
-            cosphi = 1.0;
-        } else if (cosphi < -1.0) {
-            cosphi = -1.0;
+    if (config->mask_style == MASK_STYLE_EQ) {
+        if (!quadeq_check_quadrant(lens->maskflags, quadrant)) {
+            goto _procpair_bail;
         }
-        phi = acos(cosphi);
-
-        // this is sin(sra-lra), note sign
-        sinradiff = src->sinra*lens->cosra - src->cosra*lens->sinra;
-
-        arg = lens->sindec*cosradiff - lens->cosdec*src->sindec/src->cosdec;
-        theta = atan2(sinradiff, arg) - M_PI_2;
-
-        // these two calls are a significant fraction of cpu usage
-        cos2theta = cos(2*theta);
-        sin2theta = sin(2*theta);
-
-        // note we already checked if lens z was in our interpolation range
-        if (src->scstyle == SCSTYLE_INTERP) {
-            scinv = f64interplin(src->zlens, src->scinv, lens->z);
-        } else {
-            double dcl = lens->da*(1.+lens->z);
-            scinv = scinv_pre(lens->z, dcl, src->dc);
+    } else if (config->mask_style == MASK_STYLE_SDSS) {
+        if (!shear_test_quad_sdss(lens, src)) {
+            goto _procpair_bail;
         }
-
-        if (scinv > 0) {
-            double r, logr;
-            int rbin;
-
-            if (config->r_units==UNITS_MPC) {
-                // Mpc
-                r = phi*lens->da;
-            } else {
-                // arcmin
-                r = phi*R2D*60.;
-            }
-            logr = log10(r);
-
-            rbin = (int)( (logr-config->log_rmin)/config->log_binsize );
-
-            if (rbin >= 0 && rbin < config->nbin) {
-
-                double scinv2 = scinv*scinv;
-
-                double gt = -(src->g1*cos2theta + src->g2*sin2theta);
-                double gx =  (src->g1*sin2theta - src->g2*cos2theta);
-
-                double eweight = src->weight;
-                double weight = scinv2*eweight;
-
-                double x = r*cos(theta);
-                double y = r*sin(theta);
-                // will fail near boundaries, but maybe does what we want?
-                //double x = (src->ra-lens->ra)*lens->cosdec;
-                //double y = src->dec-lens->dec;
-
-                lensum->weight += weight;
-                lensum->totpairs += 1;
-
-                //lensum->x2sum += x*x;
-                //lensum->y2sum += y*y;
-                //lensum->xysum += x*y;
-                lensum->x2sum += weight*x*x;
-                lensum->y2sum += weight*y*y;
-                lensum->xysum += weight*x*y;
-
-                lensum->npair[rbin] += 1;
-
-                lensum->wsum[rbin] += weight;
-                lensum->dsum[rbin] += weight*gt/scinv;
-                lensum->osum[rbin] += weight*gx/scinv;
-
-                lensum->rsum[rbin] += r;
-
-            }
-        }
-
     }
-}
+
+    double cos2pa = cos(2*posangle_radians);
+    double sin2pa = sin(2*posangle_radians);
+
+    // note we already checked if lens z was in our interpolation range
+    double scinv;
+    if (src->scstyle == SCSTYLE_INTERP) {
+        scinv = f64interplin(src->zlens, src->scinv, lens->z);
+    } else {
+        double dcl = lens->da*(1.+lens->z);
+        scinv = scinv_pre(lens->z, dcl, src->dc);
+    }
+
+    if (scinv <= 0) {
+        goto _procpair_bail;
+    }
+
+    double r;
+    if (config->r_units==UNITS_MPC) {
+        // Mpc
+        r = r_radians*lens->da;
+    } else {
+        // arcmin
+        r = r_radians*R2D*60.;
+    }
+
+    double logr = log10(r);
+    int rbin = (int)( (logr-config->log_rmin)/config->log_binsize );
+
+    if (rbin < 0 || rbin >= config->nbin) {
+        goto _procpair_bail;
+    }
 
 
-/*
- * Make sure the source is in an acceptable quadrant for this lens
- */
-int shear_test_quad(struct lens* l, struct source* s) {
-    return test_quad_sincos(l->maskflags,
-                            l->sinlam, l->coslam,
-                            l->sineta, l->coseta,
-                            s->sinlam, s->coslam,
-                            s->sineta, s->coseta);
+    double scinv2 = scinv*scinv;
+
+    double gt = -(src->g1*cos2pa + src->g2*sin2pa);
+    double gx =  (src->g1*sin2pa - src->g2*cos2pa);
+
+    double eweight = src->weight;
+    double weight = scinv2*eweight;
+
+    double x = r*cos(posangle_radians);
+    double y = r*sin(posangle_radians);
+
+    lensum->weight += weight;
+    lensum->totpairs += 1;
+
+    lensum->x2sum += weight*x*x;
+    lensum->y2sum += weight*y*y;
+    lensum->xysum += weight*x*y;
+
+    lensum->npair[rbin] += 1;
+
+    lensum->wsum[rbin] += weight;
+    lensum->dsum[rbin] += weight*gt/scinv;
+    lensum->osum[rbin] += weight*gx/scinv;
+
+    lensum->rsum[rbin] += r;
+
+
+_procpair_bail:
+
+    return;
+
 }
 
 

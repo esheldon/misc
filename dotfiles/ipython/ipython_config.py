@@ -386,6 +386,7 @@ if not hasattr(app, 'exec_lines'):
     app.exec_lines=[]
 
 lines = """
+from glob import glob
 import numpy
 from numpy import array,zeros,ones,where,arange,linspace, \\
     sqrt, exp, cos, sin, tanh, arctanh, log, log10, median, \\

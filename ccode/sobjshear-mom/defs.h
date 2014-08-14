@@ -34,6 +34,8 @@ typedef int64_t int64;
 
 #define MASK_STYLE_NONE 1
 #define MASK_STYLE_SDSS 2
+#define MASK_STYLE_EQ 2
+
 #define SCSTYLE_TRUE 1
 #define SCSTYLE_INTERP 2
 #define LENSPERDOT 1000
