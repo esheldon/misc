@@ -256,7 +256,7 @@ call vundle#rc()
 " let Vundle manage Vundle, required
 Bundle 'gmarik/vundle'
 Bundle 'zah/nimrod.vim'
-Bundle 'scrooloose/syntastic'
+"Bundle 'scrooloose/syntastic'
 
 " for compilation
 fun! JumpToDef()

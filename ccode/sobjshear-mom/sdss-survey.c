@@ -138,20 +138,20 @@ int survey_quad(double theta) {
  * I might want to choose another order that would better reduce systematics.
  */
 
-int test_quad_sincos(int64 maskflags,
-                     double sinlam1, double coslam1,
-                     double sineta1, double coseta1,
-                     double sinlam2, double coslam2,
-                     double sineta2, double coseta2) {
+int test_quad_sincos_sdss(int64 maskflags,
+                          double sinlam1, double coslam1,
+                          double sineta1, double coseta1,
+                          double sinlam2, double coslam2,
+                          double sineta2, double coseta2) {
 
 	static const int OK=1, BAD=0;
     // none of the quadrants are ok
-    int allcheck = maskflags & QUADALL_OK;
+    int allcheck = maskflags & SDSS_QUADALL_OK;
     if (allcheck == 0) {
         return BAD;
     }
     // all quadrants are OK
-    if ( allcheck == QUADALL_OK) {
+    if ( allcheck == SDSS_QUADALL_OK) {
         return OK;
     }
 
@@ -176,29 +176,29 @@ int test_quad_sincos(int64 maskflags,
     // fails; we need to always check on for a given lens to make sure
     // we only draw pairs from that one.
     
-    if ((maskflags & QUAD12_OK) == QUAD12_OK) {
-        if ((quadbit & QUAD12_OK) != 0) {
+    if ((maskflags & SDSS_QUAD12_OK) == SDSS_QUAD12_OK) {
+        if ((quadbit & SDSS_QUAD12_OK) != 0) {
             return OK;
         } else {
             return BAD;
         }
     }
-    if ((maskflags & QUAD34_OK) == QUAD34_OK) {
-        if ((quadbit & QUAD34_OK) != 0) {
+    if ((maskflags & SDSS_QUAD34_OK) == SDSS_QUAD34_OK) {
+        if ((quadbit & SDSS_QUAD34_OK) != 0) {
             return OK;
         } else {
             return BAD;
         }
     }
-    if ((maskflags & QUAD23_OK) == QUAD23_OK) {
-        if ((quadbit & QUAD23_OK) != 0) {
+    if ((maskflags & SDSS_QUAD23_OK) == SDSS_QUAD23_OK) {
+        if ((quadbit & SDSS_QUAD23_OK) != 0) {
             return OK;
         } else {
             return BAD;
         }
     }
-    if ((maskflags & QUAD41_OK) == QUAD41_OK) {
-        if ((quadbit & QUAD41_OK) != 0) {
+    if ((maskflags & SDSS_QUAD41_OK) == SDSS_QUAD41_OK) {
+        if ((quadbit & SDSS_QUAD41_OK) != 0) {
             return OK;
         } else {
             return BAD;

@@ -3,17 +3,17 @@
 
 #include "defs.h"
 
-#define INSIDE_MAP 1
-#define QUAD1_OK 2
-#define QUAD2_OK 4
-#define QUAD3_OK 8
-#define QUAD4_OK 16
-#define QUADALL_OK 30
+#define SDSS_INSIDE_MAP 1
+#define SDSS_QUAD1_OK 2
+#define SDSS_QUAD2_OK 4
+#define SDSS_QUAD3_OK 8
+#define SDSS_QUAD4_OK 16
+#define SDSS_QUADALL_OK 30
 
-#define QUAD12_OK 6
-#define QUAD23_OK 12
-#define QUAD34_OK 24
-#define QUAD41_OK 18
+#define SDSS_QUAD12_OK 6
+#define SDSS_QUAD23_OK 12
+#define SDSS_QUAD34_OK 24
+#define SDSS_QUAD41_OK 18
 
 double lon_bound(double lon, double minval, double maxval);
 void eq2sdss(double ra, double dec, double* lam, double* eta);
@@ -34,11 +34,11 @@ double posangle_survey_sincos(double sinlam1, double coslam1,
                               double sineta2, double coseta2);
 int survey_quad(double theta);
 
-int test_quad_sincos(int64 maskflags,
-                     double sinlam1, double coslam1,
-                     double sineta1, double coseta1,
-                     double sinlam2, double coslam2,
-                     double sineta2, double coseta2);
+int test_quad_sincos_sdss(int64 maskflags,
+                          double sinlam1, double coslam1,
+                          double sineta1, double coseta1,
+                          double sinlam2, double coslam2,
+                          double sineta2, double coseta2);
 
 
 

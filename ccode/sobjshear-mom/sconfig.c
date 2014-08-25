@@ -40,6 +40,7 @@ struct sconfig* sconfig_read(const char* url) {
     c->mag_max=9999;
     c->R_min = 0;
     c->R_max = 1;
+    c->r_units=UNITS_MPC;
 
     c->min_zlens_interp=0;
 
@@ -102,6 +103,10 @@ struct sconfig* sconfig_read(const char* url) {
         c->min_zlens_interp=mzl;
     }
 
+    int r_units = (int) cfg_get_long(cfg, "r_units", &ostatus);
+    if (!ostatus) {
+        c->r_units=r_units;
+    }
 
     c->log_rmin = log10(c->rmin);
     c->log_rmax = log10(c->rmax);

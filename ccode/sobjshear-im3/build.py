@@ -36,7 +36,7 @@ if not options.dbg:
 sobjshear_sources = ['sconfig', 'config', 'stack', 'Vector','source',
                      'lens','cosmo','healpix',
                      'shear','lensum','histogram','tree','interp','urls',
-                     'sobjshear','sdss-survey']
+                     'sobjshear','sdss-survey','quad']
 redshear_sources = ['healpix','cosmo','tree','stack','lens','lensum',
                     'sconfig','config',
                     'urls','Vector',

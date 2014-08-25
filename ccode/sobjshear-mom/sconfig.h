@@ -27,6 +27,7 @@ struct sconfig {
     struct f64vector* zl;  
 
     int64 nbin;
+    int r_units; // units for radius
     double rmin; // mpc/h
     double rmax;
 

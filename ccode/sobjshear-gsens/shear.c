@@ -215,11 +215,11 @@ void shear_procpair(struct shear* self,
  * Make sure the source is in an acceptable quadrant for this lens
  */
 int shear_test_quad(struct lens* l, struct source* s) {
-    return test_quad_sincos(l->maskflags,
-                            l->sinlam, l->coslam,
-                            l->sineta, l->coseta,
-                            s->sinlam, s->coslam,
-                            s->sineta, s->coseta);
+    return test_quad_sincos_sdss(l->maskflags,
+                                 l->sinlam, l->coslam,
+                                 l->sineta, l->coseta,
+                                 s->sinlam, s->coslam,
+                                 s->sineta, s->coseta);
 }
 
 

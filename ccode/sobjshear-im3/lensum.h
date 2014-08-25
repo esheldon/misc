@@ -9,6 +9,10 @@ struct lensum {
     double weight;
     int64 totpairs;
 
+    double x2sum;
+    double y2sum;
+    double xysum;
+
     int64 nbin;
     int64* npair;
     double* rsum;

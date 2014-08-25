@@ -13,7 +13,7 @@ function usage {
         -E Limit to lines matching the input regular expression
             only works if -m is sent
         -l Use less if nfiles is one
-        -m Use multitail instead of mtail.  -E will then work
+        -m Use mtail instead of multitail.  -E will not work
         -h for this help message
 "
 }
@@ -23,14 +23,14 @@ nfiles=1
 ncols=1
 limit="None"
 use_less="No"
-use_mtail="Yes"
+use_mtail="No"
 while getopts "hn:c:E:lm" Option; do
     case $Option in
         n) nfiles=$OPTARG ;;
         c) ncols=$OPTARG ;;
         E) limit=$OPTARG ;;
         l) use_less="Yes";;
-        m) use_mtail="No";;
+        m) use_mtail="Yes";;
         h) usage
            exit 1 ;;
         [?]) usage

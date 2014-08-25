@@ -34,6 +34,8 @@ typedef int64_t int64;
 
 #define MASK_STYLE_NONE 1
 #define MASK_STYLE_SDSS 2
+#define MASK_STYLE_EQ 3
+
 #define SCSTYLE_TRUE 1
 #define SCSTYLE_INTERP 2
 #define LENSPERDOT 1000
@@ -49,5 +51,7 @@ typedef int64_t int64;
 // min lens redshift to consider
 //#define MIN_ZLENS 0.05
 
+#define UNITS_MPC 1
+#define UNITS_ARCMIN 2
 
 #endif
