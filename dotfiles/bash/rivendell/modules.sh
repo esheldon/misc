@@ -16,7 +16,7 @@ if [[ -e $f ]]; then
     module load local      # *
     module load shell_scripts
 
-    module load ngmix/local
+    #module load ngmix/local
 
 fi
 
