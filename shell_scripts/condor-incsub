@@ -41,20 +41,27 @@ for arg; do
     dname=$(dirname $arg)
     bname=$(basename $arg)
 
-    njobs=$(count_jobs)
-    while [[ $njobs -ge $nmax ]]; do
-        echo "$njobs is plenty of jobs....  (> $nmax)"
-        sleep $sleeptime
+    check_file="$arg.submitted"
+
+    if [[ ! -e $check_file ]]; then
+
         njobs=$(count_jobs)
-    done
+        while [[ $njobs -ge $nmax ]]; do
+            echo "$njobs is plenty of jobs....  (> $nmax)"
+            sleep $sleeptime
+            njobs=$(count_jobs)
+        done
 
-    pushd "$dname"
+        pushd "$dname"
 
-    echo "submitting: $bname"
-    condor_submit "$bname"
+        echo "submitting: $bname"
+        condor_submit "$bname"
 
-    popd
+        touch $check_file
 
-    sleep $sleeptime
+        popd
+
+        sleep $sleeptime
+    fi
 
 done

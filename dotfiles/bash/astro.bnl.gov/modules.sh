@@ -5,14 +5,15 @@ source /opt/astro/SL64/bin/setup.astro.sh
 # AFS modules
 #
 
-# tmv using intel now, and galsim needs tmv
-module load tmv/0.71         # *
 
 #
 # my stuff
 #
 
 module load use.own
+module load tmv/0.72-static         # *
+module load cfitsio/3370-static         # *
+module load ccfits/2.4-static         # *
 module load local      # *
 module load perllib
 module load shell_scripts

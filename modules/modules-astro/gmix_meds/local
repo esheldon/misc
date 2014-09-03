@@ -5,6 +5,7 @@ module-whatis	"gmix_meds local install"
 conflict gmix_meds
 
 eval set [ array get env HOME ]
+eval set [ array get env DESDATA ]
 
 set GMIX_MEDS_DIR $HOME/exports/gmix_meds-local
 
@@ -12,4 +13,6 @@ prepend-path PATH $GMIX_MEDS_DIR/bin
 prepend-path PYTHONPATH $GMIX_MEDS_DIR/lib/python2.7/site-packages/
 
 setenv GMIX_MEDS_DIR $GMIX_MEDS_DIR
+setenv GMIX_MEDS_DATADIR $DESDATA/wlpipe
+
 setenv GMIX_MEDS_VERS local

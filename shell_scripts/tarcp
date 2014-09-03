@@ -5,8 +5,6 @@
 # copy the input directory into the output directory.
 # the output directory is created if it does not exist.
 #
-# note if the outdir is a subdirectory you will get 
-# odd results!
 
 if [[ $# -lt 2 ]]; then
     echo "tarcp indir outdir"
@@ -20,5 +18,7 @@ if [[ ! -e $outdir ]]; then
     mkdir -p "$outdir"
 fi
 
+outdir_abs=$(readlink -m $outdir)
+
 cd "$indir"
-tar cf - . | (cd $outdir && tar xBvf -)
+tar cf - . | (cd "$outdir_abs" && tar --keep-newer-files -x -v -f -)
