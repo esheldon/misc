@@ -1,37 +1,39 @@
 #!/bin/bash
 #
-# pvrm dir
+# pvrm dir1 dir2 ... 
 #
-# remove the directory recursively, with progress bar using pv
+# remove the directories recursively, with progress bar using pv
 #
 
 # exit when any command fails
 set -e
 
 if [[ $# -lt 1 ]]; then
-    echo "pvrm dir"
+    echo "pvrm dir1 dir2 ..."
     exit 1
 fi
 
-dir="$1"
+for dir; do
 
-if [[ ! -e "$dir" ]]; then
-    echo "directory does not exist: $dir"
-    exit 1
-fi
+    if [[ ! -e "$dir" ]]; then
+        echo "directory does not exist: $dir"
+        exit 1
+    fi
 
 
-# -l means count lines.  -s then give number of lines
-# -p means show a progress bar
-# -e means show eta
-# -t means show timer, how long pv has been running
-# -b show total line counter (means bytes if -l were not sent)
-# -s means the following argument is the expected number of lines
-#    (s for size)
+    # -l means count lines.  -s then give number of lines
+    # -p means show a progress bar
+    # -e means show eta
+    # -t means show timer, how long pv has been running
+    # -b show total line counter (means bytes if -l were not sent)
+    # -s means the following argument is the expected number of lines
+    #    (s for size)
 
-echo -n "counting files in $dir: "
-nfiles=$(find "$dir" | wc -l)
-echo "$nfiles"
+    echo -n "counting files in $dir: "
+    nfiles=$(find "$dir" | wc -l)
+    echo "$nfiles"
 
-echo "removing directory"
-rm -rv "$dir" | pv -w 80 -lpetbs "$nfiles" > /dev/null
+    echo "removing directory"
+    rm -rv "$dir" | pv -w 80 -lpetbs "$nfiles" > /dev/null
+
+done
