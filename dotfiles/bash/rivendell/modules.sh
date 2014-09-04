@@ -9,11 +9,14 @@ if [[ -e $f ]]; then
 
     # python
     module load espy/local
+    module load fitsio/local
+    module load biggles/local
+    module load healpix/local
 
     module load local      # *
     module load shell_scripts
 
-    module load ngmix/local
+    #module load ngmix/local
 
 fi
 
