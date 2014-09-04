@@ -175,15 +175,10 @@ void shear_procpair(struct shear* self,
                 double gt = -(src->g1*cos2theta + src->g2*sin2theta);
                 double gx =  (src->g1*sin2theta - src->g2*cos2theta);
 
+                double gsenst = -(src->g1sens*cos2theta + src->g2sens*sin2theta);
+                double gsensx =  (src->g1sens*sin2theta - src->g2sens*cos2theta);
 
-                // similarly, just for tangential component
-                double gvar=
-                      cos2theta*cos2theta*src->gcov11
-                    + sin2theta*sin2theta*src->gcov22
-                    + 2*cos2theta*sin2theta*src->gcov12;
-
-                double eweight = 1./(GSN2 + gvar);
-                double weight = scinv2*eweight;
+                double weight = scinv2*src->weight;
 
                 lensum->weight += weight;
                 lensum->totpairs += 1;
@@ -193,17 +188,11 @@ void shear_procpair(struct shear* self,
                 lensum->dsum[rbin] += weight*gt/scinv;
                 lensum->osum[rbin] += weight*gx/scinv;
 
+                lensum->dsensum[rbin] += weight*gsenst/scinv;
+                lensum->osensum[rbin] += weight*gsensx/scinv;
+
                 lensum->rsum[rbin] += r;
 
-                // just take gsens from tangential component; use same
-                // weighting
-                double w1 = fabs(cos2theta);
-                double w2 = fabs(sin2theta);
-                double gsens = src->g1sens*w1 + src->g2sens*w2;
-                gsens /= (w1+w2);
-
-                // get correction ssh using l->sshsum/l->weight
-                lensum->sshsum += weight*gsens;
             }
         }
 

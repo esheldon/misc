@@ -22,12 +22,10 @@ struct source {
 
     double g1;
     double g2;
-    double gcov11;
-    double gcov12;
-    double gcov22;
-
     double g1sens;
     double g2sens;
+
+    double weight;
 
     int64 hpixid;
 

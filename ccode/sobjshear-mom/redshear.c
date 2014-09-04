@@ -56,9 +56,9 @@ int main(int argc, char** argv) {
     while (lensum_read(stdin, lensum)) {
         counter++;
         if (counter == 1) {
-            wlog("first lensum: %ld %ld %.8g %ld %.8g\n", 
+            wlog("first lensum: %ld %ld %.8g %ld\n", 
                  lensum->index, lensum->zindex, lensum->weight, 
-                 lensum->totpairs, lensum->sshsum);
+                 lensum->totpairs);
         }
         if ((counter % 10000) == 0) {
             wlog(".");
@@ -82,8 +82,8 @@ int main(int argc, char** argv) {
 
     }
 
-    wlog("\nlast lensum: %ld %ld %.8g %ld %.8g\n", 
-            lensum->index, lensum->zindex, lensum->weight, lensum->totpairs, lensum->sshsum);
+    wlog("\nlast lensum: %ld %ld %.8g %ld\n", 
+            lensum->index, lensum->zindex, lensum->weight, lensum->totpairs);
 
     wlog("Read a total of %ld\n", counter);
 
