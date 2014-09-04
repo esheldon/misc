@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# rslocal indir outdir
+# rslocal src dest
 #
 # wrapper for rsync optimized for local transfers.
 #
@@ -11,35 +11,37 @@
 set -e
 
 if [[ $# -lt 2 ]]; then
-    echo "rslocal indir outdir"
+    echo "rslocal src dest"
     exit 1
 fi
 
-indir=$1
-outdir=$2
+src=$1
+dest=$2
 
-if [[ ! -e $indir ]]; then
-    echo "input directory does not exist: $indir"
+if [[ ! -e $src ]]; then
+    echo "input directory does not exist: $src"
     exit 1
 fi
 
-if [[ ! -e $outdir ]]; then
-    echo "making output directory: $outdir"
-    mkdir -p "$outdir"
+if [[ ! -e $dest ]]; then
+    echo "making output directory: $dest"
+    mkdir -p "$dest"
 fi
 
 # --no-inc-recursive forces the entire to be found so we know exactly how far
 #   along the transfer is
 # --progress print progress information
+# --partial-dir=.rsync-partial   put partial files there, relative to dest
 # -a archive mode
 # -v verbose
 # -h human readable for --progress
 # -H preserve hard links
-# -W transfer whole files (might be redundant for local copies)
+# not uses: -W transfer whole files (might be redundant for local copies)
 
-rsync                      \
-    --no-inc-recursive     \
-    --progress             \
-    -ahHW                  \
-    "$indir/"              \
-    "$outdir/"
+rsync                            \
+    --no-inc-recursive           \
+    --progress                   \
+    --partial-dir=.rsync-partial \
+    -ahH                         \
+    "$src/"                      \
+    "$dest/"
