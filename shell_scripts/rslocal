@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# rslocal indir outdir
+#
+# wrapper for rsync optimized for local transfers.
+#
+# the output directory is created if it does not exist.
+#
+
+# exit when any command fails
+set -e
+
+if [[ $# -lt 2 ]]; then
+    echo "rslocal indir outdir"
+    exit 1
+fi
+
+indir=$1
+outdir=$2
+
+if [[ ! -e $indir ]]; then
+    echo "input directory does not exist: $indir"
+    exit 1
+fi
+
+if [[ ! -e $outdir ]]; then
+    echo "making output directory: $outdir"
+    mkdir -p "$outdir"
+fi
+
+# --no-inc-recursive forces the entire to be found so we know exactly how far
+#   along the transfer is
+# --progress print progress information
+# -a archive mode
+# -v verbose
+# -h human readable for --progress
+# -H preserve hard links
+# -W transfer whole files (might be redundant for local copies)
+
+rsync                      \
+    --no-inc-recursive     \
+    --progress             \
+    -ahHW                  \
+    "$indir/"              \
+    "$outdir/"
