@@ -1,0 +1,13 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"xshear lensing code"
+conflict xshear
+
+eval set  [ array get env HOME ]
+
+set XSHEAR_DIR $HOME/exports/xshear-work
+
+prepend-path PATH $XSHEAR_DIR/bin
+
+setenv XSHEAR_DIR $XSHEAR_DIR 

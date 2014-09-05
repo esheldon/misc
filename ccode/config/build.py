@@ -6,7 +6,7 @@ CC='gcc'
 
 LINKFLAGS=['-lm']
 
-CFLAGS=['-std=gnu99','-Wall','-Werror']
+CFLAGS=['-std=c99','-Wall','-Werror']
 
 programs = [{'name':'test-config','sources':['test-config','config']}]
 
