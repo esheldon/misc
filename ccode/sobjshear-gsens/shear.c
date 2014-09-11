@@ -15,6 +15,7 @@
 #include "interp.h"
 #include "tree.h"
 #include "sdss-survey.h"
+#include "quad.h"
 #include "log.h"
 
 
