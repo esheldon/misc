@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"fitsio test install"
+conflict fitsio
+
+eval set  [ array get env HOME ]
+
+set FITSIO_DIR $HOME/exports/fitsio-test
+
+prepend-path PYTHONPATH $FITSIO_DIR/lib/python2.7/site-packages/
+
+setenv FITSIO_DIR $FITSIO_DIR
+

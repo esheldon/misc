@@ -21,6 +21,9 @@ if [[ -e $f ]]; then
     module load ngmix/local
     module load nsim/local
 
+    module load great3/local
+    module load great3-config/local
+
     module load psfex/local # *
     module load meds/local # *
     module load gmix_meds/local
@@ -43,7 +46,7 @@ if [[ -e $f ]]; then
     module load sdsspy     # *
 
     module load pgnumpy    # *
-    module load biggles    # *
+    module load biggles/local    # *
     module load esutil     # *
     module load recfile    # *
 

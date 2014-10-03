@@ -1,0 +1,14 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"biggles"
+conflict biggles
+
+eval set [ array get env HOME ]
+
+set BIGGLES_DIR $HOME/exports/biggles-python3
+
+prepend-path PYTHONPATH $BIGGLES_DIR/lib/python3.2/site-packages/
+
+setenv BIGGLES_DIR $BIGGLES_DIR
+setenv BIGGLES_VERS python3

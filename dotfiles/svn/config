@@ -4,7 +4,7 @@
 ### how to use this file.
 
 ### Section for authentication and authorization customizations.
-# [auth]
+[auth]
 ### Set store-passwords to 'no' to avoid storing passwords in the
 ### auth/ area of your config directory.  It defaults to 'yes'.
 ### Note that this option only prevents saving of *new* passwords;
@@ -17,6 +17,7 @@
 ### saving of *new* credentials;  it doesn't invalidate existing
 ### caches.  (To do that, remove the cache files by hand.)
 # store-auth-creds = no
+password-stores =
 
 ### Section for configuring external helper applications.
 ### Set editor to the command used to invoke your text editor.
