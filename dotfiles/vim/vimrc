@@ -138,7 +138,8 @@ if &t_Co > 2 || has("gui_running")
 
         "set gfn=peep\ 12
         "set gfn=-zevv-peep-medium-r-normal--16-140-75-75-c-80-iso8859-1
-        set gfn=Terminus\ 12
+        "set gfn=Terminus\ 12
+        set gfn=Inconsolata\ 14
 
         " turn off annoying cursor blinking
         set gcr=a:blinkon0
