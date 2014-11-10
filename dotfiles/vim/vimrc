@@ -256,6 +256,10 @@ call vundle#rc()
 " let Vundle manage Vundle, required
 Bundle 'gmarik/vundle'
 Bundle 'zah/nimrod.vim'
+Plugin 'godlygeek/tabular'
+Plugin 'plasticboy/vim-markdown'
+let g:vim_markdown_folding_disabled=1
+
 "Bundle 'scrooloose/syntastic'
 
 " for compilation
