@@ -4,392 +4,40 @@
 
 Description
 
-    Generate stack.h and stack.c for the input type list, e.g.
+    Generate vector.h and vector.c for the input type list, e.g.
 
         ./configure float double int64
 
     Available types:
-        float32
-        float64
-        int8
-        uint8
-        int16
-        uint16
-        int32
-        uint32
-        int64
-        uint64
-        char
-        uchar
-        size
+        typename   shortname
+        float      f         for float  
+        double     d         for double
+        int8       b         for byte
+        uint8      ub        for unsigned byte
+        int16      s         for short
+        uint16     us        for unsigned short
+        int32      i         for integer
+        uint32     u         for unsigned integer
+        int64      l         for long
+        uint64     ul        for unsigned long
+        char       c         for char
+        uchar      uc        for unsigned char
+        size       sz        for size
 
-    A test program is also generated for each type with the name test-{type}stack.c
+    A test program is also generated for each type with the name test-{type}vector.c
     To build the test program, run
 
         ./build
 
     And to run use
 
-        ./test-{type}stack
+        ./test-{type}vector
 
 '''
 
-import os
 import sys
 
-# ctype is the actual C variable type name
-# shortname is for the struct name and functions, e.g. 
-#   struct i64stack, i64stack_new
-# defval is the value to return from an empty stack
-typemap={}
-typemap['float32'] = {'ctype':'float32',  'shortname':'f32', 'defval':'FLT_MAX',    'sortype':'float',   'format':'%f'}
-typemap['float64'] = {'ctype':'float64',  'shortname':'f64', 'defval':'DBL_MAX',    'sortype':'double',  'format':'%lf'}
-typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',  'defval':'INT8_MAX',   'sortype':'int32_t', 'format':'%d'}
-typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',  'defval':'UINT8_MAX',  'sortype':'int32_t', 'format':'%u'}
-typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16', 'defval':'INT16_MAX',  'sortype':'int32_t', 'format':'%d'}
-typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16', 'defval':'UINT16_MAX', 'sortype':'int32_t', 'format':'%u'}
-typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32', 'defval':'INT32_MAX',  'sortype':'int64_t', 'format':'%d'}
-typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32', 'defval':'UINT32_MAX', 'sortype':'int64_t', 'format':'%u'}
-typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64', 'defval':'INT64_MAX',  'sortype':'int64_t', 'format':'%ld'}
-typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64', 'defval':'UINT64_MAX', 'sortype':'int64_t', 'format':'%lu'}
-typemap['char']    = {'ctype':'char',     'shortname':'char','defval':"'\\0\'",     'sortype':'int32_t', 'format':'%c'}
-typemap['uchar']   = {'ctype':'unsigned char', 'shortname':'uchar',  'defval':"'\\0\'", 'sortype':'int32_t',  'format':'%c'}
-typemap['size']    = {'ctype':'size_t',   'shortname':'sz',  'defval':'SIZE_MAX',   'sortype':'int64_t', 'format':'%lu'}
-
-hformat='''
-struct %(shortname)sstack {
-    size_t size;            // number of elements that are visible to the user
-    size_t allocated_size;  // number of allocated elements in data vector
-    size_t push_realloc_style; // Currently always STACK_PUSH_REALLOC_MULT, 
-                               // which is reallocate to allocated_size*realloc_multval
-    size_t push_initsize;      // default size on first push, default STACK_PUSH_INITSIZE 
-    double realloc_multval; // when allocated size is exceeded while pushing, 
-                            // reallocate to allocated_size*realloc_multval, default 
-                            // STACK_PUSH_REALLOC_MULTVAL
-                            // if allocated_size was zero, we allocate to push_initsize
-    %(type)s* data;
-};
-
-struct %(shortname)sstack* %(shortname)sstack_new(size_t num);
-
-// if size > allocated size, then a reallocation occurs
-// if size <= internal size, then only the ->size field is reset
-// use %(shortname)sstack_realloc() to reallocate the data vector and set the ->size
-void %(shortname)sstack_resize(struct %(shortname)sstack* stack, size_t newsize);
-
-// perform reallocation on the underlying data vector. This does
-// not change the size field unless the new size is smaller
-// than the viewed size
-void %(shortname)sstack_realloc(struct %(shortname)sstack* stack, size_t newsize);
-
-// completely clears memory in the data vector
-void %(shortname)sstack_clear(struct %(shortname)sstack* stack);
-
-// clears all memory and sets pointer to NULL
-// usage: stack=%(shortname)sstack_delete(stack);
-struct %(shortname)sstack* %(shortname)sstack_delete(struct %(shortname)sstack* stack);
-
-// if reallocation is needed, size is increased by 50 percent
-// unless size is zero, when it 100 are allocated
-void %(shortname)sstack_push(struct %(shortname)sstack* stack, %(type)s val);
-// pop the last element and decrement size; no reallocation is performed
-// if empty, INT64_MIN is returned
-%(type)s %(shortname)sstack_pop(struct %(shortname)sstack* stack);
-
-int __%(shortname)sstack_compare_el(const void *a, const void *b);
-void %(shortname)sstack_sort(struct %(shortname)sstack* stack);
-%(type)s* %(shortname)sstack_find(struct %(shortname)sstack* stack, %(type)s el);
-'''
-
-fformat='''
-struct %(shortname)sstack* %(shortname)sstack_new(size_t num) {
-    struct %(shortname)sstack* stack = malloc(sizeof(struct %(shortname)sstack));
-    if (stack == NULL) {
-        fprintf(stderr,"Could not allocate struct %(shortname)sstack\\n");
-        return NULL;
-    }
-
-    stack->size = 0;
-    stack->allocated_size = num;
-    stack->push_realloc_style = STACK_PUSH_REALLOC_MULT;
-    stack->push_initsize = STACK_PUSH_INITSIZE;
-    stack->realloc_multval = STACK_PUSH_REALLOC_MULTVAL;
-
-    if (num == 0) {
-        stack->data = NULL;
-    } else {
-        stack->data = calloc(num, sizeof(%(type)s));
-        if (stack->data == NULL) {
-            free(stack);
-            fprintf(stderr,"Could not allocate data for stack\\n");
-            return NULL;
-        }
-    }
-
-    return stack;
-}
-
-void %(shortname)sstack_realloc(struct %(shortname)sstack* stack, size_t newsize) {
-
-    size_t oldsize = stack->allocated_size;
-    if (newsize != oldsize) {
-        size_t elsize = sizeof(%(type)s);
-
-        %(type)s* newdata = realloc(stack->data, newsize*elsize);
-        if (newdata == NULL) {
-            fprintf(stderr,"failed to reallocate\\n");
-            return;
-        }
-
-        if (newsize > stack->allocated_size) {
-            // the allocated size is larger.  make sure to initialize the new
-            // memory region.  This is the area starting from index [oldsize]
-            size_t num_new_bytes = (newsize-oldsize)*elsize;
-            memset(&newdata[oldsize], 0, num_new_bytes);
-        } else if (stack->size > newsize) {
-            // The viewed size is larger than the allocated size in this case,
-            // we must set the size to the maximum it can be, which is the
-            // allocated size
-            stack->size = newsize;
-        }
-
-        stack->data = newdata;
-        stack->allocated_size = newsize;
-    }
-
-}
-void %(shortname)sstack_resize(struct %(shortname)sstack* stack, size_t newsize) {
-   if (newsize > stack->allocated_size) {
-       %(shortname)sstack_realloc(stack, newsize);
-   }
-
-   stack->size = newsize;
-}
-
-void %(shortname)sstack_clear(struct %(shortname)sstack* stack) {
-    stack->size=0;
-    stack->allocated_size=0;
-    free(stack->data);
-    stack->data=NULL;
-}
-
-struct %(shortname)sstack* %(shortname)sstack_delete(struct %(shortname)sstack* stack) {
-    if (stack != NULL) {
-        %(shortname)sstack_clear(stack);
-        free(stack);
-    }
-    return NULL;
-}
-
-void %(shortname)sstack_push(struct %(shortname)sstack* stack, %(type)s val) {
-    // see if we have already filled the available data vector
-    // if so, reallocate to larger storage
-    if (stack->size == stack->allocated_size) {
-
-        size_t newsize;
-        if (stack->allocated_size == 0) {
-            newsize=stack->push_initsize;
-        } else {
-            // currenly we always use the multiplier reallocation  method.
-            if (stack->push_realloc_style != STACK_PUSH_REALLOC_MULT) {
-                fprintf(stderr,"Currently only support push realloc style STACK_PUSH_REALLOC_MULT\\n");
-                exit(EXIT_FAILURE);
-            }
-            // this will "floor" the size
-            newsize = (size_t)(stack->allocated_size*stack->realloc_multval);
-            // we want ceiling
-            newsize++;
-        }
-
-        %(shortname)sstack_realloc(stack, newsize);
-
-    }
-
-    stack->size++;
-    stack->data[stack->size-1] = val;
-}
-
-%(type)s %(shortname)sstack_pop(struct %(shortname)sstack* stack) {
-    if (stack->size == 0) {
-        return %(defval)s;
-    }
-
-    %(type)s val=stack->data[stack->size-1];
-    stack->size--;
-    return val;
-        
-}
-
-int __%(shortname)sstack_compare_el(const void *a, const void *b) {
-    %(sortype)s temp = 
-        (  (%(sortype)s) *( (%(type)s*)a ) ) 
-         -
-        (  (%(sortype)s) *( (%(type)s*)b ) );
-    if (temp > 0)
-        return 1;
-    else if (temp < 0)
-        return -1;
-    else
-        return 0;
-}
-
-
-void %(shortname)sstack_sort(struct %(shortname)sstack* stack) {
-    qsort(stack->data, stack->size, sizeof(%(type)s), __%(shortname)sstack_compare_el);
-}
-%(type)s* %(shortname)sstack_find(struct %(shortname)sstack* stack, %(type)s el) {
-    return (%(type)s*) bsearch(&el, stack->data, stack->size, sizeof(%(type)s), __%(shortname)sstack_compare_el);
-}
-'''
-
-tformat='''// This file was auto-generated
-#include <stdio.h>
-#include <stdlib.h>
-#include "stack.h"
-
-int main(int argc, char** argv) {
-    struct %(shortname)sstack* stack = %(shortname)sstack_new(0);
-
-    for (size_t i=0;i<75; i++) {
-        printf("push: %(format)s\\n", (%(type)s)i);
-        %(shortname)sstack_push(stack, i);
-    }
-
-    printf("size: %%ld\\n", stack->size);
-    printf("allocated size: %%ld\\n", stack->allocated_size);
-
-    size_t newsize=25;
-    printf("reallocating to size %%ld\\n", newsize);
-    %(shortname)sstack_realloc(stack, newsize);
-    printf("size: %%ld\\n", stack->size);
-    printf("allocated size: %%ld\\n", stack->allocated_size);
-
-    while (stack->size > 0) {
-        printf("pop: %(format)s\\n", %(shortname)sstack_pop(stack));
-    }
-
-    printf("size: %%ld\\n", stack->size);
-    printf("allocated size: %%ld\\n", stack->allocated_size);
-
-    printf("popping the now empty list: \\n    %(format)s\\n", %(shortname)sstack_pop(stack));
-
-
-    for (size_t i=0;i<10; i++) {
-        %(shortname)sstack_push(stack, i);
-    }
-    printf("putting unordered elements\\n");
-    stack->data[3] = 88;
-    stack->data[5] = 25;
-    stack->data[9] = 1.3;
-    printf("sorting\\n");
-    %(shortname)sstack_sort(stack);
-    for (size_t i=0; i<stack->size; i++) {
-        printf("    stack[%%ld]: %(format)s\\n", i, stack->data[i]);
-    }
-
-    printf("finding elements\\n");
-    %(type)s vals[]={88,7,100};
-    %(type)s* elptr=NULL;
-    for (size_t i=0; i<3; i++) {
-        elptr=%(shortname)sstack_find(stack, vals[i]);
-        if (elptr == NULL) {
-            printf("Did not find %(format)s\\n", vals[i]);
-        } else {
-            printf("Found value %(format)s: %(format)s\\n", vals[i], *elptr);
-        }
-    }
-
-    %(shortname)sstack_delete(stack);
-}
-'''
-
-def generate_h(types):
-    fobj=open('stack.h','w')
-    head="""// This header was auto-generated
-#ifndef _STACK_H
-#define _STACK_H
-#include <stdint.h>
-
-#define STACK_PUSH_REALLOC_MULT 1
-#define STACK_PUSH_REALLOC_MULTVAL 2
-#define STACK_PUSH_INITSIZE 1
-"""
-    if 'float32' in types:
-        head+="""
-#ifndef float32
-#define float32 float
-#endif
-"""
-    if 'float64' in types:
-        head+="""
-#ifndef float64
-#define float64 double
-#endif
-"""
-
-
-    fobj.write(head)
-
-    for type in types:
-        if type not in typemap:
-            raise ValueError("type not supported: %s" % type)
-        text = hformat % {'type':typemap[type]['ctype'],
-                          'shortname':typemap[type]['shortname']}
-        fobj.write(text)
-
-    fobj.write('\n#endif  // header guard\n')
-    fobj.close()
-
-def generate_c(types):
-    fobj=open('stack.c','w')
-    head="""// This file was auto-generated
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <float.h>
-#include "stack.h"
-
-"""
-    fobj.write(head)
-
-    for type in types:
-        if type not in typemap:
-            raise ValueError("type not supported: %s" % type)
-        text = fformat % {'type':typemap[type]['ctype'],
-                          'shortname':typemap[type]['shortname'], 
-                          'defval':typemap[type]['defval'],
-                          'sortype':typemap[type]['sortype']}
-        fobj.write(text)
-
-    fobj.close()
-
-def generate_tests(types):
-    '''
-    Files associated with tests not in the type list are removed.
-    '''
-
-    for type in typemap:
-        sname=typemap[type]['shortname']
-
-        front = 'test-%sstack' % sname
-        
-        if type not in types:
-            for ext in ['.c','.o','']:
-                tname = front+ext
-                if os.path.exists(tname):
-                    os.remove(tname)
-        else:
-            cname = front+'.c'
-            fobj=open(cname,'w')
-            text = tformat % {'shortname':sname,
-                              'format':typemap[type]['format'],
-                              'type':typemap[type]['ctype']}
-            fobj.write(text)
-            fobj.close()
-
-
+import vectypes
 
 def main():
     if len(sys.argv) < 2:
@@ -398,9 +46,9 @@ def main():
 
     types = sys.argv[1:]
 
-    generate_h(types)
-    generate_c(types)
-    generate_tests(types)
+    vectypes.generate_h(types)
+    vectypes.generate_c(types)
+    vectypes.generate_tests(types)
 
 if __name__=="__main__":
     main()

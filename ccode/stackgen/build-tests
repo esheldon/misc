@@ -4,6 +4,7 @@ from fabricate import *
 import sys, os
 import optparse
 
+import vectypes
 
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
@@ -19,24 +20,14 @@ CC='gcc'
 CFLAGS=['-std=c99','-O2']
 LINKFLAGS=[]
 
-sources = ['stack']
+sources = ['vector']
 
-types=['f32',
-       'f64',
-       'i8',
-       'u8',
-       'i16',
-       'u16',
-       'i32',
-       'u32',
-       'i64',
-       'u64',
-       'c',
-       'u',
-       'sz']
+types=[]
+for k,v in vectypes.typemap.iteritems():
+    types.append(v['shortname'])
 
 def testname(type):
-    return 'test-%sstack' % type
+    return 'test-%svector' % type
 
 # look for test programs to build
 programs=[]
