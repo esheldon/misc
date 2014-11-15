@@ -60,26 +60,100 @@ def read_config(config_file):
 
     return conf
 
-hformat='''
-struct %(shortname)svector {
-    size_t size;            // number of elements that are visible to the user
-    size_t capacity;        // number of allocated elements in data vector
-    size_t initsize;        // default size on creation, default VECTOR_INITSIZE 
-    double realloc_multval; // when capacity is exceeded while pushing, 
-                            // reallocate to capacity*realloc_multval,
-                            // default VECTOR_PUSH_REALLOC_MULTVAL
-                            // if capacity was zero, we allocate to initsize
-    %(type)s* data;
-};
+header_head="""// This header was auto-generated
+#ifndef _VECTORGEN_H
+#define _VECTORGEN_H
+#include <stdint.h>
+#include <string.h>
 
-typedef struct %(shortname)svector %(shortname)svector;
+#define VECTOR_INITSIZE 1
+#define VECTOR_PUSH_REALLOC_MULTVAL 2
 
-%(shortname)svector* %(shortname)svector_new();
+// get properties, generic macros
+#define vector_size(vec) (vec)->size
+#define vector_capacity(vec) (vec)->capacity
+
+// getters and setters, generic macros
+// unsafe; maybe make safe?
+#define vector_get(vec, i) (vec)->data[i]
+
+#define vector_set(vec, i, val) do {                                         \\
+    (vec)->data[(i)] = (val);                                                \\
+} while(0)
+
+// pointer to beginning
+#define vector_begin(vec) (vec)->data
+
+// pointer past end, don't dereference, just use for stopping iteration
+#define vector_end(vec) (vec)->data + (vec)->size
+
+// generic iteration over elements.  The iter name is a pointer
+// sadly only works for -std=gnu99
+//
+// vector_foreach(iter, vec) {
+//     printf("val is: %%d\\n", *iter);
+// }
+
+#define vector_foreach(itername, vec)                                        \\
+    for(typeof((vec)->data) (itername)=vector_begin(vec),                    \\
+        _iter_end_##itername=vector_end((vec));                              \\
+        (itername) != _iter_end_##itername;                                  \\
+        (itername)++)
+
+// frees vec and its data, sets vec==NULL
+#define vector_free(vec) do {                                                \\
+    if ((vec)) {                                                             \\
+        free((vec)->data);                                                   \\
+        free((vec));                                                         \\
+        (vec)=NULL;                                                          \\
+    }                                                                        \\
+} while(0)
+
+
+// perform reallocation on the underlying data vector. This does
+// not change the size field unless the new size is smaller
+// than the viewed size
+//
+// note the underlying data will not go below capacity 1
+// but if newcap==0 then size will be set to 0
+
+#define vector_realloc(vec, newcap) do {                                    \\
+    size_t _newcap=(newcap);                                                \\
+    size_t _oldcap=(vec)->capacity;                                         \\
+                                                                            \\
+    if (_newcap < (vec)->size) {                                            \\
+        (vec)->size=_newcap;                                                \\
+    }                                                                       \\
+                                                                            \\
+    if (_newcap < 1) _newcap=1;                                             \\
+                                                                            \\
+    size_t _sizeof_type = sizeof((vec)->data[0]);                           \\
+                                                                            \\
+    if (_newcap != _oldcap) {                                               \\
+        (vec)->data = realloc((vec)->data, _newcap*_sizeof_type);           \\
+        if (!(vec)->data) {                                                 \\
+            fprintf(stderr, "failed to reallocate\\n");                     \\
+            exit(1);                                                        \\
+        }                                                                   \\
+        if (_newcap > _oldcap) {                                            \\
+            size_t _num_new_bytes = (_newcap-_oldcap)*_sizeof_type;         \\
+            memset((vec)->data + _oldcap, 0, _num_new_bytes);               \\
+        }                                                                   \\
+                                                                            \\
+        (vec)->capacity = _newcap;                                          \\
+    }                                                                       \\
+} while (0)
+
 
 // if size > capacity, then a reallocation occurs
 // if size <= capacity, then only the ->size field is reset
-// use %(shortname)svector_realloc() to reallocate the data vector and set the ->size
-void %(shortname)svector_resize(%(shortname)svector* self, size_t newsize);
+
+#define vector_resize(self, newsize) do {                                   \\
+    if ((newsize) > (self)->capacity) {                                     \\
+        vector_realloc((self), (newsize));                                  \\
+    }                                                                       \\
+    (self)->size=newsize;                                                   \\
+} while (0)
 
 // reserve at least the specified amount of slots.  If the new capacity is
 // smaller than the current capacity, nothing happens.  If larger, a
@@ -88,25 +162,77 @@ void %(shortname)svector_resize(%(shortname)svector* self, size_t newsize);
 // currently, the exact requested amount is used but in the future we can
 // optimize to page boundaries.
 
-void %(shortname)svector_reserve(%(shortname)svector* self, size_t newcap);
-
-// perform reallocation on the underlying data vector. This does
-// not change the size field unless the new size is smaller
-// than the viewed size
-void %(shortname)svector_realloc(%(shortname)svector* self, size_t newsize);
+#define vector_reserve(self, newcap) do {                                   \\
+    if ((newcap) > (self)->capacity) {                                      \\
+        vector_realloc((self), (newcap));                                   \\
+    }                                                                       \\
+} while (0)
 
 // set size to zero and realloc to have default initial capacity
-void %(shortname)svector_clear(%(shortname)svector* self);
+#define vector_clear(self) do {                                             \\
+    vector_realloc((self), (self)->initsize);                               \\
+    (self)->size=0;                                                         \\
+} while (0)
 
 // push a new element onto the vector
 // if reallocation is needed, size is increased by some factor
 // unless size is zero, when a fixed amount are allocated
-void %(shortname)svector_push(%(shortname)svector* self, %(type)s val);
+
+#define vector_push(self, val) do {                                        \\
+    if ((self)->size == (self)->capacity) {                                \\
+                                                                           \\
+        size_t _newsize=0;                                                 \\
+        if ((self)->capacity == 0) {                                       \\
+            _newsize=(self)->initsize;                                     \\
+        } else {                                                           \\
+            _newsize = (size_t)((self)->capacity*(self)->realloc_multval); \\
+            _newsize++;                                                    \\
+        }                                                                  \\
+                                                                           \\
+        vector_realloc((self), _newsize);                                  \\
+                                                                           \\
+    }                                                                      \\
+                                                                           \\
+    (self)->size++;                                                        \\
+    (self)->data[self->size-1] = val;                                      \\
+} while (0)
 
 // pop the last element and decrement size; no reallocation is performed
-// if empty, an error message is printed and a zerod version of
-// the type is returned
-%(type)s %(shortname)svector_pop(%(shortname)svector* self);
+// if the vector is empty, an error message is printed and garbage is 
+// returned
+
+#define vector_pop(self) ({                                                  \\
+    size_t _index=(self)->size-1;                                            \\
+    if ((self)->size > 0) {                                                  \\
+        (self)->size--;                                                      \\
+    } else {                                                                 \\
+        fprintf(stderr,                                                      \\
+                "attempt to pop from empty vector, returning garbage\\n");   \\
+    }                                                                        \\
+    (self)->data[_index];                                                    \\
+})
+
+"""
+
+header_foot="""
+#endif
+"""
+
+
+
+hformat='''
+typedef struct {
+    size_t size;            // number of elements that are visible to the user
+    size_t capacity;        // number of allocated elements in data vector
+    size_t initsize;        // default size on creation, default VECTOR_INITSIZE 
+    double realloc_multval; // when capacity is exceeded while pushing, 
+                            // reallocate to capacity*realloc_multval,
+                            // default VECTOR_PUSH_REALLOC_MULTVAL
+                            // if capacity was zero, we allocate to initsize
+    %(type)s* data;
+} %(shortname)svector;
+
+%(shortname)svector* %(shortname)svector_new();
 
 // make a new copy of the vector
 %(shortname)svector* %(shortname)svector_copy(%(shortname)svector* self);
@@ -154,95 +280,10 @@ c_format='''
     return self;
 }
 
-void %(shortname)svector_realloc(%(shortname)svector* self, size_t newcap) {
-
-    size_t oldcap = self->capacity;
-    if (newcap != oldcap) {
-        size_t elsize = sizeof(%(type)s);
-
-        %(type)s* newdata = realloc(self->data, newcap*elsize);
-        if (newdata == NULL) {
-            fprintf(stderr,"failed to reallocate\\n");
-            return;
-        }
-
-        if (newcap > self->capacity) {
-            // the capacity is larger.  Make sure to initialize the new
-            // memory region.  This is the area starting from index [oldcap]
-            size_t num_new_bytes = (newcap-oldcap)*elsize;
-            memset(newdata + oldcap, 0, num_new_bytes);
-        } else if (self->size > newcap) {
-            // The viewed size is larger than the capacity in this case,
-            // we must set the size to the maximum it can be, which is the
-            // capacity
-            self->size = newcap;
-        }
-
-        self->data = newdata;
-        self->capacity = newcap;
-    }
-
-}
-
-void %(shortname)svector_resize(%(shortname)svector* self, size_t newsize) {
-   if (newsize > self->capacity) {
-       %(shortname)svector_realloc(self, newsize);
-   }
-
-   self->size = newsize;
-}
-
-void %(shortname)svector_reserve(%(shortname)svector* self, size_t newcap) {
-   if (newcap > self->capacity) {
-       %(shortname)svector_realloc(self, newcap);
-   }
-}
-
-void %(shortname)svector_clear(%(shortname)svector* self) {
-    %(shortname)svector_realloc(self,self->initsize);
-    self->size=0;
-}
-
-void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
-    // see if we have already filled the available data vector
-    // if so, reallocate to larger storage
-    if (self->size == self->capacity) {
-
-        size_t newsize=0;
-        if (self->capacity == 0) {
-            newsize=self->initsize;
-        } else {
-            // this will "floor" the size
-            newsize = (size_t)(self->capacity*self->realloc_multval);
-            // we want ceiling
-            newsize++;
-        }
-
-        %(shortname)svector_realloc(self, newsize);
-
-    }
-
-    self->size++;
-    self->data[self->size-1] = val;
-}
-
-%(type)s %(shortname)svector_pop(%(shortname)svector* self) {
-    %(type)s val;
-    if (self->size == 0) {
-        fprintf(stderr,
-                "attempt to pop from empty vector, returning zeroed value\\n");
-        memset(&val, 0, sizeof(%(type)s));
-    } else {
-        val=self->data[self->size-1];
-        self->size--;
-    }
-    return val;
-}
-
 
 %(shortname)svector* %(shortname)svector_copy(%(shortname)svector* self) {
     %(shortname)svector* vcopy=%(shortname)svector_new();
-    %(shortname)svector_resize(vcopy, self->size);
+    vector_resize(vcopy, self->size);
 
     if (self->size > 0) {
         memcpy(vcopy->data, self->data, self->size*sizeof(%(type)s));
@@ -253,7 +294,7 @@ void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
 
 %(shortname)svector* %(shortname)svector_fromarray(%(type)s* data, size_t size) {
     %(shortname)svector* self=%(shortname)svector_new();
-    %(shortname)svector_resize(self, size);
+    vector_resize(self, size);
 
     if (self->size > 0) {
         memcpy(self->data, data, size*sizeof(%(type)s));
@@ -265,7 +306,7 @@ void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
 %(shortname)svector* %(shortname)svector_zeros(size_t num) {
 
     %(shortname)svector* self=%(shortname)svector_new();
-    %(shortname)svector_resize(self, num);
+    vector_resize(self, num);
     return self;
 }
 
@@ -277,7 +318,8 @@ c_format_builtin='''
 
     %(shortname)svector* self=%(shortname)svector_new();
     for (size_t i=0; i<num; i++) {
-        %(shortname)svector_push(self,1);
+        //%(shortname)svector_push(self,1);
+        vector_push(self,1);
     }
     return self;
 }
@@ -286,7 +328,8 @@ c_format_builtin='''
 
     %(shortname)svector* self=%(shortname)svector_new();
     for (long i=min; i<max; i++) {
-        %(shortname)svector_push(self,i);
+        //%(shortname)svector_push(self,i);
+        vector_push(self,i);
     }
     
     return self;
@@ -325,20 +368,22 @@ int main(int argc, char** argv) {
 
     for (size_t i=0;i<75; i++) {
         printf("push: %(format)s\\n", (%(type)s)i);
-        %(shortname)svector_push(vec, i);
+        vector_push(vec, i);
     }
 
     printf("size: %%ld\\n", vec->size);
     printf("capacity: %%ld\\n", vec->capacity);
 
     size_t newsize=25;
+
     printf("reallocating to size %%ld\\n", newsize);
-    %(shortname)svector_realloc(vec, newsize);
+    vector_realloc(vec, newsize);
+
     printf("size: %%ld\\n", vec->size);
     printf("capacity: %%ld\\n", vec->capacity);
 
     while (vec->size > 0) {
-        printf("pop: %(format)s\\n", %(shortname)svector_pop(vec));
+        printf("pop: %(format)s\\n", vector_pop(vec));
     }
 
     // size, vec->size is also exposed
@@ -347,11 +392,11 @@ int main(int argc, char** argv) {
     printf("capacity: %%ld\\n", vector_capacity(vec));
 
     printf("popping the now empty vector, should give zero and an error message: \\n");
-    printf("    %(format)s\\n", %(shortname)svector_pop(vec));
+    printf("    %(format)s\\n", vector_pop(vec));
 
 
     for (size_t i=0;i<10; i++) {
-        %(shortname)svector_push(vec, i);
+        vector_push(vec, i);
     }
 
     // only works with -std=gnu99
@@ -469,7 +514,7 @@ int main(int argc, char** argv) {
     %(type)s var;
     memset(&var, 0, sizeof(%(type)s));
     for (size_t i=0;i<75; i++) {
-        %(shortname)svector_push(vec, var);
+        vector_push(vec, var);
     }
 
     printf("size: %%ld\\n", vec->size);
@@ -477,7 +522,8 @@ int main(int argc, char** argv) {
 
     size_t newsize=25;
     printf("reallocating to size %%ld\\n", newsize);
-    %(shortname)svector_realloc(vec, newsize);
+    vector_realloc(vec, newsize);
+
     printf("size: %%ld\\n", vec->size);
     printf("capacity: %%ld\\n", vec->capacity);
 
@@ -506,14 +552,14 @@ int main(int argc, char** argv) {
     }
 
     while (vec->size > 0) {
-        var = %(shortname)svector_pop(vec);
+        var = vector_pop(vec);
     }
 
     printf("size: %%ld\\n", vec->size);
     printf("capacity: %%ld\\n", vec->capacity);
 
     printf("popping the now empty vector, should give an error message: \\n");
-    %(shortname)svector_pop(vec);
+    vector_pop(vec);
 
     vector_free(vec);
     assert(vec==NULL);
@@ -523,59 +569,6 @@ int main(int argc, char** argv) {
     assert(vcopy_arr==NULL);
 }
 '''
-
-header_head="""// This header was auto-generated
-#ifndef _VECTOR_H
-#define _VECTOR_H
-#include <stdint.h>
-
-#define VECTOR_INITSIZE 1
-#define VECTOR_PUSH_REALLOC_MULTVAL 2
-
-// get properties, generic macros
-#define vector_size(vec) (vec)->size
-#define vector_capacity(vec) (vec)->capacity
-
-// getters and setters, generic macros
-// unsafe; maybe make safe?
-#define vector_get(vec, i) (vec)->data[i]
-
-#define vector_set(vec, i, val) do {                                         \\
-    (vec)->data[(i)] = (val);                                                \\
-} while(0)
-
-// pointer to beginning
-#define vector_begin(vec) (vec)->data
-
-// pointer past end, don't dereference, just use for stopping iteration
-#define vector_end(vec) (vec)->data + (vec)->size
-
-// generic iteration over elements.  The iter name is a pointer
-// sadly only works for -std=gnu99
-//
-// vector_foreach(iter, vec) {
-//     printf("val is: %%d\\n", *iter);
-// }
-
-#define vector_foreach(itername, vec)                                        \\
-    for(typeof((vec)->data) (itername)=vector_begin(vec),                    \\
-        _iter_end_##itername=vector_end((vec));                              \\
-        (itername) != _iter_end_##itername;                                  \\
-        (itername)++)
-
-// frees vec and its data, sets vec==NULL
-#define vector_free(vec) do {                                                \\
-    if ((vec)) {                                                             \\
-        free((vec)->data);                                                   \\
-        free((vec));                                                         \\
-        (vec)=NULL;                                                          \\
-    }                                                                        \\
-} while(0)
-"""
-
-header_foot="""
-#endif
-"""
 
 c_head="""// This file was auto-generated
 
