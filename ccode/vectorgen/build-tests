@@ -8,7 +8,7 @@ from glob import glob
 import vectypes
 
 def get_test_cfiles():
-    flist=glob('test-*.c')
+    flist=glob('tests/test-*.c')
     return flist
 
 parser = optparse.OptionParser()
@@ -44,7 +44,7 @@ def build():
 def compile():
     for prog in programs:
         for source in prog['sources']:
-            run(CC, '-c', CFLAGS, source+'.c')
+            run(CC, '-o',source+'.o', '-c', CFLAGS, source+'.c')
 
 def link():
     for prog in programs:
