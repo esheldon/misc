@@ -22,7 +22,9 @@ prefix=os.path.expanduser( options.prefix )
 CC='gcc'
 
 
-CFLAGS=['-std=c99','-O2']
+# need gnu99 for foreach
+#CFLAGS=['-std=c99','-O2']
+CFLAGS=['-std=gnu99','-O2']
 LINKFLAGS=[]
 
 sources = ['vector']
