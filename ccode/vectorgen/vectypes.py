@@ -60,7 +60,7 @@ def read_config(config_file):
 
     return conf
 
-header_head="""// This header was auto-generated
+header_head="""// This header was auto-generated using vectorgen
 #ifndef _VECTORGEN_H
 #define _VECTORGEN_H
 #include <stdint.h>
@@ -360,7 +360,7 @@ void %(shortname)svector_sort(%(shortname)svector* self) {
 }
 '''
 
-tformat_builtin='''// This file was auto-generated
+tformat_builtin='''// This file was auto-generated using vectorgen
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -502,7 +502,7 @@ int main(int argc, char** argv) {
 }
 '''
 
-tformat_user='''// This file was auto-generated
+tformat_user='''// This file was auto-generated using vectorgen
 // since the type is user defined, we don't know how to print it.
 // so nothing will be printed!
 #include <stdio.h>
@@ -573,7 +573,7 @@ int main(int argc, char** argv) {
 }
 '''
 
-c_head="""// This file was auto-generated
+c_head="""// This file was auto-generated using vectorgen
 
 #include <stdlib.h>
 #include <stdio.h>
