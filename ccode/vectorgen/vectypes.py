@@ -554,6 +554,7 @@ int main(int argc, char** argv) {
         index++;
     }
 
+    printf("popping everying\\n");
     while (vec->size > 0) {
         var = vector_pop(vec);
     }
