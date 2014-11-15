@@ -1,0 +1,21 @@
+# in the code we also add aliases for the shortname
+# and int types without the _t.  Also uchar
+float:    {'shortname':'f',  'sortype':'float',   'format':'%f'}
+double:   {'shortname':'d',  'sortype':'double',  'format':'%lf'}
+
+int8_t:   {'shortname':'b',  'sortype':'int32_t', 'format':'%d'}
+uint8_t:  {'shortname':'ub', 'sortype':'int32_t', 'format':'%u'}
+int16_t:  {'shortname':'s',  'sortype':'int32_t', 'format':'%d'}
+uint16_t: {'shortname':'us', 'sortype':'int32_t', 'format':'%u'}
+int32_t:  {'shortname':'i',  'sortype':'int64_t', 'format':'%d'}
+uint32_t: {'shortname':'u',  'sortype':'int64_t', 'format':'%u'}
+int64_t:  {'shortname':'l',  'sortype':'int64_t', 'format':'%ld'}
+uint64_t: {'shortname':'ul', 'sortype':'int64_t', 'format':'%lu'}
+char:     {'shortname':'c',  'sortype':'int32_t', 'format':'%c'}
+
+"unsigned char": {'shortname': 'uc',  'sortype':'int32_t',  'format':'%c'}
+
+size_t:   {'shortname':'sz', 'sortype':'int64_t', 'format':'%lu'}
+ssize_t:   {'shortname':'ssz', 'sortype':'int64_t', 'format':'%ld'}
+
+ptrdiff_t:   {'shortname':'p', 'sortype':'int64_t', 'format':'%ld'}
