@@ -95,13 +95,8 @@ void %(shortname)svector_reserve(%(shortname)svector* self, size_t newcap);
 // than the viewed size
 void %(shortname)svector_realloc(%(shortname)svector* self, size_t newsize);
 
-// completely clears memory in the data vector
+// set size to zero and realloc to have default initial capacity
 void %(shortname)svector_clear(%(shortname)svector* self);
-
-// clears all memory and sets pointer to NULL
-// usage: vector=%(shortname)svector_free(vec);
-%(shortname)svector* %(shortname)svector_free(%(shortname)svector* self);
-
 
 // push a new element onto the vector
 // if reallocation is needed, size is increased by some factor
@@ -204,18 +199,8 @@ void %(shortname)svector_reserve(%(shortname)svector* self, size_t newcap) {
 }
 
 void %(shortname)svector_clear(%(shortname)svector* self) {
+    %(shortname)svector_realloc(self,self->initsize);
     self->size=0;
-    self->capacity=0;
-    free(self->data);
-    self->data=NULL;
-}
-
-%(shortname)svector* %(shortname)svector_free(%(shortname)svector* self) {
-    if (self != NULL) {
-        %(shortname)svector_clear(self);
-        free(self);
-    }
-    return NULL;
 }
 
 void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
@@ -565,7 +550,7 @@ header_head="""// This header was auto-generated
 // pointer past end, don't dereference, just use for stopping iteration
 #define vector_end(vec) (vec)->data + (vec)->size
 
-// generic foreach over elements.  The iter name is a pointer
+// generic iteration over elements.  The iter name is a pointer
 // sadly only works for -std=gnu99
 //
 // vector_foreach(iter, vec) {
@@ -577,7 +562,6 @@ header_head="""// This header was auto-generated
         _iter_end_##itername=vector_end((vec));                              \\
         (itername) != _iter_end_##itername;                                  \\
         (itername)++)
-
 
 // frees vec and its data, sets vec==NULL
 #define vector_free(vec) do {                                                \\
