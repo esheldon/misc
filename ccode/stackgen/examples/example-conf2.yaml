@@ -1,0 +1,15 @@
+# user defined types.
+# you must add the correct include at the top of vector.h
+# that defines Point and Box types
+
+# the C type is Point
+# we want to use a shorter name pvector, e.g.
+#    pvector* = pvector_new();
+Point:
+    shortname: p
+
+# the C type is Box
+# we want to write box_vector
+#    box_vector* = box_vector_new();
+Box:
+    shortname: "box_"

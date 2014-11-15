@@ -1,0 +1,5 @@
+# this example with builtins only, and all defaults,
+# shown by a simple colon after each entry
+double:
+char:
+int64_t:
