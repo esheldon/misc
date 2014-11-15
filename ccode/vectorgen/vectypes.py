@@ -200,6 +200,9 @@ header_head="""// This header was auto-generated
 // pop the last element and decrement size; no reallocation is performed
 // if the vector is empty, an error message is printed and garbage is 
 // returned
+//
+// we rely on the fact that capacity never goes to zero, so the "garbage"
+// is the zeroth element
 
 #define vector_pop(self) ({                                                  \\
     size_t _index=(self)->size-1;                                            \\
