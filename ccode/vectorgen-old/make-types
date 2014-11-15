@@ -10,21 +10,19 @@ Description
 
     Available types:
         typename   shortname
-        float32    f32
-        float64    f64
-        int8       i8
-        uint8      u8
-        int16      i16
-        uint16     u16
-        int32      i32
-        uint32     u32
-        int64      i64
-        uint64     u64
-        char       char
-        uchar      uchar
+        float32    f
+        float64    d
+        int8       b
+        uint8      ub
+        int16      s
+        uint16     us
+        int32      i
+        uint32     u
+        int64      l
+        uint64     ul
+        char       c
+        uchar      uc
         size       sz
-
-
 
     Use the long typename when calling this script. The shortnames are used in
     function names and structure defs.  See the README for more details.
@@ -47,16 +45,16 @@ import sys
 # shortname is for the struct name and functions, e.g. 
 #   struct i64vector, i64vector_new
 typemap={}
-typemap['float32'] = {'ctype':'float32',  'shortname':'f32',  'sortype':'float', 'format':'%f'}
-typemap['float64'] = {'ctype':'float64',  'shortname':'f64',  'sortype':'double', 'format':'%lf'}
-typemap['int8']    = {'ctype':'int8_t',   'shortname':'i8',   'sortype':'int32_t', 'format':'%d'}
-typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'u8',   'sortype':'int32_t', 'format':'%u'}
-typemap['int16']   = {'ctype':'int16_t',  'shortname':'i16',  'sortype':'int32_t', 'format':'%d'}
-typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'u16',  'sortype':'int32_t', 'format':'%u'}
-typemap['int32']   = {'ctype':'int32_t',  'shortname':'i32',  'sortype':'int64_t', 'format':'%d'}
-typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u32',  'sortype':'int64_t', 'format':'%u'}
-typemap['int64']   = {'ctype':'int64_t',  'shortname':'i64',  'sortype':'int64_t', 'format':'%ld'}
-typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'u64',  'sortype':'int64_t', 'format':'%lu'}
+typemap['float32'] = {'ctype':'float32',  'shortname':'f',    'sortype':'float', 'format':'%f'}
+typemap['float64'] = {'ctype':'float64',  'shortname':'d',    'sortype':'double', 'format':'%lf'}
+typemap['int8']    = {'ctype':'int8_t',   'shortname':'b',    'sortype':'int32_t', 'format':'%d'}
+typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'ub',   'sortype':'int32_t', 'format':'%u'}
+typemap['int16']   = {'ctype':'int16_t',  'shortname':'s',    'sortype':'int32_t', 'format':'%d'}
+typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'us',   'sortype':'int32_t', 'format':'%u'}
+typemap['int32']   = {'ctype':'int32_t',  'shortname':'i',    'sortype':'int64_t', 'format':'%d'}
+typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u',    'sortype':'int64_t', 'format':'%u'}
+typemap['int64']   = {'ctype':'int64_t',  'shortname':'l',    'sortype':'int64_t', 'format':'%ld'}
+typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'ul',   'sortype':'int64_t', 'format':'%lu'}
 typemap['char']    = {'ctype':'char',     'shortname':'char', 'sortype':'int32_t', 'format':'%c'}
 typemap['uchar']   = {'ctype':'unsigned char', 'shortname':'uchar', 'sortype':'int32_t',  'format':'%c'}
 typemap['size']    = {'ctype':'size_t',  'shortname':'sz',  'sortype':'int64_t', 'format':'%ld'}
@@ -285,7 +283,7 @@ def generate_h(types):
     fobj.close()
 
 def generate_c(types):
-    fobj=open('Vector.c','w')
+    fobj=open('vector.c','w')
     head="""// This file was auto-generated
 
 #include <stdlib.h>
@@ -293,7 +291,7 @@ def generate_c(types):
 #include <string.h>
 #include <stdint.h>
 #include <float.h>
-#include "Vector.h"
+#include "vector.h"
 
 """
     fobj.write(head)
