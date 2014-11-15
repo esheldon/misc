@@ -1,25 +1,31 @@
 import os
 import sys
 
+# type map for built-in C types.  User defined types will not use short names
+# or have sorting/searching functions written
+#
+# format is just for the test program
+#
 # ctype is the actual C variable type name
 # shortname is for the struct name and functions, e.g. 
-#   struct dvector, dvector_new
-# defval is the value to return from an empty vector
-typemap={}
-typemap['float'] = {'ctype':'float',  'shortname':'f',  'defval':'FLT_MAX',    'sortype':'float',   'format':'%f'}
-typemap['double'] = {'ctype':'double',  'shortname':'d',  'defval':'DBL_MAX',    'sortype':'double',  'format':'%lf'}
-typemap['int8']    = {'ctype':'int8_t',   'shortname':'b',  'defval':'INT8_MAX',   'sortype':'int32_t', 'format':'%d'}
-typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'ub', 'defval':'UINT8_MAX',  'sortype':'int32_t', 'format':'%u'}
-typemap['int16']   = {'ctype':'int16_t',  'shortname':'s',  'defval':'INT16_MAX',  'sortype':'int32_t', 'format':'%d'}
-typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'us', 'defval':'UINT16_MAX', 'sortype':'int32_t', 'format':'%u'}
-typemap['int32']   = {'ctype':'int32_t',  'shortname':'i',  'defval':'INT32_MAX',  'sortype':'int64_t', 'format':'%d'}
-typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u',  'defval':'UINT32_MAX', 'sortype':'int64_t', 'format':'%u'}
-typemap['int64']   = {'ctype':'int64_t',  'shortname':'l',  'defval':'INT64_MAX',  'sortype':'int64_t', 'format':'%ld'}
-typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'ul', 'defval':'UINT64_MAX', 'sortype':'int64_t', 'format':'%lu'}
-typemap['char']    = {'ctype':'char',     'shortname':'c',  'defval':"'\\0\'",     'sortype':'int32_t', 'format':'%c'}
-typemap['uchar']   = {'ctype':'unsigned char', 'shortname': 'uc',  'defval':"'\\0\'", 'sortype':'int32_t',  'format':'%c'}
+#   dvector* vec = dvector_new();
 
-typemap['size']    = {'ctype':'size_t', 'shortname':'sz', 'defval':'SIZE_MAX',   'sortype':'int64_t', 'format':'%lu'}
+typemap={}
+typemap['float']   = {'ctype':'float',    'shortname':'f',  'sortype':'float',   'format':'%f'}
+typemap['double']  = {'ctype':'double',   'shortname':'d',  'sortype':'double',  'format':'%lf'}
+typemap['int8']    = {'ctype':'int8_t',   'shortname':'b',  'sortype':'int32_t', 'format':'%d'}
+typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'ub', 'sortype':'int32_t', 'format':'%u'}
+typemap['int16']   = {'ctype':'int16_t',  'shortname':'s',  'sortype':'int32_t', 'format':'%d'}
+typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'us', 'sortype':'int32_t', 'format':'%u'}
+typemap['int32']   = {'ctype':'int32_t',  'shortname':'i',  'sortype':'int64_t', 'format':'%d'}
+typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u',  'sortype':'int64_t', 'format':'%u'}
+typemap['int64']   = {'ctype':'int64_t',  'shortname':'l',  'sortype':'int64_t', 'format':'%ld'}
+typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'ul', 'sortype':'int64_t', 'format':'%lu'}
+typemap['char']    = {'ctype':'char',     'shortname':'c',  'sortype':'int32_t', 'format':'%c'}
+
+typemap['uchar']   = {'ctype':'unsigned char', 'shortname': 'uc',  'sortype':'int32_t',  'format':'%c'}
+
+typemap['size']    = {'ctype':'size_t', 'shortname':'sz', 'sortype':'int64_t', 'format':'%lu'}
 
 keys=list(typemap.keys())
 for k in keys:
@@ -29,167 +35,176 @@ for k in keys:
 hformat='''
 struct %(shortname)svector {
     size_t size;            // number of elements that are visible to the user
-    size_t allocated_size;  // number of allocated elements in data vector
-    size_t push_realloc_style; // Currently always VECTOR_PUSH_REALLOC_MULT, 
-                               // which is reallocate to allocated_size*realloc_multval
-    size_t push_initsize;      // default size on first push, default VECTOR_PUSH_INITSIZE 
-    double realloc_multval; // when allocated size is exceeded while pushing, 
-                            // reallocate to allocated_size*realloc_multval, default 
-                            // VECTOR_PUSH_REALLOC_MULTVAL
-                            // if allocated_size was zero, we allocate to push_initsize
+    size_t capacity;        // number of allocated elements in data vector
+    size_t initsize;        // default size on creation, default VECTOR_INITSIZE 
+    double realloc_multval; // when capacity is exceeded while pushing, 
+                            // reallocate to capacity*realloc_multval,
+                            // default VECTOR_PUSH_REALLOC_MULTVAL
+                            // if capacity was zero, we allocate to initsize
     %(type)s* data;
 };
 
 typedef struct %(shortname)svector %(shortname)svector;
 
-%(shortname)svector* %(shortname)svector_new(size_t num);
+%(shortname)svector* %(shortname)svector_new();
 
-// if size > allocated size, then a reallocation occurs
-// if size <= internal size, then only the ->size field is reset
+// if size > capacity, then a reallocation occurs
+// if size <= capacity, then only the ->size field is reset
 // use %(shortname)svector_realloc() to reallocate the data vector and set the ->size
-void %(shortname)svector_resize(%(shortname)svector* vec, size_t newsize);
+void %(shortname)svector_resize(%(shortname)svector* self, size_t newsize);
+
+// reserve at least the specified amount of slots.  If the new capacity is
+// smaller than the current capacity, nothing happens.  If larger, a
+// reallocation occurs.  No change to current contents occurs.
+//
+// currently, the exact requested amount is used but in the future we can
+// optimize to page boundaries.
+
+void %(shortname)svector_reserve(%(shortname)svector* self, size_t newcap);
 
 // perform reallocation on the underlying data vector. This does
 // not change the size field unless the new size is smaller
 // than the viewed size
-void %(shortname)svector_realloc(%(shortname)svector* vec, size_t newsize);
+void %(shortname)svector_realloc(%(shortname)svector* self, size_t newsize);
 
 // completely clears memory in the data vector
-void %(shortname)svector_clear(%(shortname)svector* vec);
+void %(shortname)svector_clear(%(shortname)svector* self);
 
 // clears all memory and sets pointer to NULL
 // usage: vector=%(shortname)svector_delete(vec);
-%(shortname)svector* %(shortname)svector_delete(%(shortname)svector* vec);
+%(shortname)svector* %(shortname)svector_delete(%(shortname)svector* self);
 
-// if reallocation is needed, size is increased by 50 percent
-// unless size is zero, when it 100 are allocated
-void %(shortname)svector_push(%(shortname)svector* vec, %(type)s val);
+// push a new element onto the vector
+// if reallocation is needed, size is increased by some factor
+// unless size is zero, when a fixed amount are allocated
+void %(shortname)svector_push(%(shortname)svector* self, %(type)s val);
+
 // pop the last element and decrement size; no reallocation is performed
-// if empty, INT64_MIN is returned
-%(type)s %(shortname)svector_pop(%(shortname)svector* vec);
+// if empty, an error message is printed and a zerod version of
+// the type is returned
+%(type)s %(shortname)svector_pop(%(shortname)svector* self);
 
+// when we allow user defined types, these should not be
+// written
 int __%(shortname)svector_compare_el(const void *a, const void *b);
-void %(shortname)svector_sort(%(shortname)svector* vec);
-%(type)s* %(shortname)svector_find(%(shortname)svector* vec, %(type)s el);
+void %(shortname)svector_sort(%(shortname)svector* self);
+%(type)s* %(shortname)svector_find(%(shortname)svector* self, %(type)s el);
 '''
 
 fformat='''
-%(shortname)svector* %(shortname)svector_new(size_t num) {
-    %(shortname)svector* vec = malloc(sizeof(%(shortname)svector));
-    if (vec == NULL) {
+%(shortname)svector* %(shortname)svector_new() {
+    %(shortname)svector* self = calloc(1,sizeof(%(shortname)svector));
+    if (self == NULL) {
         fprintf(stderr,"Could not allocate %(shortname)svector\\n");
         return NULL;
     }
 
-    vec->size = 0;
-    vec->allocated_size = num;
-    vec->push_realloc_style = VECTOR_PUSH_REALLOC_MULT;
-    vec->push_initsize = VECTOR_PUSH_INITSIZE;
-    vec->realloc_multval = VECTOR_PUSH_REALLOC_MULTVAL;
+    self->capacity        = VECTOR_INITSIZE;
+    self->initsize        = VECTOR_INITSIZE;
+    self->realloc_multval = VECTOR_PUSH_REALLOC_MULTVAL;
 
-    if (num == 0) {
-        vec->data = NULL;
-    } else {
-        vec->data = calloc(num, sizeof(%(type)s));
-        if (vec->data == NULL) {
-            free(vec);
-            fprintf(stderr,"Could not allocate data for vector\\n");
-            return NULL;
-        }
+    self->data = calloc(self->initsize, sizeof(%(type)s));
+    if (self->data == NULL) {
+        fprintf(stderr,"Could not allocate data for vector\\n");
+        exit(1);
     }
 
-    return vec;
+    return self;
 }
 
-void %(shortname)svector_realloc(%(shortname)svector* vec, size_t newsize) {
+void %(shortname)svector_realloc(%(shortname)svector* self, size_t newcap) {
 
-    size_t oldsize = vec->allocated_size;
-    if (newsize != oldsize) {
+    size_t oldcap = self->capacity;
+    if (newcap != oldcap) {
         size_t elsize = sizeof(%(type)s);
 
-        %(type)s* newdata = realloc(vec->data, newsize*elsize);
+        %(type)s* newdata = realloc(self->data, newcap*elsize);
         if (newdata == NULL) {
             fprintf(stderr,"failed to reallocate\\n");
             return;
         }
 
-        if (newsize > vec->allocated_size) {
-            // the allocated size is larger.  make sure to initialize the new
-            // memory region.  This is the area starting from index [oldsize]
-            size_t num_new_bytes = (newsize-oldsize)*elsize;
-            memset(&newdata[oldsize], 0, num_new_bytes);
-        } else if (vec->size > newsize) {
-            // The viewed size is larger than the allocated size in this case,
+        if (newcap > self->capacity) {
+            // the capacity is larger.  Make sure to initialize the new
+            // memory region.  This is the area starting from index [oldcap]
+            size_t num_new_bytes = (newcap-oldcap)*elsize;
+            memset(&newdata[oldcap], 0, num_new_bytes);
+        } else if (self->size > newcap) {
+            // The viewed size is larger than the capacity in this case,
             // we must set the size to the maximum it can be, which is the
-            // allocated size
-            vec->size = newsize;
+            // capacity
+            self->size = newcap;
         }
 
-        vec->data = newdata;
-        vec->allocated_size = newsize;
+        self->data = newdata;
+        self->capacity = newcap;
     }
 
 }
-void %(shortname)svector_resize(%(shortname)svector* vec, size_t newsize) {
-   if (newsize > vec->allocated_size) {
-       %(shortname)svector_realloc(vec, newsize);
+
+void %(shortname)svector_resize(%(shortname)svector* self, size_t newsize) {
+   if (newsize > self->capacity) {
+       %(shortname)svector_realloc(self, newsize);
    }
 
-   vec->size = newsize;
+   self->size = newsize;
 }
 
-void %(shortname)svector_clear(%(shortname)svector* vec) {
-    vec->size=0;
-    vec->allocated_size=0;
-    free(vec->data);
-    vec->data=NULL;
+void %(shortname)svector_reserve(%(shortname)svector* self, size_t newcap) {
+   if (newcap > self->capacity) {
+       %(shortname)svector_realloc(self, newcap);
+   }
 }
 
-%(shortname)svector* %(shortname)svector_delete(%(shortname)svector* vec) {
-    if (vec != NULL) {
-        %(shortname)svector_clear(vec);
-        free(vec);
+void %(shortname)svector_clear(%(shortname)svector* self) {
+    self->size=0;
+    self->capacity=0;
+    free(self->data);
+    self->data=NULL;
+}
+
+%(shortname)svector* %(shortname)svector_delete(%(shortname)svector* self) {
+    if (self != NULL) {
+        %(shortname)svector_clear(self);
+        free(self);
     }
     return NULL;
 }
 
-void %(shortname)svector_push(%(shortname)svector* vec, %(type)s val) {
+void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
     // see if we have already filled the available data vector
     // if so, reallocate to larger storage
-    if (vec->size == vec->allocated_size) {
+    if (self->size == self->capacity) {
 
-        size_t newsize;
-        if (vec->allocated_size == 0) {
-            newsize=vec->push_initsize;
+        size_t newsize=0;
+        if (self->capacity == 0) {
+            newsize=self->initsize;
         } else {
-            // currenly we always use the multiplier reallocation  method.
-            if (vec->push_realloc_style != VECTOR_PUSH_REALLOC_MULT) {
-                fprintf(stderr,"Currently only support push realloc style VECTOR_PUSH_REALLOC_MULT\\n");
-                exit(EXIT_FAILURE);
-            }
             // this will "floor" the size
-            newsize = (size_t)(vec->allocated_size*vec->realloc_multval);
+            newsize = (size_t)(self->capacity*self->realloc_multval);
             // we want ceiling
             newsize++;
         }
 
-        %(shortname)svector_realloc(vec, newsize);
+        %(shortname)svector_realloc(self, newsize);
 
     }
 
-    vec->size++;
-    vec->data[vec->size-1] = val;
+    self->size++;
+    self->data[self->size-1] = val;
 }
 
-%(type)s %(shortname)svector_pop(%(shortname)svector* vec) {
-    if (vec->size == 0) {
-        return %(defval)s;
+%(type)s %(shortname)svector_pop(%(shortname)svector* self) {
+    %(type)s val;
+    if (self->size == 0) {
+        fprintf(stderr,"attempt to pop from empty vector, returning zerod value\\n");
+        memset(&val, 0, sizeof(%(type)s));
+        return val;
     }
 
-    %(type)s val=vec->data[vec->size-1];
-    vec->size--;
+    val=self->data[self->size-1];
+    self->size--;
     return val;
-        
 }
 
 int __%(shortname)svector_compare_el(const void *a, const void *b) {
@@ -206,11 +221,11 @@ int __%(shortname)svector_compare_el(const void *a, const void *b) {
 }
 
 
-void %(shortname)svector_sort(%(shortname)svector* vec) {
-    qsort(vec->data, vec->size, sizeof(%(type)s), __%(shortname)svector_compare_el);
+void %(shortname)svector_sort(%(shortname)svector* self) {
+    qsort(self->data, self->size, sizeof(%(type)s), __%(shortname)svector_compare_el);
 }
-%(type)s* %(shortname)svector_find(%(shortname)svector* vec, %(type)s el) {
-    return (%(type)s*) bsearch(&el, vec->data, vec->size, sizeof(%(type)s), __%(shortname)svector_compare_el);
+%(type)s* %(shortname)svector_find(%(shortname)svector* self, %(type)s el) {
+    return (%(type)s*) bsearch(&el, self->data, self->size, sizeof(%(type)s), __%(shortname)svector_compare_el);
 }
 '''
 
@@ -220,7 +235,7 @@ tformat='''// This file was auto-generated
 #include "vector.h"
 
 int main(int argc, char** argv) {
-    %(shortname)svector* vec = %(shortname)svector_new(0);
+    %(shortname)svector* vec = %(shortname)svector_new();
 
     for (size_t i=0;i<75; i++) {
         printf("push: %(format)s\\n", (%(type)s)i);
@@ -228,22 +243,23 @@ int main(int argc, char** argv) {
     }
 
     printf("size: %%ld\\n", vec->size);
-    printf("allocated size: %%ld\\n", vec->allocated_size);
+    printf("capacity: %%ld\\n", vec->capacity);
 
     size_t newsize=25;
     printf("reallocating to size %%ld\\n", newsize);
     %(shortname)svector_realloc(vec, newsize);
     printf("size: %%ld\\n", vec->size);
-    printf("allocated size: %%ld\\n", vec->allocated_size);
+    printf("capacity: %%ld\\n", vec->capacity);
 
     while (vec->size > 0) {
         printf("pop: %(format)s\\n", %(shortname)svector_pop(vec));
     }
 
     printf("size: %%ld\\n", vec->size);
-    printf("allocated size: %%ld\\n", vec->allocated_size);
+    printf("capacity: %%ld\\n", vec->capacity);
 
-    printf("popping the now empty list: \\n    %(format)s\\n", %(shortname)svector_pop(vec));
+    printf("popping the now empty vector, should give zero and an error message: \\n");
+    printf("    %(format)s\\n", %(shortname)svector_pop(vec));
 
 
     for (size_t i=0;i<10; i++) {
@@ -282,9 +298,8 @@ def generate_h(types):
 #define _VECTOR_H
 #include <stdint.h>
 
-#define VECTOR_PUSH_REALLOC_MULT 1
+#define VECTOR_INITSIZE 1
 #define VECTOR_PUSH_REALLOC_MULTVAL 2
-#define VECTOR_PUSH_INITSIZE 1
 """
 
     fobj.write(head)
@@ -318,7 +333,6 @@ def generate_c(types):
             raise ValueError("type not supported: %s" % type)
         text = fformat % {'type':typemap[type]['ctype'],
                           'shortname':typemap[type]['shortname'], 
-                          'defval':typemap[type]['defval'],
                           'sortype':typemap[type]['sortype']}
         fobj.write(text)
 
