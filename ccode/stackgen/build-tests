@@ -3,8 +3,13 @@
 from fabricate import *
 import sys, os
 import optparse
+from glob import glob
 
 import vectypes
+
+def get_test_cfiles():
+    flist=glob('test-*.c')
+    return flist
 
 parser = optparse.OptionParser()
 # make an options list, also send to fabricate
@@ -22,19 +27,15 @@ LINKFLAGS=[]
 
 sources = ['vector']
 
-types=[]
-for k,v in vectypes.typemap.iteritems():
-    types.append(v['shortname'])
 
-def testname(type):
-    return 'test-%svector' % type
+test_cfiles=get_test_cfiles()
 
-# look for test programs to build
+prognames = [f.replace('.c','') for f in test_cfiles]
+
 programs=[]
-for type in types:
-    name = testname(type)
-    if os.path.exists(name+'.c'):
-        programs += [{'name':name,'sources':sources+[name]}]
+for progname in prognames:
+    programs += [{'name':progname,'sources':sources+[progname]}]
+
 
 def build():
     compile()

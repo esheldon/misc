@@ -4,51 +4,42 @@
 
 Description
 
-    Generate vector.h and vector.c for the input type list, e.g.
+    Generate vector.h and vector.c for the input type list. See
+    builtins, as well as a test file for each type. the types
+    are listed in a yaml config file.
 
-        ./configure float double int64
+        ./configure conf.yaml
 
-    Available types:
-        typename   shortname
-        float      f         for float  
-        double     d         for double
-        int8       b         for byte
-        uint8      ub        for unsigned byte
-        int16      s         for short
-        uint16     us        for unsigned short
-        int32      i         for integer
-        uint32     u         for unsigned integer
-        int64      l         for long
-        uint64     ul        for unsigned long
-        char       c         for char
-        uchar      uc        for unsigned char
-        size       sz        for size
+    for an example config see example-conf.yaml
 
-    A test program is also generated for each type with the name test-{type}vector.c
-    To build the test program, run
+    build test programs
 
-        ./build
+        ./build-tests
 
-    And to run use
+    run test program, e.g. for doubles
 
-        ./test-{type}vector
-
+        ./test-dvector
 '''
 
 import sys
-
+import optparse
 import vectypes
 
+parser = optparse.OptionParser(__doc__)
+
 def main():
-    if len(sys.argv) < 2:
-        sys.stdout.write(__doc__)
-        sys.exit(45)
+    options, args = parser.parse_args(sys.argv[1:])
+    if len(args) < 1:
+        parser.print_help()
+        sys.exit(1)
 
-    types = sys.argv[1:]
+    conf_name=args[0]
+    conf=vectypes.read_config(conf_name)
+    g = vectypes.Generator(conf)
+    g.write()
 
-    vectypes.generate_h(types)
-    vectypes.generate_c(types)
-    vectypes.generate_tests(types)
+    #vectypes.generate_h(types)
+    #vectypes.generate_c(types)
+    #vectypes.generate_tests(types)
 
-if __name__=="__main__":
-    main()
+main()

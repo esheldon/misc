@@ -1,5 +1,7 @@
+from __future__ import print_function
 import os
 import sys
+import yaml
 
 # type map for built-in C types.  User defined types will not use short names
 # or have sorting/searching functions written
@@ -10,27 +12,53 @@ import sys
 # shortname is for the struct name and functions, e.g. 
 #   dvector* vec = dvector_new();
 
-typemap={}
-typemap['float']   = {'ctype':'float',    'shortname':'f',  'sortype':'float',   'format':'%f'}
-typemap['double']  = {'ctype':'double',   'shortname':'d',  'sortype':'double',  'format':'%lf'}
-typemap['int8']    = {'ctype':'int8_t',   'shortname':'b',  'sortype':'int32_t', 'format':'%d'}
-typemap['uint8']   = {'ctype':'uint8_t',  'shortname':'ub', 'sortype':'int32_t', 'format':'%u'}
-typemap['int16']   = {'ctype':'int16_t',  'shortname':'s',  'sortype':'int32_t', 'format':'%d'}
-typemap['uint16']  = {'ctype':'uint16_t', 'shortname':'us', 'sortype':'int32_t', 'format':'%u'}
-typemap['int32']   = {'ctype':'int32_t',  'shortname':'i',  'sortype':'int64_t', 'format':'%d'}
-typemap['uint32']  = {'ctype':'uint32_t', 'shortname':'u',  'sortype':'int64_t', 'format':'%u'}
-typemap['int64']   = {'ctype':'int64_t',  'shortname':'l',  'sortype':'int64_t', 'format':'%ld'}
-typemap['uint64']  = {'ctype':'uint64_t', 'shortname':'ul', 'sortype':'int64_t', 'format':'%lu'}
-typemap['char']    = {'ctype':'char',     'shortname':'c',  'sortype':'int32_t', 'format':'%c'}
+def add_defaults(d, type):
+    """
+    defaults
+        - shortname is type
+        - not builtin
+        - add entry for short name
+    """
 
-typemap['uchar']   = {'ctype':'unsigned char', 'shortname': 'uc',  'sortype':'int32_t',  'format':'%c'}
+    d['type'] = type
+    d['shortname']=d.get('shortname',type)
+    d['is_builtin']=d.get('is_builtin',False)
+    d[d['shortname']] = d
 
-typemap['size']    = {'ctype':'size_t', 'shortname':'sz', 'sortype':'int64_t', 'format':'%lu'}
 
-keys=list(typemap.keys())
-for k in keys:
-    t=typemap[k]
-    typemap[t['shortname']] = t
+def read_builtins():
+    with open('builtins.yaml') as fobj:
+        typemap=yaml.load(fobj)
+
+    types=list(typemap.keys())
+    for type in types:
+        t=typemap[type]
+        t['is_builtin']=True
+
+    for type in typemap:
+        add_defaults(typemap[type], type)
+    return typemap
+
+def read_config(config_file):
+    with open(config_file) as fobj:
+        conf=yaml.load(fobj)
+
+    bi=read_builtins()
+    for type in conf:
+        tconf = conf[type]
+
+        if type in bi:
+            # it is in the builtin, copy from there first
+            conf[type] = {}
+            conf[type].update(bi[type])
+            if isinstance(tconf, dict):
+                # if a dict, update the type map
+                conf[type].update(tconf)
+        else:
+            # user defined type
+            add_defaults(tconf, type)
+
+    return conf
 
 hformat='''
 struct %(shortname)svector {
@@ -71,8 +99,8 @@ void %(shortname)svector_realloc(%(shortname)svector* self, size_t newsize);
 void %(shortname)svector_clear(%(shortname)svector* self);
 
 // clears all memory and sets pointer to NULL
-// usage: vector=%(shortname)svector_delete(vec);
-%(shortname)svector* %(shortname)svector_delete(%(shortname)svector* self);
+// usage: vector=%(shortname)svector_free(vec);
+%(shortname)svector* %(shortname)svector_free(%(shortname)svector* self);
 
 // push a new element onto the vector
 // if reallocation is needed, size is increased by some factor
@@ -83,15 +111,15 @@ void %(shortname)svector_push(%(shortname)svector* self, %(type)s val);
 // if empty, an error message is printed and a zerod version of
 // the type is returned
 %(type)s %(shortname)svector_pop(%(shortname)svector* self);
+'''
 
-// when we allow user defined types, these should not be
-// written
+hformat_builtin='''
 int __%(shortname)svector_compare_el(const void *a, const void *b);
 void %(shortname)svector_sort(%(shortname)svector* self);
 %(type)s* %(shortname)svector_find(%(shortname)svector* self, %(type)s el);
 '''
 
-fformat='''
+c_format='''
 %(shortname)svector* %(shortname)svector_new() {
     %(shortname)svector* self = calloc(1,sizeof(%(shortname)svector));
     if (self == NULL) {
@@ -163,7 +191,7 @@ void %(shortname)svector_clear(%(shortname)svector* self) {
     self->data=NULL;
 }
 
-%(shortname)svector* %(shortname)svector_delete(%(shortname)svector* self) {
+%(shortname)svector* %(shortname)svector_free(%(shortname)svector* self) {
     if (self != NULL) {
         %(shortname)svector_clear(self);
         free(self);
@@ -206,7 +234,10 @@ void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
     self->size--;
     return val;
 }
+'''
 
+
+c_format_builtin='''
 int __%(shortname)svector_compare_el(const void *a, const void *b) {
     %(sortype)s temp = 
         (  (%(sortype)s) *( (%(type)s*)a ) ) 
@@ -229,7 +260,7 @@ void %(shortname)svector_sort(%(shortname)svector* self) {
 }
 '''
 
-tformat='''// This file was auto-generated
+tformat_builtin='''// This file was auto-generated
 #include <stdio.h>
 #include <stdlib.h>
 #include "vector.h"
@@ -287,9 +318,65 @@ int main(int argc, char** argv) {
         }
     }
 
-    %(shortname)svector_delete(vec);
+    %(shortname)svector_free(vec);
 }
 '''
+
+tformat_user='''// This file was auto-generated
+// since the type is user defined, we don't know how to print it.
+// so nothing will be printed!
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "vector.h"
+
+int main(int argc, char** argv) {
+    %(shortname)svector* vec = %(shortname)svector_new();
+
+    %(type)s var;
+    memset(&var, 0, sizeof(%(type)s));
+    for (size_t i=0;i<75; i++) {
+        %(shortname)svector_push(vec, var);
+    }
+
+    printf("size: %%ld\\n", vec->size);
+    printf("capacity: %%ld\\n", vec->capacity);
+
+    size_t newsize=25;
+    printf("reallocating to size %%ld\\n", newsize);
+    %(shortname)svector_realloc(vec, newsize);
+    printf("size: %%ld\\n", vec->size);
+    printf("capacity: %%ld\\n", vec->capacity);
+
+    while (vec->size > 0) {
+        var = %(shortname)svector_pop(vec);
+    }
+
+    printf("size: %%ld\\n", vec->size);
+    printf("capacity: %%ld\\n", vec->capacity);
+
+    printf("popping the now empty vector, should give an error message: \\n");
+    %(shortname)svector_pop(vec);
+
+    %(shortname)svector_free(vec);
+}
+'''
+
+
+
+def get_type_info(type):
+    type_info={}
+    if type not in typemap:
+        #print("detected non-builtin type: '%s'" % type)
+        type_info['type']=type
+        type_info['shortname']=type
+        type_info['is_builtin']=False
+    else:
+        type_info.update(typemap[type])
+        # type equal to c type
+        type_info['type']=typemap[type]['ctype']
+
+    return type_info
 
 def generate_h(types):
     fobj=open('vector.h','w')
@@ -305,11 +392,13 @@ def generate_h(types):
     fobj.write(head)
 
     for type in types:
-        if type not in typemap:
-            raise ValueError("type not supported: %s" % type)
-        text = hformat % {'type':typemap[type]['ctype'],
-                          'shortname':typemap[type]['shortname']}
+        type_info=get_type_info(type)
+        text = hformat % type_info
         fobj.write(text)
+
+        if type_info['is_builtin']:
+            text = hformat_builtin % type_info
+            fobj.write(text)
 
     fobj.write('\n#endif  // header guard\n')
     fobj.close()
@@ -329,12 +418,14 @@ def generate_c(types):
     fobj.write(head)
 
     for type in types:
-        if type not in typemap:
-            raise ValueError("type not supported: %s" % type)
-        text = fformat % {'type':typemap[type]['ctype'],
-                          'shortname':typemap[type]['shortname'], 
-                          'sortype':typemap[type]['sortype']}
+        type_info=get_type_info(type)
+
+        text = c_format % type_info
         fobj.write(text)
+        
+        if type_info['is_builtin']:
+            text = c_format_builtin % type_info
+            fobj.write(text)
 
     fobj.close()
 
@@ -343,22 +434,108 @@ def generate_tests(types):
     Files associated with tests not in the type list are removed.
     '''
 
-    for type in typemap:
-        sname=typemap[type]['shortname']
+    for type in types:
+        type_info=get_type_info(type)
+        sname=type_info['shortname']
 
-        front = 'test-%svector' % sname
+        cname = 'test-%(shortname)svector.c' % type_info
         
-        if type not in types and sname not in types:
-            for ext in ['.c','.o','']:
-                tname = front+ext
-                if os.path.exists(tname):
-                    os.remove(tname)
-        else:
-            cname = front+'.c'
-            fobj=open(cname,'w')
-            text = tformat % {'shortname':sname,
-                              'format':typemap[type]['format'],
-                              'type':typemap[type]['ctype']}
+        with open(cname,'w') as fobj:
+            if type_info['is_builtin']:
+                text = tformat_builtin % type_info
+            else:
+                text = tformat_user % type_info
+
             fobj.write(text)
             fobj.close()
+
+header_head="""// This header was auto-generated
+#ifndef _VECTOR_H
+#define _VECTOR_H
+#include <stdint.h>
+
+#define VECTOR_INITSIZE 1
+#define VECTOR_PUSH_REALLOC_MULTVAL 2
+"""
+
+header_foot="""
+#endif
+"""
+
+c_head="""// This file was auto-generated
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <float.h>
+#include "vector.h"
+"""
+
+class Generator(dict):
+    def __init__(self, config):
+        self.update(config)
+
+    def write(self):
+        """
+        write all
+        """
+
+        self.write_header()
+        self.write_c()
+        self.write_tests()
+
+    def write_header(self):
+        """
+        write the header
+        """
+        print("writing vector.h")
+        with open("vector.h",'w') as fobj:
+
+            fobj.write(header_head)
+
+            for type in self:
+                ti = self[type]
+
+                text = hformat % ti
+                fobj.write(text)
+
+                if ti['is_builtin']:
+                    text = hformat_builtin % ti
+                    fobj.write(text)
+
+            fobj.write(header_foot)
+
+    def write_c(self):
+        print("writing vector.c")
+        with open('vector.c','w') as fobj:
+            fobj.write(c_head)
+
+            for type in self:
+                ti=self[type]
+
+                text = c_format % ti
+                fobj.write(text)
+                
+                if ti['is_builtin']:
+                    text = c_format_builtin % ti
+                    fobj.write(text)
+
+    def write_tests(self):
+        print("writing tests")
+        for type in self:
+            ti=self[type]
+
+            cname = 'test-%(shortname)svector.c' % ti
+            
+            print("    writing:",cname)
+            with open(cname,'w') as fobj:
+                if ti['is_builtin']:
+                    text = tformat_builtin % ti
+                else:
+                    text = tformat_user % ti
+
+                fobj.write(text)
+                fobj.close()
+
 
