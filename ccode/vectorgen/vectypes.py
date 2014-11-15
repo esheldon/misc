@@ -369,6 +369,14 @@ int main(int argc, char** argv) {
         %(shortname)svector_push(vec, i);
     }
 
+    // only works with -std=gnu99
+    printf("testing foreach\\n");
+    size_t index=0;
+    vector_foreach(iter, vec) {
+        assert(*iter == index);
+        index++;
+    }
+
     printf("putting unordered elements\\n");
 
     // note vec->data is also exposed
@@ -488,16 +496,6 @@ int main(int argc, char** argv) {
     printf("size: %%ld\\n", vec->size);
     printf("capacity: %%ld\\n", vec->capacity);
 
-    while (vec->size > 0) {
-        var = %(shortname)svector_pop(vec);
-    }
-
-    printf("size: %%ld\\n", vec->size);
-    printf("capacity: %%ld\\n", vec->capacity);
-
-    printf("popping the now empty vector, should give an error message: \\n");
-    %(shortname)svector_pop(vec);
-
     printf("making a copy\\n");
     %(shortname)svector* vcopy=%(shortname)svector_copy(vec);
 
@@ -513,6 +511,24 @@ int main(int argc, char** argv) {
         assert(memcmp(&val, &valcpy_arr, sizeof(%(type)s)) == 0);
     }
 
+    // only works with -std=gnu99
+    printf("testing foreach\\n");
+    size_t index=0;
+    vector_foreach(iter, vec) {
+        %(type)s val = vector_get(vcopy,index);
+        assert(memcmp(iter, &val, sizeof(%(type)s)) == 0);
+        index++;
+    }
+
+    while (vec->size > 0) {
+        var = %(shortname)svector_pop(vec);
+    }
+
+    printf("size: %%ld\\n", vec->size);
+    printf("capacity: %%ld\\n", vec->capacity);
+
+    printf("popping the now empty vector, should give an error message: \\n");
+    %(shortname)svector_pop(vec);
 
     vector_free(vec);
     assert(vec==NULL);
@@ -538,17 +554,38 @@ header_head="""// This header was auto-generated
 // getters and setters, generic macros
 // unsafe; maybe make safe?
 #define vector_get(vec, i) (vec)->data[i]
-#define vector_set(vec, i, val) do {                                         \
-    (vec)->data[(i)] = (val);                                                \
+
+#define vector_set(vec, i, val) do {                                         \\
+    (vec)->data[(i)] = (val);                                                \\
 } while(0)
 
+// pointer to beginning
+#define vector_begin(vec) (vec)->data
+
+// pointer past end, don't dereference, just use for stopping iteration
+#define vector_end(vec) (vec)->data + (vec)->size
+
+// generic foreach over elements.  The iter name is a pointer
+// sadly only works for -std=gnu99
+//
+// vector_foreach(iter, vec) {
+//     printf("val is: %%d\\n", *iter);
+// }
+
+#define vector_foreach(itername, vec)                                        \\
+    for(typeof((vec)->data) (itername)=vector_begin(vec),                    \\
+        _iter_end_##itername=vector_end((vec));                              \\
+        (itername) != _iter_end_##itername;                                  \\
+        (itername)++)
+
+
 // frees vec and its data, sets vec==NULL
-#define vector_free(vec) do {                                                \
-    if ((vec)) {                                                             \
-        free((vec)->data);                                                   \
-        free((vec));                                                         \
-        (vec)=NULL;                                                          \
-    }                                                                        \
+#define vector_free(vec) do {                                                \\
+    if ((vec)) {                                                             \\
+        free((vec)->data);                                                   \\
+        free((vec));                                                         \\
+        (vec)=NULL;                                                          \\
+    }                                                                        \\
 } while(0)
 """
 
