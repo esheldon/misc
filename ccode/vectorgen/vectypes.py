@@ -102,6 +102,7 @@ void %(shortname)svector_clear(%(shortname)svector* self);
 // usage: vector=%(shortname)svector_free(vec);
 %(shortname)svector* %(shortname)svector_free(%(shortname)svector* self);
 
+
 // push a new element onto the vector
 // if reallocation is needed, size is increased by some factor
 // unless size is zero, when a fixed amount are allocated
@@ -243,13 +244,13 @@ void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
 %(type)s %(shortname)svector_pop(%(shortname)svector* self) {
     %(type)s val;
     if (self->size == 0) {
-        fprintf(stderr,"attempt to pop from empty vector, returning zerod value\\n");
+        fprintf(stderr,
+                "attempt to pop from empty vector, returning zeroed value\\n");
         memset(&val, 0, sizeof(%(type)s));
-        return val;
+    } else {
+        val=self->data[self->size-1];
+        self->size--;
     }
-
-    val=self->data[self->size-1];
-    self->size--;
     return val;
 }
 
@@ -283,6 +284,10 @@ void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
     return self;
 }
 
+'''
+
+
+c_format_builtin='''
 %(shortname)svector* %(shortname)svector_ones(size_t num) {
 
     %(shortname)svector* self=%(shortname)svector_new();
@@ -291,10 +296,7 @@ void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
     }
     return self;
 }
-'''
 
-
-c_format_builtin='''
 %(shortname)svector* %(shortname)svector_range(long min, long max) {
 
     %(shortname)svector* self=%(shortname)svector_new();
@@ -330,6 +332,7 @@ void %(shortname)svector_sort(%(shortname)svector* self) {
 tformat_builtin='''// This file was auto-generated
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "../vector.h"
 
 int main(int argc, char** argv) {
@@ -353,8 +356,10 @@ int main(int argc, char** argv) {
         printf("pop: %(format)s\\n", %(shortname)svector_pop(vec));
     }
 
-    printf("size: %%ld\\n", vec->size);
-    printf("capacity: %%ld\\n", vec->capacity);
+    // size, vec->size is also exposed
+    printf("size: %%ld\\n", vector_size(vec));
+    // capacity, vec->capacity is also exposed
+    printf("capacity: %%ld\\n", vector_capacity(vec));
 
     printf("popping the now empty vector, should give zero and an error message: \\n");
     printf("    %(format)s\\n", %(shortname)svector_pop(vec));
@@ -363,14 +368,18 @@ int main(int argc, char** argv) {
     for (size_t i=0;i<10; i++) {
         %(shortname)svector_push(vec, i);
     }
+
     printf("putting unordered elements\\n");
-    vec->data[3] = 88;
-    vec->data[5] = 25;
+
+    // note vec->data is also exposed
+    vector_set(vec, 3, 88);
+    vector_set(vec, 5,25);
     vec->data[9] = 1.3;
+
     printf("sorting\\n");
     %(shortname)svector_sort(vec);
     for (size_t i=0; i<vec->size; i++) {
-        printf("    vec[%%ld]: %(format)s\\n", i, vec->data[i]);
+        printf("    vec[%%ld]: %(format)s\\n", i, vector_get(vec,i));
     }
 
     printf("finding elements\\n");
@@ -393,8 +402,12 @@ int main(int argc, char** argv) {
     %(shortname)svector* vcopy_arr=%(shortname)svector_fromarray(vec->data, vec->size);
 
     for (size_t i=0; i<vec->size; i++) {
+        assert(vector_get(vec,i)==vector_get(vcopy,i));
+        assert(vector_get(vec,i)==vector_get(vcopy_arr,i));
         printf("    compare: %(format)s %(format)s %(format)s\\n",
-               vec->data[i], vcopy->data[i], vcopy_arr->data[i]);
+               vector_get(vec,i),
+               vector_get(vcopy,i),
+               vector_get(vcopy_arr,i));
     }
 
     long min=3, max=10;
@@ -402,38 +415,49 @@ int main(int argc, char** argv) {
 
     %(shortname)svector* vrng=%(shortname)svector_range(min, max);
     for (size_t i=0; i<vrng->size; i++) {
-        printf("    %%lu %(format)s\\n", i, vrng->data[i]);
+        printf("    %%lu %(format)s\\n", i, vector_get(vrng,i));
     }
 
     size_t nzero=3;
     printf("making zeros[%%lu]\\n", nzero);
     %(shortname)svector* vzeros=%(shortname)svector_zeros(nzero);
     for (size_t i=0; i<nzero; i++) {
-        printf("    %%lu %(format)s\\n", i, vzeros->data[i]);
+        printf("    %%lu %(format)s\\n", i, vector_get(vzeros,i));
     }
 
     size_t none=3;
     printf("making ones[%%lu]\\n", none);
     %(shortname)svector* vones=%(shortname)svector_ones(none);
     for (size_t i=0; i<none; i++) {
-        printf("    %%lu %(format)s\\n", i, vones->data[i]);
+        printf("    %%lu %(format)s\\n", i, vector_get(vones,i));
     }
 
 
 
     printf("freeing vectors\\n");
     printf("freeing vec\\n");
-    vec=%(shortname)svector_free(vec);
+    vector_free(vec);
+    assert(vec==NULL);
+
     printf("freeing vcopy\\n");
-    vcopy=%(shortname)svector_free(vcopy);
+    vector_free(vcopy);
+    assert(vcopy==NULL);
+
     printf("freeing vcopy_arr\\n");
-    vcopy_arr=%(shortname)svector_free(vcopy_arr);
+    vector_free(vcopy_arr);
+    assert(vcopy_arr==NULL);
+
     printf("freeing vrng\\n");
-    vrng=%(shortname)svector_free(vrng);
+    vector_free(vrng);
+    assert(vrng==NULL);
+
     printf("freeing vzeros\\n");
-    vzeros=%(shortname)svector_free(vzeros);
+    vector_free(vzeros);
+    assert(vzeros==NULL);
+
     printf("freeing vones\\n");
-    vones=%(shortname)svector_free(vones);
+    vector_free(vones);
+    assert(vones==NULL);
 }
 '''
 
@@ -443,6 +467,7 @@ tformat_user='''// This file was auto-generated
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "../vector.h"
 
 int main(int argc, char** argv) {
@@ -479,10 +504,22 @@ int main(int argc, char** argv) {
     printf("making a copy from array\\n");
     %(shortname)svector* vcopy_arr=%(shortname)svector_fromarray(vec->data, vec->size);
 
+    for (size_t i=0; i<vec->size; i++) {
+        %(type)s val=vector_get(vec,i);
+        %(type)s valcpy=vector_get(vcopy,i);
+        %(type)s valcpy_arr=vector_get(vcopy_arr,i);
 
-    vec=%(shortname)svector_free(vec);
-    vcopy=%(shortname)svector_free(vcopy);
-    vcopy_arr=%(shortname)svector_free(vcopy_arr);
+        assert(memcmp(&val, &valcpy, sizeof(%(type)s)) == 0);
+        assert(memcmp(&val, &valcpy_arr, sizeof(%(type)s)) == 0);
+    }
+
+
+    vector_free(vec);
+    assert(vec==NULL);
+    vector_free(vcopy);
+    assert(vcopy==NULL);
+    vector_free(vcopy_arr);
+    assert(vcopy_arr==NULL);
 }
 '''
 
@@ -493,6 +530,26 @@ header_head="""// This header was auto-generated
 
 #define VECTOR_INITSIZE 1
 #define VECTOR_PUSH_REALLOC_MULTVAL 2
+
+// get properties, generic macros
+#define vector_size(vec) (vec)->size
+#define vector_capacity(vec) (vec)->capacity
+
+// getters and setters, generic macros
+// unsafe; maybe make safe?
+#define vector_get(vec, i) (vec)->data[i]
+#define vector_set(vec, i, val) do {                                         \
+    (vec)->data[(i)] = (val);                                                \
+} while(0)
+
+// frees vec and its data, sets vec==NULL
+#define vector_free(vec) do {                                                \
+    if ((vec)) {                                                             \
+        free((vec)->data);                                                   \
+        free((vec));                                                         \
+        (vec)=NULL;                                                          \
+    }                                                                        \
+} while(0)
 """
 
 header_foot="""
