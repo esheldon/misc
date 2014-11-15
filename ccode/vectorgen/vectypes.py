@@ -111,9 +111,27 @@ void %(shortname)svector_push(%(shortname)svector* self, %(type)s val);
 // if empty, an error message is printed and a zerod version of
 // the type is returned
 %(type)s %(shortname)svector_pop(%(shortname)svector* self);
+
+// make a new copy of the vector
+%(shortname)svector* %(shortname)svector_copy(%(shortname)svector* self);
+
+// make a new vector with data copied from the input array
+%(shortname)svector* %(shortname)svector_fromarray(%(type)s* data, size_t size);
+
+// make a vector with the specified initial size, zeroed
+%(shortname)svector* %(shortname)svector_zeros(size_t num);
 '''
 
 hformat_builtin='''
+//
+// these are only written builtins
+//
+
+// make a vector with the specified initial size, set to 1
+%(shortname)svector* %(shortname)svector_ones(size_t num);
+
+%(shortname)svector* %(shortname)svector_range(long min, long max);
+
 int __%(shortname)svector_compare_el(const void *a, const void *b);
 void %(shortname)svector_sort(%(shortname)svector* self);
 %(type)s* %(shortname)svector_find(%(shortname)svector* self, %(type)s el);
@@ -156,7 +174,7 @@ void %(shortname)svector_realloc(%(shortname)svector* self, size_t newcap) {
             // the capacity is larger.  Make sure to initialize the new
             // memory region.  This is the area starting from index [oldcap]
             size_t num_new_bytes = (newcap-oldcap)*elsize;
-            memset(&newdata[oldcap], 0, num_new_bytes);
+            memset(newdata + oldcap, 0, num_new_bytes);
         } else if (self->size > newcap) {
             // The viewed size is larger than the capacity in this case,
             // we must set the size to the maximum it can be, which is the
@@ -234,10 +252,59 @@ void %(shortname)svector_push(%(shortname)svector* self, %(type)s val) {
     self->size--;
     return val;
 }
+
+
+%(shortname)svector* %(shortname)svector_copy(%(shortname)svector* self) {
+    %(shortname)svector* vcopy=%(shortname)svector_new();
+    %(shortname)svector_resize(vcopy, self->size);
+
+    if (self->size > 0) {
+        memcpy(vcopy->data, self->data, self->size*sizeof(%(type)s));
+    }
+
+    return vcopy;
+}
+
+%(shortname)svector* %(shortname)svector_fromarray(%(type)s* data, size_t size) {
+    %(shortname)svector* self=%(shortname)svector_new();
+    %(shortname)svector_resize(self, size);
+
+    if (self->size > 0) {
+        memcpy(self->data, data, size*sizeof(%(type)s));
+    }
+
+    return self;
+}
+
+%(shortname)svector* %(shortname)svector_zeros(size_t num) {
+
+    %(shortname)svector* self=%(shortname)svector_new();
+    %(shortname)svector_resize(self, num);
+    return self;
+}
+
+%(shortname)svector* %(shortname)svector_ones(size_t num) {
+
+    %(shortname)svector* self=%(shortname)svector_new();
+    for (size_t i=0; i<num; i++) {
+        %(shortname)svector_push(self,1);
+    }
+    return self;
+}
 '''
 
 
 c_format_builtin='''
+%(shortname)svector* %(shortname)svector_range(long min, long max) {
+
+    %(shortname)svector* self=%(shortname)svector_new();
+    for (long i=min; i<max; i++) {
+        %(shortname)svector_push(self,i);
+    }
+    
+    return self;
+}
+
 int __%(shortname)svector_compare_el(const void *a, const void *b) {
     %(sortype)s temp = 
         (  (%(sortype)s) *( (%(type)s*)a ) ) 
@@ -263,7 +330,7 @@ void %(shortname)svector_sort(%(shortname)svector* self) {
 tformat_builtin='''// This file was auto-generated
 #include <stdio.h>
 #include <stdlib.h>
-#include "vector.h"
+#include "../vector.h"
 
 int main(int argc, char** argv) {
     %(shortname)svector* vec = %(shortname)svector_new();
@@ -318,7 +385,55 @@ int main(int argc, char** argv) {
         }
     }
 
-    %(shortname)svector_free(vec);
+
+    printf("making a copy\\n");
+    %(shortname)svector* vcopy=%(shortname)svector_copy(vec);
+
+    printf("making a copy from array\\n");
+    %(shortname)svector* vcopy_arr=%(shortname)svector_fromarray(vec->data, vec->size);
+
+    for (size_t i=0; i<vec->size; i++) {
+        printf("    compare: %(format)s %(format)s %(format)s\\n",
+               vec->data[i], vcopy->data[i], vcopy_arr->data[i]);
+    }
+
+    long min=3, max=10;
+    printf("making range [%%ld,%%ld)\\n", min, max);
+
+    %(shortname)svector* vrng=%(shortname)svector_range(min, max);
+    for (size_t i=0; i<vrng->size; i++) {
+        printf("    %%lu %(format)s\\n", i, vrng->data[i]);
+    }
+
+    size_t nzero=3;
+    printf("making zeros[%%lu]\\n", nzero);
+    %(shortname)svector* vzeros=%(shortname)svector_zeros(nzero);
+    for (size_t i=0; i<nzero; i++) {
+        printf("    %%lu %(format)s\\n", i, vzeros->data[i]);
+    }
+
+    size_t none=3;
+    printf("making ones[%%lu]\\n", none);
+    %(shortname)svector* vones=%(shortname)svector_ones(none);
+    for (size_t i=0; i<none; i++) {
+        printf("    %%lu %(format)s\\n", i, vones->data[i]);
+    }
+
+
+
+    printf("freeing vectors\\n");
+    printf("freeing vec\\n");
+    vec=%(shortname)svector_free(vec);
+    printf("freeing vcopy\\n");
+    vcopy=%(shortname)svector_free(vcopy);
+    printf("freeing vcopy_arr\\n");
+    vcopy_arr=%(shortname)svector_free(vcopy_arr);
+    printf("freeing vrng\\n");
+    vrng=%(shortname)svector_free(vrng);
+    printf("freeing vzeros\\n");
+    vzeros=%(shortname)svector_free(vzeros);
+    printf("freeing vones\\n");
+    vones=%(shortname)svector_free(vones);
 }
 '''
 
@@ -328,7 +443,7 @@ tformat_user='''// This file was auto-generated
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "vector.h"
+#include "../vector.h"
 
 int main(int argc, char** argv) {
     %(shortname)svector* vec = %(shortname)svector_new();
@@ -358,96 +473,18 @@ int main(int argc, char** argv) {
     printf("popping the now empty vector, should give an error message: \\n");
     %(shortname)svector_pop(vec);
 
-    %(shortname)svector_free(vec);
+    printf("making a copy\\n");
+    %(shortname)svector* vcopy=%(shortname)svector_copy(vec);
+
+    printf("making a copy from array\\n");
+    %(shortname)svector* vcopy_arr=%(shortname)svector_fromarray(vec->data, vec->size);
+
+
+    vec=%(shortname)svector_free(vec);
+    vcopy=%(shortname)svector_free(vcopy);
+    vcopy_arr=%(shortname)svector_free(vcopy_arr);
 }
 '''
-
-
-
-def get_type_info(type):
-    type_info={}
-    if type not in typemap:
-        #print("detected non-builtin type: '%s'" % type)
-        type_info['type']=type
-        type_info['shortname']=type
-        type_info['is_builtin']=False
-    else:
-        type_info.update(typemap[type])
-        # type equal to c type
-        type_info['type']=typemap[type]['ctype']
-
-    return type_info
-
-def generate_h(types):
-    fobj=open('vector.h','w')
-    head="""// This header was auto-generated
-#ifndef _VECTOR_H
-#define _VECTOR_H
-#include <stdint.h>
-
-#define VECTOR_INITSIZE 1
-#define VECTOR_PUSH_REALLOC_MULTVAL 2
-"""
-
-    fobj.write(head)
-
-    for type in types:
-        type_info=get_type_info(type)
-        text = hformat % type_info
-        fobj.write(text)
-
-        if type_info['is_builtin']:
-            text = hformat_builtin % type_info
-            fobj.write(text)
-
-    fobj.write('\n#endif  // header guard\n')
-    fobj.close()
-
-def generate_c(types):
-    fobj=open('vector.c','w')
-    head="""// This file was auto-generated
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <float.h>
-#include "vector.h"
-
-"""
-    fobj.write(head)
-
-    for type in types:
-        type_info=get_type_info(type)
-
-        text = c_format % type_info
-        fobj.write(text)
-        
-        if type_info['is_builtin']:
-            text = c_format_builtin % type_info
-            fobj.write(text)
-
-    fobj.close()
-
-def generate_tests(types):
-    '''
-    Files associated with tests not in the type list are removed.
-    '''
-
-    for type in types:
-        type_info=get_type_info(type)
-        sname=type_info['shortname']
-
-        cname = 'test-%(shortname)svector.c' % type_info
-        
-        with open(cname,'w') as fobj:
-            if type_info['is_builtin']:
-                text = tformat_builtin % type_info
-            else:
-                text = tformat_user % type_info
-
-            fobj.write(text)
-            fobj.close()
 
 header_head="""// This header was auto-generated
 #ifndef _VECTOR_H
@@ -523,10 +560,16 @@ class Generator(dict):
 
     def write_tests(self):
         print("writing tests")
+        outdir="tests"
+        if not os.path.exists(outdir):
+            print("making dir:",outdir)
+            os.makedirs(outdir)
+
         for type in self:
             ti=self[type]
 
             cname = 'test-%(shortname)svector.c' % ti
+            cname = os.path.join(outdir, cname)
             
             print("    writing:",cname)
             with open(cname,'w') as fobj:
