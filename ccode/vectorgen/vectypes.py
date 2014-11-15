@@ -574,6 +574,7 @@ int main(int argc, char** argv) {
 '''
 
 c_head="""// This file was auto-generated using vectorgen
+// most array methods are generic, see vector.h
 
 #include <stdlib.h>
 #include <stdio.h>
