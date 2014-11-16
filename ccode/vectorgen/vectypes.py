@@ -3,15 +3,6 @@ import os
 import sys
 import yaml
 
-# type map for built-in C types.  User defined types will not use short names
-# or have sorting/searching functions written
-#
-# format is just for the test program
-#
-# ctype is the actual C variable type name
-# shortname is for the struct name and functions, e.g. 
-#   dvector* vec = dvector_new();
-
 def add_defaults(d, type):
     """
     defaults
@@ -69,7 +60,7 @@ header_head="""// This header was auto-generated using vectorgen
 #define VECTOR_INITSIZE 1
 #define VECTOR_PUSH_REALLOC_MULTVAL 2
 
-// get properties, generic macros
+// properties, generic macros
 #define vector_size(vec) (vec)->size
 #define vector_capacity(vec) (vec)->capacity
 
@@ -80,6 +71,9 @@ header_head="""// This header was auto-generated using vectorgen
 #define vector_set(vec, i, val) do {                                         \\
     (vec)->data[(i)] = (val);                                                \\
 } while(0)
+
+// pointer to the underlying data
+#define vector_data(vec) (vec)->data
 
 // pointer to beginning
 #define vector_begin(vec) (vec)->data
@@ -215,6 +209,30 @@ header_head="""// This header was auto-generated using vectorgen
     (self)->data[_index];                                                    \\
 })
 
+// add the elements of v2 to v1
+#define vector_add_inplace(v1, v2) do {                                    \\
+    size_t num=0;                                                          \\
+    size_t n1=vector_size( (v1) );                                         \\
+    size_t n2=vector_size( (v2) );                                         \\
+    if ( n1 < n2 ) {                                                       \\
+        num=n1;                                                            \\
+    } else {                                                               \\
+        num=n2;                                                            \\
+    }                                                                      \\
+    for (size_t i=0; i<num; i++) {                                         \\
+        (v1)->data[i] += (v2)->data[i];                                    \\
+    }                                                                      \\
+} while (0)
+
+
+// not using foreach here since that requires gnu99
+#define vector_add_scalar(self, val) do {                                  \\
+    for (size_t i=0; i < vector_size( (self) ); i++) {                     \\
+        (self)->data[i] += (val);                                          \\
+    }                                                                      \\
+} while (0)
+
+
 """
 
 header_foot="""
@@ -321,7 +339,6 @@ c_format_builtin='''
 
     %(shortname)svector* self=%(shortname)svector_new();
     for (size_t i=0; i<num; i++) {
-        //%(shortname)svector_push(self,1);
         vector_push(self,1);
     }
     return self;
@@ -331,7 +348,6 @@ c_format_builtin='''
 
     %(shortname)svector* self=%(shortname)svector_new();
     for (long i=min; i<max; i++) {
-        //%(shortname)svector_push(self,i);
         vector_push(self,i);
     }
     
@@ -374,24 +390,23 @@ int main(int argc, char** argv) {
         vector_push(vec, i);
     }
 
-    printf("size: %%ld\\n", vec->size);
-    printf("capacity: %%ld\\n", vec->capacity);
+    printf("size: %%ld\\n", vector_size(vec));
+    printf("capacity: %%ld\\n", vector_capacity(vec));
 
     size_t newsize=25;
 
     printf("reallocating to size %%ld\\n", newsize);
     vector_realloc(vec, newsize);
 
-    printf("size: %%ld\\n", vec->size);
-    printf("capacity: %%ld\\n", vec->capacity);
+    printf("size: %%ld\\n", vector_size(vec));
+    printf("capacity: %%ld\\n", vector_capacity(vec));
 
-    while (vec->size > 0) {
+    while (vector_size(vec) > 0) {
         printf("pop: %(format)s\\n", vector_pop(vec));
     }
 
-    // size, vec->size is also exposed
     printf("size: %%ld\\n", vector_size(vec));
-    // capacity, vec->capacity is also exposed
+
     printf("capacity: %%ld\\n", vector_capacity(vec));
 
     printf("popping the now empty vector, should give zero and an error message: \\n");
@@ -412,14 +427,13 @@ int main(int argc, char** argv) {
 
     printf("putting unordered elements\\n");
 
-    // note vec->data is also exposed
     vector_set(vec, 3, 88);
     vector_set(vec, 5,25);
     vec->data[9] = 1.3;
 
     printf("sorting\\n");
     %(shortname)svector_sort(vec);
-    for (size_t i=0; i<vec->size; i++) {
+    for (size_t i=0; i < vector_size(vec); i++) {
         printf("    vec[%%ld]: %(format)s\\n", i, vector_get(vec,i));
     }
 
@@ -440,9 +454,9 @@ int main(int argc, char** argv) {
     %(shortname)svector* vcopy=%(shortname)svector_copy(vec);
 
     printf("making a copy from array\\n");
-    %(shortname)svector* vcopy_arr=%(shortname)svector_fromarray(vec->data, vec->size);
+    %(shortname)svector* vcopy_arr=%(shortname)svector_fromarray(vector_data(vec), vector_size(vec));
 
-    for (size_t i=0; i<vec->size; i++) {
+    for (size_t i=0; i < vector_size(vec); i++) {
         assert(vector_get(vec,i)==vector_get(vcopy,i));
         assert(vector_get(vec,i)==vector_get(vcopy_arr,i));
         printf("    compare: %(format)s %(format)s %(format)s\\n",
@@ -459,20 +473,32 @@ int main(int argc, char** argv) {
         printf("    %%lu %(format)s\\n", i, vector_get(vrng,i));
     }
 
-    size_t nzero=3;
-    printf("making zeros[%%lu]\\n", nzero);
-    %(shortname)svector* vzeros=%(shortname)svector_zeros(nzero);
-    for (size_t i=0; i<nzero; i++) {
+    size_t n_zero=3;
+    printf("making zeros[%%lu]\\n", n_zero);
+    %(shortname)svector* vzeros=%(shortname)svector_zeros(n_zero);
+    for (size_t i=0; i<n_zero; i++) {
         printf("    %%lu %(format)s\\n", i, vector_get(vzeros,i));
     }
 
-    size_t none=3;
-    printf("making ones[%%lu]\\n", none);
-    %(shortname)svector* vones=%(shortname)svector_ones(none);
-    for (size_t i=0; i<none; i++) {
+    size_t n_one=3;
+    printf("making ones[%%lu]\\n", n_one);
+    %(shortname)svector* vones=%(shortname)svector_ones(n_one);
+    for (size_t i=0; i<vector_size(vones); i++) {
         printf("    %%lu %(format)s\\n", i, vector_get(vones,i));
     }
 
+    int scalar=3;
+    printf("adding scalar to vzeros: %%d\\n", scalar);
+    vector_add_scalar(vzeros, scalar);
+    for (size_t i=0; i<vector_size(vzeros); i++) {
+        printf("    %%lu %(format)s\\n", i, vector_get(vzeros,i));
+    }
+
+    printf("adding vones to vzeros in place\\n");
+    vector_add_inplace(vzeros, vones);
+    for (size_t i=0; i<vector_size(vzeros); i++) {
+        printf("    %%lu %(format)s\\n", i, vector_get(vzeros,i));
+    }
 
 
     printf("freeing vectors\\n");
@@ -520,23 +546,24 @@ int main(int argc, char** argv) {
         vector_push(vec, var);
     }
 
-    printf("size: %%ld\\n", vec->size);
-    printf("capacity: %%ld\\n", vec->capacity);
+    printf("size: %%ld\\n", vector_size(vec));
+    printf("capacity: %%ld\\n", vector_capacity(vec));
 
     size_t newsize=25;
     printf("reallocating to size %%ld\\n", newsize);
     vector_realloc(vec, newsize);
 
-    printf("size: %%ld\\n", vec->size);
-    printf("capacity: %%ld\\n", vec->capacity);
+
+    printf("size: %%ld\\n", vector_size(vec));
+    printf("capacity: %%ld\\n", vector_capacity(vec));
 
     printf("making a copy\\n");
     %(shortname)svector* vcopy=%(shortname)svector_copy(vec);
 
     printf("making a copy from array\\n");
-    %(shortname)svector* vcopy_arr=%(shortname)svector_fromarray(vec->data, vec->size);
+    %(shortname)svector* vcopy_arr=%(shortname)svector_fromarray(vector_data(vec), vector_size(vec));
 
-    for (size_t i=0; i<vec->size; i++) {
+    for (size_t i=0; i<vector_size(vec); i++) {
         %(type)s val=vector_get(vec,i);
         %(type)s valcpy=vector_get(vcopy,i);
         %(type)s valcpy_arr=vector_get(vcopy_arr,i);
@@ -555,12 +582,12 @@ int main(int argc, char** argv) {
     }
 
     printf("popping everying\\n");
-    while (vec->size > 0) {
+    while (vector_size(vec) > 0) {
         var = vector_pop(vec);
     }
 
-    printf("size: %%ld\\n", vec->size);
-    printf("capacity: %%ld\\n", vec->capacity);
+    printf("size: %%ld\\n", vector_size(vec));
+    printf("capacity: %%ld\\n", vector_capacity(vec));
 
     printf("popping the now empty vector, should give an error message: \\n");
     vector_pop(vec);
