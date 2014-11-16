@@ -240,6 +240,38 @@ header_head="""// This header was auto-generated using vectorgen
     }                                                                      \\
 } while (0)
 
+// multiply the elements of v2 to v1
+// if the vectors are not the same size, then only the smallest
+// number are multiplied
+#define vector_mult_inplace(v1, v2) do {                                   \\
+    size_t num=0;                                                          \\
+    size_t n1=vector_size( (v1) );                                         \\
+    size_t n2=vector_size( (v2) );                                         \\
+    if (n1 != n2) {                                                        \\
+        fprintf(stderr,                                                    \\
+         "warning: vectors are not the same size, multiplying subset\\n"); \\
+        if (n1 < n2) {                                                     \\
+            num=n1;                                                        \\
+        } else {                                                           \\
+            num=n2;                                                        \\
+        }                                                                  \\
+    } else {                                                               \\
+        num=n1;                                                            \\
+    }                                                                      \\
+    for (size_t i=0; i<num; i++) {                                         \\
+        (v1)->data[i] *= (v2)->data[i];                                    \\
+    }                                                                      \\
+} while (0)
+
+
+// not using foreach here since that requires gnu99
+#define vector_mult_scalar(self, val) do {                                  \\
+    for (size_t i=0; i < vector_size( (self) ); i++) {                     \\
+        (self)->data[i] *= (val);                                          \\
+    }                                                                      \\
+} while (0)
+
+
 
 """
 
@@ -513,6 +545,22 @@ int main(int argc, char** argv) {
     for (size_t i=0; i<vector_size(vzeros); i++) {
         printf("    %%lu %(format)s\\n", i, vector_get(vzeros,i));
     }
+
+    scalar=27;
+    printf("multiplying scalar by vones: %%d\\n", scalar);
+    vector_mult_scalar(vones, scalar);
+    for (size_t i=0; i<vector_size(vones); i++) {
+        printf("    %%lu %(format)s\\n", i, vector_get(vones,i));
+    }
+
+    printf("adding vones to vzeros in place\\n");
+    vector_mult_inplace(vzeros, vones);
+    for (size_t i=0; i<vector_size(vzeros); i++) {
+        printf("    %%lu %(format)s\\n", i, vector_get(vzeros,i));
+    }
+
+
+
 
     printf("freeing vectors\\n");
     printf("freeing vec\\n");
