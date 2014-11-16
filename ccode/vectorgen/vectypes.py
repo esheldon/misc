@@ -210,14 +210,22 @@ header_head="""// This header was auto-generated using vectorgen
 })
 
 // add the elements of v2 to v1
+// if the vectors are not the same size, then only the smallest
+// number are added
 #define vector_add_inplace(v1, v2) do {                                    \\
     size_t num=0;                                                          \\
     size_t n1=vector_size( (v1) );                                         \\
     size_t n2=vector_size( (v2) );                                         \\
-    if ( n1 < n2 ) {                                                       \\
-        num=n1;                                                            \\
+    if (n1 != n2) {                                                        \\
+        fprintf(stderr,                                                    \\
+         "warning: vectors are not the same size, adding subset\\n");      \\
+        if (n1 < n2) {                                                     \\
+            num=n1;                                                        \\
+        } else {                                                           \\
+            num=n2;                                                        \\
+        }                                                                  \\
     } else {                                                               \\
-        num=n2;                                                            \\
+        num=n1;                                                            \\
     }                                                                      \\
     for (size_t i=0; i<num; i++) {                                         \\
         (v1)->data[i] += (v2)->data[i];                                    \\
@@ -500,6 +508,11 @@ int main(int argc, char** argv) {
         printf("    %%lu %(format)s\\n", i, vector_get(vzeros,i));
     }
 
+    printf("intentionally adding mismatch sizes, expect a warning\\n");
+    vector_add_inplace(vzeros, vrng);
+    for (size_t i=0; i<vector_size(vzeros); i++) {
+        printf("    %%lu %(format)s\\n", i, vector_get(vzeros,i));
+    }
 
     printf("freeing vectors\\n");
     printf("freeing vec\\n");
