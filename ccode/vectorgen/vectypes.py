@@ -204,7 +204,7 @@ header_head="""// This header was auto-generated using vectorgen
         (self)->size--;                                                      \\
     } else {                                                                 \\
         fprintf(stderr,                                                      \\
-                "attempt to pop from empty vector, returning garbage\\n");   \\
+        "VectorError: attempt to pop from empty vector, returning garbage\\n");   \\
     }                                                                        \\
     (self)->data[_index];                                                    \\
 })
@@ -422,32 +422,34 @@ tformat_builtin='''// This file was auto-generated using vectorgen
 #include <assert.h>
 #include "../vector.h"
 
+void print_sizecap(%(shortname)svector* vec) {
+    printf("size: %%ld capacity: %%ld\\n",
+           vector_size(vec), vector_capacity(vec));
+}
+
 int main(int argc, char** argv) {
     %(shortname)svector* vec = %(shortname)svector_new();
 
-    for (size_t i=0;i<75; i++) {
+    for (size_t i=0;i<15; i++) {
         printf("push: %(format)s\\n", (%(type)s)i);
         vector_push(vec, i);
     }
 
-    printf("size: %%ld\\n", vector_size(vec));
-    printf("capacity: %%ld\\n", vector_capacity(vec));
+    print_sizecap(vec);
 
-    size_t newsize=25;
+    size_t newsize=10;
 
     printf("reallocating to size %%ld\\n", newsize);
     vector_realloc(vec, newsize);
 
-    printf("size: %%ld\\n", vector_size(vec));
-    printf("capacity: %%ld\\n", vector_capacity(vec));
+    print_sizecap(vec);
 
+    printf("popping everything\\n");
     while (vector_size(vec) > 0) {
         printf("pop: %(format)s\\n", vector_pop(vec));
     }
 
-    printf("size: %%ld\\n", vector_size(vec));
-
-    printf("capacity: %%ld\\n", vector_capacity(vec));
+    print_sizecap(vec);
 
     printf("popping the now empty vector, should give zero and an error message: \\n");
     printf("    %(format)s\\n", vector_pop(vec));
@@ -598,6 +600,12 @@ tformat_user='''// This file was auto-generated using vectorgen
 #include <assert.h>
 #include "../vector.h"
 
+void print_sizecap(%(shortname)svector* vec) {
+    printf("size: %%ld capacity: %%ld\\n",
+           vector_size(vec), vector_capacity(vec));
+}
+
+
 int main(int argc, char** argv) {
     %(shortname)svector* vec = %(shortname)svector_new();
 
@@ -607,16 +615,13 @@ int main(int argc, char** argv) {
         vector_push(vec, var);
     }
 
-    printf("size: %%ld\\n", vector_size(vec));
-    printf("capacity: %%ld\\n", vector_capacity(vec));
+    print_sizecap(vec);
 
     size_t newsize=25;
     printf("reallocating to size %%ld\\n", newsize);
     vector_realloc(vec, newsize);
 
-
-    printf("size: %%ld\\n", vector_size(vec));
-    printf("capacity: %%ld\\n", vector_capacity(vec));
+    print_sizecap(vec);
 
     printf("making a copy\\n");
     %(shortname)svector* vcopy=%(shortname)svector_copy(vec);
@@ -642,13 +647,12 @@ int main(int argc, char** argv) {
         index++;
     }
 
-    printf("popping everying\\n");
+    printf("popping everything\\n");
     while (vector_size(vec) > 0) {
         var = vector_pop(vec);
     }
 
-    printf("size: %%ld\\n", vector_size(vec));
-    printf("capacity: %%ld\\n", vector_capacity(vec));
+    print_sizecap(vec);
 
     printf("popping the now empty vector, should give an error message: \\n");
     vector_pop(vec);
