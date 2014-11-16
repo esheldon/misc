@@ -555,7 +555,7 @@ int main(int argc, char** argv) {
         printf("    %%lu %(format)s\\n", i, vector_get(vones,i));
     }
 
-    printf("adding vones to vzeros in place\\n");
+    printf("multiplying vones to vzeros in place\\n");
     vector_mult_inplace(vzeros, vones);
     for (size_t i=0; i<vector_size(vzeros); i++) {
         printf("    %%lu %(format)s\\n", i, vector_get(vzeros,i));
