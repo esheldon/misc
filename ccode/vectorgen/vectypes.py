@@ -199,8 +199,9 @@ header_head="""// This header was auto-generated using vectorgen
 // is the zeroth element
 
 #define vector_pop(self) ({                                                  \\
-    size_t _index=(self)->size-1;                                            \\
+    size_t _index=0;                                                         \\
     if ((self)->size > 0) {                                                  \\
+        size_t _index=(self)->size-1;                                        \\
         (self)->size--;                                                      \\
     } else {                                                                 \\
         fprintf(stderr,                                                      \\
