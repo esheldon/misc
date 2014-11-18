@@ -219,7 +219,7 @@ header_head="""// This header was auto-generated using vectorgen
     size_t n2=vector_size( (v2) );                                         \\
     if (n1 != n2) {                                                        \\
         fprintf(stderr,                                                    \\
-         "warning: vectors are not the same size, adding subset\\n");      \\
+         "VectorWarning: vectors are not the same size, adding subset\\n");      \\
         if (n1 < n2) {                                                     \\
             num=n1;                                                        \\
         } else {                                                           \\
