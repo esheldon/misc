@@ -54,10 +54,15 @@ def read_config(config_file):
 header_head="""// This header was auto-generated using vectorgen
 #ifndef _VECTORGEN_H
 #define _VECTORGEN_H
+
 #include <stdint.h>
 #include <string.h>
 
+// initial capacity of vectors created with new()
+// and capacity of cleared vectors
 #define VECTOR_INITCAP 1
+
+// make sure this is an integer for now
 #define VECTOR_PUSH_REALLOC_MULTVAL 2
 
 // properties, generic macros
@@ -164,7 +169,7 @@ header_head="""// This header was auto-generated using vectorgen
 
 // set size to zero and realloc to have default initial capacity
 #define vector_clear(self) do {                                             \\
-    vector_realloc((self), (self)->initcap);                               \\
+    vector_realloc((self), VECTOR_INITCAP);                                 \\
     (self)->size=0;                                                         \\
 } while (0)
 
@@ -177,10 +182,9 @@ header_head="""// This header was auto-generated using vectorgen
                                                                            \\
         size_t _newsize=0;                                                 \\
         if ((self)->capacity == 0) {                                       \\
-            _newsize=(self)->initcap;                                     \\
+            _newsize=VECTOR_INITCAP ;                                      \\
         } else {                                                           \\
-            _newsize = (size_t)((self)->capacity*(self)->realloc_multval); \\
-            _newsize++;                                                    \\
+            _newsize = (self)->capacity*VECTOR_PUSH_REALLOC_MULTVAL;       \\
         }                                                                  \\
                                                                            \\
         vector_realloc((self), _newsize);                                  \\
@@ -286,15 +290,10 @@ hformat='''
 typedef struct {
     size_t size;            // number of elements that are visible to the user
     size_t capacity;        // number of allocated elements in data vector
-    size_t initcap;        // default size on creation, default VECTOR_INITCAP 
-    double realloc_multval; // when capacity is exceeded while pushing, 
-                            // reallocate to capacity*realloc_multval,
-                            // default VECTOR_PUSH_REALLOC_MULTVAL
-                            // if capacity was zero, we allocate to initcap
     %(type)s* data;
 } %(shortname)svector;
 
-// create a new vector with initcap capacity and zero visible size
+// create a new vector with VECTOR_INITCAP capacity and zero visible size
 %(shortname)svector* %(shortname)svector_new();
 
 // make a new copy of the vector
@@ -330,11 +329,9 @@ c_format='''
         return NULL;
     }
 
-    self->capacity        = VECTOR_INITCAP;
-    self->initcap        = VECTOR_INITCAP;
-    self->realloc_multval = VECTOR_PUSH_REALLOC_MULTVAL;
+    self->capacity = VECTOR_INITCAP;
 
-    self->data = calloc(self->initcap, sizeof(%(type)s));
+    self->data = calloc(self->capacity, sizeof(%(type)s));
     if (self->data == NULL) {
         fprintf(stderr,"Could not allocate data for vector\\n");
         exit(1);
