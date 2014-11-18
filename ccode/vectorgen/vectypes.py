@@ -201,7 +201,7 @@ header_head="""// This header was auto-generated using vectorgen
 #define vector_pop(self) ({                                                  \\
     size_t _index=0;                                                         \\
     if ((self)->size > 0) {                                                  \\
-        size_t _index=(self)->size-1;                                        \\
+        _index=(self)->size-1;                                               \\
         (self)->size--;                                                      \\
     } else {                                                                 \\
         fprintf(stderr,                                                      \\
