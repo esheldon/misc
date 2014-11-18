@@ -57,7 +57,7 @@ header_head="""// This header was auto-generated using vectorgen
 #include <stdint.h>
 #include <string.h>
 
-#define VECTOR_INITSIZE 1
+#define VECTOR_INITCAP 1
 #define VECTOR_PUSH_REALLOC_MULTVAL 2
 
 // properties, generic macros
@@ -164,7 +164,7 @@ header_head="""// This header was auto-generated using vectorgen
 
 // set size to zero and realloc to have default initial capacity
 #define vector_clear(self) do {                                             \\
-    vector_realloc((self), (self)->initsize);                               \\
+    vector_realloc((self), (self)->initcap);                               \\
     (self)->size=0;                                                         \\
 } while (0)
 
@@ -177,7 +177,7 @@ header_head="""// This header was auto-generated using vectorgen
                                                                            \\
         size_t _newsize=0;                                                 \\
         if ((self)->capacity == 0) {                                       \\
-            _newsize=(self)->initsize;                                     \\
+            _newsize=(self)->initcap;                                     \\
         } else {                                                           \\
             _newsize = (size_t)((self)->capacity*(self)->realloc_multval); \\
             _newsize++;                                                    \\
@@ -286,15 +286,15 @@ hformat='''
 typedef struct {
     size_t size;            // number of elements that are visible to the user
     size_t capacity;        // number of allocated elements in data vector
-    size_t initsize;        // default size on creation, default VECTOR_INITSIZE 
+    size_t initcap;        // default size on creation, default VECTOR_INITCAP 
     double realloc_multval; // when capacity is exceeded while pushing, 
                             // reallocate to capacity*realloc_multval,
                             // default VECTOR_PUSH_REALLOC_MULTVAL
-                            // if capacity was zero, we allocate to initsize
+                            // if capacity was zero, we allocate to initcap
     %(type)s* data;
 } %(shortname)svector;
 
-// create a new vector with initsize capacity and zero visible size
+// create a new vector with initcap capacity and zero visible size
 %(shortname)svector* %(shortname)svector_new();
 
 // make a new copy of the vector
@@ -330,11 +330,11 @@ c_format='''
         return NULL;
     }
 
-    self->capacity        = VECTOR_INITSIZE;
-    self->initsize        = VECTOR_INITSIZE;
+    self->capacity        = VECTOR_INITCAP;
+    self->initcap        = VECTOR_INITCAP;
     self->realloc_multval = VECTOR_PUSH_REALLOC_MULTVAL;
 
-    self->data = calloc(self->initsize, sizeof(%(type)s));
+    self->data = calloc(self->initcap, sizeof(%(type)s));
     if (self->data == NULL) {
         fprintf(stderr,"Could not allocate data for vector\\n");
         exit(1);
@@ -433,8 +433,9 @@ int main(int argc, char** argv) {
     %(shortname)svector* vec = %(shortname)svector_new();
 
     for (size_t i=0;i<15; i++) {
-        printf("push: %(format)s\\n", (%(type)s)i);
         vector_push(vec, i);
+        printf("push: %(format)s cap: %%lu\\n",
+               (%(type)s)i, vector_capacity(vec));
     }
 
     print_sizecap(vec);
