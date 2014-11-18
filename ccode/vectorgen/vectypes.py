@@ -294,6 +294,7 @@ typedef struct {
     %(type)s* data;
 } %(shortname)svector;
 
+// create a new vector with initsize capacity and zero visible size
 %(shortname)svector* %(shortname)svector_new();
 
 // make a new copy of the vector
@@ -308,7 +309,7 @@ typedef struct {
 
 hformat_builtin='''
 //
-// these are only written builtins
+// these are only written for the builtins
 //
 
 // make a vector with the specified initial size, set to 1
