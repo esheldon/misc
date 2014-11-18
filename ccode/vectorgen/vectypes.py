@@ -287,6 +287,13 @@ header_foot="""
 
 
 hformat='''
+
+/*
+ *
+ * definitions for %(type)s vectors
+ *
+ */
+
 typedef struct {
     size_t size;            // number of elements that are visible to the user
     size_t capacity;        // number of allocated elements in data vector
@@ -314,10 +321,16 @@ hformat_builtin='''
 // make a vector with the specified initial size, set to 1
 %(shortname)svector* %(shortname)svector_ones(size_t num);
 
+// make a vector with elements [0,1,2,...max)
 %(shortname)svector* %(shortname)svector_range(long min, long max);
 
+// compare elements of type %(type)s
 int __%(shortname)svector_compare_el(const void *a, const void *b);
+
+// sort the vector using the above comparison function
 void %(shortname)svector_sort(%(shortname)svector* self);
+
+// find an occurence of the requested value. Assumes the vector is sorted.
 %(type)s* %(shortname)svector_find(%(shortname)svector* self, %(type)s el);
 '''
 
