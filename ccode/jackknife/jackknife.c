@@ -58,13 +58,13 @@ struct data* data_new(int64_t nsample, int64_t nvar) {
     }
 
     data->mean = calloc(nvar, sizeof(double));
-    if (NULL==data->wsums) {
+    if (NULL==data->mean) {
         printf("could not allocate data->mean\n");
         exit(EXIT_FAILURE);
     }
 
-    data->covar = calloc(nvar, sizeof(double));
-    if (NULL==data->wsums) {
+    data->covar = calloc(nvar*nvar, sizeof(double));
+    if (NULL==data->covar) {
         printf("could not allocate data->covar\n");
         exit(EXIT_FAILURE);
     }
