@@ -9,6 +9,7 @@ if [[ $h == "" ]]; then
 else
     module unload wq &> /dev/null
     module unload espy_packages &> /dev/null
+    module unload biggles &> /dev/null
 fi
 
 module unload espy
