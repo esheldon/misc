@@ -10,13 +10,13 @@ struct lensum {
     int64 totpairs;
 
     int64 nbin;
+
+    double sshsum;
     int64* npair;
     double* rsum;
     double* wsum;
     double* dsum;
     double* osum;
-    double* dsensum;
-    double* osensum;
 };
 
 struct lensums {

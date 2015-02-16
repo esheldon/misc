@@ -59,7 +59,7 @@ fi
 run="$1"
 expname="$2"
 
-for subdir in coadd QA/segmap; do
+for subdir in coadd QA/segmap QA/coadd_astrorefine_head; do
 
     local_url="${DESDATA}/${project}/coadd/${run}/${subdir}"
     remote_url="${DESREMOTE_RSYNC}/${project}/coadd/${run}/${subdir}"

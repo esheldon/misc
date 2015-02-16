@@ -189,7 +189,7 @@ void shear_procpair(struct shear* self,
                 lensum->dsum[rbin] += weight*gamma1/scinv;
                 lensum->osum[rbin] += weight*gamma2/scinv;
 
-                lensum->rsum[rbin] += r;
+                lensum->rsum[rbin] += weight*r;
 
                 // calculating Ssh, shear polarizability
                 // factors of two cancel in both of these

@@ -388,7 +388,7 @@ if not hasattr(app, 'exec_lines'):
 lines = """
 from glob import glob
 import numpy
-from numpy import array,zeros,ones,where,arange,linspace, \\
+from numpy import array,zeros,ones,where,arange,linspace,logspace, \\
     sqrt, exp, cos, sin, tanh, arctanh, log, log10, median, \\
     diag
 """
@@ -396,12 +396,12 @@ app.exec_lines.append(lines)
 
 lines="""
 import esutil as eu
-from esutil.numpy_util import ahelp, aprint, where1
+from esutil.numpy_util import ahelp, aprint, where1, between
 from esutil.misc import colprint
 """
 app.exec_lines.append(lines)
 
-for p in ['fitsio']:
+for p in ['fitsio','biggles']:
     lines="import %s" % p
     app.exec_lines.append(lines)
 

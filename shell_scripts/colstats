@@ -46,7 +46,7 @@ for col; do
     "
 
     prnt="${prnt}
-    printf \"%10d %10.7g %10.7g %10.7g %10.7g %10.7g %10.7g\\n\", NR, sum[$col], minvals[$col], maxvals[$col], std[$col], mn[$col], err[$col]"
+    printf \"%10d %10.7g %10.7g %10.7g %12.7g %12.7g %12.7g\\n\", NR, sum[$col], minvals[$col], maxvals[$col], mn[$col], err[$col], std[$col]"
 
     i=$((i = i+1))
 done
@@ -58,7 +58,7 @@ awkscript="BEGIN {
     $script
 } END {
     $dostats
-    printf \"%10s %10s %10s %10s %10s %10s %10s\\n\", \"nrow\", \"total\", \"min\", \"max\", \"std\", \"mean\", \"err\"
+    printf \"%10s %10s %10s %10s %12s %12s %12s\\n\", \"nrow\", \"total\", \"min\", \"max\", \"mean\", \"err\", \"std\"
     $prnt
 }"
 
