@@ -1,5 +1,10 @@
 install the client
 
+    - on arch I followed the instructions for the tar ball, plus specifying it
+      should try to mimic fedora
+    
+    /usr/NX/nxserver --install fedora
+
 start a tunnel using
     setup-nx start
 this uses port 7825
