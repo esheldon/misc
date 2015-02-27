@@ -87,6 +87,8 @@ alias ackp='ack --pager="less -R"'
 
 alias grep='grep --color=auto'
 
+alias startnx='/usr/NX/bin/nxplayer --session ~/nxsessions/session1'
+
 alias pcat=pygmentize
 function pless() {
     pcat "$1" | less -R
