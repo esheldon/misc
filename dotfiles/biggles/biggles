@@ -30,8 +30,8 @@ return_numpy		= 1
  
 # dimensions of window (pixels)
 #
-width			= 800
-height			= 800
+width			= 640
+height			= 640
  
 # make window persistent when using interactively?
 #
