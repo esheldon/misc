@@ -1,0 +1,19 @@
+install the client
+
+start a tunnel using
+    setup-nx start
+this uses port 7825
+
+Start the client with
+   startnx
+
+Create a new connection
+
+- use ssh protocol
+- host is "localhost"
+- port is 7825
+- continue and click "use the nomachine login"
+- don't use alternate key, just continue
+- don't use a proxy
+- give it a name
+- log in with rhic kerberos username and pass
