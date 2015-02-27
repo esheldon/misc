@@ -51,7 +51,6 @@ for col; do
     i=$((i = i+1))
 done
 
-
 awkscript="BEGIN {
     $begin
 } {

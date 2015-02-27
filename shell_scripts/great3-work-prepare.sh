@@ -16,10 +16,7 @@ module unload espy &> /dev/null
 
 module load anaconda/gpfs
 module load espy/work
-module load des-oracle
 
-source activate gmix-meds-work
+source activate great3-work
 
-export NSIM_DIR=~/envs/gmix-meds-work
-export GMIX_MEDS_DIR=~/envs/gmix-meds-work
-export GMIX_MEDS_DATADIR=/astro/u/astrodat/data/DES/wlpipe
+# add great3 datadir etc here

@@ -8,6 +8,11 @@ if [[ $h == "" ]]; then
     module load use.own
 fi
 
+# we install our own versions of these into the env
+module unload tmv &> /dev/null
+module unload galsim &> /dev/null
+
+# unload un-needed packages
 module unload wq &> /dev/null
 module unload espy_packages &> /dev/null
 module unload biggles &> /dev/null
@@ -16,10 +21,7 @@ module unload espy &> /dev/null
 
 module load anaconda/gpfs
 module load espy/work
-module load des-oracle
 
-source activate gmix-meds-work
+source activate great3-mysim
 
-export NSIM_DIR=~/envs/gmix-meds-work
-export GMIX_MEDS_DIR=~/envs/gmix-meds-work
-export GMIX_MEDS_DATADIR=/astro/u/astrodat/data/DES/wlpipe
+module load great3sims/work
