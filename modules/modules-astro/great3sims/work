@@ -1,0 +1,21 @@
+#%Module
+# vim: set filetype=tcl :
+
+module-whatis	"great3sims"
+conflict great3sims
+
+eval set [ array get env HOME ]
+
+set GREAT3SIMS_DIR $HOME/git/great3-public
+
+# the code is not an installable package
+prepend-path PYTHONPATH $GREAT3SIMS_DIR
+
+setenv GREAT3SIMS_DIR $GREAT3SIMS_DIR
+setenv GREAT3SIMS_VERS work
+
+# cosmos galaxy info
+setenv GREAT3SIMS_COSMOS_DIR /astro/astronfs02/esheldon/lensing/galsim-cosmos-data/COSMOS_23.5_training_sample
+
+# outputs of sim under here
+setenv GREAT3SIMS_DATA_DIR /gpfs01/astro/workarea/esheldon/mygreat3

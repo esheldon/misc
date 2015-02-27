@@ -21,7 +21,7 @@ print "Content-type: text/html\n\n"
 print
 
 dir = 'data'
-backup_dir = 'backup'
+backup_dir = os.path.join(dir, 'backup')
 dbfront = os.path.join(dir,'rccny_contacts')
 backup_dbfront = os.path.join(backup_dir,'rccny_contacts')
 
