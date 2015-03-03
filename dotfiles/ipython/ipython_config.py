@@ -402,6 +402,8 @@ from esutil.misc import colprint
 app.exec_lines.append(lines)
 
 lines="""
+import biggles
+
 from biggles import plot, plot_hist
 """
 app.exec_lines.append(lines)
