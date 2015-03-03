@@ -3,6 +3,7 @@ if [[ -e $f ]]; then
     source "$f"
 fi
 
+export TMPDIR=~/data/tmp
 #append_path PATH ~/local/src/dmd/dmd2/linux/bin64
 
 #export LENSDIR=~/lensing
