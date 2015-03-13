@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ -r ~/.Xdefaults ]; then
+	xrdb -merge ~/.Xdefaults
+fi
+if [ -r ~/.Xmodmap ]; then
+	xmodmap ~/.Xmodmap
+fi
+
+# needed on new system at work, forest
+xset fp+ ~/.fonts/
+
+if [ -x /usr/bin/xscreensaver ]; then
+	#xscreensaver &
+    ( ( sleep 10 && /usr/bin/xscreensaver -no-splash -display :0.0 ) & )
+fi
+
+# turn off pc bells
+xset -b
+
+#exec ck-launch-session dbus-launch xmonad
+#exec xmonad
+exec startxfce4
