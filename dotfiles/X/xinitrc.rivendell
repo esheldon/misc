@@ -17,9 +17,9 @@ xset -b
 
 sleeptime=1
 
-if [ -x /usr/bin/xscreensaver ]; then
-	xscreensaver &
-fi
+#if [ -x /usr/bin/xscreensaver ]; then
+#	xscreensaver &
+#fi
 
 sleep $sleeptime
 
