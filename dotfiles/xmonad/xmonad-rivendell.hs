@@ -4,6 +4,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
+import XMonad.Layout.SimpleFloat
 
 -- provides smartBorders for e.g. mplayer
 import XMonad.Layout.NoBorders
@@ -25,6 +26,8 @@ myManageHooks = manageDocks <+> composeAll
     --          -- skipped
     --      ]
 
+myLayouts = Tall ||| Full ||| simpleFloat
+
 main = do 
 	xmproc <- spawnPipe "/usr/bin/xmobar /home/esheldon/.xmonad/xmobarrc"
 	xmonad $ defaultConfig {
@@ -37,19 +40,12 @@ main = do
                    terminal = "xterm -fa inconsolata-14"
     }`additionalKeys` myKeyBindings
 
-myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
+--myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 -- newer versions of dmenu are for some reason not recognized automatically,
 -- so put it here explicitly.  Also we can control the color :)
 myKeyBindings = [((mod1Mask, xK_p), spawn "dmenu_run -nb black -nf white")]
-    ++ 
-    [((m .|. mod1Mask, k), windows $ f i) -- Replace 'mod1Mask' with your mod key of choice.
-    | (i, k) <- zip myWorkspaces [xK_1 .. xK_9]
-    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
+--    ++ 
+--    [((m .|. mod1Mask, k), windows $ f i) -- Replace 'mod1Mask' with your mod key of choice.
+--    | (i, k) <- zip myWorkspaces [xK_1 .. xK_9]
+--    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
-
---    [ (otherModMasks ++ "M-" ++ [key], action tag)
---      | (tag, key)  <- zip myWorkspaces "123456789"
---      , (otherModMasks, action) <- [ ("", windows . W.view) -- was W.greedyView
---      , ("S-", windows . W.shift)
---    ]
---                                                      ]

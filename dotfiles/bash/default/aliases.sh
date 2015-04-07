@@ -89,6 +89,8 @@ alias grep='grep --color=auto'
 
 alias startnx='/usr/NX/bin/nxplayer --session ~/nxsessions/session1'
 
+alias yt="youtube-dl --restrict-filenames"
+
 alias pcat=pygmentize
 function pless() {
     pcat "$1" | less -R
