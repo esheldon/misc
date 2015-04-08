@@ -91,6 +91,8 @@ alias startnx='/usr/NX/bin/nxplayer --session ~/nxsessions/session1'
 
 alias yt="youtube-dl --restrict-filenames"
 
+export slac="rhel6-64.slac.stanford.edu"
+
 alias pcat=pygmentize
 function pless() {
     pcat "$1" | less -R
