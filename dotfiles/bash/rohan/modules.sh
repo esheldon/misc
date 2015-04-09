@@ -16,7 +16,7 @@ if [[ -e $f ]]; then
     module load emcee
     module load acor       # *
 
-    module load fitsio     # *
+    module load fitsio/local     # *
 
     module load ngmix/local
     module load nsim/local

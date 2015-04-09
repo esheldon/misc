@@ -4,6 +4,7 @@ ForwardAgent yes
 ServerAliveInterval 120
 ServerAliveCountMax 10
 GSSAPIAuthentication yes
+GSSAPIDelegateCredentials yes
 
 #ControlMaster auto
 #ControlPath /tmp/%r@%h:%p

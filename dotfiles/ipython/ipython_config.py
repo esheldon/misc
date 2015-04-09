@@ -403,10 +403,10 @@ app.exec_lines.append(lines)
 
 lines="""
 import biggles
+
 from biggles import plot, plot_hist
 """
 app.exec_lines.append(lines)
-
 
 for p in ['fitsio','biggles']:
     lines="import %s" % p

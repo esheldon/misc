@@ -1,0 +1,28 @@
+#%Module1.0#####################################################################
+##
+## Anaconda modulefile
+##
+##
+proc ModulesHelp { } {
+        global version prefix
+
+        puts stderr "\tanaconda - loads the environment needed to use Anaconda installation"
+        puts stderr "\tSets ANACONDA_DIR environment variable."
+        puts stderr "\tModifies PATH environment variable."
+        puts stderr "\n\tVersion $version\n"
+}
+
+module-whatis   "loads the Anaconda environment"
+
+eval set  [ array get env HOME ]
+
+# for Tcl script use only
+set     version         local
+set     prefix          $HOME/miniconda
+set     exec_prefix     ${prefix}
+
+conflict anaconda
+
+setenv          ANACONDA_DIR    ${prefix}
+prepend-path    PATH            ${prefix}/bin
+

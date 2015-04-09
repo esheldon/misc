@@ -42,6 +42,8 @@ lsst_bnl_test=$(uname -n | grep -i lst.bnl)
 
 riemann_test=$(uname -n | grep n00)
 
+slac_test=$(uname -n | grep rhel6)
+
 if [[ "$hname" == "theshire" ]]; then
     dotfileDir=$ddir/theshire
 elif [[ $isnersc == "Y" ]]; then
@@ -49,6 +51,8 @@ elif [[ $isnersc == "Y" ]]; then
 elif [[ $rcftest != "" ]]; then
     # put this one last in case other bnl machines are matched
     dotfileDir=$ddir/astro.bnl.gov
+elif [[ $slac_test != "" ]]; then
+    dotfileDir=$ddir/slac-rhel6
 elif [[ $hname == "ria" ]]; then
     dotfileDir=$ddir/ria
 elif [[ $riemann_test != "" ]]; then
