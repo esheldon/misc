@@ -42,7 +42,7 @@ lsst_bnl_test=$(uname -n | grep -i lst.bnl)
 
 riemann_test=$(uname -n | grep n00)
 
-slac_test=$(uname -n | grep rhel6)
+slac_test=$(uname -n | grep -i rhel)
 
 if [[ "$hname" == "theshire" ]]; then
     dotfileDir=$ddir/theshire
