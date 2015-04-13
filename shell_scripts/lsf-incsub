@@ -29,7 +29,7 @@ function get_diffjobs {
 
 # time to wait after we have filled our limit
 poll_time=30
-sleep_time=0.1
+sleep_time=0.2
 max_jobs=1000
 
 if [ $# -lt 1 ]; then
