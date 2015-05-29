@@ -28,6 +28,7 @@ setenv GREAT3_DATA_DIR $LENSDIR/great3
 setenv GDES_DATA_DIR $LENSDIR/great-des
 
 #setenv TMPDIR /data/esheldon/tmp
+setenv TMPDIR /nfs/slac/des/fs1/g/sims/esheldon/tmp
 
 setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
