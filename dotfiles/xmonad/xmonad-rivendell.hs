@@ -26,7 +26,7 @@ myManageHooks = manageDocks <+> composeAll
     --          -- skipped
     --      ]
 
-myLayouts = Tall ||| Full ||| simpleFloat
+-- myLayouts = Tall ||| Full ||| simpleFloat
 
 main = do 
 	xmproc <- spawnPipe "/usr/bin/xmobar /home/esheldon/.xmonad/xmobarrc"

@@ -1,0 +1,14 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"pymangle install straight from git repo"
+conflict pymangle
+
+eval set  [ array get env HOME ]
+
+set PYMANGLE_DIR $HOME/exports/pymangle-local
+
+prepend-path PYTHONPATH $PYMANGLE_DIR/lib/python3.4/site-packages/
+
+setenv PYMANGLE_DIR $PYMANGLE_DIR
+
