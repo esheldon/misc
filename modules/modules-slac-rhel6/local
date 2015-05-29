@@ -13,7 +13,9 @@ prepend-path LIBRARY_PATH    $localdir/lib
 prepend-path C_INCLUDE_PATH  $localdir/include
 prepend-path CPATH           $localdir/include
 
-set DESDATA /nfs/slac/g/ki/ki21/cosmo/beckermr/DES/DESDATA
+#set DESDATA /nfs/slac/g/ki/ki21/cosmo/beckermr/DES/DESDATA
+# this contains symlinks to matt's area
+set DESDATA /u/ki/esheldon/lensing/mydesdata
 set LENSDIR /nfs/slac/des/fs1/g/sims/esheldon/lensing
 
 setenv DESDATA $DESDATA
@@ -23,7 +25,7 @@ setenv SHAPESIM_FS nfs
 setenv SHAPESIM_DIR $LENSDIR/shapesim
 setenv SHAPESIM_HDFS_DIR hdfs:///user/esheldon/lensing/shapesim
 
-setenv GREAT3_DATA_DIR $LENSDIR/great3
+setenv GREAT3_DATA_DIR $LENSDIR/mygreat3
 
 setenv GDES_DATA_DIR $LENSDIR/great-des
 
