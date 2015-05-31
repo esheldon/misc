@@ -19,6 +19,7 @@ set DESDATA /u/ki/esheldon/lensing/mydesdata
 set LENSDIR /nfs/slac/des/fs1/g/sims/esheldon/lensing
 
 setenv DESDATA $DESDATA
+setenv DESREMOTE https://desar2.cosmology.illinois.edu:7443/DESFiles/desardata
 setenv LENSDIR $LENSDIR
 
 setenv SHAPESIM_FS nfs
