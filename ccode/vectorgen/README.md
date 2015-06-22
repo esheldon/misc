@@ -45,12 +45,12 @@ Usage examples for an double vector; for other types, just replace "d"
 
     // push some values.
     for (size_t i=0; i<10; i++) {
-        vector_push(stack, i);
+        vector_push(vec, i);
     }
 
     // the size is kept in the ->size field
-    for (size_t i=0; i<stack->size; i++) {
-        printf("stack val[%lf]: %ld\n", i, vector_get(vec,i));
+    for (size_t i=0; i<vec->size; i++) {
+        printf("vec val[%lf]: %ld\n", i, vector_get(vec,i));
     }
 
     // pop the values
