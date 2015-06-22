@@ -58,5 +58,5 @@ Usage examples for an double vector; for other types, just replace "d"
         printf("popped value: %lf\n", vector_pop(vec) );
     }
 
-    // clean up
+    // clean up.  vec is set to NULL
     vector_free(vec);
