@@ -25,8 +25,8 @@ Builtin types are
         double        d
         int8_t        b
         uint8_t       ub
-        int16_t       u
-        uint16_t      us
+        int16_t       s
+        uint16_t      su
         int32_t       i
         uint32_t      ui
         int64_t       l
