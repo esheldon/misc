@@ -52,7 +52,7 @@ for (size_t i=0; i<10; i++) {
 
 // You can use vector_size(vec) or get the size from the
 // ->size field
-for (size_t i=0; i<vec->size; i++) {
+for (size_t i=0; i < vec->size; i++) {
     printf("vec val[%lf]: %ld\n", i, vector_get(vec,i));
 }
 
