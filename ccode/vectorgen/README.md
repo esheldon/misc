@@ -20,6 +20,7 @@ requested types.
 
 Builtin types are 
 
+```C
         typename      shortname
         float         f
         double        d
@@ -33,12 +34,13 @@ Builtin types are
         uint64_t      ul
         char          char
         unsigned char uchar
+```
 
 The short names are used in the names of the vector structures and their
 associated methods, e.g. dvector, dvector_new etc.
 
 Usage examples for an double vector; for other types, just replace "d"
-
+```C
     #include "vector.h"
     // get a new double vector
     dvector* vec = dvector_new();
@@ -60,3 +62,4 @@ Usage examples for an double vector; for other types, just replace "d"
 
     // clean up.  vec is set to NULL
     vector_free(vec);
+```[
