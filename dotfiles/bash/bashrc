@@ -44,6 +44,8 @@ riemann_test=$(uname -n | grep n00)
 
 slac_test=$(uname -n | grep -i rhel)
 
+comet_test=`echo $host | grep -i comet`
+
 if [[ "$hname" == "theshire" ]]; then
     dotfileDir=$ddir/theshire
 elif [[ $isnersc == "Y" ]]; then
@@ -63,6 +65,8 @@ elif [[ "$hname" == "lsst" ]]; then
 	dotfileDir=$ddir/lsst.phy.bnl.gov
 elif [[ "$lsst_bnl_test" != "" ]]; then
 	dotfileDir=$ddir/lst.bnl.gov
+elif [[ "$comet_test" != "" ]]; then
+	dotfileDir=$ddir/comet
 elif [[ "$hname" == "web203" || "$hname" == "web246" ]]; then
 	dotfileDir=$ddir/webfaction
 else
@@ -106,10 +110,10 @@ fi
 export FLAVOR
 
 # path stuff first, so others can use the code?
-for f in pathmod ssh-agent java cvs aliases ls_colors \
+for f in pathmod java cvs aliases ls_colors \
     pg_setup des_setup boss_setup proxy term go d \
     fortran fink git path perl python gems localvars \
-    oracle eups modules idl_setup gdl_setup; do
+    oracle eups modules idl_setup gdl_setup ssh-agent; do
 
     if [[ $f == "ssh-agent" && $riemann_test != "" ]]; then
         echo skipping keychain on riemann
