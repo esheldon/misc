@@ -20,43 +20,47 @@ requested types.
 
 Builtin types are 
 
-        typename      shortname
-        float         f
-        double        d
-        int8_t        b
-        uint8_t       ub
-        int16_t       u
-        uint16_t      us
-        int32_t       i
-        uint32_t      ui
-        int64_t       l
-        uint64_t      ul
-        char          char
-        unsigned char uchar
+```C
+typename      shortname
+float         f
+double        d
+int8_t        b
+uint8_t       ub
+int16_t       s
+uint16_t      su
+int32_t       i
+uint32_t      ui
+int64_t       l
+uint64_t      ul
+char          char
+unsigned char uchar
+```
 
 The short names are used in the names of the vector structures and their
 associated methods, e.g. dvector, dvector_new etc.
 
 Usage examples for an double vector; for other types, just replace "d"
+```C
+#include "vector.h"
+// get a new double vector
+dvector* vec = dvector_new();
 
-    #include "vector.h"
-    // get a new double vector
-    dvector* vec = dvector_new();
+// push some values.
+for (size_t i=0; i<10; i++) {
+    vector_push(vec, i);
+}
 
-    // push some values.
-    for (size_t i=0; i<10; i++) {
-        vector_push(stack, i);
-    }
+// You can use vector_size(vec) or get the size from the
+// ->size field
+for (size_t i=0; i < vec->size; i++) {
+    printf("vec val[%lf]: %ld\n", i, vector_get(vec,i));
+}
 
-    // the size is kept in the ->size field
-    for (size_t i=0; i<stack->size; i++) {
-        printf("stack val[%lf]: %ld\n", i, vector_get(vec,i));
-    }
+// pop the values
+while (vector_size(vec) > 0) {
+    printf("popped value: %lf\n", vector_pop(vec) );
+}
 
-    // pop the values
-    while (vector_size(vec) > 0) {
-        printf("popped value: %lf\n", vector_pop(vec) );
-    }
-
-    // clean up
-    vector_free(vec);
+// clean up.  vec is set to NULL
+vector_free(vec);
+```
