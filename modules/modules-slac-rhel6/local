@@ -37,3 +37,5 @@ setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
 
 setenv COSMOS_DIR $LENSDIR/galsim-cosmos-data
+
+setenv TMV_DIR $localdir
