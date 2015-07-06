@@ -1,0 +1,88 @@
+#!/bin/bash
+
+function usage_and_exit {
+    echo "usage:
+  slr-incsub [options] slr_file1 slr_file2 ...
+
+options:
+    -n NJOBS_MAX  Maximum number of jobs in queue, default $max_jobs
+    -p time between polls of wq status when we are at max allowed
+       jobs, default $poll_time
+    -s time to sleep between individual submissions when trying to
+       catch up to the max number of jobs, default $sleep_time second
+"
+    exit 1
+}
+
+function count_jobs {
+    njobs=$(bjobs | awk '($2=="esheldo")' | wc -l )
+
+    echo "$njobs"
+}
+
+function get_diffjobs {
+    njobs=$(bjobs | awk '($2=="esheldo")' | wc -l )
+    ((diffjobs = max_jobs - njobs))
+    echo "$njobs $diffjobs"
+}
+
+
+# time to wait after we have filled our limit
+poll_time=30
+sleep_time=0.2
+max_jobs=1000
+
+if [ $# -lt 1 ]; then
+    usage_and_exit
+fi
+while getopts "n:s:p:" Option
+do
+    case $Option in
+        n) max_jobs=$OPTARG ;;
+        s) sleep_time=$OPTARG ;;
+        p) poll_time=$OPTARG ;;
+        [?]) usage_and_exit ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+nfiles=$#
+i=1
+
+read njobs diffjobs <<<$(get_diffjobs)
+
+for file; do
+    perc=$(echo "scale=0; 100*$i/$nfiles" | bc)
+
+    logf="${file}.submitted"
+
+    if [[ ! -e $logf ]]; then
+
+        if [[ $diffjobs -le 0 ]]; then
+            sleep $poll_time
+            read njobs diffjobs <<<$(get_diffjobs)
+            while [[ $diffjobs -le 0 ]]; do
+                sleep $poll_time
+                read njobs diffjobs <<<$(get_diffjobs)
+            done
+            echo "Found $njobs jobs  diffjobs: $diffjobs"
+        fi
+
+        dt=`date +"%T"`
+        echo "    submitting $file $dt $i/$nfiles (${perc}%)"
+        sbatch "$file"
+
+        if [[ $? != 0 ]]; then
+            echo "Error submitting job through sbatch: $?"
+            exit 1
+        fi
+
+        touch "$logf"
+
+        ((diffjobs -= 1))
+        sleep $sleep_time
+
+    fi
+    let "i += 1"
+
+done

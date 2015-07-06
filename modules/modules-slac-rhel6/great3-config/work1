@@ -1,0 +1,8 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"configs for great des"
+
+eval set  [ array get env LENSDIR ]
+
+setenv GREAT3_CONFIG_DIR $LENSDIR/mygreat3/great3-config-work1

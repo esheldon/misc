@@ -39,15 +39,25 @@ Host ssh.bluegene.bnl.local
 	LocalForward localhost:2229 gpu2.csc.bnl.gov:22
 
 
+Host login.xsede.org
+
+	LocalForward localhost:2230 comet.sdsc.xsede.org:22
+
+
 # Set up aliases to point us to the ports and machines listed above
 # don't use their actual names, just in case we are on a machine local
 # to them in which case we don't need all this forwarding
 Host tastro
 	HostName localhost
 	Port 2224
+
 Host ttutti
 	HostName localhost
 	Port 2225
+
+Host tcomet
+    HostName localhost
+    Port 2230
 
 Host rgpu1
 	HostName localhost
