@@ -1,0 +1,30 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+##
+## weighting modulefile
+##
+proc ModulesHelp { } {
+    global version
+
+    puts stderr "	Put some comments about the python weighting module here."
+    puts stderr "
+	Version $version
+"
+}
+
+# for Tcl script use only
+set     version      local
+
+
+module-whatis	"this is an install straight from a git repo"
+conflict weighting
+
+eval set  [ array get env HOME ]
+
+set WEIGHTING_DIR $HOME/exports/weighting-local
+
+prepend-path PATH $WEIGHTING_DIR/bin
+prepend-path PYTHONPATH $WEIGHTING_DIR/lib/python2.7/site-packages/
+
+setenv WEIGHTING_DIR $WEIGHTING_DIR
+
