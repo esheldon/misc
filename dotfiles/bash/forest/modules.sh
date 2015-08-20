@@ -7,8 +7,9 @@ if [[ -e $f ]]; then
 
     module load use.own
 
+    module load local
     module load espy/local
-    #module load local_packages
+    module load anaconda
 
     module load local      # *
     module load shell_scripts
