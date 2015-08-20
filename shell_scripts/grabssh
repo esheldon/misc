@@ -5,4 +5,5 @@ for x in ${SSHVARS} ; do
     (eval echo $x=\$$x) | sed  's/=/="/
                                 s/$/"/
                                 s/^/export /'
-done 1>$HOME/fixssh
+#done 1>$HOME/fixssh
+done 1>$TMPDIR/fixssh

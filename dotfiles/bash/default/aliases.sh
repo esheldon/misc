@@ -8,7 +8,8 @@ export treebeard=192.168.127.102
 alias hdfs="hadoop fs"
 
 alias sattach='grabssh ; screen -DR'
-alias fixssh='source $HOME/fixssh'
+alias tattach='grabssh ; tmux a -d'
+alias fixssh='source $TMPDIR/fixssh'
 
 # awk simplifies life
 alias mailtail="tail -n 100 -f ~/.getmail/gmail.log  | awk '{print \$1,\$2,\$4,\$10}'"
@@ -93,6 +94,8 @@ alias yt="youtube-dl --restrict-filenames"
 
 export slac="rhel6-64.slac.stanford.edu"
 export comet="comet.sdsc.edu"
+
+alias pyprof="python -m cProfile -s time "
 
 alias pcat=pygmentize
 function pless() {
