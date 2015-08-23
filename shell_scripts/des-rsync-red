@@ -100,6 +100,17 @@ for subdir in red QA; do
         exit 1
     fi
 
+    #echo "
+    #rsync \\
+    #    -av \\
+    #    --password-file $DES_RSYNC_PASSFILE \\
+    #    --exclude \"*psfcat.fits*\" \\
+    #    --exclude \"*bleed.fits*\" \\
+    #    --exclude \"*stars.fits*\" \\
+    #    --exclude \"*scamp*\" \\
+    #    --exclude \"*.ps\" \\
+    #    \"$remote_url/\" .
+    #"
     rsync \
         -av \
         --password-file $DES_RSYNC_PASSFILE \

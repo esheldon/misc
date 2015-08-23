@@ -14,9 +14,11 @@ module unload biggles &> /dev/null
 module unload anaconda &> /dev/null
 module unload espy &> /dev/null
 module unload galsim &> /dev/null
+module unload great-des-config &> /dev/null
 
 module load anaconda/gpfs
 module load espy/work
+module load great-des-config/work1
 
 source activate great3-work
 
