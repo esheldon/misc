@@ -9,4 +9,7 @@ fi
 
 command="$1"
 
-
+for machine in $(awk '{print $1}' ~astrodat/bnl_desc.txt); do
+    echo "running on $machine"
+    ssh "$machine" "$command"
+done
