@@ -1,0 +1,12 @@
+#!/bin/bash
+# run a command on all the nodes in the cluster
+
+if [[ $# -lt 1 ]]; then
+    echo "astrodo command"
+    echo "make sure to do properly quoting"
+    exit 1
+fi
+
+command="$1"
+
+

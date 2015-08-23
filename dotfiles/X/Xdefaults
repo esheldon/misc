@@ -86,7 +86,8 @@ xterm*color3: #ffff66
 !! brighter blue
 xterm*color4: #99ccff
 !! an orange red
-xterm*color5: #ff6600
+!!xterm*color5: #ff6600
+xterm*color5: plum
 !! a brighter cyan
 !!xterm*color6: #66ffff
 
