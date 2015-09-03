@@ -13,6 +13,8 @@ module load anaconda/gpfs
 module load astrodat
 module load wq
 
+
+
 #
 # my stuff
 #
@@ -25,8 +27,12 @@ module load local      # *
 module load perllib
 module load shell_scripts
 
-# -python
+# python
+module load espy/local
+module load des-oracle
 
 # loads the espy_packages stuff plus some other modules
-module load espy_packages/local
-module load galsim/local     # *
+#source activate conda-local
+
+#module load espy_packages/local
+#module load galsim/local     # *

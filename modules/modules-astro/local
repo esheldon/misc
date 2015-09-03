@@ -30,6 +30,8 @@ setenv SHAPESIM_HDFS_DIR hdfs:///user/esheldon/lensing/shapesim
 
 setenv GREAT3_DATA_DIR $LENSDIR/great3
 
+setenv GDES_DATA_DIR $LENSDIR/great-des
+
 setenv GMIX_SDSS $HOME/gmix-sdss
 
 setenv SGSEP_DIR $HOME/oh/star-galaxy-separation/
@@ -43,5 +45,7 @@ setenv DESWL_CHECKOUT $HOME/git/deswl
 
 setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
+
+setenv DESMEDS_CONFIG_DIR $HOME/lensing/des-lensing/medsconf
 
 setenv COSMOS_DIR $LENSDIR/galsim-cosmos-data

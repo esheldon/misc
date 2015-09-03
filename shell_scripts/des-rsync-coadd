@@ -87,7 +87,7 @@ for subdir in coadd QA/segmap QA/coadd_astrorefine_head; do
     fi
 
     rsync \
-        -av \
+        -avz \
         --password-file $DES_RSYNC_PASSFILE \
         --exclude "*psfcat.fits*" \
         --exclude "*bleed.fits*" \
