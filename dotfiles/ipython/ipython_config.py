@@ -412,3 +412,12 @@ for p in ['fitsio','biggles']:
     lines="import %s" % p
     app.exec_lines.append(lines)
 
+optional_lines="""
+try:
+    import %s
+except:
+    pass
+"""
+for pkg in ['ngmix','nsim']:
+    optlines = optional_lines % pkg
+    app.exec_lines.append(optlines)
