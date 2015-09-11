@@ -260,6 +260,7 @@ Bundle 'zah/nimrod.vim'
 Bundle 'shmay/vim-yaml'
 Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
+Plugin 'JuliaLang/julia-vim'
 let g:vim_markdown_folding_disabled=1
 
 "Bundle 'scrooloose/syntastic'
