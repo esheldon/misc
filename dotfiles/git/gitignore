@@ -2,9 +2,15 @@
 *~
 .*.swp
 *.o
+*.so
 *.mod
 .deps
 *.dep
 *.lock
+*.rlib
+*.dll
+*.exe
+
+/target/
 
 .sconsign.dblite
