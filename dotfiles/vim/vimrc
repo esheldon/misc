@@ -258,6 +258,7 @@ call vundle#rc()
 Bundle 'gmarik/vundle'
 Bundle 'zah/nimrod.vim'
 Bundle 'shmay/vim-yaml'
+Bundle 'cespare/vim-toml'
 Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
 Plugin 'JuliaLang/julia-vim'
