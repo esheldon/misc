@@ -386,11 +386,13 @@ if not hasattr(app, 'exec_lines'):
     app.exec_lines=[]
 
 lines = """
+import os
 from glob import glob
 import numpy
 from numpy import array,zeros,ones,where,arange,linspace,logspace, \\
     sqrt, exp, cos, sin, tanh, arctanh, log, log10, median, \\
     diag
+tpng=os.path.expandvars('$WEBDIR/tmp/tmp.png')
 """
 app.exec_lines.append(lines)
 
