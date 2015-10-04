@@ -4,6 +4,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
+import XMonad.Hooks.EwmhDesktops
 
 -- provides smartBorders for e.g. mplayer
 import XMonad.Layout.NoBorders
@@ -34,7 +35,10 @@ main = do
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
                    },
-                   terminal = "xfce4-terminal"
+       terminal = "xfce4-terminal",
+       handleEventHook = fullscreenEventHook
+
+
     }`additionalKeys` myKeyBindings
 
 -- newer versions of dmenu are for some reason not recognized automatically,
