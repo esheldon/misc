@@ -74,12 +74,15 @@ set ruler			" show the cursor position all the time
 set showcmd			" display incomplete commands
 set incsearch		" do incremental searching
 
+" turn off the highlighting left from previous search
+nnoremap ,<space> :nohlsearch<CR>
 
 " Don't use Ex mode, use Q for formatting
 " The following mappings make Q normally reformat the current paragraph (or
 " current and following paragraphs, if a count is used), except when text is
 " selected, in which case it reformats the selected text: 
 " difference between a and i here is a moves you to *after* the paragraph.
+
 
 " n is for normal mode
 nnoremap Q gqap
