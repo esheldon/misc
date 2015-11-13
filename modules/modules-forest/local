@@ -13,7 +13,7 @@ prepend-path LIBRARY_PATH    $localdir/lib
 prepend-path C_INCLUDE_PATH  $localdir/include
 prepend-path CPATH           $localdir/include
 
-prepend-path PATH            $HOME/anaconda/bin
+#prepend-path PATH            $HOME/anaconda/bin
 
 setenv LENSDIR $HOME/lensing
 setenv SHAPESIM_FS local

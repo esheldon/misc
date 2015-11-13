@@ -54,7 +54,7 @@ alias mv='mv -i'
 alias cp='cp -i' 
 alias less='less -R'
 
-#alias gvim='gvim -geometry 90x55'
+alias mgvim='GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc gvim'
 
 
 alias lib='cd ~/idl.lib/pro'
