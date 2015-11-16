@@ -34,7 +34,7 @@ main = do
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
                    },
-                   terminal = "xfce4-terminal"
+                   terminal = "xterm"
     }`additionalKeys` myKeyBindings
 
 -- newer versions of dmenu are for some reason not recognized automatically,
