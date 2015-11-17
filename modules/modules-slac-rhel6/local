@@ -15,7 +15,8 @@ prepend-path CPATH           $localdir/include
 
 #set DESDATA /nfs/slac/g/ki/ki21/cosmo/beckermr/DES/DESDATA
 # this contains symlinks to matt's area
-set DESDATA /u/ki/esheldon/lensing/mydesdata
+#set DESDATA /u/ki/esheldon/lensing/mydesdata
+set DESDATA /nfs/slac/g/ki/ki21/cosmo/DESDATA
 set LENSDIR /nfs/slac/des/fs1/g/sims/esheldon/lensing
 
 setenv DESDATA $DESDATA
@@ -39,3 +40,15 @@ setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
 setenv COSMOS_DIR $LENSDIR/galsim-cosmos-data
 
 setenv TMV_DIR $localdir
+
+# Matt's great3reredux
+#setenv REREDUX_DATA_DIR /nfs/slac/des/fs1/g/sims/beckermr/DES/y12_sims/great3reredux/
+# mine
+setenv REREDUX_DATA_DIR /u/ki/esheldon/lensing/egretsims
+
+# my processing outputs from ngmixer
+setenv REREDUX_OUTPUTS_DIR /nfs/slac/des/fs1/g/sims/esheldon/lensing/great3reredux
+
+# for runs on real data
+setenv NGMIXER_OUTPUT_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-runs
+setenv NGMIXER_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-config
