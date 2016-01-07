@@ -1,0 +1,68 @@
+#!/bin/bash
+# Syncronize two directories using parallel rsync jobs.
+#
+# A file list is generated, which is split into "njobs" file sets.  The
+# parallel command is then used to run rsync each file set to the destination
+# directory.
+#
+# The order of the file list is randomized using the shuf command, to make sure
+# files are not sorted in any way that might make some copy jobs run much
+# slower than others.
+#
+# A temporary directory must be specified, in which the file lists are stored;
+# this will be made optional in the future.  The temp dir gets created and
+# removed so it should not be a directory you want to keep around
+
+if [ $# -lt 4 ]; then
+    echo "prsync tmpdir njobs fromdir todir"
+    exit 1
+fi
+
+tmpdir=$1
+njobs=$2
+fromdir=$3
+todir=$4
+
+if [[ -e "$tmpdir" ]]; then
+    echo "error: tmpdir already exists: '$tmpdir'"
+    exit 1
+fi
+
+mkdir -v -p "$tmpdir"
+
+if [[ ! -e "$tmpdir" ]]; then
+    echo "could not make temp dir: '$tmpdir'"
+    exit 1
+fi
+
+# shuffle to make sure the jobs are all about the same length
+flist="flist.txt"
+flist_full="$tmpdir/$flist"
+find "$fromdir" -type f -exec basename {} \; | shuf > "$flist_full"
+
+nfiles=$(wc -l "$flist_full" | awk '{print $1}')
+
+if [[ $nfiles == "0" ]]; then
+    echo "no files found"
+else
+
+    # If the number of files is less than the number of jobs, set the
+    # number of jobs to the number of files and split size to 1
+    if [[ $nfiles -lt $njobs ]]; then
+        njobs="$nfiles"
+        nsplit=1
+    else
+        nsplit=$((nfiles/njobs))
+    fi
+
+    pushd $tmpdir
+    split -l $nsplit "$flist"
+    popd
+
+    sfiles=$(ls $tmpdir/x*)
+    parallel -u -j "$njobs" "rsync -av --files-from={} $fromdir/ $todir/" ::: "$sfiles"
+
+fi
+
+echo "removing temp dir '$tmpdir'"
+rm -r $tmpdir

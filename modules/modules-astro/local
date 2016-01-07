@@ -29,6 +29,7 @@ setenv SHAPESIM_DIR $LENSDIR/shapesim
 setenv SHAPESIM_HDFS_DIR hdfs:///user/esheldon/lensing/shapesim
 
 setenv GREAT3_DATA_DIR $LENSDIR/great3
+setenv GREAT3DATA $HOME/lensing/galsim-cosmos-data/COSMOS_23.5_training_sample
 
 setenv GDES_DATA_DIR $LENSDIR/great-des
 
@@ -51,3 +52,11 @@ setenv DESMEDS_CONFIG_DIR $HOME/lensing/des-lensing/medsconf
 setenv COSMOS_DIR $LENSDIR/galsim-cosmos-data
 
 setenv WEBDIR /astro/u/esheldon/www 
+
+setenv EYEBALLER_DIR /astro/u/esheldon/envs/conda-local
+setenv EYEBALLER_DATADIR /gpfs01/astro/workarea/esheldon/eyeball
+
+setenv REREDUX_DATA_DIR $HOME/lensing/egretsims
+setenv REREDUX_OUTPUTS_DIR $HOME/lensing/great3reredux
+
+setenv WOMBAT_DATA_DIR /astro/u/mjarvis/work/sims
