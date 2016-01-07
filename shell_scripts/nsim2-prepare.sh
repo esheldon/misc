@@ -20,3 +20,5 @@ module load espy/work
 source activate nsim-work2
 
 export NSIM_DIR=~/envs/nsim-work2
+export REREDUX_DIR=~/envs/nsim-work2
+export EGRET_CONFIG_DIR=~/lensing/egretsims/config
