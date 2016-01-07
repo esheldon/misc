@@ -32,7 +32,7 @@ module load espy/local
 module load des-oracle
 
 # loads the espy_packages stuff plus some other modules
-#source activate conda-local
+source activate conda-local
 
 #module load espy_packages/local
 #module load galsim/local     # *
