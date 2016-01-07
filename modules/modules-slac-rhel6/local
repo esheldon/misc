@@ -46,9 +46,13 @@ setenv TMV_DIR $localdir
 # mine
 setenv REREDUX_DATA_DIR /u/ki/esheldon/lensing/egretsims
 
+setenv WOMBAT_DATA_DIR /u/ki/esheldon/lensing/wombat-sims
+
 # my processing outputs from ngmixer
 setenv REREDUX_OUTPUTS_DIR /nfs/slac/des/fs1/g/sims/esheldon/lensing/great3reredux
 
 # for runs on real data
 setenv NGMIXER_OUTPUT_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-runs
 setenv NGMIXER_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-config
+
+setenv WEBDIR $HOME/public_html
