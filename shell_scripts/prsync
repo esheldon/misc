@@ -24,24 +24,23 @@ fromdir=$3
 todir=$4
 
 if [[ -e "$tmpdir" ]]; then
-    echo "error: tmpdir already exists: $tmpdir"
+    echo "error: tmpdir already exists: '$tmpdir'"
     exit 1
 fi
 
-mkdir -p "$tmpdir"
+mkdir -v -p "$tmpdir"
 
 if [[ ! -e "$tmpdir" ]]; then
-    echo "could not make temp dir: $tmpdir"
+    echo "could not make temp dir: '$tmpdir'"
     exit 1
 fi
-
-pushd "$tmpdir"
 
 # shuffle to make sure the jobs are all about the same length
 flist="flist.txt"
-find "$fromdir" -type f -exec basename {} \; | shuf > "$flist"
+flist_full="$tmpdir/$flist"
+find "$fromdir" -type f -exec basename {} \; | shuf > "$flist_full"
 
-nfiles=$(wc -l "$flist" | awk '{print $1}')
+nfiles=$(wc -l "$flist_full" | awk '{print $1}')
 
 if [[ $nfiles == "0" ]]; then
     echo "no files found"
@@ -56,14 +55,14 @@ else
         nsplit=$((nfiles/njobs))
     fi
 
-    split -l "$nsplit" "$flist"
+    pushd $tmpdir
+    split -l $nsplit "$flist"
+    popd
 
-    #wc "$flist"
-    #wc x*
-
-    parallel -u -j "$njobs" "rsync -av --files-from={} $fromdir/ $todir/" ::: x*
+    sfiles=$(ls $tmpdir/x*)
+    parallel -u -j "$njobs" "rsync -av --files-from={} $fromdir/ $todir/" ::: "$sfiles"
 
 fi
 
-popd
+echo "removing temp dir '$tmpdir'"
 rm -r $tmpdir
