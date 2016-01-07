@@ -1,0 +1,32 @@
+#!/bin/bash
+# tmpdir gets cleaned up entirely
+
+if [ $# -lt 4 ]; then
+    echo "prsync tmpdir njobs fromdir todir"
+    exit 1
+fi
+
+tmpdir=$1
+njobs=$2
+fromdir=$3
+todir=$4
+
+mkdir -p $tmpdir
+pushd $tmpdir
+
+# shuffle to make sure we don't put all the small files in one job
+flist="flist.txt"
+find "$fromdir" -type f -exec basename {} \; | shuf > "$flist"
+
+nfiles=$(wc -l "$flist" | awk '{print $1}')
+nsplit=$((nfiles/njobs))
+
+split -l "$nsplit" "$flist"
+
+wc "$flist"
+wc x*
+
+parallel -u -j "$njobs" "rsync -av --files-from={} $fromdir/ $todir/" ::: x*
+
+popd
+rm -r $tmpdir
