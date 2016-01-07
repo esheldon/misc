@@ -1,5 +1,17 @@
 #!/bin/bash
-# tmpdir gets cleaned up entirely
+# Syncronize two directories using parallel rsync jobs.
+#
+# A file list is generated, which is split into "njobs" file sets.  The
+# parallel command is then used to run rsync each file set to the destination
+# directory.
+#
+# The order of the file list is randomized using the shuf command, to make sure
+# files are not sorted in any way that might make some copy jobs run much
+# slower than others.
+#
+# A temporary directory must be specified, in which the file lists are stored;
+# this will be made optional in the future.  The temp dir gets created and
+# removed so it should not be a directory you want to keep around
 
 if [ $# -lt 4 ]; then
     echo "prsync tmpdir njobs fromdir todir"
@@ -11,15 +23,28 @@ njobs=$2
 fromdir=$3
 todir=$4
 
-mkdir -p $tmpdir
-pushd $tmpdir
+mkdir -p "$tmpdir"
+pushd "$tmpdir"
 
 # shuffle to make sure we don't put all the small files in one job
 flist="flist.txt"
 find "$fromdir" -type f -exec basename {} \; | shuf > "$flist"
 
 nfiles=$(wc -l "$flist" | awk '{print $1}')
-nsplit=$((nfiles/njobs))
+
+if [[ $nfiles == "0" ]]; then
+    echo "no files found"
+    exit 0
+fi
+
+# If the number of files is less than the number of jobs, set the
+# number of jobs to the number of files and split size to 1
+if [[ $nfiles -lt $njobs ]]; then
+    njobs="$nfiles"
+    nsplit=1
+else
+    nsplit=$((nfiles/njobs))
+fi
 
 split -l "$nsplit" "$flist"
 
