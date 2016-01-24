@@ -10,6 +10,7 @@ if [[ -e $f ]]; then
     # python
     module load espy/local
     module load fitsio/py3
+    module load pymangle/py3
     module load biggles/python3
     #module load healpix/local
 
