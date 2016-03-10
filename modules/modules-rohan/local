@@ -25,3 +25,6 @@ setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
 setenv DESPROJ OPS
 
 setenv GREAT3_DATA_DIR $HOME/data/lensing/great3
+
+setenv NSIM_DIR $HOME/anaconda
+setenv SHAPESIM_DIR $HOME/lensing/shapesim
