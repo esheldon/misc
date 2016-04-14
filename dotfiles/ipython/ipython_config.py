@@ -423,3 +423,12 @@ except:
 for pkg in ['ngmix','nsim']:
     optlines = optional_lines % pkg
     app.exec_lines.append(optlines)
+
+optional_lines="""
+try:
+    from ngmix import print_pars as pp
+except:
+    pass
+"""
+app.exec_lines.append(optlines)
+
