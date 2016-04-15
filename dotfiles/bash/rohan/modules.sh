@@ -57,7 +57,8 @@ if [[ -e $f ]]; then
 
     module load local      # *
 
-    module load tmv/0.71   # *
+    #module load tmv/0.71   # *
+    module load tmv/0.73   # *
     #module load wl/local   # * don't need currently
 
     module load parallel
