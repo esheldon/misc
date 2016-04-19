@@ -57,9 +57,9 @@ for arg; do
         echo "submitting: $bname"
         condor_submit "$bname"
 
-        touch $check_file
-
         popd
+
+        touch $check_file
 
         sleep $sleeptime
     fi
