@@ -4,6 +4,7 @@
 module-whatis	"local installs under ~/local"
 
 eval set  [ array get env HOME ]
+eval set  [ array get env DESDATA ]
 
 set localdir $HOME/local
 
@@ -20,9 +21,12 @@ setenv SWEEP_REDUCE $HOME/sweep-reduce
 
 setenv MASK_DIR $HOME/masks
 
-#set LENSDIR $HOME/lensing
-set LENSDIR /astro/astronfs02/esheldon/lensing
+set LENSDIR /gpfs/mnt/gpfs01/astro/workarea/esheldon/lensing
+set DES_LENSDIR $LENSDIR/des-lensing
+
 setenv LENSDIR $LENSDIR
+setenv DES_LENSDIR $DES_LENSDIR
+
 setenv LENSDIR_HDFS hdfs:///user/esheldon/lensing
 setenv SHAPESIM_FS nfs
 setenv SHAPESIM_DIR $LENSDIR/shapesim
@@ -60,3 +64,6 @@ setenv REREDUX_DATA_DIR $HOME/lensing/egretsims
 setenv REREDUX_OUTPUTS_DIR $HOME/lensing/great3reredux
 
 setenv WOMBAT_DATA_DIR /astro/u/mjarvis/work/sims
+
+setenv NGMIXER_OUTPUT_DIR $DESDATA/wlpipe
+setenv NGMIXER_CONFIG_DIR $DES_LENSDIR/ngmixer-config

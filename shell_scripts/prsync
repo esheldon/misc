@@ -35,10 +35,22 @@ if [[ ! -e "$tmpdir" ]]; then
     exit 1
 fi
 
-# shuffle to make sure the jobs are all about the same length
+
+pushd "$fromdir"
+if [[ $? != "0" ]]; then
+    echo "could not move to directory $fromdir"
+    exit 1
+fi
+
+# file to hold the list of files to copy
 flist="flist.txt"
 flist_full="$tmpdir/$flist"
-find "$fromdir" -type f -exec basename {} \; | shuf > "$flist_full"
+
+# shuffle to make sure the jobs are all about the same length
+#find . -type f | shuf > "$flist_full"
+find .  -name "*.fits" | shuf > "$flist_full"
+
+#find "$fromdir" -type f -exec basename {} \; | shuf > "$flist_full"
 
 nfiles=$(wc -l "$flist_full" | awk '{print $1}')
 
@@ -64,5 +76,6 @@ else
 
 fi
 
+popd
 echo "removing temp dir '$tmpdir'"
 rm -r $tmpdir
