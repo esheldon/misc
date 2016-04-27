@@ -392,7 +392,9 @@ import numpy
 from numpy import array,zeros,ones,where,arange,linspace,logspace, \\
     sqrt, exp, cos, sin, tanh, arctanh, log, log10, median, \\
     diag
-tpng=os.path.expandvars('$WEBDIR/tmp/tmp.png')
+tpng=os.path.expandvars('$WEBDIR/tmp/plots/tmp.png')
+tsvg=os.path.expandvars('$WEBDIR/tmp/plots/tmp.svg')
+teps=os.path.expandvars('$WEBDIR/tmp/plots/tmp.eps')
 """
 app.exec_lines.append(lines)
 
