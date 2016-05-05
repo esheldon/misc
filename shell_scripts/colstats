@@ -14,10 +14,30 @@
 #      2379     513872         98        276   44.32997   162.8348   1.743632
 
 
-if [[ $# -lt 1 ]]; then
-    echo "usage: colstats col1 col2 ..."
+function usage_and_exit {
+    echo "usage: colstats -n {ncols} col1 col2 ..."
     echo "  send data on stdin"
     exit 1
+}
+if [[ $# -lt 1 ]]; then
+    usage_and_exit
+fi
+
+ncols="notgiven"
+
+while getopts "n:" Option
+  do
+  case $Option in
+      n)  ncols=$OPTARG ;;
+      [?]) usage_and_exit;; 
+  esac
+done
+shift $(($OPTIND - 1))
+
+if [[ $ncols == "notgiven" ]]; then
+    check=""
+else
+    check="(NF==$ncols)"
 fi
 
 script=""
@@ -53,7 +73,7 @@ done
 
 awkscript="BEGIN {
     $begin
-} {
+} $check {
     $script
 } END {
     $dostats
