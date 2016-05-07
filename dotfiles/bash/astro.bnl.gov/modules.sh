@@ -13,6 +13,8 @@ module load anaconda/gpfs
 module load astrodat
 module load wq
 
+# for latex
+module load TeX
 
 
 #
@@ -31,8 +33,4 @@ module load shell_scripts
 module load espy/local
 module load des-oracle
 
-# loads the espy_packages stuff plus some other modules
 source activate conda-local
-
-#module load espy_packages/local
-#module load galsim/local     # *

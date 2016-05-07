@@ -7,7 +7,6 @@ conflict espy_packages
 # from afs
 module load acor
 module load emcee
-#module load biggles
 
 # lots of packages here
 module load espy/local
