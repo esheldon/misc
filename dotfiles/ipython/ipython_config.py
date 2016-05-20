@@ -402,7 +402,7 @@ lines="""
 import esutil as eu
 from esutil.numpy_util import ahelp, aprint, where1, between
 from esutil.misc import colprint, ptime
-from esutil.stat import get_stats
+from esutil.stat import get_stats, print_stats
 """
 app.exec_lines.append(lines)
 
