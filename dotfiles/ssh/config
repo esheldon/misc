@@ -1,8 +1,8 @@
 ForwardX11 yes
 ForwardX11Trusted yes
 ForwardAgent yes
-ServerAliveInterval 120
-ServerAliveCountMax 10
+ServerAliveInterval 30
+ServerAliveCountMax 1000
 GSSAPIAuthentication yes
 GSSAPIDelegateCredentials yes
 
