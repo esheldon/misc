@@ -126,7 +126,10 @@ xclock*hourColor: green4
 
 ! zenburn colors
 ! urxvt.geometry: 80x25
-urxvt.font: xft:peep
+!urxvt.font: xft:peep
+!urxvt.font: xft:terminus:size=9
+urxvt.font: fixed
+urxvt.boldFont: fixed
 
 ! needed for monaco.  Also -letsp
 !urxvt.letterSpace: -1
@@ -198,24 +201,67 @@ urxvt*underlineColor: #c5f779
 !urxvt*color14:     #93e0e3
 !urxvt*color15:     #ffffff
 
+!BLK Cursor
+#define _color0        #000d18
+#define _color8        #000d18
+!RED Tag
+#define _color1        #e89393
+#define _color9        #e89393
+!GRN SpecialKey
+#define _color2        #9ece9e
+#define _color10       #9ece9e
+!YEL Keyword
+#define _color3        #f0dfaf
+#define _color11       #f0dfaf
+!BLU Number
+#define _color4        #8cd0d3
+#define _color12       #8cd0d3
+!MAG Precondit
+#define _color5        #c0bed1
+#define _color13       #c0bed1
+!CYN Float
+#define _color6        #dfaf8f
+#define _color14       #dfaf8f
+!WHT Search
+#define _color7        #efefef
+#define _color15       #efefef
 
+! text color?
+!urxvt*color0: ?
+!urxvt*color8: #000000
+
+! reds
 !urxvt*color1: #cc9393
-urxvt*color1: #705050
+urxvt*color1: #ff6600
+urxvt*color9: #dca3a3
+
+! greens
 urxvt*color2: #87af87
-urxvt*color3: #d0bf8f
+urxvt*color10: #bfebbf
+
+! yellows
+!urxvt*color3: #d0bf8f
+urxvt*color3: #ffff66
+urxvt*color11: #f0dfaf
+
+! blues
 urxvt*color4: #6ca0a3
+urxvt*color12: #8cd0d3
+
+! magentas
 !urxvt*color5: #dc8cc3
 urxvt*color5: salmon1
-urxvt*color6: #93e0e3
-urxvt*color7: #dcdccc
-urxvt*color8: #000000
-urxvt*color9: #dca3a3
-urxvt*color10: #bfebbf
-urxvt*color11: #f0dfaf
-urxvt*color12: #8cd0d3
 urxvt*color13: #dc8cc3
+
+! cyans
+urxvt*color6: #93e0e3
 urxvt*color14: #93e0e3
+
+! whites
+urxvt*color7: #dcdccc
 urxvt*color15: #ffffff
+
+
 
 !urxvt*cutchars: 
 urxvt.cutchars: "`\"'&()*,;:<=>?[]^{|}"
