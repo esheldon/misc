@@ -26,15 +26,13 @@ let python_highlight_all=1
 "
 set hidden
 
-if version >= 700
-    " Make sure we set current directory to that of the buffer we
-    " are editing. 
-    "set autochdir
+" Make sure we set current directory to that of the buffer we
+" are editing. 
+"set autochdir
 
-    " Spell checking file for adding new words
-    set spellfile=~/.vim/spellfile.add
-    set spelllang=en_us
-endif
+" Spell checking file for adding new words
+set spellfile=~/.vim/spellfile.add
+set spelllang=en_us
 
 "This keeps the current visual block selection active after changing indent
 "with '<' or '>'. Usually the visual block selection is lost after you shift
@@ -105,8 +103,6 @@ noremap Y y$
 " Let h,l and cursor ceys wrap across begin and end line"
 set whichwrap=h,l,[,]
 
-
-let uname = substitute(system("/usr/bin/uname"),"\n","","g")
 
 " set up some functions to do colorscheme changes
 " we always want this

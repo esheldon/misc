@@ -31,7 +31,7 @@ function connect
 	if [ "$check" == "" ]; then
 		echo "Connecting to $gateway"
         #ssh -f -N -l ${username} ${fullhost}
-        ssh -f -N -L 7825:nx01.rcf.bnl.gov:22 -l ${username} ${fullhost}
+        ssh -f -N -L 7825:nx07.rcf.bnl.gov:22 -l ${username} ${fullhost}
 	fi
 
 }

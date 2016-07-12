@@ -63,6 +63,8 @@ if [[ $TERM != "linux" ]]; then
             screen*)
                 # This is so screen can put the current process in the window name
                 export TERM=screen-256color ;;
+            rxvt*)
+                export TERM=xterm-256color ;;
             xterm*)
                 export TERM=xterm-256color ;;
             *) ;;

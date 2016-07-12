@@ -8,6 +8,8 @@ eval set  [ array get env HOME ]
 set localdir $HOME/local
 
 prepend-path PATH            $localdir/bin
+prepend-path PATH            $HOME/perllib
+
 prepend-path LD_LIBRARY_PATH $localdir/lib
 prepend-path LIBRARY_PATH    $localdir/lib
 prepend-path C_INCLUDE_PATH  $localdir/include
