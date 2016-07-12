@@ -2,7 +2,7 @@
 
 function usage_and_exit {
     echo "usage:
-  lsf-incsub [options] lsf_file1 lsf_file2 ...
+  lsf-incsub-flist [options] lsf_file1 lsf_file2 ...
 
 options:
     -n NJOBS_MAX  Maximum number of jobs in queue, default $max_jobs
@@ -49,12 +49,14 @@ do
 done
 shift $(($OPTIND - 1))
 
-nfiles=$#
+flist=$1
+nfiles=$(cat $flist | wc -l)
+
 i=1
 
 read njobs diffjobs <<<$(get_diffjobs)
 
-for file_full; do
+cat $flist | while read file_full; do
 
     file=$(basename $file_full)
     dir=$(dirname $file_full)
