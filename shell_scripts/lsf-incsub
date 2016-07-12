@@ -51,7 +51,12 @@ i=1
 
 read njobs diffjobs <<<$(get_diffjobs)
 
-for file; do
+for file_full; do
+
+    file=$(basename $file_full)
+    dir=$(dirname $file_full)
+    pushd $dir &> /dev/null
+
     perc=$(echo "scale=0; 100*$i/$nfiles" | bc)
 
     logf="${file}.submitted"
@@ -83,6 +88,8 @@ for file; do
         sleep $sleep_time
 
     fi
+
+    popd &> /dev/null
     let "i += 1"
 
 done
