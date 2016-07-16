@@ -388,18 +388,18 @@ c_format='''
 
 c_format_builtin='''
 %(shortname)svector* %(shortname)svector_ones(size_t num) {
-
+    size_t i=0;
     %(shortname)svector* self=%(shortname)svector_new();
-    for (size_t i=0; i<num; i++) {
+    for (i=0; i<num; i++) {
         vector_push(self,1);
     }
     return self;
 }
 
 %(shortname)svector* %(shortname)svector_range(long min, long max) {
-
+    long i=0;
     %(shortname)svector* self=%(shortname)svector_new();
-    for (long i=min; i<max; i++) {
+    for (i=min; i<max; i++) {
         vector_push(self,i);
     }
     
