@@ -301,7 +301,7 @@ typedef struct {
 } %(shortname)svector;
 
 // create a new vector with VECTOR_INITCAP capacity and zero visible size
-%(shortname)svector* %(shortname)svector_new();
+%(shortname)svector* %(shortname)svector_new(void);
 
 // make a new copy of the vector
 %(shortname)svector* %(shortname)svector_copy(%(shortname)svector* self);
@@ -335,7 +335,7 @@ void %(shortname)svector_sort(%(shortname)svector* self);
 '''
 
 c_format='''
-%(shortname)svector* %(shortname)svector_new() {
+%(shortname)svector* %(shortname)svector_new(void) {
     %(shortname)svector* self = calloc(1,sizeof(%(shortname)svector));
     if (self == NULL) {
         fprintf(stderr,"Could not allocate %(shortname)svector\\n");
