@@ -69,10 +69,12 @@ header_head="""// This header was auto-generated using vectorgen
 #define vector_size(vec) (vec)->size
 #define vector_capacity(vec) (vec)->capacity
 
+//
 // getters and setters, generic macros
-// unsafe; maybe make safe?
+// UNSAFE
 #define vector_get(vec, i) (vec)->data[i]
 
+// UNSAFE
 #define vector_set(vec, i, val) do {                                         \\
     (vec)->data[(i)] = (val);                                                \\
 } while(0)
@@ -195,8 +197,9 @@ header_head="""// This header was auto-generated using vectorgen
     (self)->data[self->size-1] = val;                                      \\
 } while (0)
 
+// UNSAFE
 // pop the last element and decrement size; no reallocation is performed
-// if the vector is empty, an error message is printed and garbage is 
+// if the vector is empty, an error message is printed and garbage is
 // returned
 //
 // we rely on the fact that capacity never goes to zero, so the "garbage"
@@ -220,18 +223,18 @@ header_head="""// This header was auto-generated using vectorgen
 #define vector_add_inplace(v1, v2) do {                                    \\
     size_t _ii;                                                            \\
     size_t _num=0;                                                         \\
-    size_t _n1=vector_size( (v1) );                                        \\
-    size_t _n2=vector_size( (v2) );                                        \\
-    if (_n1 != _n2) {                                                      \\
+    size_t _num1=vector_size( (v1) );                                      \\
+    size_t _num2=vector_size( (v2) );                                      \\
+    if (_num1 != _num2) {                                                  \\
         fprintf(stderr,                                                    \\
          "VectorWarning: vectors are not the same size, adding subset\\n");\\
-        if (_n1 < _n2) {                                                   \\
-            _num=_n1;                                                      \\
+        if (_num1 < _num2) {                                               \\
+            _num=_num1;                                                    \\
         } else {                                                           \\
-            _num=_n2;                                                      \\
+            _num=_num2;                                                    \\
         }                                                                  \\
     } else {                                                               \\
-        _num=_n1;                                                          \\
+        _num=_num1;                                                        \\
     }                                                                      \\
     for (_ii=0; _ii<_num; _ii++) {                                         \\
         (v1)->data[_ii] += (v2)->data[_ii];                                \\
@@ -266,7 +269,7 @@ header_head="""// This header was auto-generated using vectorgen
     } else {                                                               \\
         _num=_num1;                                                        \\
     }                                                                      \\
-    for (_ii=0; _ii<_num; _ii++) {                                           \\
+    for (_ii=0; _ii<_num; _ii++) {                                         \\
         (v1)->data[_ii] *= (v2)->data[_ii];                                \\
     }                                                                      \\
 } while (0)
@@ -394,8 +397,11 @@ c_format_builtin='''
 %(shortname)svector* %(shortname)svector_ones(size_t num) {
     size_t i=0;
     %(shortname)svector* self=%(shortname)svector_new();
+
+    vector_resize(self, num);
+
     for (i=0; i<num; i++) {
-        vector_push(self,1);
+        self->data[i] = 1;
     }
     return self;
 }
@@ -411,8 +417,8 @@ c_format_builtin='''
 }
 
 int __%(shortname)svector_compare_el(const void *a, const void *b) {
-    %(sortype)s temp = 
-        (  (%(sortype)s) *( (%(type)s*)a ) ) 
+    %(sortype)s temp =
+        (  (%(sortype)s) *( (%(type)s*)a ) )
          -
         (  (%(sortype)s) *( (%(type)s*)b ) );
     if (temp > 0)
@@ -738,7 +744,7 @@ class Generator(dict):
 
                 text = c_format % ti
                 fobj.write(text)
-                
+
                 if ti['is_builtin']:
                     text = c_format_builtin % ti
                     fobj.write(text)
@@ -755,7 +761,7 @@ class Generator(dict):
 
             cname = 'test-%(shortname)svector.c' % ti
             cname = os.path.join(outdir, cname)
-            
+
             print("    writing:",cname)
             with open(cname,'w') as fobj:
                 if ti['is_builtin']:
