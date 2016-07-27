@@ -14,3 +14,5 @@
 /target/
 
 .sconsign.dblite
+
+nimcache
