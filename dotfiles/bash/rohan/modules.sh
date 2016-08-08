@@ -1,6 +1,9 @@
-f=~/local/Modules/3.2.8/init/bash
+f="$HOME/local/Modules/3.2.10/init/bash"
+
 if [[ -e $f ]]; then
-    source "$f"
+    . "$f"
+
+    module load null
 
     export MODULE_INSTALLS=~/local/module-installs
 
@@ -10,61 +13,14 @@ if [[ -e $f ]]; then
     module load use.own
 
     # python
-    module load anaconda
+    module load anaconda/py2
     module load espy/local
-
-    #module load emcee
-    #module load acor       # *
-
-    #module load fitsio/local     # *
-
-    #module load ngmix/local
-    #module load nsim/local
-
-    #module load great3/local
-    #module load great3-config/local
-
-    #module load psfex/local # *
-    #module load meds/local # *
-    #module load gmix_meds/local
-    # deprecated gmix image tools
-    #module load gmix_image/local # *
-
-    #module load desdb/local
-    #module load deswl/local
-
-    #module load cosmology   # *
-    #module load stomp      # *
-
-    #module load wq
-
-    # waiting for astropy.fits to be supported
-    #module load galsim/local     # *
-    #module load admom      # *
-    #module load fimage/local     # *
-    #module load pymangle   # *
-    #module load sdsspy     # *
-
-    #module load pgnumpy    # *
-    #module load biggles/local    # *
-    #module load esutil     # *
-    #module load recfile    # *
-
-    # not python
-
-    #module load mangle     # *
-    #module load gsim_ring/local
 
     module load local      # *
 
-    #module load tmv/0.71   # *
     module load tmv/0.73   # *
-    #module load wl/local   # * don't need currently
 
-    module load parallel
+    #module load parallel
     module load shell_scripts
     module load perllib
-
-
 fi
-
