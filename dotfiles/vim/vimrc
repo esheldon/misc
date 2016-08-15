@@ -262,6 +262,10 @@ Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
 Plugin 'JuliaLang/julia-vim'
 Plugin 'rust-lang/rust.vim'
+Plugin 'craigemery/vim-autotag'
+
+set tags=tags;/
+
 let g:vim_markdown_folding_disabled=1
 
 "Bundle 'scrooloose/syntastic'
