@@ -255,7 +255,7 @@ call vundle#rc()
 
 " let Vundle manage Vundle, required
 Bundle 'gmarik/vundle'
-Bundle 'zah/nimrod.vim'
+Bundle 'zah/nim.vim'
 Bundle 'shmay/vim-yaml'
 Bundle 'cespare/vim-toml'
 Plugin 'godlygeek/tabular'
