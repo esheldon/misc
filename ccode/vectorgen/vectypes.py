@@ -69,10 +69,12 @@ header_head="""// This header was auto-generated using vectorgen
 #define vector_size(vec) (vec)->size
 #define vector_capacity(vec) (vec)->capacity
 
+//
 // getters and setters, generic macros
-// unsafe; maybe make safe?
+// UNSAFE
 #define vector_get(vec, i) (vec)->data[i]
 
+// UNSAFE
 #define vector_set(vec, i, val) do {                                         \\
     (vec)->data[(i)] = (val);                                                \\
 } while(0)
@@ -195,8 +197,9 @@ header_head="""// This header was auto-generated using vectorgen
     (self)->data[self->size-1] = val;                                      \\
 } while (0)
 
+// UNSAFE
 // pop the last element and decrement size; no reallocation is performed
-// if the vector is empty, an error message is printed and garbage is 
+// if the vector is empty, an error message is printed and garbage is
 // returned
 //
 // we rely on the fact that capacity never goes to zero, so the "garbage"
@@ -218,30 +221,32 @@ header_head="""// This header was auto-generated using vectorgen
 // if the vectors are not the same size, then only the smallest
 // number are added
 #define vector_add_inplace(v1, v2) do {                                    \\
-    size_t num=0;                                                          \\
-    size_t n1=vector_size( (v1) );                                         \\
-    size_t n2=vector_size( (v2) );                                         \\
-    if (n1 != n2) {                                                        \\
+    size_t _ii;                                                            \\
+    size_t _num=0;                                                         \\
+    size_t _num1=vector_size( (v1) );                                      \\
+    size_t _num2=vector_size( (v2) );                                      \\
+    if (_num1 != _num2) {                                                  \\
         fprintf(stderr,                                                    \\
-         "VectorWarning: vectors are not the same size, adding subset\\n");      \\
-        if (n1 < n2) {                                                     \\
-            num=n1;                                                        \\
+         "VectorWarning: vectors are not the same size, adding subset\\n");\\
+        if (_num1 < _num2) {                                               \\
+            _num=_num1;                                                    \\
         } else {                                                           \\
-            num=n2;                                                        \\
+            _num=_num2;                                                    \\
         }                                                                  \\
     } else {                                                               \\
-        num=n1;                                                            \\
+        _num=_num1;                                                        \\
     }                                                                      \\
-    for (size_t i=0; i<num; i++) {                                         \\
-        (v1)->data[i] += (v2)->data[i];                                    \\
+    for (_ii=0; _ii<_num; _ii++) {                                         \\
+        (v1)->data[_ii] += (v2)->data[_ii];                                \\
     }                                                                      \\
 } while (0)
 
 
 // not using foreach here since that requires gnu99
 #define vector_add_scalar(self, val) do {                                  \\
-    for (size_t i=0; i < vector_size( (self) ); i++) {                     \\
-        (self)->data[i] += (val);                                          \\
+    size_t _ii=0;                                                          \\
+    for (_ii=0; _ii < vector_size( (self) ); _ii++) {                      \\
+        (self)->data[_ii] += (val);                                        \\
     }                                                                      \\
 } while (0)
 
@@ -249,30 +254,32 @@ header_head="""// This header was auto-generated using vectorgen
 // if the vectors are not the same size, then only the smallest
 // number are multiplied
 #define vector_mult_inplace(v1, v2) do {                                   \\
-    size_t num=0;                                                          \\
-    size_t n1=vector_size( (v1) );                                         \\
-    size_t n2=vector_size( (v2) );                                         \\
-    if (n1 != n2) {                                                        \\
+    size_t _ii=0;                                                          \\
+    size_t _num=0;                                                         \\
+    size_t _num1=vector_size( (v1) );                                      \\
+    size_t _num2=vector_size( (v2) );                                      \\
+    if (_num1 != _num2) {                                                  \\
         fprintf(stderr,                                                    \\
          "warning: vectors are not the same size, multiplying subset\\n"); \\
-        if (n1 < n2) {                                                     \\
-            num=n1;                                                        \\
+        if (_num1 < _num2) {                                               \\
+            _num=_num1;                                                    \\
         } else {                                                           \\
-            num=n2;                                                        \\
+            _num=_num2;                                                    \\
         }                                                                  \\
     } else {                                                               \\
-        num=n1;                                                            \\
+        _num=_num1;                                                        \\
     }                                                                      \\
-    for (size_t i=0; i<num; i++) {                                         \\
-        (v1)->data[i] *= (v2)->data[i];                                    \\
+    for (_ii=0; _ii<_num; _ii++) {                                         \\
+        (v1)->data[_ii] *= (v2)->data[_ii];                                \\
     }                                                                      \\
 } while (0)
 
 
 // not using foreach here since that requires gnu99
-#define vector_mult_scalar(self, val) do {                                  \\
-    for (size_t i=0; i < vector_size( (self) ); i++) {                     \\
-        (self)->data[i] *= (val);                                          \\
+#define vector_mult_scalar(self, val) do {                                 \\
+    size_t _ii=0;                                                          \\
+    for (_ii=0; _ii < vector_size( (self) ); _ii++) {                      \\
+        (self)->data[_ii] *= (val);                                        \\
     }                                                                      \\
 } while (0)
 
@@ -301,7 +308,7 @@ typedef struct {
 } %(shortname)svector;
 
 // create a new vector with VECTOR_INITCAP capacity and zero visible size
-%(shortname)svector* %(shortname)svector_new();
+%(shortname)svector* %(shortname)svector_new(void);
 
 // make a new copy of the vector
 %(shortname)svector* %(shortname)svector_copy(%(shortname)svector* self);
@@ -335,7 +342,7 @@ void %(shortname)svector_sort(%(shortname)svector* self);
 '''
 
 c_format='''
-%(shortname)svector* %(shortname)svector_new() {
+%(shortname)svector* %(shortname)svector_new(void) {
     %(shortname)svector* self = calloc(1,sizeof(%(shortname)svector));
     if (self == NULL) {
         fprintf(stderr,"Could not allocate %(shortname)svector\\n");
@@ -388,27 +395,30 @@ c_format='''
 
 c_format_builtin='''
 %(shortname)svector* %(shortname)svector_ones(size_t num) {
-
+    size_t i=0;
     %(shortname)svector* self=%(shortname)svector_new();
-    for (size_t i=0; i<num; i++) {
-        vector_push(self,1);
+
+    vector_resize(self, num);
+
+    for (i=0; i<num; i++) {
+        self->data[i] = 1;
     }
     return self;
 }
 
 %(shortname)svector* %(shortname)svector_range(long min, long max) {
-
+    long i=0;
     %(shortname)svector* self=%(shortname)svector_new();
-    for (long i=min; i<max; i++) {
+    for (i=min; i<max; i++) {
         vector_push(self,i);
     }
-    
+
     return self;
 }
 
 int __%(shortname)svector_compare_el(const void *a, const void *b) {
-    %(sortype)s temp = 
-        (  (%(sortype)s) *( (%(type)s*)a ) ) 
+    %(sortype)s temp =
+        (  (%(sortype)s) *( (%(type)s*)a ) )
          -
         (  (%(sortype)s) *( (%(type)s*)b ) );
     if (temp > 0)
@@ -734,7 +744,7 @@ class Generator(dict):
 
                 text = c_format % ti
                 fobj.write(text)
-                
+
                 if ti['is_builtin']:
                     text = c_format_builtin % ti
                     fobj.write(text)
@@ -751,7 +761,7 @@ class Generator(dict):
 
             cname = 'test-%(shortname)svector.c' % ti
             cname = os.path.join(outdir, cname)
-            
+
             print("    writing:",cname)
             with open(cname,'w') as fobj:
                 if ti['is_builtin']:

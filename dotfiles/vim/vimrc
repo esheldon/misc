@@ -26,15 +26,13 @@ let python_highlight_all=1
 "
 set hidden
 
-if version >= 700
-    " Make sure we set current directory to that of the buffer we
-    " are editing. 
-    "set autochdir
+" Make sure we set current directory to that of the buffer we
+" are editing. 
+"set autochdir
 
-    " Spell checking file for adding new words
-    set spellfile=~/.vim/spellfile.add
-    set spelllang=en_us
-endif
+" Spell checking file for adding new words
+set spellfile=~/.vim/spellfile.add
+set spelllang=en_us
 
 "This keeps the current visual block selection active after changing indent
 "with '<' or '>'. Usually the visual block selection is lost after you shift
@@ -105,8 +103,6 @@ noremap Y y$
 " Let h,l and cursor ceys wrap across begin and end line"
 set whichwrap=h,l,[,]
 
-
-let uname = substitute(system("/usr/bin/uname"),"\n","","g")
 
 " set up some functions to do colorscheme changes
 " we always want this
@@ -259,7 +255,7 @@ call vundle#rc()
 
 " let Vundle manage Vundle, required
 Bundle 'gmarik/vundle'
-Bundle 'zah/nimrod.vim'
+Bundle 'zah/nim.vim'
 Bundle 'shmay/vim-yaml'
 Bundle 'cespare/vim-toml'
 Bundle 'tomtom/tcomment_vim'
@@ -268,6 +264,9 @@ Plugin 'plasticboy/vim-markdown'
 Plugin 'JuliaLang/julia-vim'
 Plugin 'rust-lang/rust.vim'
 Plugin 'wincent/command-t'
+Plugin 'craigemery/vim-autotag'
+
+set tags=tags;/
 
 let g:vim_markdown_folding_disabled=1
 
@@ -362,7 +361,7 @@ map <silent> ,V :source $VIMRC<CR>:filetype detect<CR>:exe ":echo 'vimrc reloade
 
 "let python_highlight_indent_errors = 0
 " Who cares about trailing spaces?
-"let python_highlight_space_errors = 0
+let python_highlight_space_errors = 0
 
 
 "gpg stuff
