@@ -15,7 +15,9 @@
 
 
 function usage_and_exit {
-    echo "usage: colstats -n {ncols} col1 col2 ..."
+    echo "usage: colstats [-2] [-n {ncols}] col1 col2 ..."
+    echo "  send -2 to show 2 sigma errors"
+    echo "  send -n {ncols} to only look at rows with than many entries"
     echo "  send data on stdin"
     exit 1
 }
@@ -25,10 +27,13 @@ fi
 
 ncols="notgiven"
 
-while getopts "n:" Option
+show_2sig="no"
+
+while getopts "n:2" Option
   do
   case $Option in
       n)  ncols=$OPTARG ;;
+      2)   show_2sig="yes";;
       [?]) usage_and_exit;; 
   esac
 done
@@ -62,8 +67,16 @@ for col; do
     mn[$col]=sum[$col]/NR;
     mn2[$col]=sum2[$col]/NR;
     std[$col]=sqrt( (mn2[$col] - mn[$col]*mn[$col]));
-    err[$col]=sqrt( (mn2[$col] - mn[$col]*mn[$col])/NR);
     "
+    if [[ $show_2sig == "yes" ]]; then
+        dostats="$dostats
+        err[$col]=2.0*sqrt( (mn2[$col] - mn[$col]*mn[$col])/NR);
+        "
+    else
+        dostats="$dostats 
+        err[$col]=sqrt( (mn2[$col] - mn[$col]*mn[$col])/NR);
+        "
+    fi
 
     prnt="${prnt}
     printf \"%10d %10.7g %10.7g %10.7g %12.7g %12.7g %12.7g\\n\", NR, sum[$col], minvals[$col], maxvals[$col], mn[$col], err[$col], std[$col]"
@@ -71,13 +84,18 @@ for col; do
     i=$((i = i+1))
 done
 
+if [[ $show_2sig == "yes" ]]; then
+    errstr="2*err"
+else
+    errstr="err"
+fi
 awkscript="BEGIN {
     $begin
 } $check {
     $script
 } END {
     $dostats
-    printf \"%10s %10s %10s %10s %12s %12s %12s\\n\", \"nrow\", \"total\", \"min\", \"max\", \"mean\", \"err\", \"std\"
+    printf \"%10s %10s %10s %10s %12s %12s %12s\\n\", \"nrow\", \"total\", \"min\", \"max\", \"mean\", \"$errstr\", \"std\"
     $prnt
 }"
 
