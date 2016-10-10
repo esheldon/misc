@@ -37,8 +37,10 @@ main = do
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
                    },
-                   terminal = "xterm -fa inconsolata-14"
+                   terminal = "xterm"
+                   --terminal = "xterm -fa inconsolata-14"
     }`additionalKeys` myKeyBindings
+
 
 --myWorkspaces = ["1","2","3","4","5","6","7","8","9"]
 -- newer versions of dmenu are for some reason not recognized automatically,
