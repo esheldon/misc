@@ -9,13 +9,10 @@ if [[ -e $f ]]; then
 
     module load local
     module load espy/local
-    module load anaconda
+    module load anaconda/py2
 
     module load local      # *
     module load shell_scripts
 
-
-    # conda environment
-    source activate local
 fi
 
