@@ -319,6 +319,8 @@ set shiftwidth=4
 " expand tabs into spaces
 set expandtab
 
+" yaml indentation
+au FileType yaml setlocal tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 " C-indent mode "
 set cindent "
