@@ -17,8 +17,6 @@ prepend-path LIBRARY_PATH    $localdir/lib
 prepend-path C_INCLUDE_PATH  $localdir/include
 prepend-path CPATH           $localdir/include
 
-#prepend-path PATH            $HOME/anaconda/bin
-
 setenv LENSDIR $HOME/lensing
 setenv SHAPESIM_FS local
 
@@ -33,3 +31,5 @@ setenv DESPROJ OPS
 setenv GREAT3_DATA_DIR $HOME/data/lensing/great3
 
 setenv WEBDIR $HOME/data
+
+setenv SHAPESIM_DIR $HOME/lensing/shapesim

@@ -28,7 +28,12 @@ xterm*allowBoldFonts: false
 !xterm*faceName: peep
 !xterm*faceSize: 12
 
-xterm*font: -zevv-peep-medium-r-normal--16-140-75-75-c-80-iso8859-1
+!xterm*faceName: gohufont
+!xterm*faceSize: 14
+
+!*font: xft:gohufont
+
+!xterm*font: -zevv-peep-medium-r-normal--16-140-75-75-c-80-iso8859-1
 
 ! dont include the newline when triple clicking
 xterm*cutNewLine: true

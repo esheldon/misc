@@ -2,6 +2,7 @@
 # this is nice because I need to use a dark theme for fbpanel
 # but dark themes never work right in firefox.
 alias myfirefox='GTK2_RC_FILES="/usr/share/themes/Clearlooks/gtk-2.0/gtkrc" firefox'
+alias mds9='ds9 -xpa local'
 
 export treebeard=192.168.127.102
 

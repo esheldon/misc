@@ -10,6 +10,7 @@
 *.rlib
 *.dll
 *.exe
+tags
 
 /build/
 /target/
