@@ -42,7 +42,7 @@ lsst_bnl_test=$(uname -n | grep -i lst.bnl)
 
 riemann_test=$(uname -n | grep n00)
 
-slac_test=$(uname -n | grep -i rhel)
+slac_test=$(uname -n | egrep -i "rhel|orange|ki-ls")
 
 comet_test=`echo $host | grep -i comet`
 
