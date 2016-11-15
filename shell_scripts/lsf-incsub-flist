@@ -2,7 +2,7 @@
 
 function usage_and_exit {
     echo "usage:
-  lsf-incsub-flist [options] lsf_file1 lsf_file2 ...
+  lsf-incsub-flist [options] flist
 
 options:
     -n NJOBS_MAX  Maximum number of jobs in queue, default $max_jobs
