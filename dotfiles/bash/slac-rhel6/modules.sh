@@ -2,5 +2,5 @@ module load use.own
 
 module load local
 module load shell_scripts
-module load espy/local
+module load espy/work
 module load anaconda/local
