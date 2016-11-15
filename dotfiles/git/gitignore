@@ -11,6 +11,7 @@
 *.dll
 *.exe
 
+/build/
 /target/
 
 .sconsign.dblite
