@@ -28,10 +28,16 @@ myManageHooks = manageDocks <+> composeAll
 
 -- myLayouts = Tall ||| Full ||| simpleFloat
 
+--        , handleEventHook = mconcat
+--            [ docksEventHook
+--            , handleEventHook defaultConfig ]
 main = do 
 	xmproc <- spawnPipe "/usr/bin/xmobar /home/esheldon/.xmonad/xmobarrc"
 	xmonad $ defaultConfig {
-        manageHook = myManageHooks <+> manageHook defaultConfig,
+       handleEventHook = mconcat
+           [ docksEventHook
+           , handleEventHook defaultConfig ]
+        ,manageHook = myManageHooks <+> manageHook defaultConfig,
                    layoutHook = avoidStruts $ smartBorders $ layoutHook defaultConfig,
                    logHook = dynamicLogWithPP $ xmobarPP { 
                        ppOutput = hPutStrLn xmproc,
