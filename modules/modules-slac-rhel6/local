@@ -18,7 +18,7 @@ prepend-path CPATH           $localdir/include
 # this contains symlinks to matt's area
 #set DESDATA /u/ki/esheldon/lensing/mydesdata
 #set DESDATA /nfs/slac/g/ki/ki21/cosmo/DESDATA
-set DESDATA /nfs/slac/g/ki/ki19/des/esheldon/DESDATA/
+set DESDATA /nfs/slac/g/ki/ki19/des/esheldon/DESDATA
 set LENSDIR /nfs/slac/des/fs1/g/sims/esheldon/lensing
 
 setenv DESDATA $DESDATA
@@ -34,7 +34,9 @@ setenv GREAT3_DATA_DIR $LENSDIR/mygreat3
 setenv GDES_DATA_DIR $LENSDIR/great-des
 
 #setenv TMPDIR /data/esheldon/tmp
-setenv TMPDIR /nfs/slac/des/fs1/g/sims/esheldon/tmp
+#setenv TMPDIR /nfs/slac/des/fs1/g/sims/esheldon/tmp
+setenv TMPDIR /nfs/slac/g/ki/ki19/des/esheldon/tmp
+
 
 setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
@@ -65,6 +67,9 @@ setenv GREAT3DATA $HOME/lensing/galsim-cosmos-data/COSMOS_23.5_training_sample
 
 setenv EGRET_CONFIG_DIR $HOME/lensing/egretsims/config
 
-setenv MEDS_DIR /nfs/slac/des/fs1/g/sims/esheldon/meds
-setenv NGMIXER_OUTPUT_DIR /nfs/slac/des/fs1/g/sims/esheldon/ngmixer-output
+#setenv MEDS_DIR /nfs/slac/des/fs1/g/sims/esheldon/meds
+setenv MEDS_DIR /nfs/slac/g/ki/ki19/des/esheldon/DESDATA/meds
+
+#setenv NGMIXER_OUTPUT_DIR /nfs/slac/des/fs1/g/sims/esheldon/ngmixer-output
+setenv NGMIXER_OUTPUT_DIR /nfs/slac/g/ki/ki19/des/esheldon/ngmixer-output
 setenv NGMIXER_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-config
