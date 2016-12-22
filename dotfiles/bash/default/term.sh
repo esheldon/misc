@@ -67,6 +67,8 @@ if [[ $TERM != "linux" ]]; then
                 export TERM=xterm-256color ;;
             xterm*)
                 export TERM=xterm-256color ;;
+            st*)
+                export TERM=xterm-256color ;;
             *) ;;
         esac
     fi
