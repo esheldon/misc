@@ -28,13 +28,17 @@ myManageHooks = manageDocks <+> composeAll
 main = do 
 	xmproc <- spawnPipe "/usr/bin/xmobar /home/esheldon/.xmonad/xmobarrc"
 	xmonad $ defaultConfig {
-        manageHook = myManageHooks <+> manageHook defaultConfig,
+        handleEventHook = mconcat
+            [ docksEventHook
+            , handleEventHook defaultConfig ]
+        ,manageHook = myManageHooks <+> manageHook defaultConfig,
                    layoutHook = avoidStruts $ smartBorders $ layoutHook defaultConfig,
                    logHook = dynamicLogWithPP $ xmobarPP { 
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
-                   },
-                   terminal = "xterm -fa Inconsolata-12"
+                   }
+                   ,terminal = "xterm"
+                   -- ,terminal = "xterm -fa Inconsolata-12"
     }`additionalKeys` myKeyBindings
 
 -- newer versions of dmenu are for some reason not recognized automatically,
