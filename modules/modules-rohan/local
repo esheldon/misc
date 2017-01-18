@@ -34,7 +34,7 @@ setenv DESPROJ OPS
 
 setenv GREAT3_DATA_DIR $HOME/data/lensing/great3
 
-setenv NSIM_DIR $HOME/anaconda
+setenv NSIM_DIR $HOME/anaconda2
 setenv SHAPESIM_DIR $HOME/lensing/shapesim
 
 
