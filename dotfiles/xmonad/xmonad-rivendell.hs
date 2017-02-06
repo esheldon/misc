@@ -43,7 +43,8 @@ main = do
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
                    },
-                   terminal = "st"
+                   terminal = "xterm"
+                   -- terminal = "st"
                    --terminal = "xterm -fa inconsolata-14"
     }`additionalKeys` myKeyBindings
 

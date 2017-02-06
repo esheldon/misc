@@ -9,7 +9,7 @@ if [[ -e $f ]]; then
 
     module load local
     module load espy/local
-    module load anaconda/py2
+    module load anaconda/py3
 
     module load local      # *
     module load shell_scripts
