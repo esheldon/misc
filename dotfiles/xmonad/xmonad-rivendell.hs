@@ -43,8 +43,7 @@ main = do
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
                    },
-                   terminal = "gnome-terminal"
-                   --terminal = "xterm -fa inconsolata-14"
+                   terminal = "xfce4-terminal"
     }`additionalKeys` myKeyBindings
 
 
