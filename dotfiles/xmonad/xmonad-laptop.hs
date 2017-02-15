@@ -4,6 +4,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
+import XMonad.Layout.SimpleFloat
 
 -- provides smartBorders for e.g. mplayer
 import XMonad.Layout.NoBorders
@@ -37,7 +38,8 @@ main = do
                        ppOutput = hPutStrLn xmproc,
                        ppTitle = xmobarColor "green" "" . shorten 50
                    }
-                   ,terminal = "xterm"
+                   ,terminal = "xfce4-terminal"
+                   --,terminal = "xterm"
                    -- ,terminal = "xterm -fa Inconsolata-12"
     }`additionalKeys` myKeyBindings
 
