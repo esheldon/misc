@@ -11,7 +11,7 @@ Mrxvt.cursorBlink:      false
 
 mrxvt.syncTabTitle: true
 
-mrxvt*foreground: white
+mrxvt*foreground: #dcdccc
 mrxvt*background: #1f1f1f
 mrxvt.cursorColor: green
 mrxvt.cursorColor2: black
@@ -99,8 +99,8 @@ Mrxvt.minVisibleTabs: 5
 mrxvt*termName: xterm-256color
 
 # mac-style copy past:  thumb-c and thumb-v
-mrxvt.macro.Meta+c: Copy
-mrxvt.macro.Meta+v: Paste
+#mrxvt.macro.Meta+c: Copy
+#mrxvt.macro.Meta+v: Paste
 
 mrxvt.macro.Alt+f: ToggleFullscreen
 

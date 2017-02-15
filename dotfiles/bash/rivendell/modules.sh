@@ -8,12 +8,13 @@ if [[ -e $f ]]; then
     module load use.own
 
     # python
-    module load espy/local
-    module load fitsio/py3
-    module load pymangle/py3
-    module load biggles/python3
+    #module load espy/local
+    #module load fitsio/py3
+    #module load pymangle/py3
+    #module load biggles/python3
     #module load healpix/local
 
+    module load anaconda/4
     module load local      # *
     module load shell_scripts
 
