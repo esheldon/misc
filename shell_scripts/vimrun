@@ -2,9 +2,14 @@
 
 #mrxvt -e vim -c "set filetype=mail" -c "set spell spelllang=en_us" $1 &
 
-gtkfile=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc
-if [[ -e $gtkfile ]]; then
-    GTK2_RC_FILES=$gtkfile gvim -c "set filetype=mail" -c "set spell spelllang=en_us" -c "colorscheme zenburn" $1 &
-else
-    gvim -c "set filetype=mail" -c "set spell spelllang=en_us" -c "colorscheme zenburn" $1 &
-fi
+#gtkfile=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc
+#if [[ -e $gtkfile ]]; then
+#    GTK2_RC_FILES=$gtkfile gvim -c "set filetype=mail" -c "set spell spelllang=en_us" -c "colorscheme zenburn" $1 &
+#else
+#    gvim -c "set filetype=mail" -c "set spell spelllang=en_us" -c "colorscheme zenburn" $1 &
+#fi
+
+
+#xterm -e "vim -c \"set filetype=mail\" -c \"set spell spelllang=en_us\" -c \"colorscheme zenburn\" $1 "
+#gnome-terminal -e "vim -c \"set filetype=mail\" -c \"set spell spelllang=en_us\" -c \"colorscheme zenburn_simple\" $1 "
+gnome-terminal -e "vim -c \"set filetype=mail\" -c \"colorscheme zenburn_simple\" $1 "
