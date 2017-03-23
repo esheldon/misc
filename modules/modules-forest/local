@@ -35,3 +35,5 @@ setenv WEBDIR $HOME/data
 setenv SHAPESIM_DIR $HOME/lensing/shapesim
 
 setenv NGMIXER_OUTPUT_DIR $HOME/data/ngmixer-outputs
+
+setenv TMPDIR $HOME/data/tmp

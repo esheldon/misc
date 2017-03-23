@@ -35,8 +35,7 @@ height			= 640
  
 # make window persistent when using interactively?
 #
-persistent		= false
-#persistent		= true
+persistent		= no
 
 # --------------------------------------------------
 [printer]
@@ -186,7 +185,7 @@ kw_defaults		= { fontsize	: 2.5,
 kw_defaults		= {linewidth:1.5}
 
 [_PlotContainer]
-aspect_ratio		= None
+aspect_ratio    = None
 page_margin		= 0.1
 title			= None
 title_offset		= 1.0
