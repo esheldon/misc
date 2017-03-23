@@ -4,7 +4,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
-import XMonad.Layout.SimpleFloat
+--import XMonad.Layout.SimpleFloat
 
 -- provides smartBorders for e.g. mplayer
 import XMonad.Layout.NoBorders
@@ -16,10 +16,14 @@ import System.IO
 
 import qualified XMonad.StackSet as W
 
-myManageHooks = manageDocks <+> composeAll
+myManageHooks =  composeAll
     -- get full screen on things like flash in firefox
     -- Allows focusing other monitors without killing the fullscreen
-    [ isFullscreen --> (doF W.focusDown <+> doFullFloat) ]
+--    [ isFullscreen --> (doF W.focusDown <+> doFullFloat)
+    [ manageDocks,
+	  isFullscreen --> doFullFloat,
+	  title =? "xplot" --> doFloat
+    ]
     --  
     --  -- Single monitor setups, or if the previous hook doesn't work
     --      [ isFullscreen --> doFullFloat
