@@ -4,7 +4,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
-import XMonad.Layout.SimpleFloat
+--import XMonad.Layout.SimpleFloat
 
 -- provides smartBorders for e.g. mplayer
 import XMonad.Layout.NoBorders
@@ -19,12 +19,20 @@ import qualified XMonad.StackSet as W
 myManageHooks = manageDocks <+> composeAll
     -- get full screen on things like flash in firefox
     -- Allows focusing other monitors without killing the fullscreen
-    [ isFullscreen --> (doF W.focusDown <+> doFullFloat) ]
+--    [ isFullscreen --> (doF W.focusDown <+> doFullFloat)
+    [ isFullscreen --> doFullFloat
+	, title =? "xplot" --> doFloat ]
     --  
     --  -- Single monitor setups, or if the previous hook doesn't work
     --      [ isFullscreen --> doFullFloat
     --          -- skipped
     --      ]
+
+--myManageHooks = composeAll . concat $
+--    [ [ className =? c               --> doFloat | c <- cFloats ]
+--	, [ title     =? t               --> doFloat | t <- tFloats ]]
+--	where cFloats = ["Gimp", "Pidgin", "ROX-Filer"]
+--	      tFloats = ["Firefox Preferences", "Downloads", "Add-ons", "Rename", "Create", "xplot"]
 
 main = do 
 	xmproc <- spawnPipe "/usr/bin/xmobar /home/esheldon/.xmonad/xmobarrc"

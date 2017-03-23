@@ -35,7 +35,7 @@ height			= 640
  
 # make window persistent when using interactively?
 #
-persistent		= false
+persistent		= no
 #persistent		= true
 
 # --------------------------------------------------
