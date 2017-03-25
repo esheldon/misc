@@ -14,7 +14,7 @@ if [[ -e $f ]]; then
     #module load biggles/python3
     #module load healpix/local
 
-    module load anaconda/4
+    module load anaconda/3
     module load local      # *
     module load shell_scripts
 
