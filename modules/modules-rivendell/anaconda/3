@@ -7,6 +7,6 @@ eval set  [ array get env HOME ]
 
 set ANACONDA_DIR $HOME/anaconda3
 
-prepend-path PATH            $ANACONDA_DIR/bin
+prepend-path PATH $ANACONDA_DIR/bin
 
 setenv ANACONDA_DIR $ANACONDA_DIR
