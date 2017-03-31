@@ -11,8 +11,7 @@ local beautiful = require("beautiful")
 local naughty = require("naughty")
 local menubar = require("menubar")
 
--- Load Debian menu entries
-require("debian.menu")
+local vicious = require("vicious")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -44,8 +43,7 @@ end
 beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "x-terminal-emulator"
---terminal = "xfce4-terminal"
+terminal = "xfce4-terminal"
 editor = os.getenv("EDITOR") or "editor"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -103,7 +101,6 @@ myawesomemenu = {
 }
 
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
-                                    { "Debian", debian.menu.Debian_menu.Debian },
                                     { "open terminal", terminal }
                                   }
                         })
@@ -116,8 +113,25 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 -- }}}
 
 -- {{{ Wibox
+
+-- widgets
+
+spacer       = wibox.widget.textbox()
+spacer:set_text(' | ')
 -- Create a textclock widget
 mytextclock = awful.widget.textclock()
+
+cpuicon = wibox.widget.imagebox()
+cpuicon:set_image(beautiful.widget_cpu)
+--
+cpu = wibox.widget.textbox()
+--vicious.register(cpu, vicious.widgets.cpu, "All: $1% 1: $2% 2: $3% 3: $4% 4: $5%", 2)
+vicious.register(cpu, vicious.widgets.cpu, "CPU: $1%", 2)
+
+mem = wibox.widget.textbox()
+vicious.register(mem, vicious.widgets.mem, "Mem: $1% Use: $2MB", 2)
+
+
 
 -- Create a wibox for each screen and add it
 mywibox = {}
@@ -198,6 +212,11 @@ for s = 1, screen.count() do
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
+
+    right_layout:add(cpu)
+    right_layout:add(spacer)
+    right_layout:add(mem)
+    right_layout:add(spacer)
     right_layout:add(mytextclock)
     right_layout:add(mylayoutbox[s])
 
