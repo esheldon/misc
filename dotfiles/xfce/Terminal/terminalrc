@@ -35,7 +35,7 @@ ColorPalette11=#96b1e81d9f13
 ColorPalette2=#ffff00000000
 FontName=Terminus 12
 FontAllowBold=FALSE
-ColorPalette=#2e2e34343636;#aaaa00000000;#1555db2e1555;#f701e8be0222;#8a96a6f2ffff;#db9a4bdadb9a;#2187c9d3c9d3;#aaaaaaaaaaaa;#555555555555;#ffff55555555;#5555ffff5555;#ffffffff5555;#887c9de4ffff;#ffff5555ffff;#5555ffffffff;#ffffffffffff
+ColorPalette=#2e2e34343636;#a9f00fde0fde;#1555db2e1555;#f701e8be0222;#8a96a6f2ffff;#db9a4bdadb9a;#2187c9d3c9d3;#aaaaaaaaaaaa;#555555555555;#ffff55555555;#5555ffff5555;#ffffffff5555;#887c9de4ffff;#ffff5555ffff;#5555ffffffff;#ffffffffffff
 MiscToolbarDefault=FALSE
 MiscScrollAlternateScreen=TRUE
 
