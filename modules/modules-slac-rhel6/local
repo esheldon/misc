@@ -8,6 +8,7 @@ eval set  [ array get env HOME ]
 set localdir $HOME/local
 
 prepend-path PATH            $localdir/bin
+prepend-path PATH            $HOME/perllib
 prepend-path LD_LIBRARY_PATH $localdir/lib
 prepend-path LIBRARY_PATH    $localdir/lib
 prepend-path C_INCLUDE_PATH  $localdir/include
@@ -16,7 +17,8 @@ prepend-path CPATH           $localdir/include
 #set DESDATA /nfs/slac/g/ki/ki21/cosmo/beckermr/DES/DESDATA
 # this contains symlinks to matt's area
 #set DESDATA /u/ki/esheldon/lensing/mydesdata
-set DESDATA /nfs/slac/g/ki/ki21/cosmo/DESDATA
+#set DESDATA /nfs/slac/g/ki/ki21/cosmo/DESDATA
+set DESDATA /nfs/slac/g/ki/ki19/des/esheldon/DESDATA
 set LENSDIR /nfs/slac/des/fs1/g/sims/esheldon/lensing
 
 setenv DESDATA $DESDATA
@@ -32,7 +34,9 @@ setenv GREAT3_DATA_DIR $LENSDIR/mygreat3
 setenv GDES_DATA_DIR $LENSDIR/great-des
 
 #setenv TMPDIR /data/esheldon/tmp
-setenv TMPDIR /nfs/slac/des/fs1/g/sims/esheldon/tmp
+#setenv TMPDIR /nfs/slac/des/fs1/g/sims/esheldon/tmp
+setenv TMPDIR /nfs/slac/g/ki/ki19/des/esheldon/tmp
+
 
 setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
@@ -46,13 +50,27 @@ setenv TMV_DIR $localdir
 # mine
 setenv REREDUX_DATA_DIR /u/ki/esheldon/lensing/egretsims
 
-setenv WOMBAT_DATA_DIR /u/ki/esheldon/lensing/wombat-sims
+setenv WOMBAT_CONFIG_DIR /u/ki/esheldon/lensing/wombat-config
+setenv WOMBAT_DIR /u/ki/esheldon/lensing/wombat-sims
 
 # my processing outputs from ngmixer
 setenv REREDUX_OUTPUTS_DIR /nfs/slac/des/fs1/g/sims/esheldon/lensing/great3reredux
 
-# for runs on real data
-setenv NGMIXER_OUTPUT_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-runs
-setenv NGMIXER_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-config
-
 setenv WEBDIR $HOME/public_html
+
+setenv NSIM_DIR $HOME/miniconda/envs/nsim-work
+setenv REREDUX_DIR $HOME/miniconda/envs/nsim-work
+
+# this is actually the cosmos data directory but Matt
+# called it GREAT3DIR in egret
+setenv GREAT3DATA $HOME/lensing/galsim-cosmos-data/COSMOS_23.5_training_sample
+
+setenv EGRET_CONFIG_DIR $HOME/lensing/egretsims/config
+
+#setenv MEDS_DIR /nfs/slac/des/fs1/g/sims/esheldon/meds
+setenv MEDS_DIR /nfs/slac/g/ki/ki19/des/esheldon/DESDATA/meds
+
+#setenv NGMIXER_OUTPUT_DIR /nfs/slac/des/fs1/g/sims/esheldon/ngmixer-output
+setenv NGMIXER_OUTPUT_DIR /nfs/slac/g/ki/ki19/des/esheldon/ngmixer-output
+setenv NGMIXER_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-y1-config
+setenv NGMIXER_Y3_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-y3-config

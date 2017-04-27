@@ -15,15 +15,15 @@ xset r rate 300 30
 # turn off pc bells
 xset -b
 
-sleeptime=1
+#sleeptime=1
 
-sleep $sleeptime
+#sleep $sleeptime
 
-if [[ -e ~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc ]]; then
-    GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc fbpanel &
-else
-    fbpanel &
-fi
+#if [[ -e ~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc ]]; then
+#    GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc fbpanel &
+#else
+#    fbpanel &
+#fi
 
 # needed on new system at work, forest
 xset fp+ ~/.fonts/
@@ -32,5 +32,5 @@ if [ -x /usr/bin/xscreensaver ]; then
     xscreensaver &
 fi
 
-#exec ck-launch-session dbus-launch xmonad
-exec xmonad
+#exec xmonad
+exec awesome

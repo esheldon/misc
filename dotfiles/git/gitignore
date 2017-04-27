@@ -12,6 +12,7 @@
 *.exe
 tags
 
+/build/
 /target/
 
 .sconsign.dblite

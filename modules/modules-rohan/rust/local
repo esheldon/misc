@@ -1,0 +1,7 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"local rust"
+
+eval set  [ array get env HOME ]
+prepend-path PATH $HOME/.cargo/bin
