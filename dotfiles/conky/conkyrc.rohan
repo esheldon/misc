@@ -242,8 +242,10 @@ wlan0: $alignr ${color FBB117}${downspeed wlan0}$color / ${color red} ${upspeed 
 ${color lightgrey}${downspeedgraph wlan0 25,120 2554C7 306EFF 1000} ${upspeedgraph wlan0 25,120 AF7817 FBB117 100}$color
 RAM: ${color yellow}${mem}/${memmax}$color
 ${color skyblue}${memgraph 006400 00FF00}$color
-HD IO: ${color FBB117}${diskio}
-${color lightgrey}${diskiograph 006400 00FF00}$color
+BAT: ${color skyblue}${battery_percent BAT0}%$color
+${color steelblue4}${battery_bar}$color
+#HD IO: ${color FBB117}${diskio}
+#${color lightgrey}${diskiograph 006400 00FF00}$color
 
 / ${color orange}${voffset -2}${font Pie charts for maps:size=14}${execi 60 bash ~/.dotfiles/conky/scripts/df2piefont.sh /}${font}$color${voffset -6}   Swap ${color yellow}${voffset -2}${font Pie charts for maps:size=14}${execi 60 bash ~/.dotfiles/conky/scripts/free2piefont.sh swap}${font}$color
 
