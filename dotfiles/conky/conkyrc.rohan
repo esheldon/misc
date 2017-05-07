@@ -91,6 +91,7 @@ default_outline_color white
 #alignment top_right
 alignment middle_right
 gap_y 0
+gap_x 10
 
 
 # Gap between borders of screen and text
