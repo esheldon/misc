@@ -17,7 +17,10 @@ prepend-path LIBRARY_PATH    $localdir/lib
 prepend-path C_INCLUDE_PATH  $localdir/include
 prepend-path CPATH           $localdir/include
 
-setenv LENSDIR $HOME/lensing
+set LENSDIR $HOME/lensing
+
+setenv LENSDIR $LENSDIR
+
 setenv SHAPESIM_FS local
 
 setenv CLUSTERSTEP $HOME/data/cluster-step
@@ -28,12 +31,15 @@ setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
 setenv DESPROJ OPS
 
-setenv GREAT3_DATA_DIR $HOME/data/lensing/great3
+setenv GREAT3_DATA_DIR $LENSDIR/great3
 
 setenv WEBDIR $HOME/data
 
-setenv SHAPESIM_DIR $HOME/lensing/shapesim
+setenv SHAPESIM_DIR $LENSDIR/shapesim
 
 setenv NGMIXER_OUTPUT_DIR $HOME/data/ngmixer-outputs
 
 setenv TMPDIR $HOME/data/tmp
+
+setenv NBRSIM_DIR $LENSDIR/nbrsim
+setenv NBRSIM_CONFIG_DIR $LENSDIR/nbrsim-config
