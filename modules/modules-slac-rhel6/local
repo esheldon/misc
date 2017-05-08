@@ -74,3 +74,9 @@ setenv MEDS_DIR /nfs/slac/g/ki/ki19/des/esheldon/DESDATA/meds
 setenv NGMIXER_OUTPUT_DIR /nfs/slac/g/ki/ki19/des/esheldon/ngmixer-output
 setenv NGMIXER_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-y1-config
 setenv NGMIXER_Y3_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-y3-config
+
+setenv NBRSIM_DIR $LENSDIR/nbrsim
+setenv NBRSIM_CONFIG_DIR $LENSDIR/nbrsim-config
+
+
+setenv NBRMIXER_OUTPUT_DIR $LENSDIR/nbrmixer
