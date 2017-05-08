@@ -14,7 +14,7 @@ linewidth = 0.5
 width			= 640
 height			= 640
 
-color = white
+color   = #dcdccc
 bgcolor = black
 
 # non-antialiased images
