@@ -7,3 +7,8 @@ then start the nomachine client
 
 in the first time, do new connection localhost, ssh and give
 the port above (e.g. 7025) 
+
+# nomachine does not check the keyboard using the standard
+# way, so our solution in xsession doesn't work. Run this
+
+setxkbmap -option ctrl:swapcaps
