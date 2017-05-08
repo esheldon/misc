@@ -1,3 +1,6 @@
+See section on nomachine 5 https://www.racf.bnl.gov/docs/services/nx
+
+
 ssh -L 7025:nx01.rcf.bnl.gov:22 rssh01.rhic.bnl.gov
 
 then start the nomachine client
