@@ -23,8 +23,6 @@ eval set  [ array get env HOME ]
 set ESPY_DIR $HOME/python
 
 prepend-path PATH $ESPY_DIR/bin
-prepend-path PATH $ESPY_DIR/des/bin
-prepend-path PATH $ESPY_DIR/desdb/bin
 prepend-path PYTHONPATH $ESPY_DIR
 
 setenv ESPY_DIR $ESPY_DIR

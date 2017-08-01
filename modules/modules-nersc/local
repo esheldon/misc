@@ -1,0 +1,31 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"local installs under ~/local"
+
+eval set  [ array get env HOME ]
+eval set  [ array get env SCRATCH ]
+
+set localdir $SCRATCH/local
+
+setenv TMPDIR $SCRATCH/tmp
+
+prepend-path PATH            $localdir/bin
+prepend-path LD_LIBRARY_PATH $localdir/lib
+prepend-path LIBRARY_PATH    $localdir/lib
+prepend-path C_INCLUDE_PATH  $localdir/include
+prepend-path CPATH           $localdir/include
+
+set LENSDIR $SCRATCH/lensing
+set DES_LENSDIR $LENSDIR/des-lensing
+
+setenv LENSDIR $LENSDIR
+setenv DES_LENSDIR $DES_LENSDIR
+
+setenv SHAPESIM_DIR $LENSDIR/shapesim
+
+setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::ALLDESFiles/desarchive
+setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
+
+setenv NGMIXER_OUTPUT_DIR $DES_LENSDIR/ngmixer-outputs
+setenv NGMIXER_CONFIG_DIR $DES_LENSDIR/ngmixer-config
