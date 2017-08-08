@@ -93,6 +93,7 @@ alias startnx='/usr/NX/bin/nxplayer --session ~/nxsessions/session1'
 alias yt="youtube-dl --restrict-filenames"
 
 export slac="rhel6-64.slac.stanford.edu"
+export lsstdev="lsst-dev01.ncsa.illinois.edu"
 export comet="comet.sdsc.edu"
 
 alias pyprof="python -m cProfile -s time "

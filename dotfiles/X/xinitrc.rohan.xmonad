@@ -48,12 +48,13 @@ fi
 
 sleep $sleeptime
 
-if [[ -e ~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc ]]; then
-    GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc fbpanel &
-else
-    fbpanel &
-fi
+#if [[ -e ~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc ]]; then
+#    GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc fbpanel &
+#else
+#    fbpanel &
+#fi
 
 
 #exec ck-launch-session dbus-launch xmonad
-exec xmonad
+#exec xmonad
+exec awesome

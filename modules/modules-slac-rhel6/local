@@ -33,9 +33,8 @@ setenv GREAT3_DATA_DIR $LENSDIR/mygreat3
 
 setenv GDES_DATA_DIR $LENSDIR/great-des
 
-#setenv TMPDIR /data/esheldon/tmp
-#setenv TMPDIR /nfs/slac/des/fs1/g/sims/esheldon/tmp
-setenv TMPDIR /nfs/slac/g/ki/ki19/des/esheldon/tmp
+setenv TMPDIR /nfs/slac/des/fs1/g/sims/esheldon/tmp
+#setenv TMPDIR /nfs/slac/g/ki/ki19/des/esheldon/tmp
 
 
 setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
@@ -74,3 +73,12 @@ setenv MEDS_DIR /nfs/slac/g/ki/ki19/des/esheldon/DESDATA/meds
 setenv NGMIXER_OUTPUT_DIR /nfs/slac/g/ki/ki19/des/esheldon/ngmixer-output
 setenv NGMIXER_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-y1-config
 setenv NGMIXER_Y3_CONFIG_DIR /u/ki/esheldon/lensing/des-lensing/ngmixer-y3-config
+
+setenv NBRSIM_DIR $LENSDIR/nbrsim
+setenv NBRSIM_CONFIG_DIR $LENSDIR/nbrsim-config
+
+
+setenv NBRMIXER_OUTPUT_DIR $LENSDIR/nbrmixer
+
+setenv PSFEX_EXE /afs/slac/g/ki/software/psfex/bin/psfex
+setenv SX_EXE /afs/slac/g/ki/software/sextractor/2.19.5/bin/sex 

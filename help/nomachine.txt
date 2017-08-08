@@ -1,0 +1,14 @@
+See section on nomachine 5 https://www.racf.bnl.gov/docs/services/nx
+
+
+ssh -L 7025:nx01.rcf.bnl.gov:22 rssh01.rhic.bnl.gov
+
+then start the nomachine client
+
+in the first time, do new connection localhost, ssh and give
+the port above (e.g. 7025) 
+
+# nomachine does not check the keyboard using the standard
+# way, so our solution in xsession doesn't work. Run this
+
+setxkbmap -option ctrl:swapcaps
