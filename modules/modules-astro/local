@@ -48,7 +48,8 @@ setenv TMPDIR /data/esheldon/tmp
 
 setenv DESWL_CHECKOUT $HOME/git/deswl
 
-setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
+#setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
+setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::ALLDESFiles/desarchive
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
 
 setenv DESMEDS_CONFIG_DIR $HOME/lensing/des-lensing/medsconf
@@ -63,7 +64,24 @@ setenv EYEBALLER_DATADIR /gpfs01/astro/workarea/esheldon/eyeball
 setenv REREDUX_DATA_DIR $HOME/lensing/egretsims
 setenv REREDUX_OUTPUTS_DIR $HOME/lensing/great3reredux
 
-setenv WOMBAT_DATA_DIR /astro/u/mjarvis/work/sims
+setenv WOMBAT_CONFIG_DIR $LENSDIR/wombat_config
+setenv WOMBAT_DIR_OLD /astro/u/mjarvis/work/sims
+setenv WOMBAT_DIR $LENSDIR/wombat
 
 setenv NGMIXER_OUTPUT_DIR $DESDATA/wlpipe
 setenv NGMIXER_CONFIG_DIR $DES_LENSDIR/ngmixer-config
+setenv NGMIXER_Y3_CONFIG_DIR $DES_LENSDIR/ngmixer-y3-config
+
+setenv MEDS_DIR /astro/u/astrodat/data/DES/meds
+
+setenv PSFSIM_DIR $DES_LENSDIR/psfsim
+setenv PSFSIM_CONFIG_DIR $DES_LENSDIR/psfsim_config
+
+setenv NSIM_DIR $HOME/.conda/envs/nsim
+setenv REREDUX_DIR $HOME/envs/nsim-work2
+setenv EGRET_CONFIG_DIR $HOME/lensing/egretsims/config
+
+setenv NBRSIM_DIR $LENSDIR/nbrsim
+setenv NBRSIM_CONFIG_DIR $LENSDIR/nbrsim-config
+
+setenv NBRMIXER_OUTPUT_DIR $LENSDIR/nbrmixer
