@@ -435,3 +435,12 @@ except:
 """
 app.exec_lines.append(optlines)
 
+# for python3
+lines="""
+try:
+    from importlib import reload
+except ImportError:
+    pass
+"""
+app.exec_lines.append(lines)
+
