@@ -47,8 +47,8 @@ flist="flist.txt"
 flist_full="$tmpdir/$flist"
 
 # shuffle to make sure the jobs are all about the same length
-#find . -type f | shuf > "$flist_full"
-find .  -name "*.fits" | shuf > "$flist_full"
+find . -type f | shuf > "$flist_full"
+#find .  -name "*.fits" | shuf > "$flist_full"
 
 #find "$fromdir" -type f -exec basename {} \; | shuf > "$flist_full"
 

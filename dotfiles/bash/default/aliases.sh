@@ -68,13 +68,12 @@ alias idlwrap='rlwrap --always-readline idl'
 alias lbl='ssh scs-gw.lbl.gov'
 
 
-alias ipythonl='ipython -colors LightBG'
+alias ipython5='ipython --TerminalInteractiveShell.editing_mode=vi'
 
 alias 256='export TERM=xterm-256color'
 alias 8='export TERM=xterm-color'
 
 alias lscreen='screen -c ~/.dotfiles/screen/screenrc-lightbg'
-alias lipython='ipython -colors LightBG'
 
 alias fmplayer='mplayer -fstype none'
 
