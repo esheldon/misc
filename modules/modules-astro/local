@@ -70,7 +70,6 @@ setenv WOMBAT_DIR $LENSDIR/wombat
 
 setenv NGMIXER_OUTPUT_DIR $DESDATA/wlpipe
 setenv NGMIXER_CONFIG_DIR $DES_LENSDIR/ngmixer-config
-setenv NGMIXER_Y3_CONFIG_DIR $DES_LENSDIR/ngmixer-y3-config
 
 setenv MEDS_DIR /astro/u/astrodat/data/DES/meds
 
