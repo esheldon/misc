@@ -205,6 +205,8 @@ c.TerminalInteractiveShell.autocall = 1
 # c.TerminalInteractiveShell.confirm_exit = True
 c.TerminalInteractiveShell.confirm_exit = False
 
+c.TerminalInteractiveShell.editing_mode = 'vi'
+
 # 
 # c.TerminalInteractiveShell.ipython_dir = ''
 
@@ -266,7 +268,7 @@ c.TerminalInteractiveShell.confirm_exit = False
 
 # Output prompt. '\#' will be transformed to the prompt number
 # c.PromptManager.out_template = 'Out[\\#]: '
-c.PromptManager.out_template = ''
+#c.PromptManager.out_template = ''
 
 # Continuation prompt.
 # c.PromptManager.in2_template = '   .\\D.: '
@@ -276,7 +278,7 @@ c.PromptManager.out_template = ''
 
 # Input prompt.  '\#' will be transformed to the prompt number
 # c.PromptManager.in_template = 'In [\\#]: '
-c.PromptManager.in_template = '>>> '
+#c.PromptManager.in_template = '>>> '
 
 # 
 # c.PromptManager.color_scheme = 'Linux'
@@ -436,4 +438,13 @@ except:
     pass
 """
 app.exec_lines.append(optlines)
+
+# for python3
+lines="""
+try:
+    from importlib import reload
+except ImportError:
+    pass
+"""
+app.exec_lines.append(lines)
 

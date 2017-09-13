@@ -22,15 +22,17 @@ module load TeX
 #
 
 module load use.own
-module load tmv/0.72-static         # *
+#module load tmv/0.72-static         # *
+module load tmv/0.73
 module load cfitsio/3370-static         # *
-module load ccfits/2.4-static         # *
 module load local      # *
 module load perllib
 module load shell_scripts
 
+#module load ccfits/2.4-static         # *
+
 # python
-module load espy/local
+module load espy/work
 module load des-oracle
 
-source activate conda-local
+#source activate conda-local
