@@ -412,6 +412,8 @@ lines="""
 import biggles
 
 from biggles import plot, plot_hist
+
+from plotting import plot_hist2d
 """
 app.exec_lines.append(lines)
 
