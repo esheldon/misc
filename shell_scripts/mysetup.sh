@@ -70,6 +70,8 @@ for type; do
 
         ln -vfs ~/.dotfiles/python/pythonrc .pythonrc
 
+        ln -vfs ~/.dotfiles/ack/ackrc .ackrc
+
         ln -vfs ~/.dotfiles/vim .vim
         ln -vfs ~/.dotfiles/vim/vimrc .vimrc
 
