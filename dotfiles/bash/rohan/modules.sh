@@ -13,7 +13,8 @@ if [[ -e $f ]]; then
     module load use.own
 
     # python
-    module load anaconda/py2
+    #module load anaconda/py2
+    module load anaconda/py3
     module load espy/local
 
     module load local      # *
