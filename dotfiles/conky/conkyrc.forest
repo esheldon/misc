@@ -22,8 +22,8 @@ use_xft yes
 
 # Xft font when Xft is enabled
 #xftfont Bitstream Vera Sans Mono:size=8
-#xftfont Terminus:size=12
-xftfont Inconsolata:size=18
+xftfont Terminus:size=12
+#xftfont Inconsolata:size=18
 
 own_window_transparent no
 own_window_colour hotpink
