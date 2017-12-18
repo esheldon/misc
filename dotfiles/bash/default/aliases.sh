@@ -39,8 +39,7 @@ alias tbachx='setup-bach start && ssh -x tbach'
 alias ttuttix='setup-bach start && ssh -x ttutti'
 
 
-#alias rssh='ssh esheldon@rssh.rhic.bnl.gov'
-alias rssh='ssh esheldon@rgw.sdcc.bnl.gov'
+alias rssh='ssh esheldon@rssh.rhic.bnl.gov'
 
 alias ls='ls --color=auto'
 alias ll='ls --color=auto -lh'
