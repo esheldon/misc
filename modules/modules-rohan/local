@@ -24,7 +24,7 @@ setenv CLUSTERSTEP $HOME/data/cluster-step
 
 setenv DESDATA $HOME/data/DES
 setenv DESREMOTE https://desar2.cosmology.illinois.edu/DESFiles/desardata
-setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::DESFiles
+setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::ALLDESFiles/desarchive
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
 setenv DESPROJ OPS
 
@@ -33,3 +33,6 @@ setenv GREAT3_DATA_DIR $HOME/data/lensing/great3
 setenv SHAPESIM_DIR $HOME/lensing/shapesim
 
 setenv TMPDIR $HOME/data/tmp
+
+setenv NBRSIM_CONFIG_DIR /home/esheldon/data/nbrsim-config
+setenv NBRSIM_DIR /home/esheldon/data/nbrsim

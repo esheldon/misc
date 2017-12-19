@@ -1,3 +1,17 @@
+For new pypi you must use
+
+    python setup.py sdist
+    twine upload dist/*
+
+so you need to pip install twine
+
+- This works for esutil but I have not converted other projects.
+- You need a Manifest.in to get the headers to be copied
+- had to remove install_requires=['numpy'] to avoid pip
+  installing new numpy, even though numpy was already available
+
+
+
 I currently just make sure the setup.py has the right metadata and then do
     python setup.py register.
 

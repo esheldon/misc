@@ -257,6 +257,7 @@ call vundle#rc()
 Bundle 'gmarik/vundle'
 Bundle 'zah/nim.vim'
 Bundle 'shmay/vim-yaml'
+Bundle 'chase/vim-ansible-yaml'
 Bundle 'cespare/vim-toml'
 Bundle 'tomtom/tcomment_vim'
 Plugin 'godlygeek/tabular'

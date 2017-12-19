@@ -1,0 +1,13 @@
+# install miniconda (3 worked)
+
+conda install astropy future boost pyyaml numba scipy
+
+scons -j 1 PREFIX=$HOME/miniconda3 install
+
+then install as needed
+    fitsio
+    esutil
+    ngmix
+    nsim
+    ngmixer (covmatrix)
+    etc.

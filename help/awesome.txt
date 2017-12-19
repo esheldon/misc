@@ -1,0 +1,9 @@
+ln -s .dotfiles/X/xinitrc.rivendell .xsession
+
+follow instructions in XSession in help folder
+
+sudo aptitude install awesome-extra
+
+mkdir -p ~/.config/awesome/
+cd  ~/.config/awesome/
+ln -s ~/.dotfiles/awesome/rc.lua

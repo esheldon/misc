@@ -132,7 +132,7 @@ c = get_config()
 
 # Set the color scheme (NoColor, Linux, or LightBG).
 # c.TerminalInteractiveShell.colors = 'LightBG'
-c.TerminalInteractiveShell.colors = 'Linux'
+#c.TerminalInteractiveShell.colors = 'Linux'
 
 # Autoindent IPython code entered interactively.
 # c.TerminalInteractiveShell.autoindent = True
@@ -155,7 +155,8 @@ c.TerminalInteractiveShell.colors = 'Linux'
 # forces a full reload of modules whose code may have changed, which the default
 # reload() function does not.  When deep_reload is off, IPython will use the
 # normal reload(), but deep_reload will still be available as dreload().
-c.TerminalInteractiveShell.deep_reload = False
+#c.TerminalInteractiveShell.deep_reload = False
+c.TerminalInteractiveShell.deep_reload = True
 
 # Make IPython automatically call any callable object even if you didn't type
 # explicit parentheses. For example, 'str 43' becomes 'str(43)' automatically.
@@ -412,6 +413,8 @@ lines="""
 import biggles
 
 from biggles import plot, plot_hist
+
+from plotting import plot_hist2d
 """
 app.exec_lines.append(lines)
 

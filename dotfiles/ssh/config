@@ -22,7 +22,8 @@ GSSAPIDelegateCredentials yes
 # This says we forward these ports through the gateway rssh to the specified
 # machine
 #Host rssh
-Host rssh.rhic.bnl.gov
+#Host rssh.rhic.bnl.gov
+Host rgw.sdcc.bnl.gov
 
 	LocalForward localhost:2224 astro.rcf.bnl.gov:22
 	LocalForward localhost:2225 tutti.astro.bnl.gov:22
