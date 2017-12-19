@@ -7,14 +7,10 @@ eval set  [ array get env HOME ]
 
 set localdir $HOME/local
 
-prepend-path PATH            /sbin
-prepend-path PATH            /usr/sbin
 
 prepend-path PATH            $localdir/bin
 prepend-path PATH            $HOME/local/src/nim-0.14.2/bin
 prepend-path PATH            $HOME/.nimble/bin
-
-
 
 prepend-path LD_LIBRARY_PATH $localdir/lib
 prepend-path LIBRARY_PATH    $localdir/lib
@@ -34,8 +30,6 @@ setenv DESPROJ OPS
 
 setenv GREAT3_DATA_DIR $HOME/data/lensing/great3
 
-#setenv NSIM_DIR $HOME/anaconda2
 setenv SHAPESIM_DIR $HOME/lensing/shapesim
-
 
 setenv TMPDIR $HOME/data/tmp
