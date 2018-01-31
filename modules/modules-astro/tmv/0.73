@@ -25,8 +25,6 @@ conflict tmv
 module load intel_compilers
 
 setenv		TMV_DIR		${tmv_dir}
-setenv		TMVLINK		"-ltmv -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -liomp5 -lpthread"
-
 
 prepend-path    PATH            ${tmv_dir}/bin
 prepend-path    LD_LIBRARY_PATH ${tmv_dir}/lib
@@ -34,5 +32,3 @@ prepend-path    LIBRARY_PATH    ${tmv_dir}/lib
 
 prepend-path    C_INCLUDE_PATH  ${tmv_dir}/include
 prepend-path    CPATH           ${tmv_dir}/include
-
-
