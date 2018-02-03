@@ -9,7 +9,6 @@ fi
 
 # load the default modules here
 module load afs
-module load anaconda/gpfs
 module load astrodat
 module load wq
 
@@ -22,17 +21,11 @@ module load TeX
 #
 
 module load use.own
-#module load tmv/0.72-static         # *
-module load tmv/0.73
-module load cfitsio/3370-static         # *
+#module load tmv/0.73
+
 module load local      # *
 module load perllib
 module load shell_scripts
 
-#module load ccfits/2.4-static         # *
-
-# python
+module load anaconda/local
 module load espy/work
-module load des-oracle
-
-#source activate conda-local

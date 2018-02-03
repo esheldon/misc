@@ -76,7 +76,7 @@ setenv MEDS_DIR /astro/u/astrodat/data/DES/meds
 setenv PSFSIM_DIR $DES_LENSDIR/psfsim
 setenv PSFSIM_CONFIG_DIR $DES_LENSDIR/psfsim_config
 
-setenv NSIM_DIR $HOME/.conda/envs/nsim
+#setenv NSIM_DIR $HOME/.conda/envs/nsim
 setenv REREDUX_DIR $HOME/envs/nsim-work2
 setenv EGRET_CONFIG_DIR $HOME/lensing/egretsims/config
 
