@@ -13,8 +13,8 @@ linewidth = 0.5
 #
 #width			= 1400
 #height			= 1400
-width			= 900
-height			= 900
+width			= 640
+height			= 640
 
 color   = #dcdccc
 bgcolor = black
