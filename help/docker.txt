@@ -1,0 +1,17 @@
+# build a docker image
+# tag is arbitrary
+docker build -t nsim-base:v05 .
+
+# run the image.  Just run "ls" command
+docker run test:test1 ls
+
+# add more complex run example
+
+# tag image
+docker tag nsim-base:v05 esheldon/nsim-base:v05
+
+# push
+# if needed login first
+docker login
+docker push esheldon/nsim-base:v05
+
