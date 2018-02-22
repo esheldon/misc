@@ -1,0 +1,14 @@
+# get the image into shifter's database
+shifterimg -v pull docker:esheldon/nsim-mpi:run-bdk13-mcal-01n
+
+# for a quick test
+salloc -N 1 -p debug --image=docker:esheldon/nsim-mpi:run-bdk13-mcal-01n --volume="/global/cscratch1/sd/esheldon/lensing/shapesim:/data/lensing/shapesim" -t 00:30:00 --license=SCRATCH -C haswell
+
+# when it starts, begin a shell
+shifter /bin/bash
+
+# submit
+sbatch run-bdk13-mcal-01n.slr
+
+# follow along progress every 30 seconds
+msq -i 30
