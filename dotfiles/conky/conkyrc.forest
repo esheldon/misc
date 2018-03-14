@@ -12,7 +12,7 @@ conky.config = {
     draw_outline = false,
     draw_shades = false,
     use_xft = true,
-    font = 'Terminus:size=12',
+    font = 'Terminus:size=16',
     gap_x = 5,
     gap_y = 60,
     minimum_height = 5,
@@ -42,28 +42,10 @@ $sysname $kernel $alignr $machine
 Uptime: $alignr ${color lightgrey} $uptime$color
 ${time %H:%M:%S%p} $alignr ${time %F}
 
-CPU1: ${color skyblue} ${cpu cpu1}%$color
-${color lightgrey}${cpugraph cpu1 006400 00FF00}$color
-CPU2: ${color skyblue} ${cpu cpu2}%$color
-${color lightgrey}${cpugraph cpu2 006400 00FF00}$color
-CPU3: ${color skyblue} ${cpu cpu3}%$color
-${color lightgrey}${cpugraph cpu3 006400 00FF00}$color
-CPU4: ${color skyblue} ${cpu cpu4}%$color
-${color lightgrey}${cpugraph cpu4 006400 00FF00}$color
-CPU5: ${color skyblue} ${cpu cpu5}%$color
-${color lightgrey}${cpugraph cpu5 006400 00FF00}$color
-CPU6: ${color skyblue} ${cpu cpu6}%$color
-${color lightgrey}${cpugraph cpu6 006400 00FF00}$color
-CPU7: ${color skyblue} ${cpu cpu7}%$color
-${color lightgrey}${cpugraph cpu7 006400 00FF00}$color
-CPU8: ${color skyblue} ${cpu cpu8}%$color
-${color lightgrey}${cpugraph cpu8 006400 00FF00}$color
-Total CPU: ${color green} ${cpu cpu0}%$color
+CPU: ${color skyblue} ${cpu cpu0}%$color
 ${color lightgrey}${cpugraph cpu0 006400 00FF00}$color
-eth0:  $alignr ${color FBB117}${downspeed eth0}$color / ${color red} ${upspeed eth0}$color
-${color lightgrey}${downspeedgraph eth0 35,175 2554C7 306EFF 1000} ${upspeedgraph eth0 35,175 AF7817 FBB117 100}$color
-eno1: $alignr ${color FBB117}${downspeed eno1}$color / ${color red} ${upspeed eno1}$color
-${color lightgrey}${downspeedgraph eno1 35,175 2554C7 306EFF 2000} ${upspeedgraph eno1 35,175 AF7817 FBB117 100}$color
+Network: ${color FBB117}${downspeed enp0s25}$color / ${color red} ${upspeed enp0s25}$color
+${color lightgrey}${downspeedgraph enp0s25 35,195 2554C7 306EFF 1000} $alignr${upspeedgraph enp0s25 35,195 AF7817 FBB117 100}$color
 RAM: ${color yellow}${mem}/${memmax}$color
 ${color skyblue}${memgraph 006400 00FF00}$color
 HD IO: ${color FBB117}${diskio}
