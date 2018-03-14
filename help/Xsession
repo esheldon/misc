@@ -10,5 +10,7 @@ Name=Xsession
 Comment=Just run the goddam ~/.xsession
 Exec=/etc/X11/Xsession
 
+For fedora, need to use /etc/X11/xinit/Xsession
+
 I think that the .xsession must be executable.
 
