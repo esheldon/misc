@@ -134,6 +134,8 @@ c = get_config()
 # c.TerminalInteractiveShell.colors = 'LightBG'
 #c.TerminalInteractiveShell.colors = 'Linux'
 
+c.TerminalInteractiveShell.highlighting_style='native'
+
 # Autoindent IPython code entered interactively.
 # c.TerminalInteractiveShell.autoindent = True
 
