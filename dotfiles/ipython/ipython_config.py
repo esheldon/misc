@@ -1,6 +1,48 @@
 # Configuration file for ipython.
+from IPython.terminal.prompts import Prompts, Token
+from datetime import datetime
+import os
 
 c = get_config()
+
+class MyPrompts(Prompts):
+    def in_prompt_tokens(self, cli=None):
+        return [(Token.Prompt,'>>> ')]
+        """
+        truncdir = os.getcwd().split(os.sep)[-3:]
+        #  truncated list of last parts of the current working directory
+        return [
+            (Token, u'\n     '),
+            (Token.Prompt, os.sep.join(truncdir)),
+            (Token.Prompt, u'  _i'),
+            (Token.PromptNum, str(self.shell.execution_count)),
+            (Token.Prompt, u' >>> '),
+        ]
+        """
+    
+    #def continuation_prompt_tokens(self, cli=None, width=None):
+    #    if width is None:
+    #        width = self._width()
+    #    return [
+    #        (Token.Prompt, (' ' * (width - 2)) + u'│ '),
+    #    ]
+
+    def out_prompt_tokens(self):
+        return [(Token,'')]
+        utc_nano = str(datetime.utcnow())
+        #          2017-02-01 13:46:27.260500
+        utc = utc_nano.split('.')[0]
+        #          2017-02-01 13:46:27
+        return [
+            (Token.OutPrompt, u'    _'),
+            (Token.OutPromptNum, str(self.shell.execution_count)),
+            (Token.Prompt, u'  UTC '),
+            (Token.Prompt, utc),
+            (Token, u' \n'),
+        ]
+
+#  Use IPython v5+ new API:
+c.TerminalInteractiveShell.prompts_class = MyPrompts
 
 #------------------------------------------------------------------------------
 # InteractiveShellApp configuration
