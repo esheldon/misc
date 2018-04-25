@@ -7,7 +7,7 @@ if [ -r ~/.Xmodmap ]; then
 	xmodmap ~/.Xmodmap
 fi
 
-xsetroot -solid black
+xsetroot -solid gray5
 
 # speed up the keyboard
 xset r rate 300 30
