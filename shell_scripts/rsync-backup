@@ -9,6 +9,9 @@
 # where date is of the form 
 #
 #    "+%Y-%m-%dT%H:%M:%S"
+#
+# IMPORTANT
+# you need to put the current link in by hand the first time
 # 
 #
 # Note these options are used

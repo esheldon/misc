@@ -1,6 +1,5 @@
 # big stuff
-/torrent
-/torrents
+/torrent*
 /svn
 /exports
 /bittorrent
@@ -15,6 +14,13 @@
 /desfiles
 /oracle
 /masks
+/anaconda*
+/miniconda*
+/minecraft
+/.minecraft
+/nim*
+/ruby
+/Dropbox
 
 # transient things
 /tmp
@@ -94,3 +100,7 @@
 /.update-manager-core
 /.vlc
 /.VirtualBox
+/.julia*
+/.mutt*
+/.nx*
+/.rust*

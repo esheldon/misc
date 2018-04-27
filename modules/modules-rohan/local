@@ -36,3 +36,5 @@ setenv TMPDIR $HOME/data/tmp
 
 setenv NBRSIM_CONFIG_DIR /home/esheldon/data/nbrsim-config
 setenv NBRSIM_DIR /home/esheldon/data/nbrsim
+
+setenv MEDS_DIR /home/esheldon/data/meds
