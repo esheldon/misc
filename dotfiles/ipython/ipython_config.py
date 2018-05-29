@@ -405,7 +405,7 @@ if not hasattr(app, 'exec_lines'):
 lines = """
 import os
 from glob import glob
-import numpy
+import numpy as np
 from numpy import array,zeros,ones,where,arange,linspace,logspace, \\
     sqrt, exp, cos, sin, tanh, arctanh, log, log10, median, \\
     diag
