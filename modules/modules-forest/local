@@ -43,3 +43,5 @@ setenv TMPDIR $HOME/data/tmp
 
 setenv NBRSIM_DIR $LENSDIR/nbrsim
 setenv NBRSIM_CONFIG_DIR $LENSDIR/nbrsim-config
+
+setenv MEDS_DIR $HOME/data/DES/meds

@@ -10,6 +10,7 @@ if [[ -e $f ]]; then
     module load local
     module load espy/local
     module load anaconda/py3
+    source activate galsim
 
     module load local      # *
     module load shell_scripts

@@ -1,43 +1,12 @@
-# this is a way to have firefox use it's own gtk settings
-# this is nice because I need to use a dark theme for fbpanel
-# but dark themes never work right in firefox.
-alias myfirefox='GTK2_RC_FILES="/usr/share/themes/Clearlooks/gtk-2.0/gtkrc" firefox'
+alias ptp='ptpython -i ~/.ptpython/startup.py'
+
 alias mds9='ds9 -xpa local'
-
-export treebeard=192.168.127.102
-
-alias hdfs="hadoop fs"
 
 alias sattach='grabssh ; screen -DR'
 alias tattach='grabssh ; tmux a -d'
 alias fixssh='source $TMPDIR/fixssh'
 
-# awk simplifies life
-alias mailtail="tail -n 100 -f ~/.getmail/gmail.log  | awk '{print \$1,\$2,\$4,\$10}'"
-alias astro='ssh esheldon@astro.physics.nyu.edu'
-alias astrox='ssh -x esheldon@astro.physics.nyu.edu'
-alias bias='ssh esheldon@bias.cosmo.fas.nyu.edu'
-alias biasx='ssh -x esheldon@bias.cosmo.fas.nyu.edu'
-
 alias webfaction='ssh esheldon.webfactional.com'
-
-alias treebeard='ssh esheldon@192.168.127.108'
-
-alias des='ssh esheldon@deslogin.cosmology.illinois.edu'
-alias desx='ssh -x esheldon@deslogin.cosmology.illinois.edu'
-
-alias desdb='ssh esheldon@desdb.cosmology.illinois.edu'
-alias desdbx='ssh -x esheldon@desdb.cosmology.illinois.edu'
-alias desar='ssh -x esheldon@desar.cosmology.illinois.edu'
-
-
-# these use tunnels.  A connection to the gateway rssh is created if not
-# already established
-alias tbach='setup-bach start && ssh tbach'
-alias ttutti='setup-bach start && ssh ttutti'
-alias tbachx='setup-bach start && ssh -x tbach'
-alias ttuttix='setup-bach start && ssh -x ttutti'
-
 
 alias rssh='ssh esheldon@rssh.rhic.bnl.gov'
 
@@ -56,32 +25,10 @@ alias less='less -R'
 
 alias mgvim='GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc gvim'
 
-
-alias lib='cd ~/idl.lib/pro'
-alias oh='cd ~/oh'
-
-alias bt='btlaunchmanycurses.bittornado --display_interval 3 --max_upload_rate'
-
-alias idlwrap='rlwrap --always-readline idl'
-
-alias lbl='ssh scs-gw.lbl.gov'
-
-
-alias ipython5='ipython --TerminalInteractiveShell.editing_mode=vi'
-
-alias 256='export TERM=xterm-256color'
-alias 8='export TERM=xterm-color'
-
-alias lscreen='screen -c ~/.dotfiles/screen/screenrc-lightbg'
-
 alias fmplayer='mplayer -fstype none'
 
 alias setcorus="export http_proxy=http://192.168.1.140:3128"
 alias unsetcorus="unset http_proxy"
-
-alias urxvtb='urxvt -fn "xft:peep"'
-alias mrxvt10='mrxvt -xft -xftfn Monaco -xftsz 10'
-alias lmrxvt10='mrxvt -cf ~/.dotfiles/mrxvt/mrxvtrc-lightbg -xft -xftfn Monaco -xftsz 10'
 
 alias ackp='ack --pager="less -R"'
 
