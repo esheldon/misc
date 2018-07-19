@@ -1,4 +1,4 @@
-
+complete -r
 
 
 function setp_simple
