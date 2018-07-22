@@ -15,6 +15,7 @@ if [[ -e $f ]]; then
     # python
     #module load anaconda/py2
     module load anaconda/py3
+    source activate galsim
     module load espy/local
 
     module load local      # *
