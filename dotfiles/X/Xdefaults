@@ -35,6 +35,23 @@ xterm*allowBoldFonts: false
 
 !xterm*font: -zevv-peep-medium-r-normal--16-140-75-75-c-80-iso8859-1
 
+XTerm*utf8: 1
+! default
+XTerm*font: -*-terminus-medium-*-*-*-18-*-*-*-*-*-iso10646-1
+! unreadable
+XTerm*font1: -*-terminus-medium-*-*-*-12-*-*-*-*-*-iso10646-1
+! tiny
+XTerm*font2: -*-terminus-medium-*-*-*-14-*-*-*-*-*-iso10646-1
+! small
+XTerm*font3: -*-terminus-medium-*-*-*-16-*-*-*-*-*-iso10646-1
+! medium
+XTerm*font4: -*-terminus-medium-*-*-*-22-*-*-*-*-*-iso10646-1
+! large
+XTerm*font5: -*-terminus-medium-*-*-*-24-*-*-*-*-*-iso10646-1
+! huge
+XTerm*font6: -*-terminus-medium-*-*-*-32-*-*-*-*-*-iso10646-1
+
+
 ! dont include the newline when triple clicking
 xterm*cutNewLine: true
 
