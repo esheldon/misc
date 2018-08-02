@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+# usage
+#   catrange start end filename"
+#
+# description
+#   print a specified range of lines from a file
+#   the line numbers begin at 1
+#
+# this will print lines 10 to 15 from af file
+# catrange 10 15 filename
+
+if [[ $# -lt 3 ]]; then
+    echo "catrange start end filename"
+    exit 1
+fi
+
+start=$1
+end=$2
+filename=$3
+
+sed -n "${start},${end}p" $filename
