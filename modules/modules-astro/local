@@ -84,3 +84,15 @@ setenv NBRSIM_DIR $LENSDIR/nbrsim
 setenv NBRSIM_CONFIG_DIR $LENSDIR/nbrsim-config
 
 setenv NBRMIXER_OUTPUT_DIR $LENSDIR/nbrmixer
+
+# this is where the piff outputs live
+setenv PIFF_DATA_DIR /astro/u/mjarvis/work/y3_piff
+
+# psf map files for piff
+setenv PIFF_MAP_DIR /astro/u/astrodat/data/DES/meds/piff-psf-maps
+
+# locations for astrometry files by zone
+setenv ASTROM_DIR /astro/u/mjarvis/work/y3_piff/astro/
+
+setenv DBSIM_DIR $LENSDIR/dbsim
+setenv DBSIM_CONFIG_DIR $LENSDIR/dbsim-config
