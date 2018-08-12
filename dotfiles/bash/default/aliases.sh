@@ -1,4 +1,5 @@
 alias ptp='ptpython -i ~/.ptpython/startup.py'
+alias ptip='ptipython -i ~/.ptpython/startup.py'
 
 alias mds9='ds9 -xpa local'
 
