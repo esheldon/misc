@@ -38,7 +38,7 @@ caption splitonly "%?%F%{= kG}%:%{= kw}%? %n %t%=%{= db}"
 
 #hardstatus alwayslastline '%{= kG}%{G}%H %{g}%= %{= kw}%?%-Lw%?%{y}%n*%f%t%?(%u)%?%{w}%?%+Lw%?%?%= %{g}%{B} %m-%d %{W}%c %{g}'
 #hardstatus alwayslastline '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m-%d %{W}%c %{g}]'
-hardstatus alwayslastline '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{W}(%n*%f%t%?(%u)%?)%{w}%?%+Lw%?%?%= %{g}][%{B} %m-%d %{W}%c %{g}]'
+hardstatus alwayslastline '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{w}(%n*%f%t%?(%u)%?)%{w}%?%+Lw%?%?%= %{g}][%{B} %m-%d %{W}%c %{g}]'
 
 # more intuitive movement through regions
 # normal navigation is only through C-a tab
