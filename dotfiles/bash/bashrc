@@ -69,6 +69,8 @@ elif [[ "$comet_test" != "" ]]; then
 	dotfileDir=$ddir/comet
 elif [[ "$hname" == "web203" || "$hname" == "web246" ]]; then
 	dotfileDir=$ddir/webfaction
+elif [[ "$hname" == "130-199-23-225" ]]; then
+	dotfileDir=$ddir/throwemachine
 else
     dotfileDir=$ddir/${hname}
 fi

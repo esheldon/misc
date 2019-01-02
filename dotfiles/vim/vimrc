@@ -266,6 +266,7 @@ Plugin 'JuliaLang/julia-vim'
 Plugin 'rust-lang/rust.vim'
 Plugin 'wincent/command-t'
 Plugin 'craigemery/vim-autotag'
+Plugin 'nvie/vim-flake8'
 
 set tags=tags;/
 

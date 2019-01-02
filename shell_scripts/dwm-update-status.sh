@@ -1,11 +1,11 @@
 #!/bin/bash
 
 function getnet() {
-    UP1=$( awk '/eth1/ { print $10 }' /proc/net/dev )
-    DOWN1=$( awk '/eth1/ { print $2 }' /proc/net/dev )
+    UP1=$( awk '/eno1/ { print $10 }' /proc/net/dev )
+    DOWN1=$( awk '/eno1/ { print $2 }' /proc/net/dev )
     sleep 1
-    UP2=$( awk '/eth1/ { print $10 }' /proc/net/dev )
-    DOWN2=$( awk '/eth1/ { print $2 }' /proc/net/dev )
+    UP2=$( awk '/eno1/ { print $10 }' /proc/net/dev )
+    DOWN2=$( awk '/eno1/ { print $2 }' /proc/net/dev )
 
     let "DIFF_UP=$UP2-$UP1"
     let "DIFF_DOWN=$DOWN2-$DOWN1"
