@@ -335,3 +335,5 @@ urxvt.cutchars: "`\"'&()*,;:<=>?[]^{|}"
 !urxvt*color6: darkcyan
 !urxvt*scrollBar: false
 !urxvt*cursorColor: green4
+
+Xcursor.size: 16
