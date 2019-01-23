@@ -5,7 +5,7 @@ module-whatis	"my anaconda python 3 install"
 
 eval set  [ array get env HOME ]
 
-set ANACONDA_DIR $HOME/anaconda3
+set ANACONDA_DIR $HOME/miniconda3
 
 prepend-path PATH $ANACONDA_DIR/bin
 
