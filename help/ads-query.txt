@@ -1,0 +1,3 @@
+for some reports we want a simpler format
+
+%3l (%Y), %T %Q\n
