@@ -1,8 +1,0 @@
-#%Module########################################################################
-# vim: set filetype=tcl :
-
-module-whatis	"my anacnoda install"
-
-eval set  [ array get env HOME ]
-
-prepend-path PATH $HOME/anaconda/bin
