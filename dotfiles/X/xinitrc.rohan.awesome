@@ -30,12 +30,12 @@ sleeptime=1
 
 # blank screen 5 minutes
 # xss-lock also locks the screen when suspended
-if [ -x /usr/bin/xss-lock ]; then
-    if [ -x /usr/bin/slock ]; then
-        xset s 300 300
-        /usr/bin/xss-lock slock &
-    fi
-fi
+#if [ -x /usr/bin/xss-lock ]; then
+#    if [ -x /usr/bin/slock ]; then
+#        xset s 300 300
+#        /usr/bin/xss-lock slock &
+#    fi
+#fi
 
 
 if [ -x /usr/bin/nm-applet ]; then
@@ -45,6 +45,8 @@ fi
 if [ -x /usr/bin/xfce4-power-manager ]; then
     xfce4-power-manager &
 fi
+
+xinput --set-prop 13 'libinput Accel Profile Enabled' 0, 1
 
 sleep $sleeptime
 
