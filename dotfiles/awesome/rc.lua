@@ -402,6 +402,10 @@ awful.rules.rules = {
     { rule = { class = "feh" },
       properties = { floating = true } },
 
+    -- temporary fix after last awesome update in ubuntu
+    { rule = { class = "Firefox" },
+    properties = { opacity = 1, maximized = false, floating = false } },
+
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
