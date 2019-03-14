@@ -96,3 +96,7 @@ setenv ASTROM_DIR /astro/u/mjarvis/work/y3_piff/astro/
 
 setenv DBSIM_DIR $LENSDIR/dbsim
 setenv DBSIM_CONFIG_DIR $LENSDIR/dbsim-config
+
+
+setenv FITVD_DIR /gpfs01/astro/desdata/esheldon/fitvd
+setenv FITVD_CONFIG_DIR /gpfs01/astro/desdata/esheldon/fitvd/config
