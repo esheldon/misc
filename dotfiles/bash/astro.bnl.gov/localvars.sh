@@ -1,1 +1,1 @@
-
+shopt -s direxpand

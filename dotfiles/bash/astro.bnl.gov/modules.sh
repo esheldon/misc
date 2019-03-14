@@ -27,5 +27,5 @@ module load local      # *
 module load perllib
 module load shell_scripts
 
-module load anaconda/local
+module load anaconda/py3
 module load espy/work
