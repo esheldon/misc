@@ -21,7 +21,7 @@ setenv SWEEP_REDUCE $HOME/sweep-reduce
 
 setenv MASK_DIR $HOME/masks
 
-set LENSDIR /gpfs/mnt/gpfs01/astro/workarea/esheldon/lensing
+set LENSDIR /gpfs/mnt/gpfs02/astro/workarea/esheldon/lensing
 set DES_LENSDIR $LENSDIR/des-lensing
 
 setenv LENSDIR $LENSDIR
@@ -59,7 +59,7 @@ setenv COSMOS_DIR $LENSDIR/galsim-cosmos-data
 setenv WEBDIR /astro/u/esheldon/www 
 
 setenv EYEBALLER_DIR /astro/u/esheldon/envs/conda-local
-setenv EYEBALLER_DATADIR /gpfs01/astro/workarea/esheldon/eyeball
+setenv EYEBALLER_DATADIR /gpfs02/astro/workarea/esheldon/eyeball
 
 setenv REREDUX_DATA_DIR $HOME/lensing/egretsims
 setenv REREDUX_OUTPUTS_DIR $HOME/lensing/great3reredux
@@ -98,5 +98,5 @@ setenv DBSIM_DIR $LENSDIR/dbsim
 setenv DBSIM_CONFIG_DIR $LENSDIR/dbsim-config
 
 
-setenv FITVD_DIR /gpfs01/astro/desdata/esheldon/fitvd
-setenv FITVD_CONFIG_DIR /gpfs01/astro/desdata/esheldon/fitvd/config
+setenv FITVD_DIR /gpfs02/astro/desdata/esheldon/fitvd
+setenv FITVD_CONFIG_DIR /gpfs02/astro/desdata/esheldon/fitvd/config
