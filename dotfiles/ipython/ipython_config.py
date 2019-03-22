@@ -395,7 +395,7 @@ c.TerminalInteractiveShell.editing_mode = 'vi'
 # 
 # This will enable completion on elements of lists, results of function calls,
 # etc., but can be unsafe because the code is actually evaluated on TAB.
-# c.IPCompleter.greedy = False
+c.IPCompleter.greedy = False
 c.Completer.use_jedi = False
 
 app = c.InteractiveShellApp

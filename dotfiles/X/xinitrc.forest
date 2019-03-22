@@ -23,5 +23,5 @@ if [ -x /usr/bin/xscreensaver ]; then
 fi
 
 # for some reason the display manager is turning on numlock
-numlockx off
+#numlockx off
 exec awesome
