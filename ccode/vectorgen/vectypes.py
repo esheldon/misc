@@ -704,21 +704,23 @@ class Generator(dict):
     def __init__(self, config):
         self.update(config)
 
-    def write(self):
+    def write(self, prefix='vector'):
         """
         write all
         """
 
-        self.write_header()
-        self.write_c()
+        self.write_header(prefix)
+        self.write_c(prefix)
         self.write_tests()
 
-    def write_header(self):
+    def write_header(self, prefix):
         """
         write the header
         """
-        print("writing vector.h")
-        with open("vector.h",'w') as fobj:
+
+        fname=prefix+'.h'
+        print('writing:',fname)
+        with open(fname,'w') as fobj:
 
             fobj.write(header_head)
 
@@ -734,9 +736,10 @@ class Generator(dict):
 
             fobj.write(header_foot)
 
-    def write_c(self):
-        print("writing vector.c")
-        with open('vector.c','w') as fobj:
+    def write_c(self, prefix):
+        fname=prefix+'.c'
+        print('writing:',fname)
+        with open(fname,'w') as fobj:
             fobj.write(c_head)
 
             for type in self:
