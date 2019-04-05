@@ -55,6 +55,7 @@ header_head="""// This header was auto-generated using vectorgen
 #ifndef _VECTORGEN_H
 #define _VECTORGEN_H
 
+#include <math.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -63,7 +64,7 @@ header_head="""// This header was auto-generated using vectorgen
 #define VECTOR_INITCAP 1
 
 // make sure this is an integer for now
-#define VECTOR_PUSH_REALLOC_MULTVAL 2
+#define VECTOR_PUSH_REALLOC_MULTVAL 1.5
 
 // properties, generic macros
 #define vector_size(vec) (vec)->size
@@ -182,11 +183,10 @@ header_head="""// This header was auto-generated using vectorgen
 #define vector_push(self, val) do {                                        \\
     if ((self)->size == (self)->capacity) {                                \\
                                                                            \\
-        size_t _newsize=0;                                                 \\
-        if ((self)->capacity == 0) {                                       \\
-            _newsize=VECTOR_INITCAP ;                                      \\
-        } else {                                                           \\
-            _newsize = (self)->capacity*VECTOR_PUSH_REALLOC_MULTVAL;       \\
+        double tmp=(self)->capacity*VECTOR_PUSH_REALLOC_MULTVAL;           \\
+        size_t _newsize=(size_t)ceil(tmp);                                 \\
+        if (_newsize < 2) {                                                \\
+            _newsize=2;                                                    \\
         }                                                                  \\
                                                                            \\
         vector_realloc((self), _newsize);                                  \\
