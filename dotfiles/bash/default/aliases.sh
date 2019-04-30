@@ -44,6 +44,7 @@ export lsstdev="lsst-dev01.ncsa.illinois.edu"
 export comet="comet.sdsc.edu"
 
 alias pyprof="python -m cProfile -s time "
+alias feh='feh --force-aliasing -B black '
 
 alias pcat=pygmentize
 function pless() {

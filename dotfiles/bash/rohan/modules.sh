@@ -1,4 +1,7 @@
 f=/etc/profile.d/modules.sh
+if [[ ! -e $f ]]; then
+    f="$HOME/local/Modules/3.2.10/init/bash"
+fi
 
 if [[ -e $f ]]; then
     . "$f"

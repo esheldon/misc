@@ -55,6 +55,7 @@ header_head="""// This header was auto-generated using vectorgen
 #ifndef _VECTORGEN_H
 #define _VECTORGEN_H
 
+#include <math.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -63,7 +64,7 @@ header_head="""// This header was auto-generated using vectorgen
 #define VECTOR_INITCAP 1
 
 // make sure this is an integer for now
-#define VECTOR_PUSH_REALLOC_MULTVAL 2
+#define VECTOR_PUSH_REALLOC_MULTVAL 1.5
 
 // properties, generic macros
 #define vector_size(vec) (vec)->size
@@ -182,11 +183,10 @@ header_head="""// This header was auto-generated using vectorgen
 #define vector_push(self, val) do {                                        \\
     if ((self)->size == (self)->capacity) {                                \\
                                                                            \\
-        size_t _newsize=0;                                                 \\
-        if ((self)->capacity == 0) {                                       \\
-            _newsize=VECTOR_INITCAP ;                                      \\
-        } else {                                                           \\
-            _newsize = (self)->capacity*VECTOR_PUSH_REALLOC_MULTVAL;       \\
+        double tmp=(self)->capacity*VECTOR_PUSH_REALLOC_MULTVAL;           \\
+        size_t _newsize=(size_t)ceil(tmp);                                 \\
+        if (_newsize < 2) {                                                \\
+            _newsize=2;                                                    \\
         }                                                                  \\
                                                                            \\
         vector_realloc((self), _newsize);                                  \\
@@ -704,21 +704,23 @@ class Generator(dict):
     def __init__(self, config):
         self.update(config)
 
-    def write(self):
+    def write(self, prefix='vector'):
         """
         write all
         """
 
-        self.write_header()
-        self.write_c()
+        self.write_header(prefix)
+        self.write_c(prefix)
         self.write_tests()
 
-    def write_header(self):
+    def write_header(self, prefix):
         """
         write the header
         """
-        print("writing vector.h")
-        with open("vector.h",'w') as fobj:
+
+        fname=prefix+'.h'
+        print('writing:',fname)
+        with open(fname,'w') as fobj:
 
             fobj.write(header_head)
 
@@ -734,9 +736,10 @@ class Generator(dict):
 
             fobj.write(header_foot)
 
-    def write_c(self):
-        print("writing vector.c")
-        with open('vector.c','w') as fobj:
+    def write_c(self, prefix):
+        fname=prefix+'.c'
+        print('writing:',fname)
+        with open(fname,'w') as fobj:
             fobj.write(c_head)
 
             for type in self:

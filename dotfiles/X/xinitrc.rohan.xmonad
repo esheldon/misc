@@ -21,6 +21,9 @@ xsetroot -solid black
 # speed up the keyboard
 xset r rate 300 30
 
+# disable acceleration
+xinput set-prop 12 327 0 1
+
 # you can't start this here, or it will for some reason mess with lxdm after
 # you log off. It doesn't get killed when you log off, that's part of the
 # reason, but if you start it within the session it is OK, maybe because of how

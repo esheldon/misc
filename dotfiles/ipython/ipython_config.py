@@ -170,7 +170,7 @@ c.TerminalInteractiveShell.highlighting_style='native'
 # reload() function does not.  When deep_reload is off, IPython will use the
 # normal reload(), but deep_reload will still be available as dreload().
 #c.TerminalInteractiveShell.deep_reload = False
-c.TerminalInteractiveShell.deep_reload = True
+#c.TerminalInteractiveShell.deep_reload = True
 
 # Make IPython automatically call any callable object even if you didn't type
 # explicit parentheses. For example, 'str 43' becomes 'str(43)' automatically.
@@ -395,7 +395,7 @@ c.TerminalInteractiveShell.editing_mode = 'vi'
 # 
 # This will enable completion on elements of lists, results of function calls,
 # etc., but can be unsafe because the code is actually evaluated on TAB.
-# c.IPCompleter.greedy = False
+c.IPCompleter.greedy = False
 c.Completer.use_jedi = False
 
 app = c.InteractiveShellApp
@@ -411,8 +411,8 @@ from numpy import array,zeros,ones,where,arange,linspace,logspace, \\
     sqrt, exp, cos, sin, tanh, arctanh, log, log10, median, \\
     diag
 tpng=os.path.expandvars('$WEBDIR/tmp/plots/tmp.png')
-tsvg=os.path.expandvars('$WEBDIR/tmp/plots/tmp.svg')
 teps=os.path.expandvars('$WEBDIR/tmp/plots/tmp.eps')
+tpdf=os.path.expandvars('$WEBDIR/tmp/plots/tmp.pdf')
 """
 app.exec_lines.append(lines)
 
@@ -443,17 +443,9 @@ try:
 except:
     pass
 """
-for pkg in ['ngmix','nsim']:
+for pkg in ['ngmix']:
     optlines = optional_lines % pkg
     app.exec_lines.append(optlines)
-
-optional_lines="""
-try:
-    from ngmix import print_pars as pp
-except:
-    pass
-"""
-app.exec_lines.append(optlines)
 
 # for python3
 lines="""

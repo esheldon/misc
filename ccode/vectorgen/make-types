@@ -22,24 +22,20 @@ Description
 '''
 
 import sys
-import optparse
 import vectypes
+import argparse
 
-parser = optparse.OptionParser(__doc__)
+parser = argparse.ArgumentParser()
+
+parser.add_argument('config',help='config for types')
+parser.add_argument('--prefix',default='vector',
+                    help='outputs will be {prefix}.h and {prefix}.c')
 
 def main():
-    options, args = parser.parse_args(sys.argv[1:])
-    if len(args) < 1:
-        parser.print_help()
-        sys.exit(1)
+    args = parser.parse_args()
 
-    conf_name=args[0]
-    conf=vectypes.read_config(conf_name)
+    conf=vectypes.read_config(args.config)
     g = vectypes.Generator(conf)
-    g.write()
-
-    #vectypes.generate_h(types)
-    #vectypes.generate_c(types)
-    #vectypes.generate_tests(types)
+    g.write(prefix=args.prefix)
 
 main()
