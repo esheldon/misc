@@ -54,3 +54,6 @@ setenv FITCOSMOS_DIR $HOME/data/cosmos/outputs
 setenv FITCOSMOS_CONFIG_DIR $HOME/data/cosmos/fitcosmos-config
 
 setenv CATSIM_DIR $HOME/data/catsim
+
+setenv FITVD_DIR $HOME/data/fitvd/outputs
+setenv FITVD_CONFIG_DIR $HOME/data/fitvd/fitvd-config
