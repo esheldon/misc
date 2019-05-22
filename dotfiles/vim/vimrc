@@ -364,8 +364,7 @@ map <silent> ,V :source $VIMRC<CR>:filetype detect<CR>:exe ":echo 'vimrc reloade
 
 
 "let python_highlight_indent_errors = 0
-" Who cares about trailing spaces?
-let python_highlight_space_errors = 0
+" let python_highlight_space_errors = 0
 
 
 "gpg stuff
