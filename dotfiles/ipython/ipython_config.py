@@ -456,3 +456,9 @@ except ImportError:
 """
 app.exec_lines.append(lines)
 
+lines="""
+import pycolumns as pyc
+"""
+app.exec_lines.append(lines)
+
+
