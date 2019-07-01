@@ -57,3 +57,7 @@ setenv CATSIM_DIR $HOME/data/catsim
 
 setenv FITVD_DIR $HOME/data/fitvd
 setenv FITVD_CONFIG_DIR $HOME/data/fitvd/fitvd-config
+
+setenv PIFF_DATA_DIR $HOME/data/piff
+
+setenv TEST_DESDATA $HOME/git/des-y3-test-data
