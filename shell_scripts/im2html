@@ -46,7 +46,7 @@ fi
 
 echo "
 <html>
-    <body bgcolor=white>
+    <body bgcolor=black text=white>
 "
 
 if [ "$use_stdin" == "Y" ]; then
