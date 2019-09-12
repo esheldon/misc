@@ -45,6 +45,7 @@ export comet="comet.sdsc.edu"
 
 alias pyprof="python -m cProfile -s time "
 alias feh='feh --force-aliasing -B black '
+alias mfeh='feh --force-aliasing -B black -g 2000x2000'
 
 alias pcat=pygmentize
 function pless() {

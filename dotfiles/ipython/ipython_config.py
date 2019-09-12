@@ -461,4 +461,9 @@ import pycolumns as pyc
 """
 app.exec_lines.append(lines)
 
+lines="""
+import images
+"""
+app.exec_lines.append(lines)
+
 
