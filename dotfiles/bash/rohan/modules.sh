@@ -9,8 +9,10 @@ if [[ -e $f ]]; then
     module load use.own
     module load local
 
+    module load local
     module load espy/local
     module load anaconda/py3
+    module load shell_scripts
     source activate default
 
 fi
