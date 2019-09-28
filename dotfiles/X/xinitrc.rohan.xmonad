@@ -16,13 +16,18 @@ if [ -x /usr/bin/synclient ]; then
     synclient TouchPadOff=1
 fi
 
-xsetroot -solid black
+#xsetroot -solid black
+if [[ -e ~/.fehbg ]]; then
+    ~/.fehbg &
+fi
 
 # speed up the keyboard
 xset r rate 300 30
 
 # disable acceleration
-xinput set-prop 12 327 0 1
+# xinput set-prop 12 327 0 1
+xinput --set-prop 13 'libinput Accel Profile Enabled' 0, 1
+
 
 # you can't start this here, or it will for some reason mess with lxdm after
 # you log off. It doesn't get killed when you log off, that's part of the
