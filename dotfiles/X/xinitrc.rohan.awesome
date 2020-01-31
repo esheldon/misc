@@ -47,6 +47,7 @@ if [ -x /usr/bin/xfce4-power-manager ]; then
 fi
 
 xinput --set-prop 13 'libinput Accel Profile Enabled' 0, 1
+xinput disable $(xinput | grep -i touchscreen | awk '{print $5}' | cut -d = -f 2)
 
 sleep $sleeptime
 
