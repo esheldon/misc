@@ -73,6 +73,11 @@ Host lgpu2
 	HostName localhost
 	Port 2229
 
+# new style, ssh version >= 7.4
+Host astro
+  Hostname astro.rcf.bnl.gov
+  User esheldon
+  ProxyJump %r@rssh.rhic.bnl.gov:22
 
 
 # Created by /usr/bin/cluster-env (1.2)
