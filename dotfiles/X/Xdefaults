@@ -185,6 +185,8 @@ xclock*hourColor: green4
 !urxvt.boldFont: fixed
 
 urxvt.font: xft:Terminus:size=16
+urxvt.boldFont:
+!urxvt.intensityStyles: true
 !urxvt*inheritPixmap: true
 urxvt*tintColor: gray30
 urxvt.internalBorder: 0
