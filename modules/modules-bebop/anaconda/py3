@@ -1,0 +1,11 @@
+#%Module########################################################################
+# vim: set filetype=tcl :
+
+module-whatis	"install of miniconda2"
+
+eval set  [ array get env HOME ]
+
+set anaconda_dir $HOME/miniconda3
+
+prepend-path PATH         $anaconda_dir/bin
+setenv       ANACONDA_DIR $anaconda_dir
