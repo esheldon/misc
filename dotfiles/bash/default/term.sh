@@ -19,12 +19,15 @@ function setp_simple
 function setp
 {
 
-	if [ -z $STY ]; then
-        # we are in a screen session
-        PS1="[\u@\h \W\$(git_branch)] "
-	else
-        PS1="\[\033k\033\\\][\u@\h \W\$(git_branch)] "
-	fi
+    PS1="[\u@\h \W\$(git_branch)] "
+
+	# if [ -z $STY ]
+    # then
+    #     # we are not in a screen session
+    #     PS1="[\u@\h \W\$(git_branch)] "
+	# else
+    #     PS1="\[\033k\033\\\][\u@\h \W\$(git_branch)] "
+	# fi
 
 }
 
