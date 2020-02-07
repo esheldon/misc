@@ -46,6 +46,8 @@ slac_test=$(uname -n | egrep -i "rhel|orange|ki-ls")
 
 comet_test=`echo $host | grep -i comet`
 
+bebop_test=`echo $host | grep -i bebop`
+
 if [[ "$hname" == "theshire" ]]; then
     dotfileDir=$ddir/theshire
 elif [[ $isnersc == "Y" ]]; then
@@ -67,6 +69,8 @@ elif [[ "$lsst_bnl_test" != "" ]]; then
 	dotfileDir=$ddir/lst.bnl.gov
 elif [[ "$comet_test" != "" ]]; then
 	dotfileDir=$ddir/comet
+elif [[ "$bebop_test" != "" ]]; then
+	dotfileDir=$ddir/bebop
 elif [[ "$hname" == "web203" || "$hname" == "web246" ]]; then
 	dotfileDir=$ddir/webfaction
 elif [[ "$hname" == "130-199-23-225" ]]; then

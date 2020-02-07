@@ -13,4 +13,4 @@ module load perllib
 # put this hear since we set up the anaconda
 # using modules
 
-source activate mystack
+# source activate mystack
