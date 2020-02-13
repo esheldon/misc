@@ -1,5 +1,10 @@
 #!/bin/bash
 
+print_memory() {
+    usage=$(free -h | awk '/^Mem:/ {print $3 "/" $2}')
+    echo -ne "mem ${usage}"
+}
+
 print_power2() {
     status="$(cat /sys/class/power_supply/AC/online)"
     battery="$(cat /sys/class/power_supply/BAT0/capacity)"
@@ -43,7 +48,7 @@ print_wifiqual() {
 
 print_hddfree() {
     hddfree="$(df -Ph /dev/nvme0n1p2 | awk '$3 ~ /[0-9]+/ {print $4}')"
-    echo -ne "free ${hddfree}"
+    echo -ne "disk ${hddfree}"
 }
 
 print_datetime() {
@@ -68,7 +73,7 @@ while true; do
     }
 
     # Pipe to status bar, not indented due to printing extra spaces/tabs
-    xsetroot -name "$(print_cpu_used)|$(print_hddfree)|$(print_power)|$(print_datetime) "
+    xsetroot -name "$(print_cpu_used)|$(print_memory)|$(print_hddfree)|$(print_power)|$(print_datetime) "
 
     # reset old rates
     cpu_idle_old=$cpu_idle_now
