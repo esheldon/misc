@@ -100,3 +100,14 @@ setenv DBSIM_CONFIG_DIR $LENSDIR/dbsim-config
 
 setenv FITVD_DIR /gpfs02/astro/desdata/esheldon/fitvd
 setenv FITVD_CONFIG_DIR /gpfs02/astro/desdata/esheldon/fitvd/config
+
+setenv SHREDX_CONFIG_DIR /gpfs02/astro/desdata/esheldon/shredder/configs
+
+setenv SHREDDER_DIR /gpfs02/astro/desdata/esheldon/shredder
+
+# used for pizza cutter tests that require data. Those tests
+# will be skipped if this isn't set
+setenv TEST_DESDATA /astro/u/esheldon/git/des-y3-test-data
+
+setenv SLDIR /astro/u/astrodat/data/DES/jpg/stronglens
+setenv CATSIM_DIR $HOME/lensing/catsim
