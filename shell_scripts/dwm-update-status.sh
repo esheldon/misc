@@ -1,95 +1,77 @@
 #!/bin/bash
 
-function getnet() {
-    UP1=$( awk '/eno1/ { print $10 }' /proc/net/dev )
-    DOWN1=$( awk '/eno1/ { print $2 }' /proc/net/dev )
+print_power2() {
+    status="$(cat /sys/class/power_supply/AC/online)"
+    battery="$(cat /sys/class/power_supply/BAT0/capacity)"
+    timer="$(acpi -b | grep "Battery" | awk '{print $5}' | cut -c 1-5)"
+    if [ "${status}" == 1 ]; then
+        echo -ne "AC ON  ${battery}%"
+    else
+        echo -ne "AC OFF ${battery}%"
+    fi
+}
+
+print_power() {
+	capacity=$(cat /sys/class/power_supply/BAT0/capacity) || exit
+	status=$(cat /sys/class/power_supply/BAT0/status)
+
+	if [ "$capacity" -ge 75 ]; then
+		color="#00ff00"
+	elif [ "$capacity" -ge 50 ]; then
+		color="#ffffff"
+	elif [ "$capacity" -ge 25 ]; then
+		color="#ffff00"
+	else
+		color="#ff0000"
+		warn="❗"
+	fi
+
+	[ -z $warn ] && warn=" "
+
+	[ "$status" = "Charging" ] && color="#ffffff"
+
+	# printf "<span color='%s'>%s%s%s</span>\n" "$color" "$(echo "$status" | sed -e "s/,//;s/Discharging/🔋/;s/Not charging/🛑/;s/Charging/🔌/;s/Unknown/♻️/;s/Full/⚡/;s/ 0*/ /g;s/ :/ /g")" "$warn" "$(echo "$capacity" | sed -e 's/$/%/')"
+	printf "%s%s%s" "$(echo "$status" | sed -e "s/,//;s/Discharging/🔋/;s/Not charging/🛑/;s/Charging/🔌/;s/Unknown/♻️/;s/Full/⚡/;s/ 0*/ /g;s/ :/ /g")" "$warn" "$(echo "$capacity" | sed -e 's/$/%/')"
+
+}
+print_wifiqual() {
+    wifiessid="$(/sbin/iwconfig 2>/dev/null | grep ESSID | cut -d: -f2)"
+    wifiawk="$(echo $wifiessid | awk -F',' '{gsub(/"/, "", $1); print $1}')"
+    wificut="$(echo $wifiawk | cut -d' ' -f1)"
+    echo -ne "${wificut}"
+}
+
+print_hddfree() {
+    hddfree="$(df -Ph /dev/nvme0n1p2 | awk '$3 ~ /[0-9]+/ {print $4}')"
+    echo -ne "free ${hddfree}"
+}
+
+print_datetime() {
+    datetime="$(date "+%a %d %b %I:%M")"
+    echo -ne "${datetime}"
+}
+
+# cpu (from: https://bbs.archlinux.org/viewtopic.php?pid=661641#p661641)
+
+while true; do
+    # get new cpu idle and total usage
+    eval $(awk '/^cpu /{print "cpu_idle_now=" $5 "; cpu_total_now=" $2+$3+$4+$5 }' /proc/stat)
+    cpu_interval=$((cpu_total_now-${cpu_total_old:-0}))
+    # calculate cpu usage (%)
+    let cpu_used="100 * ($cpu_interval - ($cpu_idle_now-${cpu_idle_old:-0})) / $cpu_interval"
+
+    cpu_used=$(printf "%3d" "$cpu_used")
+
+    # output vars
+    print_cpu_used() {
+        printf "%-1b" "CPU${cpu_used}%"
+    }
+
+    # Pipe to status bar, not indented due to printing extra spaces/tabs
+    xsetroot -name "$(print_cpu_used)|$(print_hddfree)|$(print_power)|$(print_datetime) "
+
+    # reset old rates
+    cpu_idle_old=$cpu_idle_now
+    cpu_total_old=$cpu_total_now
     sleep 1
-    UP2=$( awk '/eno1/ { print $10 }' /proc/net/dev )
-    DOWN2=$( awk '/eno1/ { print $2 }' /proc/net/dev )
-
-    let "DIFF_UP=$UP2-$UP1"
-    let "DIFF_DOWN=$DOWN2-$DOWN1"
-
-    let "UPK=DIFF_UP/1024"
-    let "DOWNK=DIFF_DOWN/1024"
-
-    printf "dn: %4dK/s up: %3dK/s" "$DOWNK" "$UPK"
-}
-
-function getcpu() {
-
-    CPU1=(`cat /proc/stat | grep '^cpu '`) # Get the total CPU statistics.
-    sleep 1
-    CPU2=(`cat /proc/stat | grep '^cpu '`) # Get the total CPU statistics.
-
-    unset CPU1[0]                          # Discard the "cpu" prefix.
-    IDLE1=${CPU1[4]}                        # Get the idle CPU time.
-    unset CPU2[0]                          # Discard the "cpu" prefix.
-    IDLE2=${CPU2[4]}                        # Get the idle CPU time.
-     
-    # Calculate the total CPU time.
-    TOTAL1=0
-    for VALUE in "${CPU1[@]}"; do
-        let "TOTAL1=$TOTAL1+$VALUE"
-    done
-    TOTAL2=0
-    for VALUE in "${CPU2[@]}"; do
-        let "TOTAL2=$TOTAL2+$VALUE"
-    done
-
-
-    # Calculate the CPU usage since we last checked.
-    let "DIFF_IDLE=$IDLE2-$IDLE1"
-    let "DIFF_TOTAL=$TOTAL2-$TOTAL1"
-    let "DIFF_USAGE=(1000*($DIFF_TOTAL-$DIFF_IDLE)/$DIFF_TOTAL+5)/10"
-    printf "CPU: %3d%%" "$DIFF_USAGE"
-}
-
-function getwlan() {
-    WIRELESS=""
-    #INTERFACE="wlan0"
-
-    #read STATE < /sys/class/net/${INTERFACE}/operstate 2>/dev/null
-
-    #if [[ ${STATE} == "up" ]]; then
-    #  ESSID=$( /sbin/iwconfig $INTERFACE | egrep -o "ESSID:\".*\"" | sed -r 's/ESSID:"(.*)"/\1/' )
-    #  SIGNAL=$( /sbin/iwconfig $INTERFACE | grep -oP "\d+\/\d+" | awk -F\/ '{ printf("%d%\n",$1/$2*100) }' )
-
-    #  WIRELESS=" ${ESSID} ${SIGNAL} ·"
-    #fi
-
-    echo "$WIRELESS"
-}
-
-function getbattery() {
-    #BATTERY=C1C5 ### <- Battery ID
-    #
-    #grep ' charged' /proc/acpi/battery/${BATTERY}/state 2>&1 >/dev/null && TIME_LEFT="" || DO_BATTERY=1
-
-    #Wyłączam tymczasem:
-    #DO_BATTERY=""
-
-    #if [[ -n ${DO_BATTERY} ]]; then
-    #  TIME_LEFT=`acpi -t | head -n1 | sed -r \
-    #  's/^.*Battery....//; s/discharging, /-/; s/charging, /+/; s/,//g; s/ ([0-9][0-9]:[0-9][0-9]):[0-9][0-9] .*$/ \1 /'`
-    #
-    #  TIME_LEFT="${TIME_LEFT} · "
-    #fi
-
-    echo ""
-}
-
-while [ true ]; do
-
-    WIRELESS=$(getwlan)
-
-    NET=$(getnet)
-    DATE=$(  LC_ALL=en_US date +'%a %b %d %I:%M%P' )
-
-    CPU=$(getcpu)
-
-    STATUS="${CPU} | ${WIRELESS}${NET} | ${DATE}"
-
-    xsetroot -name "$STATUS"
-
 done
