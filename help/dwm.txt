@@ -1,0 +1,29 @@
+get Luke Smith's fork of st
+    git@github.com:LukeSmithxyz/st.git
+    cd st
+    sudo make install
+
+get dwm
+    mkdir -p ~/local/src
+    cd ~/local/src
+    wget https://dl.suckless.org/dwm/dwm-6.2.tar.gz
+
+    modify config.h, removing firefox entry and setting fonts to
+
+    static const char *fonts[]          = { "Terminus:size=12" };
+    static const char dmenufont[]       = "Terminus:size=12";
+
+    sudo make clean install
+
+
+for laptop use xsession
+    ~/.dotfiles/X/xsession-dwm-laptop
+for desktop use
+    ~/.dotfiles/X/xsession-dwm-desktop
+
+
+install
+    pnmixer for volume control
+    feh for background, and generate the fehbg
+    xfce4-power-manager for laptop
+    nm-applet for laptop
