@@ -1,6 +1,14 @@
-remove gnome screensaver and install xscreensaver
+remove gnome screensaver
     sudo apt-get remove gnome-screensaver
-    sudo apt-get install xscreensaver xscreensaver-gl-extra xscreensaver-data-extra
+
+can't use xscreensaver, no way to make xfce4 power manager
+use it during suspend. Instead we use slock. See laptop
+xsession for dwm and install
+
+sudo apt-get install xss-lock slock
+
+# also for synclient, turning off touch pad
+sudo apt-get install xserver-xorg-input-synaptics
 
 install xfce4-terminal
     sudo apt-get install xfce4-terminal
