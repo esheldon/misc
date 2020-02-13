@@ -36,6 +36,8 @@ xset r rate 300 30
 # xss-lock also locks the screen when suspended, which
 if [ -x /usr/bin/xss-lock ]; then
     if [ -x /usr/bin/slock ]; then
+        # this seems to be over ridden when it is longer than
+        # the setting in the xfce4 power management
         xset s 600
         /usr/bin/xss-lock slock &
     fi
