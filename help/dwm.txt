@@ -1,7 +1,16 @@
-get Luke Smith's fork of st
-    git@github.com:LukeSmithxyz/st.git
-    cd st
-    sudo make install
+remove gnome screensaver and install xscreensaver
+    sudo apt-get remove gnome-screensaver
+    sudo apt-get install xscreensaver xscreensaver-gl-extra xscreensaver-data-extra
+
+install xfce4-terminal
+    sudo apt-get install xfce4-terminal
+
+# turns out st doesn't use the clip board in a way that works
+# well with a browser
+#get Luke Smith's fork of st
+#    git@github.com:LukeSmithxyz/st.git
+#    cd st
+#    sudo make install
 
 get dwm
     mkdir -p ~/local/src
@@ -12,6 +21,10 @@ get dwm
 
     static const char *fonts[]          = { "Terminus:size=12" };
     static const char dmenufont[]       = "Terminus:size=12";
+
+    and use xfce4-terminal
+
+    static const char *termcmd[]  = { "xfce4-terminal", NULL };
 
     sudo make clean install
 
