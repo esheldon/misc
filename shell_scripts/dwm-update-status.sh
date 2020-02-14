@@ -1,8 +1,10 @@
 #!/bin/bash
 
 print_memory() {
-    usage=$(free -h | awk '/^Mem:/ {print $3 "/" $2}')
-    echo -ne "mem ${usage}"
+    # usage=$(free -h | awk '/^Mem:/ {print $3 "/" $2}')
+    left=$(free -h | awk '/^Mem:/ {print $7}')
+    perc=$(free | awk '/^Mem:/ {printf "%.0f", $7/$2*100}')
+    echo -ne "mem ${left} ${perc}%"
 }
 
 print_power2() {
@@ -47,8 +49,15 @@ print_wifiqual() {
 }
 
 print_hddfree() {
-    hddfree="$(df -Ph /dev/nvme0n1p2 | awk '$3 ~ /[0-9]+/ {print $4}')"
-    echo -ne "disk ${hddfree}"
+
+    dft=$(df -Ph | awk '/nvme0n1p2/ {print $4,$5}')
+    if [[ $dft == "" ]]; then
+        # dft=$(df -Ph | awk '/sda1/ {print $4,$5}')
+        dft=$(df -Ph | awk '/sda1/ {print $4,$5}')
+    fi
+    # hddfree="$(df -Ph /dev/nvme0n1p2 | awk '$3 ~ /[0-9]+/ {print $4}')"
+    # echo -ne "disk ${hddfree}"
+    echo -ne "hdd $dft"
 }
 
 print_datetime() {
@@ -73,7 +82,7 @@ while true; do
     }
 
     # Pipe to status bar, not indented due to printing extra spaces/tabs
-    xsetroot -name "$(print_cpu_used)|$(print_memory)|$(print_hddfree)|$(print_power)|$(print_datetime) "
+    xsetroot -name "$(print_cpu_used) | $(print_memory) | $(print_hddfree) | $(print_power) | $(print_datetime) "
 
     # reset old rates
     cpu_idle_old=$cpu_idle_now
