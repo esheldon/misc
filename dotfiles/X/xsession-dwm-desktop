@@ -6,6 +6,7 @@ sleeptime=1
 # each time lxdm comes up it starts a new one
 
 killall gnome-keyring-daemon
+killall dwm-status-bar
 
 if [ -r ~/.Xdefaults ]; then
 	xrdb -merge ~/.Xdefaults
