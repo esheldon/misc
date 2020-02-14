@@ -62,7 +62,7 @@ xinput --set-prop ${track_id} 'libinput Accel Profile Enabled' 0, 1
 touch_id=$(xinput | grep TouchScreen | awk '{print $5}' | cut -d = -f 2)
 xinput disable $touch_id
 
-bash ~/shell_scripts/dwm-update-status.sh &
+~/shell_scripts/dwm-status-bar &
 
 xsetroot -solid black
 
