@@ -60,7 +60,7 @@ fi
 track_id=$(xinput | grep Track | awk '{print $6}' | cut -d = -f 2)
 xinput --set-prop ${track_id} 'libinput Accel Profile Enabled' 0, 1
 
-touch_id=$(xinput | grep TouchScreen | awk '{print $5}' | cut -d = -f 2)
+touch_id=$(xinput | grep -i Touchscreen | awk '{print $5}' | cut -d = -f 2)
 xinput disable $touch_id
 
 ~/shell_scripts/dwm-status-bar &
