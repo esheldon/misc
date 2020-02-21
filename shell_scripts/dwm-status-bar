@@ -19,7 +19,7 @@ print_power2() {
 }
 
 print_power() {
-	capacity=$(cat /sys/class/power_supply/BAT0/capacity) || exit
+	capacity=$(cat /sys/class/power_supply/BAT0/capacity 2> /dev/null) || exit
 	status=$(cat /sys/class/power_supply/BAT0/status)
 
 	if [ "$capacity" -ge 75 ]; then
@@ -54,6 +54,9 @@ print_hddfree() {
     if [[ $dft == "" ]]; then
         # dft=$(df -Ph | awk '/sda1/ {print $4,$5}')
         dft=$(df -Ph | awk '/sda1/ {print $4,$5}')
+        if [[ $dft == "" ]]; then
+            dft=$(df -Ph | awk '/sdb1/ {print $4,$5}')
+        fi
     fi
     # hddfree="$(df -Ph /dev/nvme0n1p2 | awk '$3 ~ /[0-9]+/ {print $4}')"
     # echo -ne "disk ${hddfree}"
@@ -82,7 +85,14 @@ while true; do
     }
 
     # Pipe to status bar, not indented due to printing extra spaces/tabs
-    xsetroot -name "$(print_cpu_used) | $(print_memory) | $(print_hddfree) | $(print_power) | $(print_datetime) "
+    text="$(print_cpu_used) | $(print_memory) | $(print_hddfree)"
+    power=$(print_power)
+    if [[ $power != "" ]]; then
+        text="${text} | ${power}"
+    fi
+    text="${text} | $(print_datetime)"
+    xsetroot -name "${text}"
+    # xsetroot -name "$(print_cpu_used) | $(print_memory) | $(print_hddfree) | $(print_power) | $(print_datetime) "
 
     # reset old rates
     cpu_idle_old=$cpu_idle_now
