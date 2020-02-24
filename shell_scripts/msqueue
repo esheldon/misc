@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+#             JOBID PARTITION     NAME     USER    STATE       TIME TIME_LIMI  NODES NODELIST(REASON)
+
+squeue -u ${USER} -o "%.18i %.9P %j %.8u %.8T %.10M %.9l %.6D %R" | column -t
