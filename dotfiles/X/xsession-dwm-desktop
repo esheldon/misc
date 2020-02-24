@@ -1,0 +1,41 @@
+#!/bin/bash
+
+sleeptime=1
+
+# these are not getting killed off on logout, and
+# each time lxdm comes up it starts a new one
+
+killall gnome-keyring-daemon
+killall dwm-status-bar
+
+if [ -r ~/.Xdefaults ]; then
+	xrdb -merge ~/.Xdefaults
+fi
+
+if [ -r ~/.Xmodmap ]; then
+	xmodmap ~/.Xmodmap
+fi
+
+xsetroot -solid black
+
+# speed up the keyboard
+xset r rate 300 30
+
+# volume control for pulse audio
+if [ -x /usr/bin/pnmixer ]; then
+    pnmixer &
+fi
+
+~/shell_scripts/dwm-status-bar &
+
+if [[ -e ~/.fehbg ]]; then
+    bash ~/.fehbg &
+fi
+
+if [[ -x /usr/bin/xscreensaver ]]; then
+    xscreensaver &
+fi
+
+# sleep $sleeptime
+
+exec dwm

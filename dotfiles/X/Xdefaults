@@ -1,4 +1,11 @@
 
+st.font: Terminus-16
+st.foreground: #dcdccc
+! green
+st.color10: #99ff99
+! green
+st.color2: #7f9f7f
+
 !
 ! xterm configuration
 !

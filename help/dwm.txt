@@ -1,0 +1,51 @@
+remove gnome screensaver
+    sudo apt-get remove gnome-screensaver
+
+can't use xscreensaver, no way to make xfce4 power manager
+use it during suspend. Instead we use slock. See laptop
+xsession for dwm and install
+
+sudo apt-get install xss-lock slock
+
+# also for synclient, turning off touch pad
+sudo apt-get install xserver-xorg-input-synaptics
+
+install xfce4-terminal
+    sudo apt-get install xfce4-terminal
+
+# turns out st doesn't use the clip board in a way that works
+# well with a browser
+#get Luke Smith's fork of st
+#    git@github.com:LukeSmithxyz/st.git
+#    cd st
+#    sudo make install
+
+get dwm
+    mkdir -p ~/local/src
+    cd ~/local/src
+    wget https://dl.suckless.org/dwm/dwm-6.2.tar.gz
+
+    get systray patch from here https://dwm.suckless.org/patches/systray/
+    patch -b < dwm-systray-6.2.diff 
+
+    further modify config.def.h
+        - remove firefox entry
+        - set fonts to Terminus:size=12
+        - use xfce4-terminal
+        - set resizehints to 0 so terminals don't get a border
+
+    make sure config.h is removed
+    sudo make clean install
+
+
+for laptop use xsession
+    ~/.dotfiles/X/xsession-dwm-laptop
+for desktop use
+    ~/.dotfiles/X/xsession-dwm-desktop
+
+
+install
+    pnmixer for volume control
+    feh for background, and generate the fehbg
+    xfce4-power-manager for laptop
+    nm-applet for laptop

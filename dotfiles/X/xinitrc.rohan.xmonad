@@ -25,8 +25,21 @@ fi
 xset r rate 300 30
 
 # disable acceleration
-# xinput set-prop 12 327 0 1
-xinput --set-prop 13 'libinput Accel Profile Enabled' 0, 1
+# xinput --set-prop 13 'libinput Accel Profile Enabled' 0, 1
+
+track_id=$(xinput | grep Track | awk '{print $6}' | cut -d = -f 2)
+xinput --set-prop ${track_id} 'libinput Accel Profile Enabled' 0, 1
+
+# blank screen after 10 minutes
+# xss-lock also locks the screen when suspended, which
+if [ -x /usr/bin/xss-lock ]; then
+    if [ -x /usr/bin/slock ]; then
+        # this seems to be over ridden when it is longer than
+        # the setting in the xfce4 power management
+        xset s 600
+        /usr/bin/xss-lock slock &
+    fi
+fi
 
 
 # you can't start this here, or it will for some reason mess with lxdm after
@@ -38,11 +51,11 @@ xinput --set-prop 13 'libinput Accel Profile Enabled' 0, 1
 #    conky &
 #fi
 
-sleeptime=1
+# sleeptime=1
 
-if [ -x /usr/bin/xscreensaver ]; then
-	xscreensaver &
-fi
+# if [ -x /usr/bin/xscreensaver ]; then
+#    xscreensaver &
+# fi
 
 
 
@@ -54,7 +67,7 @@ if [ -x /usr/bin/xfce4-power-manager ]; then
     xfce4-power-manager &
 fi
 
-sleep $sleeptime
+# sleep $sleeptime
 
 #if [[ -e ~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc ]]; then
 #    GTK2_RC_FILES=~/.themes/Clearlooks-DarkOrange/gtk-2.0/gtkrc fbpanel &

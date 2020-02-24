@@ -11,6 +11,7 @@ set -o vi
 export HISTSIZE=1000000
 export HISTFILESIZE=1000000
 shopt -s histappend
+shopt -u direxpand
 
 export PAGER='less -R'
 
@@ -47,6 +48,7 @@ slac_test=$(uname -n | egrep -i "rhel|orange|ki-ls")
 comet_test=`echo $host | grep -i comet`
 
 bebop_test=`echo $host | grep -i bebop`
+duke_test=`echo $host | grep -i duke`
 
 if [[ "$hname" == "theshire" ]]; then
     dotfileDir=$ddir/theshire
@@ -71,6 +73,8 @@ elif [[ "$comet_test" != "" ]]; then
 	dotfileDir=$ddir/comet
 elif [[ "$bebop_test" != "" ]]; then
 	dotfileDir=$ddir/bebop
+elif [[ "$duke_test" != "" ]]; then
+	dotfileDir=$ddir/duke
 elif [[ "$hname" == "web203" || "$hname" == "web246" ]]; then
 	dotfileDir=$ddir/webfaction
 elif [[ "$hname" == "130-199-23-225" ]]; then
