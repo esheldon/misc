@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -euo pipefail
+
+sleep_time=10
+
+nfiles=$#
+i=0
+for file; do
+    perc=$(echo "scale=0; 100*$i/$nfiles" | bc)
+
+    dname=$(dirname ${file})
+    fname=$(basename ${file})
+    logf="${fname}.submitted"
+
+    pushd $dname > /dev/null
+
+    if [[ ! -e $logf ]]; then
+
+        dt=`date +"%T"`
+        echo "    submitting ${fname} ${dt} ${i}/${nfiles} (${perc}%)"
+        sbatch "${fname}"
+
+        if [[ $? != 0 ]]; then
+            echo "Error submitting job through sbatch: $?"
+            exit 1
+        fi
+
+        touch "${logf}"
+
+        sleep ${sleep_time}
+
+    fi
+
+    popd > /dev/null
+
+    ((i += 1))
+
+done
