@@ -1,0 +1,6 @@
+# to copy files from local dir and subdirs to a remove system
+
+# using 3 jobs
+
+find . -type f | parallel -u -j 3 -X rsync -aR ./{} astro:tmp/for-copy/
+find . -name "*.fits" | parallel -u -j 3 -X rsync -aR ./{} astro:tmp/for-copy/
