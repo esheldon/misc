@@ -9,21 +9,17 @@ set localdir $HOME/local
 
 prepend-path PATH            $localdir/bin
 prepend-path PATH            $HOME/perllib
-prepend-path PATH            $localdir/src/nim-0.14.2/bin
-prepend-path PATH            $HOME/.nimble/bin
 
 prepend-path LD_LIBRARY_PATH $localdir/lib
 prepend-path LIBRARY_PATH    $localdir/lib
 prepend-path C_INCLUDE_PATH  $localdir/include
 prepend-path CPATH           $localdir/include
 
+setenv TMPDIR $HOME/data/tmp
+
 set LENSDIR $HOME/lensing
 
 setenv LENSDIR $LENSDIR
-
-setenv SHAPESIM_FS local
-
-setenv CLUSTERSTEP $HOME/data/cluster-step
 
 setenv DESDATA $HOME/data/DES
 setenv DESREMOTE https://desar2.cosmology.illinois.edu/DESFiles/desardata
@@ -31,18 +27,8 @@ setenv DESREMOTE_RSYNC desar2.cosmology.illinois.edu::ALLDESFiles/desarchive
 setenv DES_RSYNC_PASSFILE $HOME/.des_rsync_pass
 setenv DESPROJ OPS
 
-setenv GREAT3_DATA_DIR $LENSDIR/great3
-
-setenv WEBDIR $HOME/data
-
 setenv SHAPESIM_DIR $LENSDIR/shapesim
-
 setenv NGMIXER_OUTPUT_DIR $HOME/data/ngmixer-outputs
-
-setenv TMPDIR $HOME/data/tmp
-
-setenv NBRSIM_DIR $LENSDIR/nbrsim
-setenv NBRSIM_CONFIG_DIR $LENSDIR/nbrsim-config
 
 setenv MEDS_DIR $HOME/data/DES/meds
 
