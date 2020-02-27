@@ -7,6 +7,7 @@ if [[ -e $f ]]; then
     module load local
     module load espy/local
     module load anaconda/3
+    source activate default
     module load shell_scripts
 
 fi
