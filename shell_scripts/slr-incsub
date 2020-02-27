@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 function usage_and_exit {
     echo "usage:
   slr-incsub [options] slr_file1 slr_file2 ...

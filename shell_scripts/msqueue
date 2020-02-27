@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+#             JOBID PARTITION     NAME     USER    STATE       TIME TIME_LIMI  NODES NODELIST(REASON)
+
+set -e
+
+repeat_seconds="none"
+while getopts "i:" Option
+  do
+  case $Option in
+      i)  repeat_seconds=$OPTARG ;;
+      [?]) echo "Usage: msqueue [-i repeat_seconds]"
+           exit $WRONG_ARGS
+           ;;  
+  esac
+done
+
+
+while true; do
+    squeue -u ${USER} -o "%.18i %.9P %j %.8u %.8T %.10M %.9l %.6D %R" | column -t
+
+    if [[ $repeat_seconds != "none" ]]; then
+        sleep $repeat_seconds
+    else
+        exit 0
+    fi
+done
