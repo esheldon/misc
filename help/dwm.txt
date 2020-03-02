@@ -28,7 +28,12 @@ get dwm
     get systray patch from here https://dwm.suckless.org/patches/systray/
     patch -b < dwm-systray-6.2.diff 
 
-    further modify config.def.h
+    get pertag patch from here
+    https://raw.githubusercontent.com/user/dwm/master/patches/dwm-pertag-6.2.diff
+
+    patch -b < dwm-pertag-6.2.diff
+
+    further modify config.h
         - remove firefox entry
         - set fonts to Terminus:size=12
         - use xfce4-terminal
