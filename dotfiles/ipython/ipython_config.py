@@ -403,6 +403,8 @@ app = c.InteractiveShellApp
 if not hasattr(app, 'exec_lines'):
     app.exec_lines=[]
 
+app.exec_lines.append('GOLDEN_RATIO = 1.618')
+
 lines = """
 import os
 from glob import glob
