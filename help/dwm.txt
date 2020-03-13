@@ -1,3 +1,4 @@
+
 remove gnome screensaver
     sudo apt-get remove gnome-screensaver
 
@@ -12,6 +13,9 @@ sudo apt-get install xserver-xorg-input-synaptics
 
 install xfce4-terminal
     sudo apt-get install xfce4-terminal
+
+on ubuntu install
+    libx11-dev libxft-dev libxinerama-dev
 
 # turns out st doesn't use the clip board in a way that works
 # well with a browser
