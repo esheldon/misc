@@ -1,0 +1,6 @@
+# set up tunnel
+ssh -L 3128:130.199.23.54:3128 cssh.rhic.bnl.gov
+
+# go to firefox settings and set
+manual proxy settings
+http proxy to localhost, port 3128
