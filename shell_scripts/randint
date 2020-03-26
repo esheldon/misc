@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# say you have a list of files that contain the string 'foo'
+#
+# If you want to remove that string from the filenames, then type
+#
+#     > mvr foo list
+#
+# where list is something like name_foo_3.txt or *foo* etc.
+#
+# If you want to replace that string with another, say 'bar', then type
+#
+#     > mvr -r bar foo list
+#
+# Note: removes or replaces first occurance of the string. Rerun to get
+#       other occurrences of the string.
+
+
+function usage() {
+    echo "Usage: randint [-h] [-n num] [-m maxval]"
+}
+
+maxval=1073741824
+num=1
+dryrun="n"
+while getopts "n:m:h" Option
+  do
+  case $Option in
+      h) usage
+          exit 1
+          ;;
+      m) maxval=$OPTARG ;;
+      n) num=$OPTARG ;;
+      [?]) usage
+           exit 1
+           ;;  
+  esac
+done
+shift $(($OPTIND - 1))
+
+shuf -i 1-$maxval -n $num
