@@ -430,8 +430,6 @@ lines="""
 import biggles
 
 from biggles import plot, plot_hist
-
-from plotting import plot_hist2d
 """
 app.exec_lines.append(lines)
 
@@ -457,15 +455,3 @@ except ImportError:
     pass
 """
 app.exec_lines.append(lines)
-
-lines="""
-import pycolumns as pyc
-"""
-app.exec_lines.append(lines)
-
-lines="""
-import images
-"""
-app.exec_lines.append(lines)
-
-
