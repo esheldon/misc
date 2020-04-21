@@ -120,7 +120,7 @@ fi
 export FLAVOR
 
 # path stuff first, so others can use the code?
-for f in pathmod java cvs aliases ls_colors \
+for f in pathmod env java cvs aliases ls_colors \
     pg_setup des_setup boss_setup proxy term go d \
     fortran fink git path perl python gems localvars \
     oracle eups modules idl_setup gdl_setup ssh-agent; do
