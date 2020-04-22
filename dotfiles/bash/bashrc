@@ -120,10 +120,8 @@ fi
 export FLAVOR
 
 # path stuff first, so others can use the code?
-for f in pathmod env java cvs aliases ls_colors \
-    pg_setup des_setup boss_setup proxy term go d \
-    fortran fink git path perl python gems localvars \
-    oracle eups modules idl_setup gdl_setup ssh-agent; do
+for f in pathmod nix localvars aliases ls_colors \
+    term path perl python gems modules ssh-agent; do
 
     if [[ $f == "ssh-agent" && $riemann_test != "" ]]; then
         echo skipping keychain on riemann
