@@ -21,6 +21,7 @@
 /nim*
 /ruby
 /Dropbox
+/webfaction-backups
 
 # transient things
 /tmp
