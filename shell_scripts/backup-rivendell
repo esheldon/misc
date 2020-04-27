@@ -5,15 +5,21 @@
 # of how the backup is performed.
 
 exclude_list=~/.dotfiles/backup_excludes/rivendell
+if [[ ! -e $exclude_list ]]; then
+    echo "exclude list ${exclude_list} missing"
+    exit 1
+fi
 from_dir=$HOME
 
-bdisk=/media/havens
+# bdisk=/media/havens
+bdisk=/run/media/esheldon/camp
 if [[ ! -e "$bdisk" ]]; then
     echo "backup disk is missing: $bdisk"
     exit 1
 fi
 
-backup_dir=/media/havens/backups-rivendell
+# backup_dir=/media/havens/backups-rivendell
+backup_dir=/run/media/esheldon/camp/esheldon/rivendell-backups/
 name=rivendell
 
 rsync-backup -e $exclude_list $from_dir $backup_dir $name
