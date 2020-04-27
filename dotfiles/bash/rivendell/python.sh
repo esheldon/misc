@@ -1,2 +1,4 @@
 # this requires path.sh to be sourced first, which it is
-source activate default
+if [[ -e $HOME/miniconda3 ]]; then
+    source activate default
+fi
