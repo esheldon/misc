@@ -45,7 +45,7 @@ customization: -color
 XTerm*utf8: 1
 
 xterm*renderFont: true
-XTerm*faceName: Inconsolata
+! XTerm*faceName: Inconsolata
 
 ! default
 XTerm*faceSize: 19
