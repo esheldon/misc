@@ -52,11 +52,6 @@ if [ -x /usr/bin/xfce4-power-manager ]; then
     xfce4-power-manager &
 fi
 
-# volume control for pulse audio
-if [ -x /usr/bin/pnmixer ]; then
-    pnmixer &
-fi
-
 track_id=$(xinput | grep Track | awk '{print $6}' | cut -d = -f 2)
 xinput --set-prop ${track_id} 'libinput Accel Profile Enabled' 0, 1
 
