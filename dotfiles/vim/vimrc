@@ -19,10 +19,10 @@ let python_highlight_all=1
 
 " Allow Vim to manage multiple buffers effectively.
 "
-"	* The current buffer can be put to the background without writing to disk
+"   * The current buffer can be put to the background without writing to disk
 "
-"	* When a background buffer becomes current again, marks and undo-history
-"	are remembered.
+"   * When a background buffer becomes current again, marks and undo-history
+"   are remembered.
 "
 set hidden
 
@@ -67,10 +67,10 @@ autocmd GUIEnter * set vb t_vb=
 " allow backspacing over everything in insert mode
 set backspace=indent,eol,start
 
-set history=2000	" command line history
-set ruler			" show the cursor position all the time
-set showcmd			" display incomplete commands
-set incsearch		" do incremental searching
+set history=2000    " command line history
+set ruler           " show the cursor position all the time
+set showcmd         " display incomplete commands
+set incsearch       " do incremental searching
 
 " turn off the highlighting left from previous search
 nnoremap ,<space> :nohlsearch<CR>
@@ -108,13 +108,13 @@ set whichwrap=h,l,[,]
 " we always want this
 let zenburn_high_Contrast=1
 function! s:Zenburn()
-	let zenburn_high_Contrast=1
-	colorscheme zenburn_simple
+    let zenburn_high_Contrast=1
+    colorscheme zenburn_simple
 endfunction
 command! -bang -complete=buffer -nargs=? Zenburn call <SID>Zenburn()
 
 function! s:Default()
-	colorscheme default
+    colorscheme default
 endfunction
 command! -bang -complete=buffer -nargs=? Default call <SID>Default()
 
@@ -128,112 +128,118 @@ if &t_Co > 2 || has("gui_running")
     set hlsearch
 
     if has("gui_running")
-        Zenburn()
+        " Zenburn()
+        set background=light
+        colorscheme white-sand
 
-		" Set pointer
-		set mouseshape=a:beam
-		" I don't want clicking in the window to put the mouse there!
-		"set mouse=""
+        " Set pointer
+        set mouseshape=a:beam
+        " I don't want clicking in the window to put the mouse there!
+        "set mouse=""
 
         "set gfn=peep\ 12
         "set gfn=-zevv-peep-medium-r-normal--16-140-75-75-c-80-iso8859-1
-        "set gfn=Terminus\ 12
-        set gfn=Inconsolata\ 16
+        " set gfn=Terminus\ 12
+        set gfn=Inconsolata\ Bold\ 14
 
         " turn off annoying cursor blinking
         set gcr=a:blinkon0
 
-		" Turn off useless toolbar
-		set guioptions-=T
+        " Turn off useless toolbar
+        set guioptions-=T
 
-		" Turn off menu bar (toggle with CTRL+F11)
-		set guioptions-=m
+        " Turn off menu bar (toggle with CTRL+F11)
+        set guioptions-=m
 
-		" Turn off right-hand, left-hand scrollbars
-		set guioptions-=r
-		set guioptions-=l
-		" Even turn them off if the window is split
-		set guioptions-=R
-		set guioptions-=L
+        " Turn off right-hand, left-hand scrollbars
+        set guioptions-=r
+        set guioptions-=l
+        " Even turn them off if the window is split
+        set guioptions-=R
+        set guioptions-=L
 
-		" CTRL+F11 to toggle the menu bar
-		nmap <C-F11> :if &guioptions=~'m' \| set guioptions-=m \| else \| set guioptions+=m \| endif<CR>
+        " CTRL+F11 to toggle the menu bar
+        nmap <C-F11> :if &guioptions=~'m' \| set guioptions-=m \| else \| set guioptions+=m \| endif<CR>
 
-		" CTRL+F7 to toggle the right-hand scroll bar
-		nmap <C-F7> :if &guioptions=~'r' \| set guioptions-=r \| else \| set guioptions+=r \| endif<CR>
+        " CTRL+F7 to toggle the right-hand scroll bar
+        nmap <C-F7> :if &guioptions=~'r' \| set guioptions-=r \| else \| set guioptions+=r \| endif<CR>
 
 
-		"The following removes bold from all highlighting
-		"as this is usually rendered badly for me. Note this
-		"is not done in .vimrc because bold usually makes
-		"the colour brighter on terminals and most terminals
-		"allow one to keep the new colour while turning off
-		"the actual bolding.
+        "The following removes bold from all highlighting
+        "as this is usually rendered badly for me. Note this
+        "is not done in .vimrc because bold usually makes
+        "the colour brighter on terminals and most terminals
+        "allow one to keep the new colour while turning off
+        "the actual bolding.
 
-		" Steve Hall wrote this function on vim@vim.org
-		" See :help attr-list for possible attrs to pass
-		" 
-		" NOTE:  Statusline seems to be special.  Had to hack zenburn
-		" to set gui=inverse explicitly
-		function! Highlight_remove_attr(attr)
-			" save selection registers
-			new
-			silent! put
+        " Steve Hall wrote this function on vim@vim.org
+        " See :help attr-list for possible attrs to pass
+        " 
+        " NOTE:  Statusline seems to be special.  Had to hack zenburn
+        " to set gui=inverse explicitly
+        function! Highlight_remove_attr(attr)
+            " save selection registers
+            new
+            silent! put
 
-			" get current highlight configuration
-			redir @x
-			silent! highlight
-			redir END
-			" open temp buffer
-			new
-			" paste in
-			silent! put x
+            " get current highlight configuration
+            redir @x
+            silent! highlight
+            redir END
+            " open temp buffer
+            new
+            " paste in
+            silent! put x
 
-			" convert to vim syntax (from Mkcolorscheme.vim,
-			"   http://vim.sourceforge.net/scripts/script.php?script_id=85)
-			" delete empty,"links" and "cleared" lines
-			silent! g/^$\| links \| cleared/d
-			" join any lines wrapped by the highlight command output
-			silent! %s/\n \+/ /
-			" remove the xxx's
-			silent! %s/ xxx / /
-			" add highlight commands
-			silent! %s/^/highlight /
-			" protect spaces in some font names
-			silent! %s/font=\(.*\)/font='\1'/
+            " convert to vim syntax (from Mkcolorscheme.vim,
+            "   http://vim.sourceforge.net/scripts/script.php?script_id=85)
+            " delete empty,"links" and "cleared" lines
+            silent! g/^$\| links \| cleared/d
+            " join any lines wrapped by the highlight command output
+            silent! %s/\n \+/ /
+            " remove the xxx's
+            silent! %s/ xxx / /
+            " add highlight commands
+            silent! %s/^/highlight /
+            " protect spaces in some font names
+            silent! %s/font=\(.*\)/font='\1'/
 
-			" substitute bold with "NONE"
-			execute 'silent! %s/' . a:attr . '\([\w,]*\)/NONE\1/geI'
-			" yank entire buffer
-			normal ggVG
-			" copy
-			silent! normal "xy
-			" run
-			execute @x
+            " substitute bold with "NONE"
+            execute 'silent! %s/' . a:attr . '\([\w,]*\)/NONE\1/geI'
+            " yank entire buffer
+            normal ggVG
+            " copy
+            silent! normal "xy
+            " run
+            execute @x
 
-			" remove temp buffer
-			bwipeout!
+            " remove temp buffer
+            bwipeout!
 
-			" restore selection registers
-			silent! normal ggVGy
-			bwipeout!
-		endfunction
-		autocmd BufNewFile,BufRead * call Highlight_remove_attr("bold")
-		" Note adding ,Syntax above messes up the syntax loading
-		" See :help syntax-loading for more info
-
+            " restore selection registers
+            silent! normal ggVGy
+            bwipeout!
+        endfunction
+        autocmd BufNewFile,BufRead * call Highlight_remove_attr("bold")
+        " Note adding ,Syntax above messes up the syntax loading
+        " See :help syntax-loading for more info
 
     else
 
-		if &t_Co < 256
-            set background=dark
+        set background=light
+
+
+        " note this works in gnome terminal/xfce4-terminal etc but not in
+        " screen. It kind of works in new tmux, some colors not quite right
+        if &t_Co > 256
+            set termguicolors
+            colorscheme white-sand
+        else
             colorscheme default
-		else
-            Zenburn()
-		endif
+            hi StatusLine ctermfg=223 ctermbg=240
+        endif
 
-
-	endif
+    endif
 
 
 
@@ -267,6 +273,7 @@ Plugin 'rust-lang/rust.vim'
 Plugin 'wincent/command-t'
 Plugin 'craigemery/vim-autotag'
 Plugin 'nvie/vim-flake8'
+Plugin 'mswift42/vim-themes'
 
 Plugin 'psf/black'
 let g:black_linelength = 79  " default is 88
@@ -378,7 +385,7 @@ set smartcase
 set guioptions-=T
 
 
-set backup		" keep a backup file
+set backup  " keep a backup file
 
 
 " show paren matches
