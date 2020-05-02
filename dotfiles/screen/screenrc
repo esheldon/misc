@@ -34,10 +34,7 @@ shelltitle "] |bash"
 #shelltitle "@|"
 
 caption splitonly "%?%F%{= kG}%:%{= kw}%? %n %t%=%{= db}"
-#hardstatus alwayslastline "%{= kw} %-Lw%{=b kG} %n%f %t %{-}%+Lw %=%{= kR} %h%{-} %{+b} %C%a %D %d %M %Y %{= dd}"
 
-#hardstatus alwayslastline '%{= kG}%{G}%H %{g}%= %{= kw}%?%-Lw%?%{y}%n*%f%t%?(%u)%?%{w}%?%+Lw%?%?%= %{g}%{B} %m-%d %{W}%c %{g}'
-#hardstatus alwayslastline '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m-%d %{W}%c %{g}]'
 hardstatus alwayslastline '%{= kg}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{w}(%n*%f%t%?(%u)%?)%{w}%?%+Lw%?%?%= %{g}][%{B} %m-%d %{W}%c %{g}]'
 
 # more intuitive movement through regions
@@ -55,14 +52,11 @@ bind t focus top
 # disable lock screen
 bind ^x
 bind x
-
 defscrollback 10000
 
 altscreen on
 
 # startup
-#screen 2
-#screen 1
 screen 0
 
 
