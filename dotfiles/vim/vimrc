@@ -241,11 +241,6 @@ if &t_Co > 2 || has("gui_running")
 
     endif
 
-
-
-    " Search color should have black foreground
-    " hi Search term=reverse ctermfg=black ctermbg=yellow
-    "hi Search term=reverse ctermfg=black ctermbg=red
 endif 
 
 
@@ -390,9 +385,6 @@ set backup  " keep a backup file
 
 " show paren matches
 set showmatch
-
-" horrible colors in spell
-"hi SpellLocal ctermfg=white ctermbg=magenta
 
 ",v brings up my .vimrc
 ",V reloads it -- making all changes active (have to save first)
