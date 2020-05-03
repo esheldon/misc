@@ -390,11 +390,9 @@ set backup  " keep a backup file
 
 " show paren matches
 set showmatch
-"hi MatchParen cterm=none ctermbg=white ctermfg=black
-hi MatchParen cterm=none ctermbg=red ctermfg=white
 
 " horrible colors in spell
-hi SpellLocal ctermfg=white ctermbg=magenta
+"hi SpellLocal ctermfg=white ctermbg=magenta
 
 ",v brings up my .vimrc
 ",V reloads it -- making all changes active (have to save first)
