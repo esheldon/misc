@@ -9,6 +9,8 @@ attrcolor b ".I"
 # tell screen how to set colors. AB = background, AF=foreground
 termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
 
+truecolor on
+
 # this makes output go to the shell, even stuff that scrolls off the top.
 # Normally in screen that stuff is not sent to the shell so you can't use
 # the scroll bar to access it.  Note, if you switch to a new session you
