@@ -1,4 +1,6 @@
 
+apt install build-essential
+
 remove gnome screensaver
     sudo apt-get remove gnome-screensaver
 
@@ -29,11 +31,12 @@ get dwm
     cd ~/local/src
     wget https://dl.suckless.org/dwm/dwm-6.2.tar.gz
 
-    get systray patch from here https://dwm.suckless.org/patches/systray/
+    get systray patch from 
+        wget https://dwm.suckless.org/patches/systray/dwm-systray-6.2.diff
     patch -b < dwm-systray-6.2.diff 
 
     get pertag patch from here
-    https://raw.githubusercontent.com/user/dwm/master/patches/dwm-pertag-6.2.diff
+    wget https://raw.githubusercontent.com/user/dwm/master/patches/dwm-pertag-6.2.diff
 
     patch -b < dwm-pertag-6.2.diff
 
