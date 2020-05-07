@@ -121,7 +121,7 @@ export FLAVOR
 
 # path stuff first, so others can use the code?
 for f in pathmod nix localvars aliases ls_colors \
-    term path perl python gems modules ssh-agent; do
+    term path perl python go gems modules ssh-agent; do
 
     if [[ $f == "ssh-agent" && $riemann_test != "" ]]; then
         echo skipping keychain on riemann
