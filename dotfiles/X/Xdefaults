@@ -293,3 +293,6 @@ urxvt*color15: #ffffff
 urxvt.cutchars: "`\"'&()*,;:<=>?[]^{|}"
 
 Xcursor.size: 16
+
+
+XLoad*Paned*Label*font: fixed
