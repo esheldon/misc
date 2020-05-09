@@ -1,0 +1,22 @@
+# installs
+
+vim git keychain xfonts-terminus build-essentials feh xss-lock slock
+xserver-xorg-input-synaptics libx11-dev libxft-dev libxinerama-dev
+rsync htop 
+
+
+for laptop
+
+# get wifi working
+# add non-free to sources.lists
+# e.g. edit end of entries
+# deb http://deb.debian.org/debian/ buster main non-free
+
+/etc/apt/sources.list
+
+# install non-free firmware
+apt install firmware-iwlwifi
+
+suspend with lid, edit /etc/systemd/logind.conf and set
+    HandleLidSwitch=suspend
+
