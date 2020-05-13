@@ -1,67 +1,58 @@
 #!/bin/bash
 
-function usage_and_exit {
-    echo "usage:
-  condor-incsub [options] condor_file1 condor_file2 ...
+set -e
 
-options:
-  -n NJOBS_MAX  Maximum number of jobs in queue, default $nmax
-  -s SLEEPTIME  Sleep time while waiting for queue to drain, default $sleeptime
-"
+function usage_and_exit {
+    echo "usage: condor-incsub [-n] f1 f2 ..."
+    echo "  -n MAXJOBS  Maximum number of jobs in queue, default 9000"
     exit 1
 }
 
-function count_jobs {
-    njobs=$( condor_q | awk '($2 == "esheldon" && ($6 == "R" || $6 == "I"))' | wc -l )
+maxjobs=9000
 
-    echo "$njobs"
-}
-
-njobs=$(count_jobs)
-
-# 5 minutes
-sleeptime=300
-nmax=10000
-
-if [ $# -lt 1 ]; then
-    usage_and_exit
-fi
-while getopts "n:s:" Option
+while getopts "n:" Option
 do
     case $Option in
-        n) nmax=$OPTARG ;;
-        s) sleeptime=$OPTARG ;;
+        n) maxjobs=$OPTARG ;;
         [?]) usage_and_exit ;;
     esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
-for arg; do
+nfiles=$#
+if [[ $nfiles -lt 1 ]]; then
+    usage_and_exit
+fi
 
-    dname=$(dirname $arg)
-    bname=$(basename $arg)
+index=1
+for file; do
 
-    check_file="$arg.submitted"
+    subf="${file}.submitted"
 
-    if [[ ! -e $check_file ]]; then
+    if [[ ! -e ${subf} ]]; then
+        while true; do
+            njobs=$(condor_q | grep "Total for $USER" | awk '{print $4}')
+            if ((njobs < maxjobs)); then
 
-        njobs=$(count_jobs)
-        while [[ $njobs -ge $nmax ]]; do
-            echo "$njobs is plenty of jobs....  (> $nmax)"
-            sleep $sleeptime
-            njobs=$(count_jobs)
+                echo "found ${njobs} $(date)"
+                echo "submitting ${file} ${index}/${nfiles}"
+
+                dname=$(dirname "${file}")
+                bname=$(basename "${file}")
+
+                pushd "${dname}" > /dev/null
+                condor_submit "${bname}"
+                popd > /dev/null
+
+                touch "${file}.submitted"
+
+                break
+            fi
+            sleep 30
         done
-
-        pushd "$dname"
-
-        echo "submitting: $bname"
-        condor_submit "$bname"
-
-        popd
-
-        touch $check_file
-
-        sleep $sleeptime
+    else
+        echo "skipping previously submitted: ${file} ${index}/${nfiles}"
     fi
 
+    ((index += 1))
 done
