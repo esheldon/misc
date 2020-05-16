@@ -1,2 +1,5 @@
 # this requires path.sh to be sourced first, which it is
-source activate default
+
+if [[ -e $ANACONDA_DIR ]]; then
+    source activate default
+fi
