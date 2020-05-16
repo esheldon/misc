@@ -4,6 +4,7 @@
 /exports
 /bittorrent
 /columns
+/data
 /distros
 /os
 /plots
@@ -27,6 +28,7 @@
 /Downloads
 
 # annoying dot directories
+/.zoom
 /.azureus
 /.kde
 /.strigi
