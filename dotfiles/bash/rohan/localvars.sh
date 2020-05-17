@@ -1,5 +1,3 @@
-export TMPDIR=$HOME/data/tmp
-
 export LENSDIR=$HOME/lensing
 
 export DESDATA=$HOME/data/DES
