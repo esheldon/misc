@@ -21,11 +21,13 @@
 /nim*
 /ruby
 /Dropbox
+/snap
 
 # transient things
 /tmp
 /downloads
 /Downloads
+/Templates
 
 # annoying dot directories
 /.zoom

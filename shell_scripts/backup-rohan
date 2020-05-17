@@ -6,7 +6,7 @@
 
 exclude_list=~/.dotfiles/backup_excludes/rohan
 from_dir=$HOME
-backup_dir=/media/esheldon/camp/esheldon/backups
+backup_dir=/media/esheldon/camp/esheldon/rohan-backups
 name=rohan
 
 rsync-backup -e $exclude_list $from_dir $backup_dir $name
