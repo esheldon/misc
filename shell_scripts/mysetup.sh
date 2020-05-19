@@ -34,47 +34,46 @@ for type; do
             exit 45
         fi
         git clone git@github.com:esheldon/misc.git
-
-
-        echo "  setting symlinks"
         popd
 
+        echo "  setting symlinks"
+
         rm -f perllib
-        ln -vfs ~/git/misc/perllib
+        ln -vfs git/misc/perllib
         rm -f shell_scripts
-        ln -vfs ~/git/misc/shell_scripts
+        ln -vfs git/misc/shell_scripts
         rm -f .dotfiles
-        ln -vfs ~/git/misc/dotfiles .dotfiles
+        ln -vfs git/misc/dotfiles .dotfiles
 
-        ln -vfs ~/.dotfiles/python/pythonrc .pythonrc
+        ln -vfs .dotfiles/python/pythonrc .pythonrc
 
-        ln -vfs ~/.dotfiles/ack/ackrc .ackrc
+        ln -vfs .dotfiles/ack/ackrc .ackrc
 
         rm -f .vim
-        ln -vfs ~/.dotfiles/vim .vim
-        ln -vfs ~/.dotfiles/vim/vimrc .vimrc
+        ln -vfs .dotfiles/vim .vim
+        ln -vfs .dotfiles/vim/vimrc .vimrc
 
-        ln -vfs ~/.dotfiles/bash/bashrc .bashrc
-        ln -vfs ~/.dotfiles/bash/bash_profile .bash_profile
-        ln -vfs ~/.dotfiles/inputrc .inputrc
-        ln -vfs ~/.dotfiles/X/Xdefaults .Xdefaults
-        ln -vfs ~/.dotfiles/X/Xmodmap .Xmodmap
-        ln -vfs ~/.dotfiles/screen/screenrc-lightbe .screenrc
-        ln -vfs ~/.dotfiles/multitailrc .multitailrc
+        ln -vfs .dotfiles/bash/bashrc .bashrc
+        ln -vfs .dotfiles/bash/bash_profile .bash_profile
+        ln -vfs .dotfiles/inputrc .inputrc
+        ln -vfs .dotfiles/X/Xdefaults .Xdefaults
+        ln -vfs .dotfiles/X/Xmodmap .Xmodmap
+        ln -vfs .dotfiles/screen/screenrc-lightbe .screenrc
+        ln -vfs .dotfiles/multitailrc .multitailrc
 
-        ln -vfs ~/.dotfiles/git/gitignore .gitignore
-        ln -vfs ~/.dotfiles/git/gitconfig .gitconfig
+        ln -vfs .dotfiles/git/gitignore .gitignore
+        ln -vfs .dotfiles/git/gitconfig .gitconfig
 
         rm -f .fonts
-        ln -vfs ~/.dotfiles/fonts .fonts
+        ln -vfs .dotfiles/fonts .fonts
         rm -f .icons
-        ln -vfs ~/.dotfiles/icons .icons
+        ln -vfs .dotfiles/icons .icons
 
         if [ ! -e .ssh ]; then
             mkdir .ssh
             chmod og-rx .ssh
         fi
-        ln -vfs ~/.dotfiles/ssh/config .ssh/config
+        ln -vfs .dotfiles/ssh/config .ssh/config
 
     else
         echo "unknown type: $type"
