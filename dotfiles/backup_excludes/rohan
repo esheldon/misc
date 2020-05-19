@@ -30,6 +30,7 @@
 /Templates
 
 # annoying dot directories
+/.nix*
 /.zoom
 /.azureus
 /.kde
