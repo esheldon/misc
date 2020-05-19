@@ -269,6 +269,7 @@ Plugin 'wincent/command-t'
 Plugin 'craigemery/vim-autotag'
 Plugin 'nvie/vim-flake8'
 Plugin 'mswift42/vim-themes'
+Plugin 'davidhalter/jedi-vim'
 
 " Plugin 'prabirshrestha/asyncomplete.vim'
 " Plugin 'prabirshrestha/async.vim'
