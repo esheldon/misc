@@ -269,15 +269,7 @@ Plugin 'wincent/command-t'
 Plugin 'craigemery/vim-autotag'
 Plugin 'nvie/vim-flake8'
 Plugin 'mswift42/vim-themes'
-
-Plugin 'psf/black'
-let g:black_linelength = 79  " default is 88
-" work around bug where 1 did not convert to bool
-let g:black_skip_string_normalization = ""
-let g:black_fast = 1
-" autocmd BufWritePre *.py execute ':Black'
-
-
+Plugin 'davidhalter/jedi-vim'
 
 " Plugin 'prabirshrestha/asyncomplete.vim'
 " Plugin 'prabirshrestha/async.vim'
