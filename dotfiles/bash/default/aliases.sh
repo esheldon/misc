@@ -44,6 +44,7 @@ export lsstdev="lsst-dev01.ncsa.illinois.edu"
 export comet="comet.sdsc.edu"
 export bebop='bebop.lcrc.anl.gov'
 export duke='login.duke.ci-connect.net'
+export osg='login05.osgconnect.net'
 
 alias pyprof="python -m cProfile -s time "
 alias feh='feh --force-aliasing -B black '
