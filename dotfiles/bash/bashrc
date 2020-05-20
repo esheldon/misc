@@ -75,6 +75,8 @@ elif [[ "$bebop_test" != "" ]]; then
 	dotfileDir=$ddir/bebop
 elif [[ "$duke_test" != "" ]]; then
 	dotfileDir=$ddir/duke
+elif [[ "$(hostname)" == "login05.osgconnect.net" ]]; then
+	dotfileDir=$ddir/osg
 elif [[ "$hname" == "web203" || "$hname" == "web246" ]]; then
 	dotfileDir=$ddir/webfaction
 elif [[ "$hname" == "130-199-23-225" ]]; then
