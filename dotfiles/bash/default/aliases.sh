@@ -42,7 +42,7 @@ alias yt="youtube-dl --restrict-filenames"
 export slac="rhel6-64.slac.stanford.edu"
 export lsstdev="lsst-dev01.ncsa.illinois.edu"
 export comet="comet.sdsc.edu"
-export bebop='bebop.lcrc.anl.gov'
+export bebop='ac.esheldon@bebop.lcrc.anl.gov'
 export duke='login.duke.ci-connect.net'
 export osg='login05.osgconnect.net'
 
