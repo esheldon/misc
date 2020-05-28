@@ -60,11 +60,12 @@ xinput disable $touch_id
 
 ~/shell_scripts/dwm-status-bar &
 
-xsetroot -solid black
+# xsetroot -solid black
+xsetroot -solid '#FCE1C5'
 
-if [[ -e ~/.fehbg ]]; then
-    bash ~/.fehbg &
-fi
+# if [[ -e ~/.fehbg ]]; then
+#     bash ~/.fehbg &
+# fi
 
 # sleep $sleeptime
 

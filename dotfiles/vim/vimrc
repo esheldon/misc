@@ -270,7 +270,6 @@ Plugin 'craigemery/vim-autotag'
 Plugin 'nvie/vim-flake8'
 Plugin 'mswift42/vim-themes'
 
-
 set tags=tags;/
 
 let g:vim_markdown_folding_disabled=1
