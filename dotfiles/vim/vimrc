@@ -270,38 +270,6 @@ Plugin 'craigemery/vim-autotag'
 Plugin 'nvie/vim-flake8'
 Plugin 'mswift42/vim-themes'
 
-Plugin 'psf/black'
-let g:black_linelength = 79  " default is 88
-" work around bug where 1 did not convert to bool
-let g:black_skip_string_normalization = ""
-let g:black_fast = 1
-" autocmd BufWritePre *.py execute ':Black'
-
-
-
-" Plugin 'prabirshrestha/asyncomplete.vim'
-" Plugin 'prabirshrestha/async.vim'
-" Plugin 'prabirshrestha/vim-lsp'
-" Plugin 'prabirshrestha/asyncomplete-lsp.vim'
-" 
-" " first do conda install python-language-server, then
-" Plugin 'ryanolsonx/vim-lsp-python'
-" 
-" if executable('pyls')
-"     " pip install python-language-server
-"     au User lsp_setup call lsp#register_server({
-"         \ 'name': 'pyls',
-"         \ 'cmd': {server_info->['pyls']},
-"         \ 'whitelist': ['python'],
-"         \ })
-" endif
-" inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
-" 
-" " disable preview window
-" let g:lsp_signature_help_enabled=0
-
-
-
 
 set tags=tags;/
 
