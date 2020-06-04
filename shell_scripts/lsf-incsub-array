@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ $# -lt 1 ]]; then
+    echo "lsf-incsub-array f1 f2 f3 ..."
+    exit 1
+fi
+
+echo "$# scripts input"
+flist=($(for f in $@; do subf=${f}.submitted; if [[ ! -e ${subf} ]]; then echo $f; fi; done))
+
+nfiles="${#flist[@]}"
+echo "${nfiles} to submit"
+
+sleeptime=30
+nmax=4000
+i=1
+for file in "${flist[@]}"; do
+
+    count=$(bjobs | grep -v HOST | wc -l)
+
+    while (( ${count} >= ${nmax} )); do
+        sleep ${sleeptime}
+        count=$(bjobs | grep -v HOST | wc -l)
+    done
+
+    dname=$(dirname $file)
+    if [[ ${dname} != "" ]]; then
+        pushd ${dname} >> /dev/null
+    fi
+    bname=$(basename $file)
+
+    perc=$(echo "scale=0; 100*$i/$nfiles" | bc)
+    dt=`date +"%T"`
+    echo "submitting ${bname} ${dt} ${i}/${nfiles} (${perc}%)"
+    bsub < ${bname}
+
+    ((i += 1))
+
+    if [[ ${dname} != "" ]]; then
+        popd  >> /dev/null
+    fi
+
+    touch ${file}.submitted
+
+    # sleep after submission and before counting jobs again
+    if ((i < nfiles)); then
+        sleep ${sleeptime}
+    fi
+
+done

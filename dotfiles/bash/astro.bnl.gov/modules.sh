@@ -10,10 +10,10 @@ fi
 # load the default modules here
 module load afs
 module load astrodat
-module load wq
+# module load wq
 
 # for latex
-module load TeX
+# module load TeX
 
 
 #
