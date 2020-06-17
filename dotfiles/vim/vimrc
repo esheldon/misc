@@ -128,9 +128,10 @@ if &t_Co > 2 || has("gui_running")
     set hlsearch
 
     if has("gui_running")
-        " Zenburn()
-        set background=light
-        colorscheme white-sand
+        set background=dark
+        Zenburn()
+        " set background=light
+        " colorscheme white-sand
 
         " Set pointer
         set mouseshape=a:beam
@@ -226,17 +227,20 @@ if &t_Co > 2 || has("gui_running")
 
     else
 
-        set background=light
+        " set background=light
+        set background=dark
 
 
         " note this works in gnome terminal/xfce4-terminal etc but not in
         " screen. It kind of works in new tmux, some colors not quite right
         if &t_Co > 256
             set termguicolors
-            colorscheme white-sand
+            Zenburn()
+            "colorscheme white-sand
         else
-            colorscheme default
-            hi StatusLine ctermfg=223 ctermbg=240
+            " colorscheme default
+            " hi StatusLine ctermfg=223 ctermbg=240
+            Zenburn()
         endif
 
     endif
