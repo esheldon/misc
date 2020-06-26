@@ -1,0 +1,12 @@
+after stackvana
+
+numba
+ngmix
+meds
+esutil
+descwl
+
+descwl-shear-sims
+descwl_coadds
+metadetect
+mdet-lsst-sim
