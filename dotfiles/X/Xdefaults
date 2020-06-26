@@ -14,7 +14,7 @@ customization: -color
 
 ! This means never use overstriking for bold
 !xterm*boldMode: false
-!xterm*allowBoldFonts: false
+xterm*allowBoldFonts: false
 
 
 ! This means just display a different color, dont use the bold font
