@@ -2,40 +2,40 @@
 # the first plot is made. So you can import matplotlib and use the command
 # matplotlib.use(backend) before plots are made to override this.
 
-backend      : TKAgg  # Use TK for the plotting backend.
-#backend      : GTKAgg  # Use TK for the plotting backend.
-#backend : Agg
+backend      : Agg
 text.usetex  : True   # use latex for all text handling.  Note this does slow things down.
                       # For faster use set to False and then turn on when you need it
                       # with pylab.rc('text',usetex=True) in your script.
 
 
-font.family : serif
-font.serif : Times New Roman
+# font.family : serif
+# font.serif : Times New Roman
 
-### TICKS
-# see http://matplotlib.sourceforge.net/matplotlib.axis.html#Ticks
-#xtick.major.size     : 6      # major tick size in points
-#xtick.minor.size     : 3      # minor tick size in points
-#ytick.major.size     : 6      # major tick size in points
-#ytick.minor.size     : 3      # minor tick size in points
+xtick.top: True
+ytick.right: True
+xtick.minor.visible: True
+ytick.minor.visible: True
+
 xtick.major.size     : 8      # major tick size in points
 xtick.minor.size     : 4      # minor tick size in points
 ytick.major.size     : 8      # major tick size in points
 ytick.minor.size     : 4      # minor tick size in points
 
-#xtick.major.size     : 10      # major tick size in points
-#xtick.minor.size     : 5      # minor tick size in points
-#ytick.major.size     : 10      # major tick size in points
-#ytick.minor.size     : 5      # minor tick size in points
+xtick.direction: in
+ytick.direction: in
 
 axes.labelsize:18
 xtick.labelsize:16
 ytick.labelsize:16
+axes.xmargin: 0.1
+axes.ymargin: 0.1
+figure.autolayout: True
+# axes.prop_cycle : cycler(color='bgrcmyk')
+# axes.prop_cycle : cycler(color=['blue', 'darkgreen'])
 
 # width of lines drawn on the plot, not the borders and stuff
-lines.linewidth   : 1.5     # line width in points
-axes.linewidth : 1.5
+# lines.linewidth   : 1.5     # line width in points
+# axes.linewidth : 1.5
 
 
 
