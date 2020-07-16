@@ -3,6 +3,7 @@ append_path PATH /usr/sbin
 
 localdir=$HOME/local
 
+prepend_path PATH /opt/astro/SL64/texlive/2013/bin/x86_64-linux/
 prepend_path PATH ${localdir}/bin
 
 prepend_path LD_LIBRARY_PATH ${localdir}/lib
