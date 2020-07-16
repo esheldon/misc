@@ -2,14 +2,20 @@
 # the first plot is made. So you can import matplotlib and use the command
 # matplotlib.use(backend) before plots are made to override this.
 
-backend      : Agg
+# backend      : Agg
+backend      : Cairo
 text.usetex  : True   # use latex for all text handling.  Note this does slow things down.
                       # For faster use set to False and then turn on when you need it
                       # with pylab.rc('text',usetex=True) in your script.
 
 
+# font.family : monospace
+# font.family : sans-serif
 # font.family : serif
+# font.serif: Computer Modern Roman
 # font.serif : Times New Roman
+# font.serif : DejaVu
+# font.monospace: Inconsolata
 
 xtick.top: True
 ytick.right: True
@@ -29,7 +35,8 @@ xtick.labelsize:16
 ytick.labelsize:16
 axes.xmargin: 0.1
 axes.ymargin: 0.1
-figure.autolayout: True
+# figure.autolayout: True
+figure.constrained_layout.use: True
 # axes.prop_cycle : cycler(color='bgrcmyk')
 # axes.prop_cycle : cycler(color=['blue', 'darkgreen'])
 
