@@ -3,19 +3,31 @@
 # matplotlib.use(backend) before plots are made to override this.
 
 # backend      : Agg
-backend      : Cairo
-text.usetex  : True   # use latex for all text handling.  Note this does slow things down.
-                      # For faster use set to False and then turn on when you need it
-                      # with pylab.rc('text',usetex=True) in your script.
+# backend      : Cairo
+# backend      : TkAgg
+# backend: module://mplcairo.base
+backend: PDF
+
+# use latex for all text handling.  Note this does slow things down.
+# For faster use set to False and then turn on when you need it
+# with pylab.rc('text',usetex=True) in your script.
+
+# text.usetex  : True
+mathtext.fontset : cm
 
 
+font.family : cmr10
+# font.family : Computer Modern
 # font.family : monospace
 # font.family : sans-serif
 # font.family : serif
 # font.serif: Computer Modern Roman
+# font.sans-serif: Computer Modern Roman
+# font.sans-serif: DejaVu
 # font.serif : Times New Roman
 # font.serif : DejaVu
 # font.monospace: Inconsolata
+# font.weight: 100
 
 xtick.top: True
 ytick.right: True
@@ -44,6 +56,10 @@ figure.constrained_layout.use: True
 # lines.linewidth   : 1.5     # line width in points
 # axes.linewidth : 1.5
 
+# lines refers to the plot() command
+# default to using a marker and no line
+# lines.marker: o
+# lines.linestyle: none
 
 
 # These affect imshow
@@ -52,3 +68,19 @@ image.interpolation: nearest
 
 # zero in lower left hand corner
 image.origin: lower
+
+errorbar.capsize: 2
+
+legend.loc: upper right
+legend.frameon: False
+legend.borderaxespad: 2
+
+
+# axes.prop_cycle : cycler('color', ['b15928', 'cab2d6', 'fb9a99', 'ff7f00', 'fdbf6f', 'a6cee3', '6a3d9a', '33a02c', 'e31a1c', 'b2df8a', '1f78b4'])
+# axes.prop_cycle : cycler('color', ['b15928', 'cab2d6', 'fb9a99', 'ff7f00', 'fdbf6f', 'a6cee3', '6a3d9a', 'e31a1c', '1f78b4'])
+# axes.prop_cycle : cycler('color', ['b15928', 'cab2d6', 'fb9a99', 'fdbf6f', 'a6cee3', '6a3d9a', 'e31a1c', '1f78b4', 'ff7f00'])
+
+# axes.prop_cycle : cycler('color', ['e31a1c', 'ff7f00', 'fdbf6f', '1f78b4', 'b15928', '6a3d9a', 'fb9a99', 'cab2d6', 'a6cee3'])
+
+# axes.prop_cycle : cycler('color', ['ff7f00', 'fdbf6f', '1f78b4', 'e31a1c', 'b15928', '6a3d9a', 'fb9a99', 'cab2d6', 'a6cee3'])
+
