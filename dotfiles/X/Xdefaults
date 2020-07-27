@@ -296,3 +296,6 @@ Xcursor.size: 16
 
 
 XLoad*Paned*Label*font: fixed
+XLoad*Foreground: #FFD4A1
+XLoad*Background: black
+XLoad*Highlight: red
