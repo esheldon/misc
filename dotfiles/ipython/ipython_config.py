@@ -649,13 +649,6 @@ app.exec_lines.append(lines)
 
 lines="""
 import hickory
-
-cname = get_ipython().__class__.__name__
-if cname == 'TerminalInteractiveShell':
-    hickory.config['fork_window'] = True
-else:
-    hickory.config['show'] = False
-
 from hickory import plot, plot_hist
 """
 app.exec_lines.append(lines)
