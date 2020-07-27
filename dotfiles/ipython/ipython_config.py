@@ -624,6 +624,7 @@ if not hasattr(app, 'exec_lines'):
     app.exec_lines=[]
 
 app.exec_lines.append('GOLDEN_RATIO = 1.618')
+app.exec_lines.append('GOLDEN_ARATIO = 0.618')
 
 lines = """
 import os
@@ -647,13 +648,13 @@ from esutil.stat import get_stats, print_stats
 app.exec_lines.append(lines)
 
 lines="""
-import biggles
+import hickory
 
-from biggles import plot, plot_hist
+from hickory import plot, plot_hist
 """
 app.exec_lines.append(lines)
 
-for p in ['fitsio','biggles']:
+for p in ['fitsio']:
     lines="import %s" % p
     app.exec_lines.append(lines)
 
