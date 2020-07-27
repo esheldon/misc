@@ -649,6 +649,7 @@ app.exec_lines.append(lines)
 
 lines="""
 import hickory
+hickory.config['fork_window'] = True
 
 from hickory import plot, plot_hist
 """
