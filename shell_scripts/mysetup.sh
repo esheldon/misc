@@ -58,7 +58,7 @@ for type; do
         ln -vfs .dotfiles/inputrc .inputrc
         ln -vfs .dotfiles/X/Xdefaults .Xdefaults
         ln -vfs .dotfiles/X/Xmodmap .Xmodmap
-        ln -vfs .dotfiles/screen/screenrc-lightbg .screenrc
+        ln -vfs .dotfiles/screen/screenrc .screenrc
         ln -vfs .dotfiles/multitailrc .multitailrc
 
         ln -vfs .dotfiles/git/gitignore .gitignore
