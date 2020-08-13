@@ -343,9 +343,9 @@ set cinkeys=0{,0},:,0#,!<Tab>,!^F
 
 
 " ignore case on searches "
-set ignorecase
+" set ignorecase
 " but don't ignore if there's a capital in the search
-set smartcase
+" set smartcase
 
 " Gui specific stuff
 set guioptions-=T
