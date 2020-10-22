@@ -16,16 +16,15 @@ GSSAPIDelegateCredentials yes
 # although then one must grep through ps to kill it
 
 #
-# gateway: rssh at BNL
+# gateway for BNL
 #
 
-# This says we forward these ports through the gateway rssh to the specified
-# machine
-#Host rssh
-Host rssh.rhic.bnl.gov
+# This says we forward these ports through the gateway to the specified machine
+# Host rssh.rhic.bnl.gov
+# Host ssh.sdcc.bnl.gov
 
-	LocalForward localhost:2224 astro.rcf.bnl.gov:22
-	LocalForward localhost:2225 tutti.astro.bnl.gov:22
+# 	LocalForward localhost:2224 astro.rcf.bnl.gov:22
+# 	LocalForward localhost:2225 tutti.astro.bnl.gov:22
 
 
 Host ssh.bluegene.bnl.gov
@@ -77,7 +76,7 @@ Host lgpu2
 Host astro
   Hostname astro.rcf.bnl.gov
   User esheldon
-  ProxyJump %r@rssh.rhic.bnl.gov:22
+  ProxyJump %r@ssh.sdcc.bnl.gov:22
 
 
 # Created by /usr/bin/cluster-env (1.2)
