@@ -15,4 +15,6 @@ prepend_path PATH $HOME/perllib
 prepend_path PATH $HOME/shell_scripts
 
 export ANACONDA_DIR=$HOME/miniconda3
-prepend_path PATH ${ANACONDA_DIR}/bin
+if [[ -e $ANACONDA_DIR ]]; then
+    prepend_path PATH ${ANACONDA_DIR}/bin
+fi
