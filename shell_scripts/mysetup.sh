@@ -9,6 +9,11 @@
 # same for the xmonad.hs and xmobarrc
 #
 
+if [[ `which git` == "" ]]; then
+    echo "git is not installed"
+    exit 1
+fi
+
 # Check out either all or just dotfiles
 if [ $# -eq 0 ]; then
 	echo "usage: mysetup.sh type1 type2 .. "
@@ -20,9 +25,7 @@ type=$1
 
 
 cd ~
-if [[ ! -e git ]]; then
-    mkdir git
-fi
+mkdir -p git
 
 for type; do
     if [[ $type == "misc" ]]; then
@@ -45,6 +48,11 @@ for type; do
         rm -f .dotfiles
         ln -vfs git/misc/dotfiles .dotfiles
 
+        rm -f help
+        ln -vfs git/misc/help
+        rm -f personal
+        ln -vfs git/misc/personal
+
         ln -vfs .dotfiles/python/pythonrc .pythonrc
 
         ln -vfs .dotfiles/ack/ackrc .ackrc
@@ -63,6 +71,7 @@ for type; do
 
         ln -vfs .dotfiles/git/gitignore .gitignore
         ln -vfs .dotfiles/git/gitconfig .gitconfig
+        ln -vfs .dotfiles/conda/condarc .condarc
 
         rm -f .fonts
         ln -vfs .dotfiles/fonts .fonts
@@ -75,6 +84,17 @@ for type; do
         fi
         ln -vfs .dotfiles/ssh/config .ssh/config
 
+        mkdir -p .config/xfce4/terminal
+        rm -f .config/xfce4/terminal/terminalrc
+        cp .dotfiles/xfce/rohan/terminal/terminalrc .config/xfce4/terminal/
+
+        mkdir -p .config/matplotlib
+        rm -f .config/matplotlib/matplotlibrc
+        cp .dotfiles/matplotlib/matplotlibrc .config/matplotlib/
+
+        mkdir -p .ipython/profile_default
+        rm -f .ipython/profile_default/ipython_config.py
+        ln -s ~/.dotfiles/ipython/ipython_config.py .ipython/profile_default/
     else
         echo "unknown type: $type"
     fi
