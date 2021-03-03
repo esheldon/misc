@@ -100,10 +100,11 @@
 #
 check_mail:0
 # This is the line displaying the file names and status
-# statusline_attrs:green,black
+#statusline_attrs:white,black
+statusline_attrs:green,black
 # how the splitline should look like
-# splitline_attrs:white,black
-# splitline:attributes
+splitline_attrs:white,black
+splitline:attributes
 
 # put statusline above the data instead below it?
 statusline_above_data:yes
