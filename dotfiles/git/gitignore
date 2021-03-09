@@ -18,3 +18,4 @@ tags
 .sconsign.dblite
 
 nimcache
+.DS_Store
