@@ -45,11 +45,11 @@ export comet="comet.sdsc.edu"
 export bebop='ac.esheldon@bebop.lcrc.anl.gov'
 export duke='login.duke.ci-connect.net'
 export osg='login05.osgconnect.net'
+export in2p3='cca.in2p3.fr'
 
 alias pyprof="python -m cProfile -s time "
 alias feh='feh --force-aliasing -B black '
 alias mfeh='feh --force-aliasing -B black -g 2000x2000'
-alias CC='cca.in2p3.fr'
 
 alias pcat=pygmentize
 function pless() {
