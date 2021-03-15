@@ -11,15 +11,13 @@ if [[ ! -e $exclude_list ]]; then
 fi
 from_dir=$HOME
 
-# bdisk=/media/havens
-bdisk=/run/media/esheldon/camp
+bdisk=/mnt/data
 if [[ ! -e "$bdisk" ]]; then
     echo "backup disk is missing: $bdisk"
     exit 1
 fi
 
-# backup_dir=/media/havens/backups-rivendell
-backup_dir=/run/media/esheldon/camp/esheldon/rivendell-backups/
+backup_dir=${bdisk}/esheldon/backups
 name=rivendell
 
 rsync-backup -e $exclude_list $from_dir $backup_dir $name

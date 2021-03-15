@@ -30,6 +30,9 @@
 
 # annoying dot directories
 /.azureus
+/.conda
+/.astropy
+/.parallel
 /.kde
 /.strigi
 /.macromedia
@@ -105,3 +108,4 @@
 /.mutt*
 /.nx*
 /.rust*
+/.zoom
