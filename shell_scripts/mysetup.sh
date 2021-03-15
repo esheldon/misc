@@ -82,7 +82,7 @@ for type; do
             mkdir .ssh
             chmod og-rx .ssh
         fi
-        ln -vfs .dotfiles/ssh/config .ssh/config
+        ln -vfs ${HOME}/.dotfiles/ssh/config .ssh/config
 
         mkdir -p .config/xfce4/terminal
         rm -f .config/xfce4/terminal/terminalrc
