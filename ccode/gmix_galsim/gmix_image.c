@@ -1,1 +1,0 @@
-../gmix_image/gmix_image.c

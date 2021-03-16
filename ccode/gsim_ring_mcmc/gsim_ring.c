@@ -1,1 +1,0 @@
-../gsim_ring/gsim_ring.c

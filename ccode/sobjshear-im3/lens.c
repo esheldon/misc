@@ -1,1 +1,0 @@
-../sobjshear-mom/lens.c

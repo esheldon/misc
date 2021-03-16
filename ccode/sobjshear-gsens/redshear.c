@@ -1,1 +1,0 @@
-../sobjshear-mom/redshear.c

@@ -1,1 +1,0 @@
-../sobjshear-mom/log.h

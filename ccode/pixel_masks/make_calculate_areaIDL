@@ -1,3 +1,0 @@
-rm calculate_areaIDL.so
-
-gcc -fPIC -O6 -lm -lgsl -lgslcblas -shared -o calculate_areaIDL.so calculate_areaIDL.c 

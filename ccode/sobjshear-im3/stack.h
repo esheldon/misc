@@ -1,1 +1,0 @@
-../sobjshear-mom/stack.h
