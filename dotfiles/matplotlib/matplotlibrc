@@ -3,7 +3,7 @@
 # backend: module://mplcairo.base
 # backend: PDF
 
-# text.usetex  : True
+text.usetex  : True
 mathtext.fontset : cm
 font.family : cmr10
 
