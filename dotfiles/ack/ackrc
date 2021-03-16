@@ -1,5 +1,0 @@
---ignore-dir=build
---ignore-dir=.git
-
---type-set=NB=.ipynb
---noNB

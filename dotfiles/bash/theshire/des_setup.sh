@@ -1,1 +1,0 @@
-export DESDATA=~/data/DES
