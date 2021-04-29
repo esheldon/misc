@@ -1,0 +1,18 @@
+https://developer.lsst.io/services/software.html?highlight=xpra#configure-remote-display-with-xpra
+
+
+# here is how a session will look
+kinit esheldon@NCSA.EDU
+
+# log into lsst-devl01
+ssh lsst-devl01
+
+# set the display number, 20 here but can be different
+xpra start :20
+export DISPLAY=:20
+
+# now on local machine do this
+# note it does not get the auth options from the ssh config,
+# we have to send them
+# same display number
+xpra attach --ssh="ssh -o='PreferredAuthentications=gssapi-with-mic,keyboard-interactive,password'" ssh:lsst-devl01:20
