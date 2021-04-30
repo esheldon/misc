@@ -16,3 +16,10 @@ export DISPLAY=:20
 # we have to send them
 # same display number
 xpra attach --ssh="ssh -o='PreferredAuthentications=gssapi-with-mic,keyboard-interactive,password'" ssh:lsst-devl01:20
+
+
+# to detach, on the remote do
+xpra detach
+
+# then to re-attach run the "xpra attach --ssh..." above gain
+# on the local
