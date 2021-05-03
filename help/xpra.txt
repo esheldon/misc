@@ -15,7 +15,7 @@ export DISPLAY=:20
 # note it does not get the auth options from the ssh config,
 # we have to send them
 # same display number
-xpra attach --ssh="ssh -o='PreferredAuthentications=gssapi-with-mic,keyboard-interactive,password'" ssh:lsst-devl01:20
+xpra attach --ssh="ssh -o='PreferredAuthentications=gssapi-with-mic,keyboard-interactive,password'" ssh:lsst-devl:20
 
 
 # to detach, on the remote do
