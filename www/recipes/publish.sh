@@ -24,4 +24,5 @@ rsync -av \
 
 chmod 711 "$dir"
 cd $dir
-chmod go-rw cgi_* cp.py create_newdb.py recipe_list.py
+# chmod go-rw cgi_* cp.py create_newdb.py recipe_list.py
+chmod 755 *py
