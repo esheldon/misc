@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
 """
 Write an html file for the input recipe id
 cgi_recipi2html.py?id=35&dbfile=recipe_database.db
