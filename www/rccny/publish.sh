@@ -21,5 +21,6 @@ rsync -av \
     --exclude "*" \
     ./ "$dir/"
 
-chmod go-rw $dir/*.py
+# chmod go-rw $dir/*.py
+chmod 755 $dir/*.py
 chmod 711 "$dir"
