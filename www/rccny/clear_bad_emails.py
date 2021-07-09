@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python2
 """
     Read a list of returned emails and set email='' for these in the database.
     Also set a comment explaining what happened.
